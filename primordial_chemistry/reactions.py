@@ -96,27 +96,30 @@ for s in species_table:
     exec("%s = species_table['%s']" % (s,s))
 
 reaction_table = dict(
-    k01 = Reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)]),
-    k02 = Reaction('k02', [   (1,HI),   (1,de)], [   (1,HI),         ]),
-    k03 = Reaction('k03', [  (1,HeI),   (1,de)], [ (1,HeII),   (2,de)]),
-    k04 = Reaction('k04', [ (1,HeII),   (1,de)], [  (1,HeI),         ]),
-    k05 = Reaction('k05', [ (1,HeII),   (1,de)], [(1,HeIII),   (2,de)]),
-    k06 = Reaction('k06', [(1,HeIII),   (1,de)], [ (1,HeII),         ]),
-    k07 = Reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ]),
-    k08 = Reaction('k08', [   (1,HM),   (1,HI)], [  (1,H2I),   (1,de)]),
-    k09 = Reaction('k09', [   (1,HI),  (1,HII)], [ (1,H2II),         ]),
-    k10 = Reaction('k10', [ (1,H2II),   (1,HI)], [  (1,H2I),  (1,HII)]),
+    r01 = Reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)]),
+    r02 = Reaction('k02', [   (1,HI),   (1,de)], [   (1,HI),         ]),
+    r03 = Reaction('k03', [  (1,HeI),   (1,de)], [ (1,HeII),   (2,de)]),
+    r04 = Reaction('k04', [ (1,HeII),   (1,de)], [  (1,HeI),         ]),
+    r05 = Reaction('k05', [ (1,HeII),   (1,de)], [(1,HeIII),   (2,de)]),
+    r06 = Reaction('k06', [(1,HeIII),   (1,de)], [ (1,HeII),         ]),
+    r07 = Reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ]),
+    r08 = Reaction('k08', [   (1,HM),   (1,HI)], [  (1,H2I),   (1,de)]),
+    r09 = Reaction('k09', [   (1,HI),  (1,HII)], [ (1,H2II),         ]),
+    r10 = Reaction('k10', [ (1,H2II),   (1,HI)], [  (1,H2I),  (1,HII)]),
 
-    k11 = Reaction('k11', [  (1,H2I),  (1,HII)], [  (1,H2II),  (1,HI)]),
-    k12 = Reaction('k12', [  (1,H2I),   (1,de)], [  (2,HII),   (1,de)]),
-    k13 = Reaction('k13', [  (1,H2I),   (1,HI)], [   (3,HI),         ]),
-    k14 = Reaction('k14', [   (1,HM),   (1,de)], [   (1,HI),   (2,de)]),
-    k15 = Reaction('k15', [   (1,HM),   (1,HI)], [   (2,HI),   (1,de)]),
-    k16 = Reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ]),
-    k17 = Reaction('k17', [   (1,HM),  (1,HII)], [ (1,H2II),   (1,de)]),
-    k18 = Reaction('k18', [ (1,H2II),   (1,de)], [   (2,HI),         ]),
-    k19 = Reaction('k19', [ (1,H2II),   (1,HM)], [   (1,HI),  (1,H2I)]),
-    k21 = Reaction('k21', [   (2,HI),  (1,H2I)], [  (2,H2I),         ]),
-    k22 = Reaction('k22', [   (2,HI),   (1,HI)], [  (1,H2I),   (1,HI)]),
-    k23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]),
+    r11 = Reaction('k11', [  (1,H2I),  (1,HII)], [  (1,H2II),  (1,HI)]),
+    r12 = Reaction('k12', [  (1,H2I),   (1,de)], [  (2,HII),   (1,de)]),
+    r13 = Reaction('k13', [  (1,H2I),   (1,HI)], [   (3,HI),         ]), #3b
+    r14 = Reaction('k14', [   (1,HM),   (1,de)], [   (1,HI),   (2,de)]),
+    r15 = Reaction('k15', [   (1,HM),   (1,HI)], [   (2,HI),   (1,de)]),
+    r16 = Reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ]),
+    r17 = Reaction('k17', [   (1,HM),  (1,HII)], [ (1,H2II),   (1,de)]),
+    r18 = Reaction('k18', [ (1,H2II),   (1,de)], [   (2,HI),         ]),
+    r19 = Reaction('k19', [ (1,H2II),   (1,HM)], [   (1,HI),  (1,H2I)]),
+    r21 = Reaction('k21', [   (2,HI),  (1,H2I)], [  (2,H2I),         ]), #3b
+    r22 = Reaction('k22', [   (2,HI),   (1,HI)], [  (1,H2I),   (1,HI)]), #3b
+    r23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]), #3b
 )
+
+for s in reaction_table:
+    exec("%s = reaction_table['%s']" % (s,s))
