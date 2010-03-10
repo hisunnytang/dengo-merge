@@ -21,19 +21,28 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+import numpy as na
+from initialize_rate_tables import reaction_rates_table
+
 class Reaction(object):
     def __init__(self, rate, left_side, right_side):
-        self.rate = rate
+        self.name = rate.replace("k","r")
+        self.rate = reaction_rates_table[rate]
         self.left_side = left_side
         self.right_side = right_side
 
-    def __call__(self, quantities):
-        # We just calculate our net derivative; we do no updating
+    def __call__(self, quantities, derivatives):
+        # We just calculate our net derivatives and stick them in the right
+        # place
         r = 0.0
         for n, s in self.left_side:
             r += s.number_density(quantities)**n
         k = self.rate(quantities)
         r *= k
+        for n, s in self.left_side:
+            derivatives[s.name] -= r * n * s.weight
+        for n, s in self.right_side:
+            derivatives[s.name] += r * n * s.weight
         return r
 
 class Species(object):
@@ -64,8 +73,8 @@ class QuantitiesTable(object):
         self.species_list = species_list
         self.values = na.zeros(len(species_list), dtype='float64')
         if initial_values is not None:
-            for i, v in enumerate(initial_values):
-                self.values[i] = v
+            for s, v in initial_values.items():
+                self.values[self._names[s]] = v
 
     def __getitem__(self, name):
         return self.values[self._names[name]]
@@ -73,13 +82,9 @@ class QuantitiesTable(object):
     def __setitem__(self, name, value):
         self.values[self._names[name]] = value
 
-class DerivativesTable(QuantitiesTable):
-    def __init__(self, species_list, initial_values = None):
-        self._names = {}
-        for i,s in enumerate(species_list):
-            self._names[s.name] = i
-        self.species_list = species_list
-        self.derivatives = na.zeros(len(species_list), dtype='float64')
+    def __iter__(self):
+        for i, s in enumerate(self.species_list):
+            yield self.values[self._names[s.name]]
 
 species_table = dict(
     HI = Species("HI", 1.0),
@@ -91,6 +96,7 @@ species_table = dict(
     HM = Species("HM", 1.0, -1.0),
     H2I = Species("H2I", 2.0),
     H2II = Species("H2II", 2.0, 1.0),
+    T = Species("T", 0.0, 0.0),
 )
 for s in species_table:
     exec("%s = species_table['%s']" % (s,s))

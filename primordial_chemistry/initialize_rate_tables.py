@@ -34,7 +34,7 @@ class ReactionRate(object):
 
     def __call__(self, quantities):
         T = quantities['T']
-        return self.table
+        return na.interp(T, self.T, self.values)
 
     @classmethod
     def init_temperature(cls, T_bounds, n_bins=1024):
@@ -158,7 +158,7 @@ vals[_i1] = 5.81e-16*(T/56200)**(-0.6657*na.log10(T/56200))
 reaction_rates_table['k09'] = ReactionRate('k09', vals)
 
 # -- k10 --
-vals = 6.0e-10
+vals = T * 0.0 + 6.0e-10
 reaction_rates_table['k10'] = ReactionRate('k10', vals)
 
 # -- k11 --
