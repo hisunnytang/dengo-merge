@@ -44,7 +44,7 @@ derivs = dict( ( (i, tiny) for i in fracs ) )
 iv = []
 for f,v in fracs.items(): 
     fracs[f] *= rho
-fracs["T"] = 400.0
+fracs["T"] = 100.0
 
 s = QuantitiesTable(species_list, fracs)
 d = QuantitiesTable(species_list, derivs)
@@ -57,12 +57,12 @@ def calc_derivs(quantities, derivatives, reactions):
     for n, reaction in sorted(reactions.items()):
         reaction(quantities, derivatives)
 
-def plot_vals(vals, prefix="values"):
+def plot_vals(vals, prefix="values", norm = 1.0):
     import matplotlib;matplotlib.use("Agg");import pylab
     for v in vals:
         if v == 't': continue
         pylab.clf()
-        pylab.loglog(vals['t'], vals[v], '-x')
+        pylab.loglog(vals['t'], vals[v]/norm, '-x')
         pylab.savefig("%s_%s.png" % (prefix, v))
         print "Saving: %s_%s.png" % (prefix, v)
 
@@ -78,11 +78,15 @@ def append_vals(all_vals, new_vals, t):
         if species not in all_vals: continue
         all_vals[species].append(new_vals[species])
 
+nsteps = 0
 while ti < tf:
-    print ti/tf
+    if (nsteps % 1000 == 0): print ti/tf
+    nsteps += 1
     append_vals(vals, s, ti)
     calc_derivs(s, d, reaction_table)
     update(s, d, dt)
-    d.values *= 0.0
+    print d['de']
+    d.values *= 0.0 + tiny
     ti += dt
-plot_vals(vals)
+for v in vals: vals[v] = na.array(vals[v])
+plot_vals(vals, norm=rho)

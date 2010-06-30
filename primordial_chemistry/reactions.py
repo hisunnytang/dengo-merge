@@ -103,7 +103,7 @@ for s in species_table:
 
 reaction_table = dict(
     r01 = Reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)]),
-    r02 = Reaction('k02', [   (1,HI),   (1,de)], [   (1,HI),         ]),
+    r02 = Reaction('k02', [  (1,HII),   (1,de)], [   (1,HI),         ]),
     r03 = Reaction('k03', [  (1,HeI),   (1,de)], [ (1,HeII),   (2,de)]),
     r04 = Reaction('k04', [ (1,HeII),   (1,de)], [  (1,HeI),         ]),
     r05 = Reaction('k05', [ (1,HeII),   (1,de)], [(1,HeIII),   (2,de)]),
