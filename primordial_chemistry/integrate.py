@@ -24,51 +24,70 @@ License:
 import numpy as na
 from scipy.integrate import ode
 
-from reactions import QuantitiesTable, reaction_table
+from reactions import QuantitiesTable, reaction_table, constraints
 import reactions as rxn
 from initialize_rate_tables import reaction_rates_table, tiny
+
+# Get our list of species, but it's important to note this is a list of Species
+# instances, not just names.
 species_list = [rxn.species_table[s] for s in
             ["HI","HII","HeI","HeII","HeIII","HM","de","H2I","H2II","T"]]
 
 rho = 100.0
-fracs = dict(HI    = 1.0 - 1e-4 - 1e-6,
-             HII   = 1e-4,
+
+# This is the initial fraction of every species
+fracs = dict(HI    = 1.0 - 1e-2,
+             HII   = 1e-2,
              HeI   = tiny,
              HeII  = tiny,
              HeIII = tiny,
              HM    = tiny,
-             de    = 1e-4,
-             H2I   = 1e-6,
+             de    = 1e-2,
+             H2I   = tiny,
              H2II  = tiny)
+
+# Initialize our derivatives as tiny
 derivs = dict( ( (i, tiny) for i in fracs ) )
-iv = []
+
+# Convert our fractions => densities
 for f,v in fracs.items(): 
     fracs[f] *= rho
+
+# Initialize our temperature
 fracs["T"] = 100.0
 
 s = QuantitiesTable(species_list, fracs)
-d = QuantitiesTable(species_list, derivs)
+ud = QuantitiesTable(species_list, derivs)
+dd = QuantitiesTable(species_list, derivs)
 
-def update(quantities, derivatives, dt):
+def euler_update(quantities, up_derivatives, down_derivatives, dt):
     for species in quantities.species_list:
-        quantities[species.name] += dt * derivatives[species.name]
+        net = (up_derivatives[species.name] - down_derivatives[species.name])
+        quantities[species.name] += dt * net
 
-def calc_derivs(quantities, derivatives, reactions):
+def bdf_update(quantities, up_derivatives, down_derivatives, dt):
+    for species in quantities.species_list:
+        n = species.name
+        q = quantities[n]
+        quantities[species.name] = ((q + dt*up_derivatives[n]) / 
+                                    (1.0 + dt*down_derivatives[n]/q))
+
+def calc_derivs(quantities, up_derivatives, down_derivatives, reactions):
     for n, reaction in sorted(reactions.items()):
-        reaction(quantities, derivatives)
+        reaction(quantities, up_derivatives, down_derivatives)
 
 def plot_vals(vals, prefix="values", norm = 1.0):
     import matplotlib;matplotlib.use("Agg");import pylab
     for v in vals:
         if v == 't': continue
         pylab.clf()
-        pylab.loglog(vals['t'], vals[v]/norm, '-x')
+        pylab.loglog(vals['t']/(365*24*3600), vals[v]/norm, '-x')
         pylab.savefig("%s_%s.png" % (prefix, v))
         print "Saving: %s_%s.png" % (prefix, v)
 
-tf = 1e9
-ti = 0.0
-dt = 1e5
+tf = 1e9 * (365*24*3600)
+ti = 0.0 * (365*24*3600)
+dt = 1e5 * (365*24*3600)
 vals = dict(((i.name, []) for i in species_list))
 vals['t'] = []
 
@@ -83,10 +102,11 @@ while ti < tf:
     if (nsteps % 1000 == 0): print ti/tf
     nsteps += 1
     append_vals(vals, s, ti)
-    calc_derivs(s, d, reaction_table)
-    update(s, d, dt)
-    print d['de']
-    d.values *= 0.0 + tiny
+    calc_derivs(s, ud, dd, reaction_table)
+    bdf_update(s, ud, dd, dt)
+    for c in constraints: c(s)
+    ud.values *= 0.0 + tiny
+    dd.values *= 0.0 + tiny
     ti += dt
 for v in vals: vals[v] = na.array(vals[v])
 plot_vals(vals, norm=rho)

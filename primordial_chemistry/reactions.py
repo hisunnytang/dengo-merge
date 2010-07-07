@@ -31,18 +31,18 @@ class Reaction(object):
         self.left_side = left_side
         self.right_side = right_side
 
-    def __call__(self, quantities, derivatives):
+    def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right
         # place
         r = 0.0
         for n, s in self.left_side:
             r += s.number_density(quantities)**n
         k = self.rate(quantities)
-        r *= k
-        for n, s in self.left_side:
-            derivatives[s.name] -= r * n * s.weight
+        r *= k # This is now the rXX from primordial_reactions.inc
         for n, s in self.right_side:
-            derivatives[s.name] += r * n * s.weight
+            up_derivatives[s.name] += r * n * s.weight
+        for n, s in self.left_side:
+            down_derivatives[s.name] += r * n * s.weight
         return r
 
 class Species(object):
@@ -63,7 +63,13 @@ class Constraint(object):
 
 class ChargeConservation(Constraint):
     def __call__(self, quantities):
-        pass
+        quantities["de"] = (quantities["HII"]
+                          + quantities["HeII"] / 4.0
+                          + quantities["HeIII"] / 2.0
+                          + quantities["H2II"] / 2.0
+                          - quantities["HM"])
+
+constraints = [ChargeConservation()]
 
 class QuantitiesTable(object):
     def __init__(self, species_list, initial_values = None):
@@ -86,6 +92,7 @@ class QuantitiesTable(object):
         for i, s in enumerate(self.species_list):
             yield self.values[self._names[s.name]]
 
+# This is the table of Species we know about
 species_table = dict(
     HI = Species("HI", 1.0),
     HII = Species("HII", 1.0, 1.0),
@@ -98,9 +105,11 @@ species_table = dict(
     H2II = Species("H2II", 2.0, 1.0),
     T = Species("T", 0.0, 0.0),
 )
+# We now update locals with the contents of the species table.
 for s in species_table:
     exec("%s = species_table['%s']" % (s,s))
 
+# This is the full set of Reactions we know about.
 reaction_table = dict(
     r01 = Reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)]),
     r02 = Reaction('k02', [  (1,HII),   (1,de)], [   (1,HI),         ]),
@@ -127,5 +136,11 @@ reaction_table = dict(
     r23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]), #3b
 )
 
+# We now update locals with the contents of the reaction_table.
 for s in reaction_table:
     exec("%s = reaction_table['%s']" % (s,s))
+
+for rname, r in reaction_table.items():
+    if rname not in ["r01", "r02"]:
+        print "Zeroing", rname
+        r.rate.values *= 0.0
