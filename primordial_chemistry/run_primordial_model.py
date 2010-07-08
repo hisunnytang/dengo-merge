@@ -22,21 +22,24 @@ License:
 """
 
 import numpy as na
-from scipy.integrate import ode
-
-from reactions import QuantitiesTable, reaction_table, constraints
-import reactions as rxn
-from initialize_rate_tables import reaction_rates_table, tiny
+import primordial_rates # This initializes reaction_rates_table
+from primordial_rates import reaction_table, species_table
+from reaction_classes import QuantitiesTable, constraints, \
+                reaction_rates_table
+from chemistry_constants import tiny
+from integration_helpers import euler_update, bdf_update, calc_derivs, \
+    all_euler_update, all_bdf_update, all_calc_derivs, all_plot_vals, \
+    update_vals, calculate_timestep
 
 # Get our list of species, but it's important to note this is a list of Species
 # instances, not just names.
-species_list = [rxn.species_table[s] for s in
+species_list = [species_table[s] for s in
             ["HI","HII","HeI","HeII","HeIII","HM","de","H2I","H2II","T"]]
 
-rho = 100.0
+rho = 100.0 # total rho
+X = 0.99 # ionization fraction
 
 # This is the initial fraction of every species
-X = 0.99 # ionization fraction
 fracs = dict(HI    = 1.0 - X,
              HII   = X,
              HeI   = tiny,
@@ -61,68 +64,29 @@ s = QuantitiesTable(species_list, fracs)
 ud = QuantitiesTable(species_list, derivs)
 dd = QuantitiesTable(species_list, derivs)
 
-def euler_update(quantities, up_derivatives, down_derivatives, dt):
-    for species in quantities.species_list:
-        net = (up_derivatives[species.name] - down_derivatives[species.name])
-        quantities[species.name] += dt * net
-
-def bdf_update(quantities, up_derivatives, down_derivatives, dt):
-    for species in quantities.species_list:
-        n = species.name
-        q = quantities[n]
-        quantities[species.name] = ((q + dt*up_derivatives[n]) / 
-                                    (1.0 + dt*down_derivatives[n]/q))
-
-def calc_derivs(quantities, up_derivatives, down_derivatives, reactions):
-    for n, reaction in sorted(reactions.items()):
-        reaction(quantities, up_derivatives, down_derivatives)
-
-def plot_vals(vals, prefix="values", norm = 1.0):
-    import matplotlib;matplotlib.use("Agg");import pylab
-    for v in vals:
-        if v == 't': continue
-        pylab.clf()
-        pylab.loglog(vals['t']/(365*24*3600), vals[v]/norm, '-x')
-        pylab.savefig("%s_%s.png" % (prefix, v))
-        print "Saving: %s_%s.png" % (prefix, v)
-
 tf = 1e11 * (365*24*3600)
 ti = 0.0 * (365*24*3600)
 dt = 1e5 * (365*24*3600)
 vals = dict(((i.name, []) for i in species_list))
 vals['t'] = []
 
-def append_vals(all_vals, new_vals, t):
-    all_vals['t'].append(t)
-    for species in new_vals._names:
-        if species not in all_vals: continue
-        all_vals[species].append(new_vals[species])
-
-def calculate_timestep(quantities, up_derivatives, down_derivatives):
-    dt = 1e30
-    for species in quantities.species_list:
-        if quantities[species.name]/rho < 1e-10: continue
-        net = (up_derivatives[species.name] - down_derivatives[species.name])
-        dt = min(dt, 0.1*abs(quantities[species.name] / net))
-    return dt
-
 nsteps = 0
 try:
     while ti < tf:
         nsteps += 1
         # Now we calculate our timestep
-        calc_derivs(s, ud, dd, reaction_table)
-        dt = min( tf-ti, calculate_timestep(s, ud, dd) )
-        append_vals(vals, s, ti)
-        bdf_update(s, ud, dd, dt)
-        #euler_update(s, ud, dd, dt)
+        all_calc_derivs(s, ud, dd, reaction_table)
+        dt = min( tf-ti, calculate_timestep(s, ud, dd, rho))
+        update_vals(vals, s, ti)
+        all_bdf_update(s, ud, dd, dt)
+        #all_euler_update(s, ud, dd, dt)
         for c in constraints: c(s)
         ti += dt
         ud.values *= 0.0 + tiny
         dd.values *= 0.0 + tiny
 except KeyboardInterrupt:
     pass
-append_vals(vals, s, ti)
+update_vals(vals, s, ti)
 for v in vals: vals[v] = na.array(vals[v])
 #plot_vals(vals, norm=rho)
 

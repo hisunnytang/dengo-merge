@@ -23,35 +23,17 @@ License:
 
 import numpy as na
 
-tevk = 1.1605e4
-tiny = 1e-30
-mh = 1.67e-24
+from chemistry_constants import tevk, tiny, mh
+from reaction_classes import ReactionRate, Species, Reaction, reaction_rates_table
 
-class ReactionRate(object):
-    def __init__(self, name, values):
-        self.values = values
-        self.name = name
-
-    def __call__(self, quantities):
-        T = quantities['T']
-        return na.interp(T, self.T, self.values)
-
-    @classmethod
-    def init_temperature(cls, T_bounds, n_bins=1024):
-        cls.n_bins = 1024
-        cls.T = na.logspace(
-            na.log10(T_bounds[0]), na.log10(T_bounds[1]), n_bins)
-        cls.logT = na.log(cls.T)
-        cls.tev = cls.T / tevk
-        cls.logtev = na.log(cls.tev)
-        cls.T_bounds = T_bounds
-
-reaction_rates_table = dict()
+# First we set up our constants
 ReactionRate.init_temperature((1.0, 1e5))
 T = ReactionRate.T
 logT = ReactionRate.logT
 tev= ReactionRate.tev
 logtev = ReactionRate.logtev
+
+# Now we actually set up our values...
 
 # -- k01 --
 vals = na.exp(-32.71396786375 
@@ -260,3 +242,52 @@ vals = ((8.125e-8 / na.sqrt(T))
 reaction_rates_table['k23'] = ReactionRate('k23', vals)
 
 del vals, _i1, _i2
+
+#
+# Now we create a number of species tables
+#
+
+# This is the table of Species we know about
+species_table = dict(
+    HI = Species("HI", 1.0),
+    HII = Species("HII", 1.0, 1.0),
+    HeI = Species("HeI", 4.0),
+    HeII = Species("HeII", 4.0, 1.0),
+    HeIII = Species("HeIII", 4.0, 2.0),
+    de = Species("de", 1.0),
+    HM = Species("HM", 1.0, -1.0),
+    H2I = Species("H2I", 2.0),
+    H2II = Species("H2II", 2.0, 1.0),
+    T = Species("T", 0.0, 0.0),
+)
+
+locals().update(species_table)
+
+# This is the full set of Reactions we know about.
+reaction_table = dict(
+    r01 = Reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)]),
+    r02 = Reaction('k02', [  (1,HII),   (1,de)], [   (1,HI),         ]),
+    r03 = Reaction('k03', [  (1,HeI),   (1,de)], [ (1,HeII),   (2,de)]),
+    r04 = Reaction('k04', [ (1,HeII),   (1,de)], [  (1,HeI),         ]),
+    r05 = Reaction('k05', [ (1,HeII),   (1,de)], [(1,HeIII),   (2,de)]),
+    r06 = Reaction('k06', [(1,HeIII),   (1,de)], [ (1,HeII),         ]),
+    r07 = Reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ]),
+    r08 = Reaction('k08', [   (1,HM),   (1,HI)], [  (1,H2I),   (1,de)]),
+    r09 = Reaction('k09', [   (1,HI),  (1,HII)], [ (1,H2II),         ]),
+    r10 = Reaction('k10', [ (1,H2II),   (1,HI)], [  (1,H2I),  (1,HII)]),
+
+    r11 = Reaction('k11', [  (1,H2I),  (1,HII)], [  (1,H2II),  (1,HI)]),
+    r12 = Reaction('k12', [  (1,H2I),   (1,de)], [  (2,HII),   (1,de)]),
+    r13 = Reaction('k13', [  (1,H2I),   (1,HI)], [   (3,HI),         ]), #3b
+    r14 = Reaction('k14', [   (1,HM),   (1,de)], [   (1,HI),   (2,de)]),
+    r15 = Reaction('k15', [   (1,HM),   (1,HI)], [   (2,HI),   (1,de)]),
+    r16 = Reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ]),
+    r17 = Reaction('k17', [   (1,HM),  (1,HII)], [ (1,H2II),   (1,de)]),
+    r18 = Reaction('k18', [ (1,H2II),   (1,de)], [   (2,HI),         ]),
+    r19 = Reaction('k19', [ (1,H2II),   (1,HM)], [   (1,HI),  (1,H2I)]),
+    r21 = Reaction('k21', [   (2,HI),  (1,H2I)], [  (2,H2I),         ]), #3b
+    r22 = Reaction('k22', [   (2,HI),   (1,HI)], [  (1,H2I),   (1,HI)]), #3b
+    r23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]), #3b
+)
+
+locals().update(reaction_table)
