@@ -23,13 +23,24 @@ License:
 
 import numpy as na
 import matplotlib;matplotlib.use("Agg");import pylab
+from chemistry_constants import tiny
 
 def euler_update(quantities, up_derivatives, down_derivatives, dt, name):
     # We only update the named species
+    species = quantities.get_by_name(name)
+    q = quantities[name]
+    if species.equilibrium:
+        quantities[name] = q * up_derivatives[name]/down_derivatives[name]
+        return
     net = (up_derivatives[name] - down_derivatives[name])
     quantities[name] += dt * net
 
 def bdf_update(quantities, up_derivatives, down_derivatives, dt, name):
+    species = quantities.get_by_name(name)
+    q = quantities[name]
+    if species.equilibrium:
+        quantities[name] = q * up_derivatives[name]/down_derivatives[name]
+        return
     quantities[name] = ((quantities[name] + dt*up_derivatives[name]) / 
                         (1.0 + dt*down_derivatives[name]/q))
 
@@ -41,6 +52,14 @@ def calc_derivs(quantities, up_derivatives, down_derivatives, reactions,
 
 def all_euler_update(quantities, up_derivatives, down_derivatives, dt):
     for species in quantities.species_list:
+        n = species.name
+        q = quantities[n]
+        if species.equilibrium:
+            ud = max(up_derivatives[n], tiny)
+            dd = max(down_derivatives[n], tiny)
+            quantities[n] = q * ud/dd
+            print species.name, quantities[n], q
+            continue
         net = (up_derivatives[species.name] - down_derivatives[species.name])
         quantities[species.name] += dt * net
 
@@ -48,10 +67,17 @@ def all_bdf_update(quantities, up_derivatives, down_derivatives, dt):
     for species in quantities.species_list:
         n = species.name
         q = quantities[n]
-        quantities[species.name] = ((q + dt*up_derivatives[n]) / 
-                                    (1.0 + dt*down_derivatives[n]/q))
+        if species.equilibrium:
+            ud = max(up_derivatives[n], tiny)
+            dd = max(down_derivatives[n], tiny)
+            quantities[n] = q * ud/dd
+            continue
+        quantities[n] = ((q + dt*up_derivatives[n]) / 
+                         (1.0 + dt*down_derivatives[n]/q))
 
 def all_calc_derivs(quantities, up_derivatives, down_derivatives, reactions):
+    up_derivatives.values *= 0.0 + tiny
+    down_derivatives.values *= 0.0 + tiny
     for n, reaction in sorted(reactions.items()):
         reaction(quantities, up_derivatives, down_derivatives)
 

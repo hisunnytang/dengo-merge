@@ -70,20 +70,28 @@ dt = 1e5 * (365*24*3600)
 vals = dict(((i.name, []) for i in species_list))
 vals['t'] = []
 
+order_of_update = ["HII","HI","de","HM","H2II","H2I","HeI","HeII","HeIII"]
+for rname, r in reaction_table.items():
+    if rname not in ["r02"]:
+        print "Zeroing", rname
+        r.rate.values *= 0.0
+
 nsteps = 0
 try:
     while ti < tf:
         nsteps += 1
-        # Now we calculate our timestep
+        # Now we calculate our timestep, using ALL the derivatives
+        # Note that this implicitly clears it
         all_calc_derivs(s, ud, dd, reaction_table)
         dt = min( tf-ti, calculate_timestep(s, ud, dd, rho))
         update_vals(vals, s, ti)
-        all_bdf_update(s, ud, dd, dt)
-        #all_euler_update(s, ud, dd, dt)
+        for sname in order_of_update:
+            ud.values *= 0.0 + tiny
+            dd.values *= 0.0 + tiny
+            calc_derivs(s, ud, dd, reaction_table, sname)
+            bdf_update(s, ud, dd, dt, sname)
         for c in constraints: c(s)
         ti += dt
-        ud.values *= 0.0 + tiny
-        dd.values *= 0.0 + tiny
 except KeyboardInterrupt:
     pass
 update_vals(vals, s, ti)

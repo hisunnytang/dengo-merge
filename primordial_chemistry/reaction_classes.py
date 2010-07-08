@@ -74,14 +74,11 @@ class Reaction(object):
         return a
 
 class Species(object):
-    name = None
-    weight = 1.0
-    free_electrons = 0.0
-
-    def __init__(self, name, weight, free_electrons = 0.0):
+    def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False):
         self.name = name
         self.weight = weight
         self.free_electrons = free_electrons
+        self.equilibrium = equilibrium
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
@@ -132,3 +129,5 @@ class QuantitiesTable(object):
         for i, s in enumerate(self.species_list):
             yield self.values[self._names[s.name]]
 
+    def get_by_name(self, name):
+        return self.species_list[self._names[name]]
