@@ -58,7 +58,7 @@ for f,v in fracs.items():
     fracs[f] *= rho
 
 # Initialize our temperature
-fracs["T"] = 100.0
+fracs["T"] = 500.0
 
 s = QuantitiesTable(species_list, fracs)
 ud = QuantitiesTable(species_list, derivs)
@@ -71,7 +71,7 @@ vals = dict(((i.name, []) for i in species_list))
 vals['t'] = []
 
 order_of_update = ["HII","HI","de","HM","H2II","H2I","HeI","HeII","HeIII"]
-for rname, r in reaction_table.items():
+for rname, r in []: #reaction_table.items():
     if rname not in ["r02"]:
         print "Zeroing", rname
         r.rate.values *= 0.0
@@ -92,6 +92,7 @@ try:
             bdf_update(s, ud, dd, dt, sname)
         for c in constraints: c(s)
         ti += dt
+        if nsteps % 100 == 0: print ti/tf
 except KeyboardInterrupt:
     pass
 update_vals(vals, s, ti)
