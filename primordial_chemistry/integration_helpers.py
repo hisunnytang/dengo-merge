@@ -39,7 +39,8 @@ def bdf_update(quantities, up_derivatives, down_derivatives, dt, name):
     species = quantities.get_by_name(name)
     q = quantities[name]
     if species.equilibrium:
-        quantities[name] = q * up_derivatives[name]/down_derivatives[name]
+        quantities[name] = q * ((max(up_derivatives[name], tiny))
+                              / (max(down_derivatives[name], tiny)))
         return
     quantities[name] = ((quantities[name] + dt*up_derivatives[name]) / 
                         (1.0 + dt*down_derivatives[name]/q))
