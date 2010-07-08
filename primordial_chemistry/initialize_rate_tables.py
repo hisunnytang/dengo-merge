@@ -24,7 +24,7 @@ License:
 import numpy as na
 
 tevk = 1.1605e4
-tiny = 1e-60
+tiny = 1e-30
 mh = 1.67e-24
 
 class ReactionRate(object):

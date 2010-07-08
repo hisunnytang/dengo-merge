@@ -30,20 +30,27 @@ class Reaction(object):
         self.rate = reaction_rates_table[rate]
         self.left_side = left_side
         self.right_side = right_side
+        self.considered = set( (s.name for n, s in left_side + right_side) )
+        print self.considered
 
     def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right
         # place
-        r = 0.0
+        r = self.rate(quantities)
         for n, s in self.left_side:
-            r += s.number_density(quantities)**n
-        k = self.rate(quantities)
-        r *= k # This is now the rXX from primordial_reactions.inc
-        for n, s in self.right_side:
-            up_derivatives[s.name] += r * n * s.weight
+            r *= s.number_density(quantities)**n
         for n, s in self.left_side:
             down_derivatives[s.name] += r * n * s.weight
+        for n, s in self.right_side:
+            up_derivatives[s.name] += r * n * s.weight
         return r
+
+    def __repr__(self):
+        a = "%s : " % self.name \
+          + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] ) \
+          + " => " \
+          + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.right_side] )
+        return a
 
 class Species(object):
     name = None
@@ -58,6 +65,9 @@ class Species(object):
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
 
+    def __repr__(self):
+        return "Species: %s" % (self.name)
+
 class Constraint(object):
     pass
 
@@ -69,7 +79,12 @@ class ChargeConservation(Constraint):
                           + quantities["H2II"] / 2.0
                           - quantities["HM"])
 
-constraints = [ChargeConservation()]
+class Floor(Constraint):
+    def __call__(self, quantities):
+        for s in quantities.species_list:
+            quantities[s.name] = max(quantities[s.name], 1e-30)
+
+constraints = [ChargeConservation(), Floor()]
 
 class QuantitiesTable(object):
     def __init__(self, species_list, initial_values = None):
@@ -141,6 +156,6 @@ for s in reaction_table:
     exec("%s = reaction_table['%s']" % (s,s))
 
 for rname, r in reaction_table.items():
-    if rname not in ["r01", "r02"]:
+    if rname not in ["r02"]:
         print "Zeroing", rname
         r.rate.values *= 0.0
