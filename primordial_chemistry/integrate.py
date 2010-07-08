@@ -103,7 +103,7 @@ def calculate_timestep(quantities, up_derivatives, down_derivatives):
     for species in quantities.species_list:
         if quantities[species.name]/rho < 1e-10: continue
         net = (up_derivatives[species.name] - down_derivatives[species.name])
-        dt = min(dt, abs(quantities[species.name] / net))
+        dt = min(dt, 0.1*abs(quantities[species.name] / net))
     return dt
 
 nsteps = 0
@@ -117,10 +117,9 @@ try:
         bdf_update(s, ud, dd, dt)
         #euler_update(s, ud, dd, dt)
         for c in constraints: c(s)
+        ti += dt
         ud.values *= 0.0 + tiny
         dd.values *= 0.0 + tiny
-        ti += dt
-        if (nsteps % 10 == 0): print ti/tf, vals['HI'][-1]/rho
 except KeyboardInterrupt:
     pass
 append_vals(vals, s, ti)
@@ -129,7 +128,8 @@ for v in vals: vals[v] = na.array(vals[v])
 
 # Neutral fraction:
 c1 = 1.0 / X
-foft = 1.0 - 1.0/(c1 + reaction_rates_table['k02'](vals) * vals['t'])
+fk02 = reaction_rates_table['k02'](vals)
+foft = 1.0 - 1.0/(c1 + fk02 * vals['t'] * rho)
 import matplotlib;matplotlib.use("Agg");import pylab
 pylab.clf()
 pylab.loglog(vals['t']/(365*24*3600), vals['HI']/rho, '-k')
