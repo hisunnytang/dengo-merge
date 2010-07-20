@@ -6,13 +6,41 @@
 #include "rates_and_rate_tables.h"
 
 TableOfRates *{{ solver_name }}_read_rate_tables();
+void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals,
+        double *inputvals, TableOfRates *rate_tables);
 
+#ifdef INSERT_MAIN
 int main(int argc, char** argv)
 {
     TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
     fprintf(stderr, "Successfully read in rate tables.\n");
+    /* Now we run some tests.  This is just equally-spaced interpolation. */
+    int i, ri, nvals = 5;
+    double **test_output = (double **) calloc(my_rates->nrates, sizeof(double*));
+    double *test_input = (double *) calloc(nvals, sizeof(double));
+    double db = (log10(my_rates->rates[0].bounds[1]) -
+                 log10(my_rates->rates[0].bounds[0]))/(nvals + 1);
+    for (i = 0; i < nvals; i++)
+    {
+        test_input[i] = my_rates->rates[0].bounds[0] * pow(10, db*i);
+        fprintf(stderr, "Setting test_input[%i] = %0.8e\n", i, test_input[i]);
+    }
+    for (i = 0; i < my_rates->nrates; i++)
+    {
+        test_output[i] = (double *) calloc(nvals, sizeof(double));
+    }
+    {{ solver_name }}_interpolate_rates(
+        nvals, test_output, test_input, my_rates);
+    for (i = 0; i < nvals; i++)
+    {
+        for (ri = 0; ri < my_rates->nrates; ri++)
+        {
+            fprintf(stderr, "% 5i: % 5i: %0.8e\n", i, ri, test_output[ri][i]);
+        }
+    }
     return 0;
 }
+#endif
 
 TableOfRates *{{ solver_name }}_read_rate_tables()
 {
@@ -87,3 +115,5 @@ void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals, double 
         }
     }
 }
+
+

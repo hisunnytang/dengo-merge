@@ -13,6 +13,7 @@ test_primordial_solver : simple_cvode_solver/primordial_cvode_solver.c
 	@echo "Recompiling"
 	@gcc -Isimple_cvode_solver -I/usr/local/include -L/usr/local/include \
 		-lhdf5_hl -lhdf5 simple_cvode_solver/primordial_cvode_solver.c \
+        -D INSERT_MAIN -g \
 		-o test_primordial_solver
 
 run_test : test_primordial_solver
