@@ -90,7 +90,7 @@ class Constraint(object):
     pass
 
 class ChargeConservation(Constraint):
-    def __call__(self, quantities):
+    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
         quantities["de"] = (quantities["HII"]
             + quantities["HeII"] / 4.0
             + quantities["HeIII"] / 2.0
@@ -102,11 +102,19 @@ class ChargeConservation(Constraint):
             quantities["de"] += q.free_electrons * q.number_density(quantities)
 
 class Floor(Constraint):
-    def __call__(self, quantities):
+    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
         for s in quantities.species_list:
             quantities[s.name] = max(quantities[s.name], 1e-30)
 
-constraints = [ChargeConservation(), Floor()]
+class ChemicalHeating(Constraint):
+    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
+        # Get the total mass
+        rho = sum(quantities[i] for i in
+                ["HI","HII","HM","H2I","H2II","HeI","HeII","HeIII"])
+        dH2 = (up_derivatives["H2I"] - down_derivatives["H2I"])*dt
+        quantities["T"] += dH2 * 51998.0/rho
+
+constraints = [ChemicalHeating(), ChargeConservation(), Floor()]
 
 class QuantitiesTable(object):
     def __init__(self, species_list, initial_values = None):

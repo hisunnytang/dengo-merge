@@ -92,9 +92,12 @@ try:
             dd.values *= 0.0 + tiny
             calc_derivs(s, ud, dd, reaction_table, sname)
             bdf_update(s, ud, dd, dt, sname)
-        for c in constraints: c(s)
+        ud.values *= 0.0 + tiny
+        dd.values *= 0.0 + tiny
+        calc_derivs(s, ud, dd, reaction_table, "H2I")
+        for c in constraints: c(s, ud, dd, dt)
         ti += dt
-        if nsteps % 100 == 0: print ti/tf, vals["H2I"][-1]/rho
+        if nsteps % 100 == 0: print ti/tf, vals["H2I"][-1]/rho, vals["T"][-1]
 except KeyboardInterrupt:
     pass
 print "Took %0.3e steps to get to %0.3e seconds" % (nsteps, ti)

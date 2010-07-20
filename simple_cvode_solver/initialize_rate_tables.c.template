@@ -1,0 +1,51 @@
+/* THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY */
+
+#include "stdlib.h"
+#include "H5LT.h"
+#include "rates_and_rate_tables.h"
+
+TableOfRates *read_rate_tables();
+
+int main(int argc, char** argv)
+{
+    TableOfRates *my_rates = read_rate_tables();
+    fprintf(stderr, "Successfully read in rate tables.\n");
+    return 0;
+}
+
+TableOfRates *read_rate_tables()
+{
+    TableOfRates *chemical_rates = 
+            (TableOfRates *) malloc(sizeof(TableOfRates));
+
+    herr_t status;
+    hid_t file_id = H5Fopen("{{ solver_name }}_rate_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    hsize_t dims;
+
+    chemical_rates->nrates = {{ rate_table|length }};
+    chemical_rates->rates =
+            (RateTable *) malloc(sizeof(RateTable) * chemical_rates->nrates);
+
+    int i = 0;
+
+    RateTable *crate;
+
+    {% set i = 0 %}
+    {% for name, rate in rate_table.items() %}
+    {% set i = i + 1 %}
+    /* Now reading our {{ i }}-th rate, {{ rate.name }} */
+    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
+    crate = &chemical_rates->rates[i];
+    crate->bounds[0] = {{ rate.T_bounds[0] }};
+    crate->bounds[1] = {{ rate.T_bounds[1] }};
+    crate->nbins = {{ rate.T | length }};
+    crate->dbin = (crate->bounds[1] - crate->bounds[0]) / crate->nbins;
+    crate->idbin = 1.0L / crate->dbin;
+    crate->values = (double *) malloc(crate->nbins * sizeof(double));
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
+    i++;
+    {% endfor %}
+
+    return chemical_rates;
+}
