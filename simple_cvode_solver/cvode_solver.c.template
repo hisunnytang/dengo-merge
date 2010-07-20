@@ -1,10 +1,37 @@
-/* THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY */
+/* 
+   THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY.
+   
+   EDIT THE TEMPLATE INSTEAD.
+*/
+
+/* CVODE includes */
+
+#include "cvode.h"
+#include <nvector/nvector_serial.h>  /* serial N_Vector types, fcts., macros */
+#include <cvode/cvode_dense.h>       /* prototype for CVDense */
+#include <sundials/sundials_dense.h> /* definitions DlsMat DENSE_ELEM */
+#include <sundials/sundials_types.h> /* definition of type realtype */
+
+/* stdlib, hdf5, local includes */
 
 #include "stdlib.h"
 #include "math.h"
 #include "H5LT.h"
 #include "rates_and_rate_tables.h"
 
+#define {{ solver_name }}_MAX_CELLS 1024
+
+typedef struct {{ solver_name }}_cvode_data {
+    int ncells;
+    double T[{{ solver_name }}_MAX_CELLS];
+    double **rates;
+    double species_work[{{ species | length }}];
+    double reactions_work[{{ reactions | length }}];
+    TableOfRates *rate_tables;
+} {{ solver_name }}_cvode_data;
+
+/* These change with the particular reaction rate solver, so we do not
+outsource them to a header file. */
 TableOfRates *{{ solver_name }}_read_rate_tables();
 void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals,
         double *inputvals, TableOfRates *rate_tables);
@@ -60,12 +87,10 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
 
     RateTable *crate;
 
-    {% set i = 0 %}
-    {% for name, rate in rate_table.items() %}
-    {% set i = i + 1 %}
-    /* Now reading our {{ i }}-th rate, {{ rate.name }} */
+    {% for name, rate in rate_table|dictsort %}
+    /* Now reading our {{ rate.rate_id }}-th rate, {{ rate.name }} */
     status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
-    crate = &chemical_rates->rates[i];
+    crate = &chemical_rates->rates[{{ rate.rate_id }}];
     crate->bounds[0] = {{ rate.T_bounds[0] }};
     crate->bounds[1] = {{ rate.T_bounds[1] }};
     crate->nbins = {{ rate.T | length }};
@@ -116,4 +141,64 @@ void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals, double 
     }
 }
 
+void {{ solver_name }}_cvode_calculate_temperature(
+    double *Tout, N_Vector y, int ncells)
+{
+    
+}
 
+static int {{ solver_name }}_calc_derivs(
+    realtype t, N_Vector y, N_Vector ydot, void *user_data)
+{
+  /* Psuedocode for calculating:
+      calculate our T
+      interpolate our k values at their T 
+      for cell in cells:
+          for rxn in rxns:
+              calculate r from species and k values
+          for s in species:
+              for rxn in rxns:
+                  if s not in rxn.considered: continue
+                  ydot(s) += rxn.dot(species)
+          calculate cooling
+          ydot(ge) += cooling
+  */
+
+  int i, cell, offset;
+  /* Now we have our user_data object. */
+  {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
+  for (i = 0 ; i < {{ species | length }} ; i++)
+  {
+    data->species_work[i] = 0.0;
+  }
+  /* This function calculates the temperature and stores it in a member of the
+  data object */
+
+  /* Note that we use the name 'cvode' here because it needs to understand the
+  cvode vector setup as well as the offset information */
+  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells );
+  {{ solver_name }}_interpolate_rates( data->ncells, data->rates, data->T,
+                                       data->rate_tables);
+
+  /* We calculate our offset between identical species for different cells */
+  int species_offset = {{ species | length }};
+
+  for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
+  {
+    /*
+      We fundamentally calculate cooling differently than chemical kinetic
+      equations, but note that above we also carry our 'species' that is gas
+      energy; we simply have no chemical rate equations that depend on it.
+    */
+    for (i = 0; i < {{ species | length }}; i++)
+    {
+        data->species_work[i] = NV_Ith_S(y, i);
+    }
+    {% for rname, rxn in reactions|dictsort %}  
+    /* Calculating reaction value for {{ rxn.name }} */
+    data->reactions_work[{{ rxn.reaction_id }}] =
+        {{ "data->rates[%s][cell]" % rxn.reaction_id }} *
+        {{ rxn.print_c_reaction_value( "data->species_work[%s]") }} ;
+    {% endfor %}
+  }
+}

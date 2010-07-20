@@ -30,14 +30,19 @@ def create_tables(rate_list, solver_name):
         f.create_dataset("/%s" % name, data = rate.values.astype("float64"))
     f.close()
 
-def create_table_reader(rate_list, solver_name):
+def create_table_reader(rate_list, reaction_table, species, solver_name):
     s = open("simple_cvode_solver/cvode_solver.c.template").read()
     template = Template(s)
-    out_s = template.render(rate_table = rate_list, solver_name = solver_name)
+    out_s = template.render(rate_table = rate_list, 
+                            reactions = reaction_table,
+                            solver_name = solver_name,
+                            species = species)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(out_s)
 
 if __name__ == "__main__":
-    from primordial_rates import reaction_rates_table
+    from primordial_rates import reaction_rates_table, reaction_table, \
+        species_table
     create_tables(reaction_rates_table, "primordial")
-    create_table_reader(reaction_rates_table, "primordial")
+    create_table_reader(reaction_rates_table, reaction_table, species_table,
+                        "primordial")
