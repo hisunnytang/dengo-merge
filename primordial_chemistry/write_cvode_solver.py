@@ -31,10 +31,10 @@ def create_tables(rate_list, solver_name):
     f.close()
 
 def create_table_reader(rate_list, solver_name):
-    s = open("simple_cvode_solver/initialize_rate_tables.c.template").read()
+    s = open("simple_cvode_solver/cvode_solver.c.template").read()
     template = Template(s)
     out_s = template.render(rate_table = rate_list, solver_name = solver_name)
-    f = open("simple_cvode_solver/%s_initialize_rate_tables.c" % solver_name, "w")
+    f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(out_s)
 
 if __name__ == "__main__":
