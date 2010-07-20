@@ -36,18 +36,20 @@ from integration_helpers import euler_update, bdf_update, calc_derivs, \
 species_list = [species_table[s] for s in
             ["HI","HII","HeI","HeII","HeIII","HM","de","H2I","H2II","T"]]
 
-rho = 100.0 # total rho
-X = 0.99 # ionization fraction
+Temperature = 300
+rho = 1.0e10 # total rho in amu/cc
+X   = 0.01 # ionization fraction
+fH2 = 0.50 # ionization fraction
 
 # This is the initial fraction of every species
-fracs = dict(HI    = 1.0 - X,
+fracs = dict(HI    = 1.0 - X - fH2,
              HII   = X,
              HeI   = tiny,
              HeII  = tiny,
              HeIII = tiny,
              HM    = tiny,
              de    = X,
-             H2I   = tiny,
+             H2I   = fH2,
              H2II  = tiny)
 
 # Initialize our derivatives as tiny
@@ -58,7 +60,7 @@ for f,v in fracs.items():
     fracs[f] *= rho
 
 # Initialize our temperature
-fracs["T"] = 500.0
+fracs["T"] = Temperature
 
 s = QuantitiesTable(species_list, fracs)
 ud = QuantitiesTable(species_list, derivs)
@@ -92,9 +94,10 @@ try:
             bdf_update(s, ud, dd, dt, sname)
         for c in constraints: c(s)
         ti += dt
-        if nsteps % 100 == 0: print ti/tf
+        if nsteps % 100 == 0: print ti/tf, vals["H2I"][-1]/rho
 except KeyboardInterrupt:
     pass
+print "Took %0.3e steps to get to %0.3e seconds" % (nsteps, ti)
 update_vals(vals, s, ti)
 for v in vals: vals[v] = na.array(vals[v])
 #plot_vals(vals, norm=rho)
@@ -108,4 +111,6 @@ pylab.clf()
 pylab.loglog(vals['t']/(365*24*3600), vals['HI']/rho, '-k')
 pylab.loglog(vals['t']/(365*24*3600), foft, '--b')
 pylab.savefig("recombination.png")
-print foft/(vals['HI']/rho)
+#print foft/(vals['HI']/rho)
+
+all_plot_vals(vals, 'values', rho)
