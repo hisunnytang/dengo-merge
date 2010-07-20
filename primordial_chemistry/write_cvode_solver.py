@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from jinja2 import Template
+import jinja2
 import h5py
 
 def create_tables(rate_list, solver_name):
@@ -31,8 +31,9 @@ def create_tables(rate_list, solver_name):
     f.close()
 
 def create_table_reader(rate_list, reaction_table, species, solver_name):
+    env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'])
     s = open("simple_cvode_solver/cvode_solver.c.template").read()
-    template = Template(s)
+    template = env.template_class(s)
     out_s = template.render(rate_table = rate_list, 
                             reactions = reaction_table,
                             solver_name = solver_name,
