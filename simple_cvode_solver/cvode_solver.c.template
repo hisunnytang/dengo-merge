@@ -1,19 +1,20 @@
 /* THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY */
 
 #include "stdlib.h"
+#include "math.h"
 #include "H5LT.h"
 #include "rates_and_rate_tables.h"
 
-TableOfRates *read_rate_tables();
+TableOfRates *{{ solver_name }}_read_rate_tables();
 
 int main(int argc, char** argv)
 {
-    TableOfRates *my_rates = read_rate_tables();
+    TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
     fprintf(stderr, "Successfully read in rate tables.\n");
     return 0;
 }
 
-TableOfRates *read_rate_tables()
+TableOfRates *{{ solver_name }}_read_rate_tables()
 {
     TableOfRates *chemical_rates = 
             (TableOfRates *) malloc(sizeof(TableOfRates));
@@ -48,4 +49,41 @@ TableOfRates *read_rate_tables()
     {% endfor %}
 
     return chemical_rates;
+}
+
+/*
+   This setup may be different than the user may anticipate, as a result
+   of the lockstep timestep we use for a pencil beam through the grid.
+   As such, it accepts the number of things to interpolate and makes
+   assumptions about the sizes of the rates.
+*/
+
+
+/* This also requires no templating other than for the solver name...*/
+void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals, double *inputvals,
+                       TableOfRates *rate_tables)
+{
+    /* TODO: Change bounds of all rates to be universal -- calculate outside
+       the loop the indices into the rate tables */
+
+    int i, ri, bin_id;
+    RateTable *crate;
+    double *log_input = calloc(nvals, sizeof(double));
+    double dd, bv, dy, lb, ub;
+    for (i = 0; i < nvals; i++) log_input[i] = log10(inputvals[i]);
+
+    for (ri = 0; ri < rate_tables->nrates; ri++) {
+        crate = &rate_tables->rates[ri];
+        lb = log10(crate->bounds[0]);
+        ub = log10(crate->bounds[1]);
+        for (i = 0; i < nvals; i++) {
+            /* Our interpolation logic here */
+            /* Identify our bin */
+            bin_id = (int) crate->idbin * (log_input[i] - lb);
+            dd = log_input[i] - (bin_id * crate->dbin + lb);
+            bv = crate->values[bin_id];
+            dy = crate->values[bin_id + 1] - bv;
+            outputvals[ri][i] = bv + dd*dy*crate->idbin;
+        }
+    }
 }
