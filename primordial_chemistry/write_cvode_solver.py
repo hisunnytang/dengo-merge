@@ -48,7 +48,7 @@ if __name__ == "__main__":
         species_table
     s = ""
 
-    Temperature = 300
+    Temperature = 1500
     rho = 1.0e10 # total rho in amu/cc
     X   = 0.01 # ionization fraction
     fH2 = 0.50 # ionization fraction
@@ -64,13 +64,16 @@ if __name__ == "__main__":
                  H2I   = fH2,
                  H2II  = tiny)
 
+
+    s += "for (i = 0; i < data.ncells ; i++) {\n"
     for sname, val in sorted(fracs.items()):
         # Get the species ID
         i = species_table[sname].species_id
-        s += "NV_Ith_S(y, %s) = %0.5e; // %s\n" % (
+        s += "NV_Ith_S(y, i*offset + %s) = %0.5e; // %s\n" % (
             i, val * rho, sname)
-    s += "NV_Ith_S(y, %s) = %0.5e; // T\n" % (
+    s += "NV_Ith_S(y, i*offset + %s) = %0.5e; // T\n" % (
             species_table["T"].species_id, Temperature)
+    s += "}"
 
     create_tables(reaction_rates_table, "primordial")
     create_table_reader(reaction_rates_table, reaction_table, species_table,

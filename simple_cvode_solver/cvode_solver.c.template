@@ -19,11 +19,9 @@
 #include "H5LT.h"
 #include "rates_and_rate_tables.h"
 
-#define {{ solver_name }}_MAX_CELLS 1024
-
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
-    double T[{{ solver_name }}_MAX_CELLS];
+    double *T;
     double **rates;
     double species_work[{{ species | length }}];
     double reactions_work[{{ reactions | length }}];
@@ -45,13 +43,14 @@ int main(int argc, char** argv)
     TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
     fprintf(stderr, "Successfully read in rate tables.\n");
     /* Now we run some tests.  This is just equally-spaced interpolation. */
-    int i, ri;
+    int i, ri, offset = {{ species | length }};
 
     {{ solver_name }}_cvode_data data;
     my_rates->nrates = {{ reactions | length }};
-    data.ncells = 1;
+    data.ncells = 64;
     void *user_data = (void *) &data;
 
+    data.T = (double *) calloc(data.ncells, sizeof(double));
     data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
     for (i = 0; i < my_rates->nrates; i++)
         data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
@@ -68,7 +67,7 @@ int main(int argc, char** argv)
     cvode_mem = NULL;
 
     /* Create serial vector of length NEQ for I.C. and abstol */
-    y = N_VNew_Serial({{ species | length }});
+    y = N_VNew_Serial({{ species | length }} * data.ncells);
     if (check_flag((void *)y, "N_VNew_Serial", 0)) return(1);
 
     {{ initial_conditions }}
@@ -96,7 +95,8 @@ int main(int argc, char** argv)
     if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
 
     /* Call CVDense to specify the CVDENSE dense linear solver */
-    flag = CVDense(cvode_mem, {{ species | length }});
+    //flag = CVDiag(cvode_mem);
+    flag = CVDense(cvode_mem, data.ncells * {{ species | length }});
     if (check_flag(&flag, "CVDense", 1)) return(1);
 
     /* In loop, call CVode, print results, and test for error.
@@ -106,6 +106,7 @@ int main(int argc, char** argv)
     realtype tfinal = 1e14;
     iout = 0;  tout = 1e-3;
     while(1) {
+      printf("Requesting output from CVODE at %0.3e\n", tout);
       flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
 
       if (check_flag(&flag, "CVode", 1)) break;
@@ -114,7 +115,7 @@ int main(int argc, char** argv)
       }
 
       if (tout >= tfinal) break;
-      tout *= 2.0;;
+      tout *= 2.0;
     }
 
     /* Free y and abstol vectors */
@@ -127,7 +128,7 @@ int main(int argc, char** argv)
 }
 #endif
 
-#ifdef SAMPLE_INTERPOLATE
+#else ifdef SAMPLE_INTERPOLATE
 int main(int argc, char** argv)
 {
     TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
@@ -243,7 +244,7 @@ void {{ solver_name }}_cvode_calculate_temperature(
         Tout[cell] = NV_Ith_S(y, {{s.species_id}} + offset*cell);
       {%- endif %}
       {%- endfor %}
-      printf("T: %i = %0.3e\n", cell, Tout[cell]);
+      //printf("T: %i = %0.3e\n", cell, Tout[cell]);
     }
 }
 
@@ -291,7 +292,6 @@ static int {{ solver_name }}_cvode_calc_derivs(
     for (i = 0; i < {{ species | length }}; i++)
     {
         data->species_work[i] = NV_Ith_S(y, i + offset);
-        NV_Ith_S(ydot, i + offset);
     }
     {%- for rname, rxn in reactions|dictsort %}  
     /* Calculating reaction value for {{ rxn.name }} */
@@ -329,10 +329,12 @@ static int {{ solver_name }}_cvode_calc_derivs(
         {%- endif %}
       {%- endfor %}
       );
+    /*
     printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
            cell, "{{ sname }}",
            NV_Ith_S(y   , {{ s.species_id }} + offset),
            NV_Ith_S(ydot, {{ s.species_id }} + offset));
+    */
     {%- endfor %}
 
   }
