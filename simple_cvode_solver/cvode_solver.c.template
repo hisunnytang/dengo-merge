@@ -98,6 +98,9 @@ int main(int argc, char** argv)
     flag = CVodeSStolerances(cvode_mem, reltol, abstol);
     if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
 
+    flag = CVodeSetMaxNumSteps(cvode_mem, 10000);
+    if (check_flag(&flag, "CVodeSetMaxNumSteps", 1)) return(1);
+
     /* Call CVDense to specify the CVDENSE dense linear solver */
     //flag = CVDiag(cvode_mem);
     flag = CVDense(cvode_mem, data.ncells * {{ species | length }});
