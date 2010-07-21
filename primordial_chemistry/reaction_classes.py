@@ -106,11 +106,13 @@ class Reaction(object):
         return " * ".join(st)
 
 class Species(object):
-    def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False):
+    def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False,
+                 computed = False):
         self.name = name
         self.weight = weight
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
+        self.computed = computed
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight

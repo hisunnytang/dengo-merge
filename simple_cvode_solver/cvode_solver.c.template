@@ -268,6 +268,8 @@ static int {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
   /* Psuedocode for calculating:
+      create variables
+
       calculate our T
       interpolate our k values at their T 
       for cell in cells:
@@ -303,13 +305,11 @@ static int {{ solver_name }}_cvode_calc_derivs(
   /* Now we have our user_data object. */
   {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
 
-  /* This function calculates the temperature and stores it in a member of the
-  data object */
 
-  /* Note that we use the name 'cvode' here because it needs to understand the
-  cvode vector setup as well as the offset information */
-  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells,
-                        species_offset );
+  {% block compute_temperature %}
+#error "You must implement the compute_temperature block, even if it is empty!"
+  {% endblock %}
+
   {{ solver_name }}_interpolate_rates( data->ncells, data->rates, data->T,
                                        data->rate_tables);
 
@@ -323,8 +323,10 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {% for sname, s in non_eq_species_table|dictsort %}
     {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ non_eq_species_ids[sname] }});
     {% endfor %}
-    /* We now calculate our computed species: */
-    /* DO SOMETHING HERE */
+
+    {% block apply_constraints %}
+#error "You must implement the apply_constraints block, even if it is empty!"
+    {% endblock %}
 
     {%- for rname, rxn in reaction_table|dictsort %}  
     /* Calculating reaction value for {{ rxn.name }}
@@ -335,7 +337,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
 
     {%- endfor %}
 
-    /* TODO: CHECK THIS WITH THE WEIGHTING */
+
     {%- for sname, s in non_eq_species_table|dictsort %}
       /*
          Handling species {{ sname }}

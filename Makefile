@@ -12,6 +12,7 @@ clean :
 
 simple_cvode_solver/primordial_cvode_solver.c : \
         simple_cvode_solver/cvode_solver.c.template \
+        simple_cvode_solver/primordial_cvode_solver.c.template \
         primordial_chemistry/*.py
 	@echo "Regenerating solver from template"
 	@python2.6 primordial_chemistry/write_cvode_solver.py

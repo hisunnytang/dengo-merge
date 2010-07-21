@@ -76,28 +76,30 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
             for b, a in enumerate(sorted(non_eq_species_table))])
     num_solved_species = len(non_eq_species_table)
     num_total_species = len(species_varnames)
-    env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'])
-    s = open("simple_cvode_solver/cvode_solver.c.template").read()
-    template = env.template_class(s)
+    env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
+            loader = jinja2.FileSystemLoader(["simple_cvode_solver/","."]))
+    solver_template = env.get_template(
+        "simple_cvode_solver/%s_cvode_solver.c.template" % (solver_name))
     #from IPython.Shell import IPShellEmbed
     #IPShellEmbed()()
-    out_s = template.render(num_solved_species = num_solved_species,
-                            num_total_species = num_total_species,
-                            rate_table = rate_table,
-                            rate_ids = rate_ids,
-                            irate_table = irate_table, 
-                            reaction_table = reaction_table,
-                            reaction_ids = reaction_ids,
-                            reaction_varnames = reaction_varnames,
-                            ireaction_table = ireaction_table,
-                            solver_name = solver_name,
-                            species_table = species_table,
-                            non_eq_species_table = non_eq_species_table,
-                            non_eq_species_ids = non_eq_species_ids,
-                            eq_species_table = eq_species_table,
-                            species_varnames = species_varnames)
+    template_vars = dict(num_solved_species = num_solved_species,
+                         num_total_species = num_total_species,
+                         rate_table = rate_table,
+                         rate_ids = rate_ids,
+                         irate_table = irate_table, 
+                         reaction_table = reaction_table,
+                         reaction_ids = reaction_ids,
+                         reaction_varnames = reaction_varnames,
+                         ireaction_table = ireaction_table,
+                         solver_name = solver_name,
+                         species_table = species_table,
+                         non_eq_species_table = non_eq_species_table,
+                         non_eq_species_ids = non_eq_species_ids,
+                         eq_species_table = eq_species_table,
+                         species_varnames = species_varnames)
+    solver_out = solver_template.render(**template_vars)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
-    f.write(out_s)
+    f.write(solver_out)
 
 def create_initial_conditions(values, solver_name):
     f = h5py.File("%s_initial_conditions.h5" % solver_name, "w")

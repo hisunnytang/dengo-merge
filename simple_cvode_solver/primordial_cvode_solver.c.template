@@ -1,0 +1,11 @@
+{% extends "cvode_solver.c.template" %}
+{% block compute_temperature %}
+  /* Note that we use the name 'cvode' here because it needs to understand the
+  cvode vector setup as well as the offset information */
+  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells,
+                        species_offset );
+{% endblock %}
+
+{% block apply_constraints %}
+
+{% endblock %}
