@@ -128,7 +128,7 @@ int main(int argc, char** argv)
 }
 #endif
 
-#else ifdef SAMPLE_INTERPOLATE
+#ifdef SAMPLE_INTERPOLATE
 int main(int argc, char** argv)
 {
     TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
