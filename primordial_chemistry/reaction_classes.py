@@ -113,6 +113,7 @@ class Species(object):
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
         self.computed = computed
+        if equilibrium and computed: raise RuntimeError
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight

@@ -67,13 +67,17 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
     #   * eq_species_table: maps species name to Species object
     #   * species_varnames: maps species name to local variable name
     non_eq_species_table = dict([ (a, b)
-            for a, b in species_table.items() if not b.equilibrium ])
-    eq_species_table = dict([ (a, b)
-            for a, b in species_table.items() if b.equilibrium ])
-    species_varnames = dict([(a, "s_%02i" % i)
-            for i, a in enumerate(sorted(species_table))])
+            for a, b in species_table.items() if not b.equilibrium
+                    and not b.computed])
     non_eq_species_ids = dict([ (a, b)
             for b, a in enumerate(sorted(non_eq_species_table))])
+    eq_species_table = dict([ (a, b)
+            for a, b in species_table.items() if b.equilibrium 
+                    and not b.computed])
+    eq_species_ids = dict([ (a, b)
+            for b, a in enumerate(sorted(eq_species_table))])
+    species_varnames = dict([(a, "s_%02i" % i)
+            for i, a in enumerate(sorted(species_table))])
     num_solved_species = len(non_eq_species_table)
     num_total_species = len(species_varnames)
     env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
@@ -96,6 +100,7 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
                          non_eq_species_table = non_eq_species_table,
                          non_eq_species_ids = non_eq_species_ids,
                          eq_species_table = eq_species_table,
+                         eq_species_ids = eq_species_ids,
                          species_varnames = species_varnames)
     solver_out = solver_template.render(**template_vars)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
@@ -113,9 +118,9 @@ if __name__ == "__main__":
 
     NCELLS = 64
     Temperature = 350
-    rho = 1.0e10 # total rho in amu/cc
+    rho = 1.0e9 # total rho in amu/cc
     X   = 0.01 # ionization fraction
-    fH2 = 0.10 # ionization fraction
+    fH2 = 0.0001 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,

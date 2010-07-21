@@ -9,3 +9,10 @@
 {% block apply_constraints %}
 
 {% endblock %}
+
+{% block end_of_derivatives %}
+    NV_Ith_S(ydot, {{ non_eq_species_ids["T"] }} + offset) += 
+        (52000.0 / data->rho[cell]) * (
+        {{ reaction_varnames["r21"] }} + {{ reaction_varnames["r22"] }}
+     - ({{ reaction_varnames["r13"] }} + {{ reaction_varnames["r23"] }} ) );
+{% endblock %}

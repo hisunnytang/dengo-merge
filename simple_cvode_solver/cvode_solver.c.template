@@ -21,12 +21,17 @@
 #include "H5LT.h"
 #include "rates_and_rate_tables.h"
 
+{% if eq_species_ids | length > 0 %}
+#error "Equilibrium species not yet supported."
+{% endif %}
+
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
     double *T;
     double *rho;
     double **rates;
-    double reactions_work[{{ reaction_table | length }}];
+    /* This is probably invalid, as CVODE may rewind */
+    double *eq_species[{{ eq_species_ids | length }}];
     TableOfRates *rate_tables;
 } {{ solver_name }}_cvode_data;
 
@@ -71,6 +76,8 @@ int main(int argc, char** argv)
     data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
     for (i = 0; i < my_rates->nrates; i++)
         data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
+    for (i = 0; i < {{ eq_species_table | length }}; i++)
+        data.eq_species[i] = (double *) calloc(data.ncells, sizeof(double));
 
     data.rate_tables = my_rates;
 
@@ -89,6 +96,18 @@ int main(int argc, char** argv)
         printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
     }
     {% endfor %}
+
+    {% for sname, sid in eq_species_ids|dictsort %}
+    printf("Reading /{{ sname }}\n");
+    H5LTread_dataset_double(file_id, "/{{ sname }}", values);
+    for (i = 0; i < data.ncells; i++)
+    {
+        data.eq_species[ {{ eq_species_ids[sname] }} ][i] = values[i];
+        printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
+    }
+    {% endfor %}
+
+
     printf("Reading /rho\n");
     H5LTread_dataset_double(file_id, "/rho", data.rho);
 
@@ -320,8 +339,8 @@ static int {{ solver_name }}_cvode_calc_derivs(
       equations, but note that above we also carry our 'species' that is gas
       energy; we simply have no chemical rate equations that depend on it.
     */
-    {% for sname, s in non_eq_species_table|dictsort %}
-    {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ non_eq_species_ids[sname] }});
+    {% for sname, sid in non_eq_species_ids|dictsort %}
+    {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
     {% endfor %}
 
     {% block apply_constraints %}
@@ -373,9 +392,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
            NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
 #endif
 
-    NV_Ith_S(ydot, {{ non_eq_species_ids["T"] }} + offset) += 
-        (0.5 / data->rho[cell]) * 52000.0 *
-        NV_Ith_S(ydot, offset + {{ non_eq_species_ids["H2I"] }});
+    {% block end_of_derivatives %}{% endblock %}
 
     {%- endfor %}
 
