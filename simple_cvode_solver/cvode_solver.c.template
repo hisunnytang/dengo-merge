@@ -35,8 +35,99 @@ outsource them to a header file. */
 TableOfRates *{{ solver_name }}_read_rate_tables();
 void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals,
         double *inputvals, TableOfRates *rate_tables);
+static int {{ solver_name }}_cvode_calc_derivs(
+    realtype t, N_Vector y, N_Vector ydot, void *user_data);
+static int check_flag(void *flagvalue, char *funcname, int opt);
 
-#ifdef INSERT_MAIN
+#ifdef SAMPLE_TEST_PROBLEM
+int main(int argc, char** argv)
+{
+    TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
+    fprintf(stderr, "Successfully read in rate tables.\n");
+    /* Now we run some tests.  This is just equally-spaced interpolation. */
+    int i, ri;
+
+    {{ solver_name }}_cvode_data data;
+    my_rates->nrates = {{ reactions | length }};
+    data.ncells = 1;
+    void *user_data = (void *) &data;
+
+    data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
+    for (i = 0; i < my_rates->nrates; i++)
+        data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
+
+    data.rate_tables = my_rates;
+
+    /* Now boilerplate CVODE stuff */
+    realtype reltol, t, tout, abstol;
+    N_Vector y;
+    void *cvode_mem;
+    int flag, flagr, iout;
+
+    y = NULL;
+    cvode_mem = NULL;
+
+    /* Create serial vector of length NEQ for I.C. and abstol */
+    y = N_VNew_Serial({{ species | length }});
+    if (check_flag((void *)y, "N_VNew_Serial", 0)) return(1);
+
+    {{ initial_conditions }}
+
+    /* Set the scalar relative tolerance */
+    reltol = 1e-5; abstol = 0.0;
+
+    /* Call CVodeCreate to create the solver memory and specify the 
+     * Backward Differentiation Formula and the use of a Newton iteration */
+    cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+    if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
+
+    /* Call CVodeInit to initialize the integrator memory and specify the
+     * user's right hand side function in y'=f(t,y), the inital time T0, and
+     * the initial dependent variable vector y. */
+    flag = CVodeInit(cvode_mem, {{ solver_name }}_cvode_calc_derivs, 0.0, y);
+    if (check_flag(&flag, "CVodeInit", 1)) return(1);
+
+    flag = CVodeSetUserData(cvode_mem, user_data);
+    if (check_flag(&flag, "CVodeSetUserData", 1)) return(1);
+
+    /* Call CVodeSVtolerances to specify the scalar relative tolerance
+     * and vector absolute tolerances */
+    flag = CVodeSStolerances(cvode_mem, reltol, abstol);
+    if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
+
+    /* Call CVDense to specify the CVDENSE dense linear solver */
+    flag = CVDense(cvode_mem, {{ species | length }});
+    if (check_flag(&flag, "CVDense", 1)) return(1);
+
+    /* In loop, call CVode, print results, and test for error.
+       Break out of loop when NOUT preset output times have been reached.  */
+    printf(" \n{{ species | length }}-species kinetics problem\n\n");
+
+    realtype tfinal = 1e14;
+    iout = 0;  tout = 1e-3;
+    while(1) {
+      flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
+
+      if (check_flag(&flag, "CVode", 1)) break;
+      if (flag == CV_SUCCESS) {
+        iout++;
+      }
+
+      if (tout >= tfinal) break;
+      tout *= 2.0;;
+    }
+
+    /* Free y and abstol vectors */
+    N_VDestroy_Serial(y);
+
+    /* Free integrator memory */
+    CVodeFree(&cvode_mem);
+
+    return(0);
+}
+#endif
+
+#ifdef SAMPLE_INTERPOLATE
 int main(int argc, char** argv)
 {
     TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
@@ -142,9 +233,17 @@ void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals, double 
 }
 
 void {{ solver_name }}_cvode_calculate_temperature(
-    double *Tout, N_Vector y, int ncells)
+    double *Tout, N_Vector y, int ncells, int offset)
 {
-    
+    int cell;
+    for (cell = 0; cell < ncells; cell++ )
+    {
+      {%- for sname, s in species|dictsort %}
+      {%- if sname == "T" %}
+        Tout[cell] = NV_Ith_S(y, {{s.species_id}} + offset*cell);
+      {%- endif %}
+      {%- endfor %}
+    }
 }
 
 static int {{ solver_name }}_cvode_calc_derivs(
@@ -165,6 +264,8 @@ static int {{ solver_name }}_cvode_calc_derivs(
   */
 
   int i, cell, offset;
+  /* We calculate our offset between identical species for different cells */
+  int species_offset = {{ species | length }};
 
   /* Now we have our user_data object. */
   {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
@@ -174,12 +275,10 @@ static int {{ solver_name }}_cvode_calc_derivs(
 
   /* Note that we use the name 'cvode' here because it needs to understand the
   cvode vector setup as well as the offset information */
-  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells );
+  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells,
+                        species_offset );
   {{ solver_name }}_interpolate_rates( data->ncells, data->rates, data->T,
                                        data->rate_tables);
-
-  /* We calculate our offset between identical species for different cells */
-  int species_offset = {{ species | length }};
 
   for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
   {
@@ -232,4 +331,31 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {%- endfor %}
 
   }
+}
+
+static int check_flag(void *flagvalue, char *funcname, int opt)
+{
+  int *errflag;
+
+  /* Check if SUNDIALS function returned NULL pointer - no memory allocated */
+  if (opt == 0 && flagvalue == NULL) {
+    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  /* Check if flag < 0 */
+  else if (opt == 1) {
+    errflag = (int *) flagvalue;
+    if (*errflag < 0) {
+      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
+	      funcname, *errflag);
+      return(1); }}
+
+  /* Check if function returned NULL pointer - no memory allocated */
+  else if (opt == 2 && flagvalue == NULL) {
+    fprintf(stderr, "\nMEMORY_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  return(0);
 }

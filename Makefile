@@ -16,7 +16,7 @@ test_primordial_solver : simple_cvode_solver/primordial_cvode_solver.c
         -L/usr/local/lib -lhdf5_hl -lhdf5 \
         -lsundials_cvode -lsundials_nvecserial \
         simple_cvode_solver/primordial_cvode_solver.c \
-        -D INSERT_MAIN -g \
+        -DSAMPLE_TEST_PROBLEM -g \
 		-o test_primordial_solver
 
 run_test : test_primordial_solver

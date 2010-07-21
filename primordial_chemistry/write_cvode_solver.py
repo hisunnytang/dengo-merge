@@ -21,6 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from chemistry_constants import tiny
 import jinja2
 import h5py
 
@@ -30,20 +31,47 @@ def create_tables(rate_list, solver_name):
         f.create_dataset("/%s" % name, data = rate.values.astype("float64"))
     f.close()
 
-def create_table_reader(rate_list, reaction_table, species, solver_name):
+def create_table_reader(rate_list, reaction_table, species, solver_name, ics = ""):
     env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'])
     s = open("simple_cvode_solver/cvode_solver.c.template").read()
     template = env.template_class(s)
     out_s = template.render(rate_table = rate_list, 
                             reactions = reaction_table,
                             solver_name = solver_name,
-                            species = species)
+                            species = species,
+                            initial_conditions = ics)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(out_s)
 
 if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
+    s = ""
+
+    Temperature = 300
+    rho = 1.0e10 # total rho in amu/cc
+    X   = 0.01 # ionization fraction
+    fH2 = 0.50 # ionization fraction
+
+    # This is the initial fraction of every species
+    fracs = dict(HI    = 1.0 - X - fH2,
+                 HII   = X,
+                 HeI   = tiny,
+                 HeII  = tiny,
+                 HeIII = tiny,
+                 HM    = tiny,
+                 de    = X,
+                 H2I   = fH2,
+                 H2II  = tiny)
+
+    for sname, val in sorted(fracs.items()):
+        # Get the species ID
+        i = species_table[sname].species_id
+        s += "NV_Ith_S(y, %s) = %0.5e; // %s\n" % (
+            i, val * rho, sname)
+    s += "NV_Ith_S(y, %s) = %0.5e; // T\n" % (
+            species_table["T"].species_id, Temperature)
+
     create_tables(reaction_rates_table, "primordial")
     create_table_reader(reaction_rates_table, reaction_table, species_table,
-                        "primordial")
+                        "primordial", ics = s)
