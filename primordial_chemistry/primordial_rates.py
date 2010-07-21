@@ -27,7 +27,7 @@ from chemistry_constants import tevk, tiny, mh
 from reaction_classes import ReactionRate, Species, Reaction, reaction_rates_table
 
 # First we set up our constants
-ReactionRate.init_temperature((1.0, 1e5))
+ReactionRate.init_temperature((1.0, 1e7))
 T = ReactionRate.T
 logT = ReactionRate.logT
 tev= ReactionRate.tev
