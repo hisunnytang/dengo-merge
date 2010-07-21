@@ -243,6 +243,7 @@ void {{ solver_name }}_cvode_calculate_temperature(
         Tout[cell] = NV_Ith_S(y, {{s.species_id}} + offset*cell);
       {%- endif %}
       {%- endfor %}
+      printf("T: %i = %0.3e\n", cell, Tout[cell]);
     }
 }
 
@@ -305,7 +306,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
          Handling species {{ sname }}
       */
 
-      NV_Ith_S(ydot, {{ s.species_id }} + offset) += {{ s.weight }} * (
+      NV_Ith_S(ydot, {{ s.species_id }} + offset) = {{ s.weight }} * (
         0.0 
       {%- for rname, rxn in reactions|dictsort %}
         {%- if sname in rxn.considered %}
@@ -328,9 +329,16 @@ static int {{ solver_name }}_cvode_calc_derivs(
         {%- endif %}
       {%- endfor %}
       );
+    printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
+           cell, "{{ sname }}",
+           NV_Ith_S(y   , {{ s.species_id }} + offset),
+           NV_Ith_S(ydot, {{ s.species_id }} + offset));
     {%- endfor %}
 
   }
+
+  return (0);
+
 }
 
 static int check_flag(void *flagvalue, char *funcname, int opt)
