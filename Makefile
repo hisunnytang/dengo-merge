@@ -1,3 +1,10 @@
+CC=icc
+HDF5_INCLUDES=-I${HDF5_DIR}/include
+HDF5_LIBRARIES=-L${HDF5_DIR}/lib -lhdf5_hl -lhdf5
+CVODE_INCLUDES=-I${HDF5_DIR}/include/cvode
+CVODE_LIBRARIES=-L${HDF5_DIR}/lib -lsundials_cvode -lsundials_nvecserial
+CCFLAGS=-O3
+
 all : test_primordial_solver run_test
 
 clean :
@@ -11,10 +18,12 @@ simple_cvode_solver/primordial_cvode_solver.c : \
 
 test_primordial_solver : simple_cvode_solver/primordial_cvode_solver.c 
 	@echo "Recompiling"
-	@gcc -Isimple_cvode_solver  \
-        -I/usr/local/include -I/usr/local/include/cvode \
-        -L/usr/local/lib -lhdf5_hl -lhdf5 \
-        -lsundials_cvode -lsundials_nvecserial \
+	$(CC) $(CCFLAGS) \
+        -Isimple_cvode_solver \
+        $(HDF5_INCLUDES)   \
+        $(CVODE_INCLUDES)  \
+        $(HDF5_LIBRARIES)  \
+        $(CVODE_LIBRARIES) \
         simple_cvode_solver/primordial_cvode_solver.c \
         -DSAMPLE_TEST_PROBLEM -g \
 		-o test_primordial_solver
