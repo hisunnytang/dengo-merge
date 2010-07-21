@@ -66,6 +66,13 @@ int main(int argc, char** argv)
     herr_t status = H5LTget_dataset_info(file_id, "/{{ sn }}", &dims, NULL, NULL);
     printf("  ncells = % 3i\n", (int) dims);
     data.ncells = dims;
+    data.T = (double *) calloc(data.ncells, sizeof(double));
+    data.rho = (double *) calloc(data.ncells, sizeof(double));
+    data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
+    for (i = 0; i < my_rates->nrates; i++)
+        data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
+
+    data.rate_tables = my_rates;
 
     /* Create serial vector of length NEQ for I.C. and abstol */
     N_Vector y = NULL;
@@ -82,16 +89,10 @@ int main(int argc, char** argv)
         printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
     }
     {% endfor %}
+    printf("Reading /rho\n");
+    H5LTread_dataset_double(file_id, "/rho", data.rho);
 
     void *user_data = (void *) &data;
-
-    data.T = (double *) calloc(data.ncells, sizeof(double));
-    data.rho = (double *) calloc(data.ncells, sizeof(double));
-    data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
-    for (i = 0; i < my_rates->nrates; i++)
-        data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
-
-    data.rate_tables = my_rates;
 
     /* Now boilerplate CVODE stuff */
     realtype reltol, t, tout, abstol;
@@ -283,12 +284,16 @@ static int {{ solver_name }}_cvode_calc_derivs(
   int i, cell, offset;
 
   /* We map all of our species to variables:
-     {% for v, vname in species_varnames|dictsort %}{{ v }} => {{ vname }}{% endfor %}
+     {%- for v, vname in species_varnames|dictsort %}
+     {{ "% 8s => % 8s" | format(v, vname) }}
+     {%- endfor %}
   */
   realtype {% for v in species_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
 
   /* We map all of our reactions to variables:
-     {% for v, vname in reaction_varnames|dictsort %}{{ v }} => {{ vname }}{% endfor %}
+     {%- for v, vname in reaction_varnames|dictsort %}
+     {{ "% 8s => % 8s" | format(v, vname) }}
+     {%- endfor %}
   */
   realtype {% for v in reaction_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
 
@@ -352,24 +357,25 @@ static int {{ solver_name }}_cvode_calc_derivs(
         {%- for nchange, s1 in rxn.left_side %}
           {% if s1.name == s.name %}
           /* Contribution from left side */
-          +{{ nchange|float }}L * {{ reaction_varnames[rname] }}
+          -{{ nchange|float }}L * {{ reaction_varnames[rname] }}
           {%- endif %}
         {%- endfor %}
         {%- endif %}
       {%- endfor %}
       );
-#define {{ solver_name }}_CVODE_DEBUG
+#define {{ solver_name }}_CVODE_DEBUG_OFF
 #ifdef {{ solver_name }}_CVODE_DEBUG
     printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
            cell, "{{ sname }}",
            {{ species_varnames[sname] }},
            NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
 #endif
-    {%- endfor %}
 
     NV_Ith_S(ydot, {{ non_eq_species_ids["T"] }} + offset) += 
         (0.5 / data->rho[cell]) * 52000.0 *
-        NV_Ith_S(ydot, {{ non_eq_species_ids["H2I"] }});
+        NV_Ith_S(ydot, offset + {{ non_eq_species_ids["H2I"] }});
+
+    {%- endfor %}
 
   }
 

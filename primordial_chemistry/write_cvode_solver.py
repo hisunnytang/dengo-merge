@@ -109,9 +109,9 @@ if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
 
-    NCELLS = 1
+    NCELLS = 64
     Temperature = 350
-    rho = 1.0e15 # total rho in amu/cc
+    rho = 1.0e10 # total rho in amu/cc
     X   = 0.01 # ionization fraction
     fH2 = 0.10 # ionization fraction
 
@@ -125,9 +125,10 @@ if __name__ == "__main__":
                  de    = X,
                  H2I   = fH2,
                  H2II  = tiny,
-                 T = Temperature)
-    values = dict( [(n, na.array([v]*NCELLS, dtype='float64'))
+                 rho = 1.0)
+    values = dict( [(n, rho*v*na.ones(NCELLS, dtype='float64'))
                     for n, v in fracs.items()] )
+    values["T"] = Temperature*na.ones(NCELLS, dtype='float64')
     create_initial_conditions(values, "primordial")
 
     create_tables(reaction_rates_table, "primordial")
