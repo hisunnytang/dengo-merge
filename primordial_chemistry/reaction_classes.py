@@ -27,10 +27,7 @@ from chemistry_constants import tevk, tiny, mh
 reaction_rates_table = dict()
 
 class ReactionRate(object):
-    count = 0
     def __init__(self, name, values):
-        self.rate_id = self.__class__.count
-        self.__class__.count += 1
         self.values = values
         self.name = name
 
@@ -49,10 +46,7 @@ class ReactionRate(object):
         cls.T_bounds = T_bounds
 
 class Reaction(object):
-    count = 0
     def __init__(self, rate, left_side, right_side):
-        self.reaction_id = self.__class__.count
-        self.__class__.count += 1
         self.name = rate.replace("k","r")
         self.rate = reaction_rates_table[rate]
         self.left_side = left_side
@@ -103,19 +97,16 @@ class Reaction(object):
         st += "}\n"
         return st
 
-    def print_c_reaction_value(self, species_template):
+    def print_c_reaction_value(self, species_varnames):
         st = []
         for n, s in self.left_side:
             st += [" * ".join([
-                s.print_c_number_density(species_template % s.species_id)
+                s.print_c_number_density(species_varnames[s.name])
                 for i in xrange(n)])]
         return " * ".join(st)
 
 class Species(object):
-    count = 0
     def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False):
-        self.species_id = self.__class__.count
-        self.__class__.count += 1
         self.name = name
         self.weight = weight
         self.free_electrons = free_electrons

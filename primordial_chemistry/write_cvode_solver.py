@@ -24,6 +24,7 @@ License:
 from chemistry_constants import tiny
 import jinja2
 import h5py
+import numpy as na
 
 def create_tables(rate_list, solver_name):
     f = h5py.File("%s_rate_tables.h5" % solver_name, "w")
@@ -31,33 +32,86 @@ def create_tables(rate_list, solver_name):
         f.create_dataset("/%s" % name, data = rate.values.astype("float64"))
     f.close()
 
-def create_cvode_solver(rate_list, reaction_table, species, solver_name, ics = ""):
-    # Generate inverse tables
-    ireaction_table = dict([(r.name, r.reaction_id) for r in reaction_table.values()])
-    irate_list = dict([(r.name, r.rate_id) for r in rate_list.values()])
-    ispecies = dict([(s.name, s.species_id) for s in species_table.values()])
-
+def create_cvode_solver(rate_table, reaction_table, species_table,
+                        solver_name):
+    # What we are handed here is:
+    #   * rate_table, which is a dict of "kXX" to ReactionRate objects.  These
+    #     will be used in the reading of rates from disk, but will not directly
+    #     be used in the calculation of the derivatives.
+    #   * reaction_table, which is a dict of "rXX" to Reaction objects.  These
+    #     objects have left_side, right_side, and considered attributes that
+    #     describe which species are members of each and how they contribute.
+    #     Note that *left_side* and *right_side* are tuples of (n, S), where S
+    #     is an instance of Species, but that *considered* is a set of strings.
+    #   * species_table, which is a dict of "H2I" (etc) to Species objects.
+    #     The Species objects are notable for having information about whether
+    #     they are in *equilibrium*, as well as their atomic weight.
+    #
+    # To utilize these inside our template, we will generate convenience
+    # handlers that will explicitly number them.
+    ireaction_table = dict([(rid, rname) 
+            for rid, rname in enumerate(sorted(reaction_table))])
+    reaction_ids = dict([(a, b) for b, a in ireaction_table.items()])
+    reaction_varnames = dict([(a, "r_%02i" % i)
+            for i, a in enumerate(sorted(reaction_table))])
+    irate_table = dict([(rid, rname) 
+            for rid, rname in enumerate(sorted(rate_table))])
+    rate_ids = dict([(a, b) for b, a in irate_table.items()])
+    # Note here that we have three mechanisms for numbering species.  We have
+    # our equilibrium species, which are not calculated in the derivative
+    # calculation (this should include charge conservation calculations, as
+    # well) and we have our actual local variable names.  These variables are
+    # local to the cell, so this may give us better cache performance, and it
+    # allows us to address things more cleanly.
+    #   * non_eq_species_table: maps species name to Species object
+    #   * eq_species_table: maps species name to Species object
+    #   * species_varnames: maps species name to local variable name
+    non_eq_species_table = dict([ (a, b)
+            for a, b in species_table.items() if not b.equilibrium ])
+    eq_species_table = dict([ (a, b)
+            for a, b in species_table.items() if b.equilibrium ])
+    species_varnames = dict([(a, "s_%02i" % i)
+            for i, a in enumerate(sorted(species_table))])
+    non_eq_species_ids = dict([ (a, b)
+            for b, a in enumerate(sorted(non_eq_species_table))])
+    num_solved_species = len(non_eq_species_table)
+    num_total_species = len(species_varnames)
     env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'])
     s = open("simple_cvode_solver/cvode_solver.c.template").read()
     template = env.template_class(s)
-    out_s = template.render(rate_table = rate_list, 
-                            irate_table = irate_list, 
-                            reactions = reaction_table,
-                            ireactions = ireaction_table,
+    #from IPython.Shell import IPShellEmbed
+    #IPShellEmbed()()
+    out_s = template.render(num_solved_species = num_solved_species,
+                            num_total_species = num_total_species,
+                            rate_table = rate_table,
+                            rate_ids = rate_ids,
+                            irate_table = irate_table, 
+                            reaction_table = reaction_table,
+                            reaction_ids = reaction_ids,
+                            reaction_varnames = reaction_varnames,
+                            ireaction_table = ireaction_table,
                             solver_name = solver_name,
-                            species = species,
-                            ispecies = ispecies,
-                            initial_conditions = ics)
+                            species_table = species_table,
+                            non_eq_species_table = non_eq_species_table,
+                            non_eq_species_ids = non_eq_species_ids,
+                            eq_species_table = eq_species_table,
+                            species_varnames = species_varnames)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(out_s)
+
+def create_initial_conditions(values, solver_name):
+    f = h5py.File("%s_initial_conditions.h5" % solver_name, "w")
+    for n, v in values.items():
+        f.create_dataset("/%s" % n, data=v)
+    f.close()
 
 if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
-    s = ""
 
+    NCELLS = 1
     Temperature = 350
-    rho = 1.0e10 # total rho in amu/cc
+    rho = 1.0e15 # total rho in amu/cc
     X   = 0.01 # ionization fraction
     fH2 = 0.10 # ionization fraction
 
@@ -70,20 +124,12 @@ if __name__ == "__main__":
                  HM    = tiny,
                  de    = X,
                  H2I   = fH2,
-                 H2II  = tiny)
-
-
-    s += "for (i = 0; i < data.ncells ; i++) {\n"
-    for sname, val in sorted(fracs.items()):
-        # Get the species ID
-        i = species_table[sname].species_id
-        s += "NV_Ith_S(y, i*offset + %s) = %0.5e; // %s\n" % (
-            i, val * rho, sname)
-    s += "NV_Ith_S(y, i*offset + %s) = %0.5e; // T\n" % (
-            species_table["T"].species_id, Temperature)
-    s += "data.rho[i] = %0.5e;\n" % (rho)
-    s += "}\n"
+                 H2II  = tiny,
+                 T = Temperature)
+    values = dict( [(n, na.array([v]*NCELLS, dtype='float64'))
+                    for n, v in fracs.items()] )
+    create_initial_conditions(values, "primordial")
 
     create_tables(reaction_rates_table, "primordial")
     create_cvode_solver(reaction_rates_table, reaction_table, species_table,
-                        "primordial", ics = s)
+                        "primordial")
