@@ -22,6 +22,12 @@ def get_varnames(f):
     var_lookup = dict( [(b,a) for a, b in id_lookup.items()] )
     return id_lookup, var_lookup
 
+def next_ls():
+    while 1:
+        for ls in ["-", "-.", ":", "--"]:
+            yield ls
+lss = next_ls()
+
 def plot_vars(vals, rho, times, var_lookup, id_lookup):
     pylab.clf()
     fig = pylab.gcf()
@@ -29,7 +35,7 @@ def plot_vars(vals, rho, times, var_lookup, id_lookup):
     h = {}
     for var, vid in sorted(var_lookup.items()):
         if var == "T": continue
-        h[var] = ax.loglog(times/YINS, vals[:,vid])
+        h[var] = ax.loglog(times/YINS, vals[:,vid], lw = 1.5, ls = lss.next())
     ax.set_ylim( rho.max()*1e-16, rho.max()*2.0 )
     labels, handles = zip(*h.items())
     pylab.figlegend(handles, labels, "upper right",
