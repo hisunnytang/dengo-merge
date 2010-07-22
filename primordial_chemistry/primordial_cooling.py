@@ -21,9 +21,10 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+from chemistry_constants import tevk
 import numpy as na
 import sympy
-from primordial_rates import species_table
+from primordial_rates import species_table, reaction_rates_table
 
 species_symbols = dict( [
     (sname, sympy.Symbol(sname)) for
@@ -71,48 +72,208 @@ class CoolingRate(object):
         cls.logtev = na.log(cls.tev)
         cls.T_bounds = T_bounds
 
-        ReactionRate.__init__(self, name, values)
-
 cooling_rates_table = dict()
 
 class CoolingAction(object):
-    def __init__(self, rates, species, equation):
+    def __init__(self, rates, species, equation,
+                 temp_vars = None):
         # Equation should be a string
         self.rates = rates
         self.species = species
         symbols = dict( [(a, cooling_rates_table[a].s) for a in rates])
         symbols.update(dict([(a, species_symbols[a]) for a in species]))
+        if temp_vars is not None:
+            for t, eq in temp_vars:
+                symbols[t] = eval(eq, {}, symbols)
         self.equation = eval(equation, {}, symbols)
 
 cooling_action_table = dict()
 
-# Sample implementation of collisional excitation
+# First we set up our constants
+CoolingRate.init_temperature((1.0, 1e7))
+T = CoolingRate.T
+logT = CoolingRate.logT
+tev= CoolingRate.tev
+logtev = CoolingRate.logtev
 
-ee = na.zeros(1024, dtype='float64') # just for now, an empty array
+dhuge = 1.0e30
 
-def newrate(a): cooling_rates_table[a] = CoolingRate(a, ee)
+qtable = dict(T = T)
 
-newrate("ceHI")
+# -- ceHI --
+vals = 7.5e-19*na.exp(-na.minimum(na.log(dhuge), 118348.0/T)) \
+              / (1.0 + na.sqrt(T/1.0e5))
+cooling_rates_table['ceHI'] = CoolingRate('ceHI', vals)
+
+# -- ceHeI --
+vals = 9.1e-27*na.exp(-na.minimum(na.log(dhuge), 13179.0/T)) \
+              *T**(-0.1687)/(1.0 + na.sqrt(T/1.0e5))
+cooling_rates_table['ceHeI'] = CoolingRate('ceHeI', vals)
+
+# -- ceHeIIa --
+vals = 5.54e-17*na.exp(-na.minimum(na.log(dhuge),473638.0/T)) \
+               *T**(-0.397)/(1.+na.sqrt(T/1.0e5))
+cooling_rates_table['ceHeII'] = CoolingRate('ceHeII', vals)
+
+# -- ciHeIS --
+val = 5.01e-27*(T)**(-0.1687)/(1.+na.sqrt(T/1.0e5)) \
+    * na.exp(-na.minimum(na.log(dhuge),55338.0/T))
+cooling_rates_table['ciHeIS'] = CoolingRate('ciHeIS', vals)
+
+# -- ciHI --
+vals = 2.18e-11*reaction_rates_table['k01'](qtable)
+cooling_rates_table['ciHI'] = CoolingRate('ciHI', vals)
+
+# -- ciHeI --
+vals = 3.94e-11*reaction_rates_table['k03'](qtable)
+cooling_rates_table['ciHeI'] = CoolingRate('ciHeI', vals)
+
+# -- ciHeII --
+vals = 8.72e-11*reaction_rates_table['k05'](qtable)
+cooling_rates_table['ciHeII'] = CoolingRate('ciHeII', vals)
+
+# -- reHII --
+vals = 8.70e-27*na.sqrt(T)*(T/1000.0)**(-0.2) \
+     / (1.0 + (T/1.0e6)**(0.7)) 
+cooling_rates_table['reHII'] = CoolingRate('reHII', vals)
+
+# -- reHeII1 --
+vals = 1.55e-26*T**0.3647
+cooling_rates_table['reHeII1'] = CoolingRate('reHeII1', vals)
+
+# -- reHeII2 --
+vals = 1.24e-13*T**(-1.5) \
+     * na.exp(-na.minimum(na.log(dhuge),470000.0/T)) \
+     * (1.+0.3*na.exp(-na.minimum(na.log(dhuge),94000.0/T))) 
+cooling_rates_table['reHeII2'] = CoolingRate('reHeII2', vals)
+
+# -- reHeIII --
+vals = 3.48e-26*na.sqrt(T)*(T/1000.0)**(-0.2) \
+     / (1.0 + (T/1.0e6)**(0.7))
+cooling_rates_table['reHeIII'] = CoolingRate('reHeIII', vals)
+
+# -- brema --
+vals = 1.43e-27*na.sqrt(T) \
+     *(1.1+0.34*na.exp(-(5.5-na.log10(T))**2/3.0))
+
+# Galli & Palla 1999 cooling
+tm = na.minimum(na.maximum(T, 13.0), 1e5)
+lt = na.log10(tm)
+
+# Low density limit from Galli & Palla
+# -- gpldl --
+vals = 10.**(-103.0+97.59*lt-48.05*lt**2+10.80*lt*lt*lt
+               -0.9032*lt*lt*lt*lt)
+cooling_rates_table['gpldl'] = CoolingRate('gpldl', vals)
+
+# high density limit from HM79 (typo corrected Aug 30/2007)
+# -- gphdl --
+t3 = tm/1000.
+HDLR = ((9.5e-22*t3**3.76)/(1.+0.12*t3**2.1)*
+        na.exp(-(0.13/t3)**3)+3.e-24*na.exp(-0.51/t3))
+HDLV = (6.7e-19*na.exp(-5.86/t3) + 1.6e-18*na.exp(-11.7/t3))
+vals  = (HDLR + HDLV) 
+cooling_rates_table['gphdl'] = CoolingRate('gphdl', vals)
+
+# Low density rates from Glover & Abel 2008
+tm  = na.maximum(T, 10.0e0)
+tm  = na.minimum(tm, 1.e4)
+lt3 = na.log10(tm / 1.e3)  
+
+# Excitation by HI
+# -- gaHI --
+# Apply these in reverse order, so that one doesn't overwrite the other
+_i1 = (T < 100.0)
+_i2 = (T < 1000.0)
+# Default value
+vals = 10**(-24.311209e0
+     + 4.6450521e0 * lt3
+     - 3.7209846e0 * lt3**2
+     + 5.9369081e0 * lt3**3
+     - 5.5108047e0 * lt3**4
+     + 1.5538288e0 * lt3**5)
+vals[_i2] = 10**(-24.311209e0
+     + 3.5692468e0 * lt3
+     - 11.332860e0 * lt3**2
+     - 27.850082e0 * lt3**3
+     - 21.328264e0 * lt3**4
+     - 4.2519023e0 * lt3**5)
+vals[_i1] = 10**(-16.818342e0
+     + 37.383713e0 * lt3
+     + 58.145166e0 * lt3**2
+     + 48.656103e0 * lt3**3
+     + 20.159831e0 * lt3**4
+     + 3.8479610e0 * lt3**5)
+cooling_rates_table['gaHI'] = CoolingRate('gaHI', vals)
+
+# Excitation by H2
+# -- gaH2 --
+vals = 10**(-23.962112e0
+     + 2.09433740e0  * lt3
+     - 0.77151436e0  * lt3**2
+     + 0.43693353e0  * lt3**3
+     - 0.14913216e0  * lt3**4
+     - 0.033638326e0 * lt3**5)
+cooling_rates_table['gaH2'] = CoolingRate('gaH2', vals)
+
+# Excitation by He
+# -- gaHe --
+vals = 10**(-23.689237e0
+     + 2.1892372e0  * lt3
+     - 0.81520438e0 * lt3**2
+     + 0.29036281e0 * lt3**3
+     - 0.16596184e0 * lt3**4
+     + 0.19191375e0 * lt3**5)
+cooling_rates_table['gaHe'] = CoolingRate('gaHe', vals)
+
+# Excitation by H+
+# -- gaHp --
+vals = 10**(-21.716699e0
+     + 1.3865783e0   * lt3
+     - 0.37915285e0  * lt3**2
+     + 0.11453688e0  * lt3**3
+     - 0.23214154e0  * lt3**4
+     + 0.058538864e0 * lt3**5) 
+cooling_rates_table['gaHp'] = CoolingRate('gaHp', vals)
+
+# Excitation by electrons
+# -- gael --
+_i1 = (T < 200)
+vals = 10**(-22.190316
+     + 1.5728955  * lt3
+     - 0.21335100 * lt3**2
+     + 0.96149759 * lt3**3
+     - 0.91023195 * lt3**4
+     + 0.13749749 * lt3**5)
+vals[_i1] = 10**(-34.286155e0
+     - 48.537163e0  * lt3
+     - 77.121176e0  * lt3**2
+     - 51.352459e0  * lt3**3
+     - 15.169160e0  * lt3**4
+     - 0.98120322e0 * lt3**5) 
+cooling_rates_table['gael'] = CoolingRate('gael', vals)
+
+# Compton cooling (Peebles 1971)
+# -- comp --
+vals = 5.65e-26 + T*0.0
+cooling_rates_table['comp'] = CoolingRate('comp', vals)
+
+#  Photoelectric heating by UV-irradiated dust (Wolfire 1995)
+#  with epsilon=0.05, G_0=1.7 (rate in erg s^-1 cm^-3)
+# -- gammah --
+vals = 8.5e-26 + T*0.0
+cooling_rates_table['gammah'] = CoolingRate('gammah', vals)
+
+# COOLING ACTION DEFINITIONS
 
 # prepend with 'a' for 'active'
 cooling_action_table["aceHI"] = CoolingAction(
     ["ceHI"], ["HI","de"], "ceHI * HI * de")
 
 # Let's try out GA08 cooling.
-for n in ["gaHI","gaH2", "gaHe", "gaHp", "gael", "gphdl"]:
-    newrate(n)
-
-cooling_action_table["agloverabel08"] = CoolingAction(
-    ["gaHI","gaH2","gaHe","gaHp","gael","gphdl"],
-    ["HI","H2I","HeI","HII","de"],
-    "H2I * gphdl/(1.0 + gphdl/(gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de))")
-
-cooling_action_table["simple"] = CoolingAction(
-    ["gaHI"], ["H2I"], "gaHI**H2I")
-
 if __name__ == "__main__":
     pp = CVODEPrinter()
     print pp.doprint(species_symbols["H2I"])
     print pp.doprint(cooling_action_table["aceHI"].equation)
-    print pp.doprint(cooling_action_table["agloverabel08"].equation)
-    print pp.doprint(cooling_action_table["simple"].equation)
+    #print pp.doprint(cooling_action_table["agloverabel08"].equation)
+    #print pp.doprint(cooling_action_table["simple"].equation)
