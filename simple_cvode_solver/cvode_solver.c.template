@@ -225,6 +225,9 @@ int write_vector_to_hdf5(N_Vector y,
 
     char *buffer;
     /* Write out our species names */
+
+    H5LTset_attribute_double(outfile, "/", "rho", data->rho, data->ncells);
+
     {%- for sname, sid in non_eq_species_ids|dictsort %}
     H5LTset_attribute_char(outfile, "/", "{{"%i"|format(sid)}}", "{{sname}}", {{sname | length}});
     {%- endfor %}

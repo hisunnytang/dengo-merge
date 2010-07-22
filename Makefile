@@ -31,3 +31,4 @@ test_primordial_solver : simple_cvode_solver/primordial_cvode_solver.c
 
 run_test : test_primordial_solver
 	./test_primordial_solver
+	python2.6 plot_cvode_output.py

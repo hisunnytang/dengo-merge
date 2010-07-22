@@ -121,8 +121,8 @@ if __name__ == "__main__":
 
     NCELLS = 1
     Temperature = 350
-    rho = 1.0e12 # total rho in amu/cc
-    X   = 1e-6 # ionization fraction
+    rho = 1.0e2 # total rho in amu/cc
+    X   = 1e-4 # ionization fraction
     fH2 = 1e-6 # ionization fraction
 
     # This is the initial fraction of every species
