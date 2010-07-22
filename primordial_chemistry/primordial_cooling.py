@@ -31,8 +31,20 @@ species_symbols = dict( [
 
 # We set up all the symbols we are aware of here.
 
-#class CVODEPrinter(sympy.Printer):
-#    pass
+class CVODEPrinter(sympy.printing.str.StrPrinter):
+    def _print_Symbol(self, symbol):
+        s = str(symbol)
+        if s in species_symbols:
+            return "{{ species_varnames[\"%s\"] }}" % s
+        elif s in cooling_rates_table:
+            return "{{ cooling_varnames[\"%s\"] }}" % s
+        else:
+            raise RuntimeError
+
+    def _print_Pow(self, expr):
+        PREC = sympy.printing.precedence.precedence(expr)
+        return 'pow(%s,%s)'%(self.parenthesize(expr.base, PREC),
+                             self.parenthesize(expr.exp, PREC))
 
 # Note that we actually re-implement here rather than subclass.
 # That's because we want our cooling rates to be able to have different min/max
@@ -76,10 +88,31 @@ cooling_action_table = dict()
 
 # Sample implementation of collisional excitation
 
-cooling_rates_table["ceHI"] = CoolingRate("ceHI", na.zeros(1024, dtype='float64'))
+ee = na.zeros(1024, dtype='float64') # just for now, an empty array
+
+def newrate(a): cooling_rates_table[a] = CoolingRate(a, ee)
+
+newrate("ceHI")
 
 # prepend with 'a' for 'active'
 cooling_action_table["aceHI"] = CoolingAction(
     ["ceHI"], ["HI","de"], "ceHI * HI * de")
 
+# Let's try out GA08 cooling.
+for n in ["gaHI","gaH2", "gaHe", "gaHp", "gael", "gphdl"]:
+    newrate(n)
 
+cooling_action_table["agloverabel08"] = CoolingAction(
+    ["gaHI","gaH2","gaHe","gaHp","gael","gphdl"],
+    ["HI","H2I","HeI","HII","de"],
+    "H2I * gphdl/(1.0 + gphdl/(gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de))")
+
+cooling_action_table["simple"] = CoolingAction(
+    ["gaHI"], ["H2I"], "gaHI**H2I")
+
+if __name__ == "__main__":
+    pp = CVODEPrinter()
+    print pp.doprint(species_symbols["H2I"])
+    print pp.doprint(cooling_action_table["aceHI"].equation)
+    print pp.doprint(cooling_action_table["agloverabel08"].equation)
+    print pp.doprint(cooling_action_table["simple"].equation)
