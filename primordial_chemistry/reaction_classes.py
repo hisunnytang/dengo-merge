@@ -56,11 +56,11 @@ class Reaction(object):
 
     @property
     def down_species(self):
-        return [s for n, s in self.left_side]
+        return [s.name for n, s in self.left_side]
 
     @property
     def up_species(self):
-        return [s for n, s in self.right_side]
+        return [s.name for n, s in self.right_side]
 
     def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right

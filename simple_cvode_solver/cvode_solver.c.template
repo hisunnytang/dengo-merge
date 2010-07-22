@@ -21,9 +21,9 @@
 #include "H5LT.h"
 #include "rates_and_rate_tables.h"
 
-{% if eq_species_ids | length > 0 %}
-#error "Equilibrium species not yet supported."
-{% endif %}
+#define CVODE_MAX(A, B) ((A) > (B) ? (A) : (B))
+#define CVODE_MIN(A, B) ((A) < (B) ? (A) : (B))
+#define CVODE_TINY 1.0e-30
 
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
@@ -31,7 +31,6 @@ typedef struct {{ solver_name }}_cvode_data {
     double *rho;
     double **rates;
     /* This is probably invalid, as CVODE may rewind */
-    double *eq_species[{{ eq_species_ids | length }}];
     TableOfRates *rate_tables;
 } {{ solver_name }}_cvode_data;
 
@@ -76,8 +75,6 @@ int main(int argc, char** argv)
     data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
     for (i = 0; i < my_rates->nrates; i++)
         data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
-    for (i = 0; i < {{ eq_species_table | length }}; i++)
-        data.eq_species[i] = (double *) calloc(data.ncells, sizeof(double));
 
     data.rate_tables = my_rates;
 
@@ -96,17 +93,6 @@ int main(int argc, char** argv)
         printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
     }
     {% endfor %}
-
-    {% for sname, sid in eq_species_ids|dictsort %}
-    printf("Reading /{{ sname }}\n");
-    H5LTread_dataset_double(file_id, "/{{ sname }}", values);
-    for (i = 0; i < data.ncells; i++)
-    {
-        data.eq_species[ {{ eq_species_ids[sname] }} ][i] = values[i];
-        printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
-    }
-    {% endfor %}
-
 
     printf("Reading /rho\n");
     H5LTread_dataset_double(file_id, "/rho", data.rho);
@@ -304,6 +290,8 @@ static int {{ solver_name }}_cvode_calc_derivs(
 
   int i, cell, offset;
 
+  realtype eq_temp_num, eq_temp_den;
+
   /* We map all of our species to variables:
      {%- for v, vname in species_varnames|dictsort %}
      {{ "% 8s => % 8s" | format(v, vname) }}
@@ -346,6 +334,42 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {% block apply_constraints %}
 #error "You must implement the apply_constraints block, even if it is empty!"
     {% endblock %}
+
+    /*
+      EQUILIBRIUM SPECIES
+    */
+
+    {% for sname, s in eq_species_table|dictsort %}
+    /* Equilibrium species {{ sname }} */
+
+      eq_temp_den = eq_temp_num = 0.0L;
+
+    {%- for rname, rxn in reaction_table|dictsort %}
+
+    {%- if sname in rxn.considered %}
+      /* Reaction {{ rname }}
+         Which is: {{ rxn }}
+      */
+     {%- if sname in rxn.up_species %}
+       eq_temp_num += data->rates[{{ reaction_ids[rname] }}][cell]
+            {%- for n, s1 in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endfor %};
+     {%- endif %}
+     {%- if sname in rxn.down_species %}
+       eq_temp_den += data->rates[{{ reaction_ids[rname] }}][cell]
+            {%- for n, s1 in rxn.left_side %}{% if s1.name != sname%}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endif %}{% endfor %};
+     {%- endif %}
+
+    {%- endif %}{# s in rxn #}
+    {%- endfor %}{# rxn #}
+
+    {{ species_varnames[sname] }} = eq_temp_num / eq_temp_den;
+    {{ species_varnames[sname] }} = CVODE_MAX({{- species_varnames[sname] }}, CVODE_TINY);
+    /*printf("Equilibrium species {{ sname }}[%i] = %0.5e\n", cell, {{ species_varnames[sname] }});*/
+
+    {% endfor %}{# species #}
+
+
+    /* RECALCULATE RATES WITH EQUILIBRIUM ABUNDANCES */
 
     {%- for rname, rxn in reaction_table|dictsort %}  
     /* Calculating reaction value for {{ rxn.name }}

@@ -116,11 +116,11 @@ if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
 
-    NCELLS = 64
+    NCELLS = 1
     Temperature = 350
-    rho = 1.0e9 # total rho in amu/cc
+    rho = 1.0e12 # total rho in amu/cc
     X   = 0.01 # ionization fraction
-    fH2 = 0.0001 # ionization fraction
+    fH2 = 0.01 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,
