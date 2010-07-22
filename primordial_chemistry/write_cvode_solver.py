@@ -121,7 +121,7 @@ if __name__ == "__main__":
 
     NCELLS = 1
     Temperature = 350
-    rho = 1.0e3 # total rho in amu/cc
+    rho = 1.0e12 # total rho in amu/cc
     X   = 1e-6 # ionization fraction
     fH2 = 1e-6 # ionization fraction
 
