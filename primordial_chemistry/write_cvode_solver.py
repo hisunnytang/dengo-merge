@@ -26,6 +26,8 @@ import jinja2
 import h5py
 import numpy as na
 
+years = lambda a: a * 365*24*3600
+
 def create_tables(rate_list, solver_name):
     f = h5py.File("%s_rate_tables.h5" % solver_name, "w")
     for name, rate in rate_list.items():
@@ -106,8 +108,9 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(solver_out)
 
-def create_initial_conditions(values, solver_name):
+def create_initial_conditions(values, solver_name, tfinal):
     f = h5py.File("%s_initial_conditions.h5" % solver_name, "w")
+    f["/"].attrs["tfinal"] = tfinal
     for n, v in values.items():
         f.create_dataset("/%s" % n, data=v)
     f.close()
@@ -118,9 +121,9 @@ if __name__ == "__main__":
 
     NCELLS = 1
     Temperature = 350
-    rho = 1.0e12 # total rho in amu/cc
-    X   = 0.01 # ionization fraction
-    fH2 = 0.01 # ionization fraction
+    rho = 1.0e3 # total rho in amu/cc
+    X   = 1e-6 # ionization fraction
+    fH2 = 1e-6 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,
@@ -136,7 +139,7 @@ if __name__ == "__main__":
     values = dict( [(n, rho*v*na.ones(NCELLS, dtype='float64'))
                     for n, v in fracs.items()] )
     values["T"] = Temperature*na.ones(NCELLS, dtype='float64')
-    create_initial_conditions(values, "primordial")
+    create_initial_conditions(values, "primordial", years(1e9))
 
     create_tables(reaction_rates_table, "primordial")
     create_cvode_solver(reaction_rates_table, reaction_table, species_table,

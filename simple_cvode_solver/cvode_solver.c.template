@@ -58,6 +58,8 @@ int main(int argc, char** argv)
     /* Note that this will be inefficient, memorywise ... */
 
     hid_t file_id = H5Fopen("{{ solver_name }}_initial_conditions.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    realtype tfinal;
+    H5LTget_attribute_double(file_id, "/", "tfinal", &tfinal);
     if (file_id < 0) {fprintf(stderr, "Failed to open "
         "{{ solver_name }}_initial_conditions.h5 so dying.\n");
         return(1);}
@@ -107,7 +109,7 @@ int main(int argc, char** argv)
     cvode_mem = NULL;
 
     /* Set the scalar relative tolerance */
-    reltol = 1e-5; abstol = 0.0;
+    reltol = 1e-10; abstol = data.rho[0] * 1e-10;
 
     /* Call CVodeCreate to create the solver memory and specify the 
      * Backward Differentiation Formula and the use of a Newton iteration */
@@ -145,7 +147,6 @@ int main(int argc, char** argv)
     fprintf(stderr, "ABOUT TO START: SLEEPING FOR 3 seconds\n");
     sleep(3);
 #endif
-    realtype tfinal = 1e14;
     iout = 0;  tout = 1e-3;
     double walli, wallf;
     struct timeval tp;
@@ -166,12 +167,17 @@ int main(int argc, char** argv)
       }
 
       if (tout >= tfinal) break;
-      tout *= 2.0;
+      tout = CVODE_MIN(tout*2.0, tfinal);
     }
     gettimeofday(&tp, NULL);
     wallf = tp.tv_sec + tp.tv_usec*(1e-6);
 
     printf("Took %0.5e seconds\n", (wallf-walli));
+    printf("Final output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e, T = %0.5e)\n",
+        tout,
+        NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
+        NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
+        NV_Ith_S(y, {{ non_eq_species_ids["T"] }}));
 
     /* Free y and abstol vectors */
     N_VDestroy_Serial(y);
