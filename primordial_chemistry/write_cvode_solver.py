@@ -120,10 +120,10 @@ if __name__ == "__main__":
         species_table
 
     NCELLS = 1
-    Temperature = 350
-    rho = 1.0e12 # total rho in amu/cc
+    Temperature = 6000
+    rho = 1.0e17 # total rho in amu/cc
     X = 1e-30 # ionization fraction
-    fH2 = 1e-6 # ionization fraction
+    fH2 = 0.99 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,

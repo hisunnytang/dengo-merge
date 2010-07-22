@@ -35,7 +35,6 @@ def compute_temperature(vals, rho):
     tgas += vals["HI"] + vals["HII"] + vals["HM"] + vals["de"]
     tgas += (vals["H2I"] + vals["H2II"])/2.0
     tgas += (vals["HeI"] + vals["HeII"] + vals["HeIII"])/4.0
-    tgas = rho
     return p2d / (1.380e-16 * tgas)
 
 def plot_vars(vals, rho, times, var_lookup, id_lookup):

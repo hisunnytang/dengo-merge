@@ -13,7 +13,6 @@
     tgas += {{ species_varnames[sname] }} / {{s.weight}};
     {%- endif %}
     {%- endfor %}
-    tgas = data->rho[cell];
     tgas = p2d / (CVODE_KB * tgas);
     /*printf("%0.5e\n", tgas);*/
     return CVODE_MAX(tgas, 1.0);
