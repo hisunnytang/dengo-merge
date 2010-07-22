@@ -28,13 +28,24 @@ def next_ls():
             yield ls
 lss = next_ls()
 
+def compute_temperature(vals, rho):
+    rho_cgs = rho * 1.67e-24
+    p2d = (5./3. - 1.0) * rho_cgs * vals["ge"]
+    tgas = 0.0
+    tgas += vals["HI"] + vals["HII"] + vals["HM"] + vals["de"]
+    tgas += (vals["H2I"] + vals["H2II"])/2.0
+    tgas += (vals["HeI"] + vals["HeII"] + vals["HeIII"])/4.0
+    tgas = rho
+    return p2d / (1.380e-16 * tgas)
+
 def plot_vars(vals, rho, times, var_lookup, id_lookup):
+    lvals = dict( [(var, vals[:,vid]) for var, vid in sorted(var_lookup.items())])
     pylab.clf()
     fig = pylab.gcf()
     ax = pylab.subplot(2,1,1)
     h = {}
     for var, vid in sorted(var_lookup.items()):
-        if var == "T": continue
+        if var == "ge": continue
         h[var] = ax.loglog(times/YINS, vals[:,vid], lw = 1.5, ls = lss.next())
     ax.set_ylim( rho.max()*1e-16, rho.max()*2.0 )
     labels, handles = zip(*h.items())
@@ -44,7 +55,8 @@ def plot_vars(vals, rho, times, var_lookup, id_lookup):
     ax.set_ylabel("amu / cc")
     ax.xaxis.set_ticklabels(())
     ax = pylab.subplot(2,1,2)
-    ax.semilogx(times/YINS, vals[:,var_lookup["T"]])
+    T = compute_temperature(lvals, rho)
+    ax.semilogx(times/YINS, T)
     ax.set_ylabel("T")
     ax.set_xlabel("years")
     pylab.savefig("output.pdf")

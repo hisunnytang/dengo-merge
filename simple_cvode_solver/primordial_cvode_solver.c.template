@@ -1,9 +1,22 @@
 {% extends "cvode_solver.c.template" %}
-{% block compute_temperature %}
-  /* Note that we use the name 'cvode' here because it needs to understand the
-  cvode vector setup as well as the offset information */
-  {{ solver_name }}_cvode_calculate_temperature( data->T, y, data->ncells,
-                        species_offset );
+{% block compute_temperature_function %}
+  /* P = (k rho T) / ( mu mh ) */
+  /* T = (1 - gamma) * e * mu * mh / k */
+  realtype p2d, tgas, rho_cgs;
+    /* (gamma - 1) * rho (g / cm^3) * e (ergs / g) */
+    rho_cgs = data->rho[cell]*CVODE_MH;
+    p2d = (CVODE_GAMMA - 1.0)*rho_cgs*{{ species_varnames["ge"] }};
+    tgas = 0.0;
+    {%- for sname, s in non_eq_species_table|dictsort %}
+    {%- if s.weight > 0 %}
+    /* particles / cm^3 */
+    tgas += {{ species_varnames[sname] }} / {{s.weight}};
+    {%- endif %}
+    {%- endfor %}
+    tgas = data->rho[cell];
+    tgas = p2d / (CVODE_KB * tgas);
+    /*printf("%0.5e\n", tgas);*/
+    return CVODE_MAX(tgas, 1.0);
 {% endblock %}
 
 {% block apply_constraints %}
@@ -11,8 +24,37 @@
 {% endblock %}
 
 {% block end_of_derivatives %}
-    NV_Ith_S(ydot, {{ non_eq_species_ids["T"] }} + offset) += 
-        (52000.0 / data->rho[cell]) * (
-       ({{ reaction_varnames["r21"] }} + {{ reaction_varnames["r22"] }})
-     - ({{ reaction_varnames["r13"] }} + {{ reaction_varnames["r23"] }}) );
+    /* We have gas energy in ergs/g */
+    /* We have 7.177e-12 ergs / molecule */
+    /* (7.177e-12 ergs / H2) * (H2 / ( s cm^3 )) => ergs / (s cm^3) */
+    /* So divide by rho in grames */
+    {
+    /*
+       This may be overkill, but by shuffling things around a bit we can reduce
+       the relative (expected) difference between the various components.  Declare
+       the variables local to this clause by putting them inside the above
+       brackets.
+    */
+    long double H = {{ species_varnames["HI"] }};
+    long double Hsq = H * H;
+    long double M = {{ species_varnames["H2I"] }};
+    long double k13 = interpolated_rates[{{ reaction_ids['r13'] }}];
+    long double k21 = interpolated_rates[{{ reaction_ids['r21'] }}];
+    long double k22 = interpolated_rates[{{ reaction_ids['r22'] }}];
+    long double k23 = interpolated_rates[{{ reaction_ids['r23'] }}];
+    long double temp = 0.0;
+    temp += H * (k22 * Hsq - k13 * M);
+    temp += M * (k21 * Hsq - k23 * M);
+    /* H * (k22 * H^2 - k13 * H_2) + H_2 * (k21 * H^2 - k23 * H_2) */
+    NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset) += 
+        (7.177e-12 / (CVODE_MH * data->rho[cell])) * 0.5 * (temp);
+    /*fprintf(stderr, "%0.5e %0.5e %0.5e %0.5e %0.5e %0.5e %0.5e\n",
+            H, Hsq, M, k13, k21, k22, k23);*/
+    {% set sname = "ge" %}
+    /*printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
+           cell, "{{ sname }}",
+           {{ species_varnames[sname] }},
+           NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
+           */
+    }
 {% endblock %}

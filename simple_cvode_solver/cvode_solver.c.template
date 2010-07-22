@@ -24,6 +24,9 @@
 #define CVODE_MAX(A, B) ((A) > (B) ? (A) : (B))
 #define CVODE_MIN(A, B) ((A) < (B) ? (A) : (B))
 #define CVODE_TINY 1.0e-30
+#define CVODE_GAMMA 1.666667
+#define CVODE_KB 1.380e-16
+#define CVODE_MH 1.67e-24
 
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
@@ -37,8 +40,8 @@ typedef struct {{ solver_name }}_cvode_data {
 /* These change with the particular reaction rate solver, so we do not
 outsource them to a header file. */
 TableOfRates *{{ solver_name }}_read_rate_tables();
-void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals,
-        double *inputvals, TableOfRates *rate_tables);
+void {{ solver_name }}_interpolate_rates(double *outputvals,
+        double T, TableOfRates *rate_tables);
 static int {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data);
 static int check_flag(void *flagvalue, char *funcname, int opt);
@@ -46,6 +49,9 @@ int write_vector_to_hdf5(N_Vector y,
                           {{ solver_name }}_cvode_data *data,
                           realtype t,
                           int final);
+double {{ solver_name }}_cvode_compute_temperature(
+    {% for sname, s in species_varnames|dictsort %}realtype {{ s }},{% endfor %}
+    int cell, {{ solver_name }}_cvode_data *data);
 
 #ifdef SAMPLE_TEST_PROBLEM
 int main(int argc, char** argv)
@@ -167,7 +173,7 @@ int main(int argc, char** argv)
              tout,
              NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
              NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
-             NV_Ith_S(y, {{ non_eq_species_ids["T"] }}));
+             data.T[0] );
       flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
 
       if (check_flag(&flag, "CVode", 1)) break;
@@ -192,7 +198,7 @@ int main(int argc, char** argv)
         tout,
         NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
         NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
-        NV_Ith_S(y, {{ non_eq_species_ids["T"] }}));
+        data.T[0] );
 
     /* Free y and abstol vectors */
     N_VDestroy_Serial(y);
@@ -312,45 +318,40 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
 
 
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates(int nvals, double **outputvals, double *inputvals,
+void {{ solver_name }}_interpolate_rates(double *outputvals, double T,
                        TableOfRates *rate_tables)
 {
-    /* TODO: Change bounds of all rates to be universal -- calculate outside
-       the loop the indices into the rate tables */
 
     int i, ri, bin_id;
     RateTable *crate;
-    double *log_input = calloc(nvals, sizeof(double));
+    double logT = log10(T);
     double dd, bv, dy, lb, ub;
-    for (i = 0; i < nvals; i++) log_input[i] = log10(inputvals[i]);
 
+    crate = &rate_tables->rates[0];
+    lb = log10(crate->bounds[0]);
+    ub = log10(crate->bounds[1]);
+    bin_id = (int) (crate->idbin * (logT - lb));
+    dd = logT - (bin_id * crate->dbin + lb);
     for (ri = 0; ri < rate_tables->nrates; ri++) {
         crate = &rate_tables->rates[ri];
-        lb = log10(crate->bounds[0]);
-        ub = log10(crate->bounds[1]);
-        for (i = 0; i < nvals; i++) {
-            /* Our interpolation logic here */
-            /* Identify our bin */
-            bin_id = (int) (crate->idbin * (log_input[i] - lb));
-            dd = log_input[i] - (bin_id * crate->dbin + lb);
-            bv = crate->values[bin_id];
-            dy = crate->values[bin_id + 1] - bv;
-            outputvals[ri][i] = bv + dd*dy*crate->idbin;
-            /*fprintf(stdout, "AUGH %i %0.5e %0.5e %0.5e\n",
-                    bin_id, crate->idbin, log_input[i], lb);*/
-        }
+        /* Our interpolation logic here */
+        /* Identify our bin */
+        bv = crate->values[bin_id];
+        dy = crate->values[bin_id + 1] - bv;
+        outputvals[ri] = bv + dd*dy*crate->idbin;
+        /*fprintf(stdout, "AUGH %i %0.5e %0.5e %0.5e %0.5e\n",
+          ri, bin_id, crate->idbin, logT, lb, outputvals[ri]);*/
     }
 }
 
-void {{ solver_name }}_cvode_calculate_temperature(
-    double *Tout, N_Vector y, int ncells, int offset)
+double {{ solver_name }}_cvode_compute_temperature(
+    {% for sname, s in species_varnames|dictsort %}realtype {{ s }},
+    {% endfor %}
+    int cell, {{ solver_name }}_cvode_data *data)
 {
-    int cell;
-    for (cell = 0; cell < ncells; cell++ )
-    {
-      Tout[cell] = NV_Ith_S(y, {{ non_eq_species_ids["T"] }} + offset*cell);
-      //printf("T: %i = %0.3e\n", cell, Tout[cell]);
-    }
+  {% block compute_temperature_function %}
+#error "You must implement the compute_temperature block, even if it is empty!"
+  {% endblock %}
 }
 
 static int {{ solver_name }}_cvode_calc_derivs(
@@ -373,6 +374,8 @@ static int {{ solver_name }}_cvode_calc_derivs(
   */
 
   int i, cell, offset;
+  double T;
+  double interpolated_rates[{{ reaction_varnames | length }}];
 
   realtype eq_temp_num, eq_temp_den;
 
@@ -397,15 +400,9 @@ static int {{ solver_name }}_cvode_calc_derivs(
   {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
 
 
-  {% block compute_temperature %}
-#error "You must implement the compute_temperature block, even if it is empty!"
-  {% endblock %}
-
-  {{ solver_name }}_interpolate_rates( data->ncells, data->rates, data->T,
-                                       data->rate_tables);
-
   for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
   {
+
     /*
       We fundamentally calculate cooling differently than chemical kinetic
       equations, but note that above we also carry our 'species' that is gas
@@ -414,6 +411,13 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {% for sname, sid in non_eq_species_ids|dictsort %}
     {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
     {% endfor %}
+
+      T = {{ solver_name }}_cvode_compute_temperature(
+        {% for sname, s in species_varnames|dictsort %}{{ s }},
+        {% endfor %}
+        cell, data);
+
+      {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
 
     {% block apply_constraints %}
 #error "You must implement the apply_constraints block, even if it is empty!"
@@ -459,7 +463,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
     /* Calculating reaction value for {{ rxn.name }}
        defined as {{ rxn }}
     */
-    {{ reaction_varnames[rname] }} = data->rates[{{ reaction_ids[rname] }}][cell]
+    {{ reaction_varnames[rname] }} = interpolated_rates[{{ reaction_ids[rname] }}]
         {% for n, s in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s.name] }}{% endfor %}{% endfor %};
 
     {%- endfor %}

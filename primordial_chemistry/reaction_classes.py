@@ -52,7 +52,6 @@ class Reaction(object):
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
-        print self.considered
 
     @property
     def down_species(self):

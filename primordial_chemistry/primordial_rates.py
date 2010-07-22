@@ -258,7 +258,7 @@ species_table = dict(
     HM = Species("HM", 1.0, -1.0, equilibrium = False),
     H2I = Species("H2I", 2.0),
     H2II = Species("H2II", 2.0, 1.0, equilibrium = False),
-    T = Species("T", 0.0, 0.0),
+    ge = Species("ge", 0.0, 0.0),
 )
 
 locals().update(species_table)

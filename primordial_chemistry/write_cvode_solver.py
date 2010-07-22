@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from chemistry_constants import tiny
+from chemistry_constants import tiny, kboltz, mh
 import jinja2
 import h5py
 import numpy as na
@@ -121,8 +121,8 @@ if __name__ == "__main__":
 
     NCELLS = 1
     Temperature = 350
-    rho = 1.0e2 # total rho in amu/cc
-    X   = 1e-4 # ionization fraction
+    rho = 1.0e12 # total rho in amu/cc
+    X = 1e-30 # ionization fraction
     fH2 = 1e-6 # ionization fraction
 
     # This is the initial fraction of every species
@@ -134,11 +134,16 @@ if __name__ == "__main__":
                  HM    = tiny,
                  de    = X,
                  H2I   = fH2,
-                 H2II  = tiny,
-                 rho = 1.0)
+                 H2II  = tiny)
     values = dict( [(n, rho*v*na.ones(NCELLS, dtype='float64'))
                     for n, v in fracs.items()] )
-    values["T"] = Temperature*na.ones(NCELLS, dtype='float64')
+    # Approximate, does not include H2
+    number_density = sum([values[n] / species_table[n].weight for n in values])
+    values['ge'] = ( (Temperature * number_density * kboltz)
+                   / (rho * mh * (5.0/3.0 - 1))) # gamma ~ 5/3
+    print values['ge']
+    values['rho'] = na.ones(NCELLS, dtype='float64')*rho
+    #ee = rho * 
     create_initial_conditions(values, "primordial", years(1e9))
 
     create_tables(reaction_rates_table, "primordial")

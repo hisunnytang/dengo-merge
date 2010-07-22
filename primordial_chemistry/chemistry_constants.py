@@ -26,4 +26,4 @@ License:
 tevk = 1.1605e4
 tiny = 1e-30
 mh = 1.67e-24
-
+kboltz = 1.380e-16
