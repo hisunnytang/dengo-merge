@@ -30,6 +30,22 @@ species_symbols = dict( [
     (sname, sympy.Symbol(sname)) for
      sname in species_table ])
 
+known_variables = dict( 
+    T = sympy.Symbol("T"),
+)
+
+user_data_symbols = dict(
+    redshift = sympy.Symbol("redshift"),
+)
+
+user_data_cell_vars = dict(
+)
+
+other_known_symbols = {}
+other_known_symbols.update(known_variables)
+other_known_symbols.update(user_data_symbols)
+other_known_symbols.update(user_data_cell_vars)
+
 # We set up all the symbols we are aware of here.
 
 class CVODEPrinter(sympy.printing.str.StrPrinter):
@@ -39,6 +55,12 @@ class CVODEPrinter(sympy.printing.str.StrPrinter):
             return "{{ species_varnames[\"%s\"] }}" % s
         elif s in cooling_rates_table:
             return "{{ cooling_varnames[\"%s\"] }}" % s
+        elif s in known_variables:
+            return s
+        elif s in user_data_symbols:
+            return "data->%s" % s
+        elif s in user_data_cell_vars:
+            return "data->%s[cell]" % s
         else:
             raise RuntimeError
 
@@ -76,12 +98,14 @@ cooling_rates_table = dict()
 
 class CoolingAction(object):
     def __init__(self, rates, species, equation,
-                 temp_vars = None):
+                 temp_vars = None, other_symbols = None):
+        if other_symbols is None: other_symbols = []
         # Equation should be a string
         self.rates = rates
         self.species = species
         symbols = dict( [(a, cooling_rates_table[a].s) for a in rates])
         symbols.update(dict([(a, species_symbols[a]) for a in species]))
+        symbols.update(dict([(a, other_known_symbols[a]) for a in other_symbols]))
         if temp_vars is not None:
             for t, eq in temp_vars:
                 symbols[t] = eval(eq, {}, symbols)
@@ -155,6 +179,7 @@ cooling_rates_table['reHeIII'] = CoolingRate('reHeIII', vals)
 # -- brema --
 vals = 1.43e-27*na.sqrt(T) \
      *(1.1+0.34*na.exp(-(5.5-na.log10(T))**2/3.0))
+cooling_rates_table['brem'] = CoolingRate('brem', vals)
 
 # Galli & Palla 1999 cooling
 tm = na.minimum(na.maximum(T, 13.0), 1e5)
@@ -266,14 +291,67 @@ cooling_rates_table['gammah'] = CoolingRate('gammah', vals)
 
 # COOLING ACTION DEFINITIONS
 
-# prepend with 'a' for 'active'
-cooling_action_table["aceHI"] = CoolingAction(
-    ["ceHI"], ["HI","de"], "ceHI * HI * de")
+# Collisional excitations
+cooling_action_table["ceHI"] = CoolingAction(
+    ["ceHI"], ["HI","de"], "-ceHI * HI * de")
+cooling_action_table["ceHeI"] = CoolingAction(
+    ["ceHeI"], ["HeII","de"], "-ceHeI * HeII * de**2/4.0")
+cooling_action_table["ceHeII"] = CoolingAction(
+    ["ceHeII"], ["HeII","de"], "-ceHeII * HeII * de/4.0")
 
-# Let's try out GA08 cooling.
+# Collisional ionizations
+cooling_action_table["ciHI"] = CoolingAction(
+    ["ciHI"], ["HI","de"], "-ciHI*HI*de")
+cooling_action_table["ciHeI"] = CoolingAction(
+    ["ciHeI"], ["HeI","de"], "-ciHeI*HeI*de/4.0")
+cooling_action_table["ciHeII"] = CoolingAction(
+    ["ciHeII"], ["HeII","de"], "-ciHeII*HeII*de/4.0")
+cooling_action_table["ciHeIS"] = CoolingAction(
+    ["ciHeIS"], ["HeII","de"], "-ciHeIS*HeII*de**2/4.0")
+
+# Recombinations
+cooling_action_table["reHII"] = CoolingAction(
+    ["reHII"], ["HII","de"], "-reHII * HII * de")
+cooling_action_table["reHeII1"] = CoolingAction(
+    ["reHeII1"], ["HeII","de"], "-reHeII1 * HeII * de/4.0")
+cooling_action_table["reHeII2"] = CoolingAction(
+    ["reHeII2"], ["HeII","de"], "-reHeII2 * HeII * de/4.0")
+cooling_action_table["reHeIII"] = CoolingAction(
+    ["reHeIII"], ["HeIII","de"], "-reHeIII * HeIII * de/4.0")
+
+cooling_action_table["compton"] = CoolingAction(
+    ["comp"], ["de",], "-comp1*(T - comp2)*de",
+    temp_vars = [ ("comp1", "comp * (1.0 * redshift)**4"),
+                   ("comp2", "2.73 * (1.0 + redshift)") ],
+    other_symbols = ["redshift", "T"])
+
+# SKIP FOR NOW
+#cooling_action_table["compton_xray"] = CoolingAction(
+#    ["comp_xray"]
+"""
+!                    X-ray compton heating
+
+     &             - comp_xraya*(tgas(i)-comp_temp)*de(i,j,k)*dom_inv
+"""
+
+cooling_action_table["brem"] = CoolingAction(
+    ["brem"], ["HII","HeII","HeIII","de"],
+        "-HII * HeII/4.0 + HeIII * de")
+
+
+# Skipped
+"""
+!                    Photoelectric heating by UV-irradiated dust
+
+     &             + float(igammah)*gammaha*(HI(i,j,k)+HII(i,j,k))
+     &             *dom_inv)
+"""
+
 if __name__ == "__main__":
     pp = CVODEPrinter()
     print pp.doprint(species_symbols["H2I"])
-    print pp.doprint(cooling_action_table["aceHI"].equation)
+    print pp.doprint(cooling_action_table["ceHI"].equation)
+    print pp.doprint(cooling_action_table["ceHeI"].equation)
+    print pp.doprint(cooling_action_table["compton"].equation)
     #print pp.doprint(cooling_action_table["agloverabel08"].equation)
     #print pp.doprint(cooling_action_table["simple"].equation)
