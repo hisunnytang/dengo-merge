@@ -71,6 +71,15 @@ class CVODEPrinter(sympy.printing.str.StrPrinter):
         else:
             raise RuntimeError
 
+    def _print_Derivative(self, expr):
+        # Using the sympy printing docs as a hint here!
+        rate = str(expr.args[0].func)
+        if rate not in cooling_rates_table:
+            raise RuntimeError
+        cid = self.template_vars["cooling_rate_ids"][rate]
+        vname = "cooling_slopes[%s]" % cid
+        return "%s" % vname
+
     def _print_Pow(self, expr):
         PREC = sympy.printing.precedence.precedence(expr)
         return 'pow(%s,%s)'%(self.parenthesize(expr.base, PREC),
@@ -86,6 +95,7 @@ class CoolingRate(object):
         self.values = values
         self.name = name
         self.s = sympy.Symbol(self.name)
+        self.f = sympy.Function(self.name)(known_variables['T'])
 
     def __call__(self, quantities):
         T = quantities['T']
@@ -110,13 +120,24 @@ class CoolingAction(object):
         # Equation should be a string
         self.rates = rates
         self.species = species
-        symbols = dict( [(a, cooling_rates_table[a].s) for a in rates])
-        symbols.update(dict([(a, species_symbols[a]) for a in species]))
-        symbols.update(dict([(a, other_known_symbols[a]) for a in other_symbols]))
+        self.other_symbols = other_symbols
+        symbols = dict( [(a, cooling_rates_table[a].s) for a in rates]
+                      + [(a, species_symbols[a]) for a in species]
+                      + [(a, other_known_symbols[a]) for a in other_symbols])
         if temp_vars is not None:
             for t, eq in temp_vars:
                 symbols[t] = eval(eq, {}, symbols)
         self.equation = eval(equation, {}, symbols)
+
+        # But we also want one that has the functional form of the cooling
+        # rates
+        symbols = dict( [(a, cooling_rates_table[a].f) for a in rates]
+                      + [(a, species_symbols[a]) for a in species]
+                      + [(a, other_known_symbols[a]) for a in other_symbols])
+        if temp_vars is not None:
+            for t, eq in temp_vars:
+                symbols[t] = eval(eq, {}, symbols)
+        self.dequation = eval(equation, {}, symbols)
 
 cooling_action_table = dict()
 

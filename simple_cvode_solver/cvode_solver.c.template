@@ -528,6 +528,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {% if aname == 'compton' %}{% continue %}{% endif %}
     /* HANDLING {{ aname }} */
     edot += ({{ pp.doprint(act.equation) }});
+    /* Derivative: {{ pp.doprint(act.dequation.diff("T")) }} */
     {% endfor %}
     //return(1);
 
