@@ -129,7 +129,7 @@ int main(int argc, char** argv)
     cvode_mem = NULL;
 
     /* Set the scalar relative tolerance */
-    reltol = 1e-10; abstol = 0.0;
+    reltol = 1e-5; abstol = 0.0;
 
     /* Call CVodeCreate to create the solver memory and specify the 
      * Backward Differentiation Formula and the use of a Newton iteration */
@@ -194,7 +194,7 @@ int main(int argc, char** argv)
       if (write_vector_to_hdf5(y, &data, tout, 0)) return (1);
 
       if (tout >= tfinal) break;
-      tout = CVODE_MIN(tout*1.5, tfinal);
+      tout = CVODE_MIN(tout*1.2, tfinal);
     }
 
     if (write_vector_to_hdf5(y, &data, 0, 1)) return (1);
@@ -369,7 +369,7 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 
 
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates(double *outputvals, double T,
+void {{ solver_name }}_interpolate_rates(double outputvals[], double T,
                        TableOfRates *rate_tables)
 {
 
@@ -382,14 +382,14 @@ void {{ solver_name }}_interpolate_rates(double *outputvals, double T,
     lb = log10(crate->bounds[0]);
     ub = log10(crate->bounds[1]);
     bin_id = (int) (crate->idbin * (logT - lb));
-    dd = logT - (bin_id * crate->dbin + lb);
+    dd = (logT - (bin_id * crate->dbin + lb))*crate->idbin;
     for (ri = 0; ri < rate_tables->nrates; ri++) {
         crate = &rate_tables->rates[ri];
         /* Our interpolation logic here */
         /* Identify our bin */
         bv = crate->values[bin_id];
         dy = crate->values[bin_id + 1] - bv;
-        outputvals[ri] = bv + dd*dy*crate->idbin;
+        outputvals[ri] = bv + dd*dy;
         /*fprintf(stdout, "AUGH %i %0.5e %0.5e %0.5e %0.5e\n",
           ri, bin_id, crate->idbin, logT, lb, outputvals[ri]);*/
     }
@@ -525,6 +525,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
     realtype edot = 0.0;
 
     {%- for aname, act in cooling_action_table|dictsort %}
+    {% if aname == 'compton' %}{% continue %}{% endif %}
     /* HANDLING {{ aname }} */
     edot += ({{ pp.doprint(act.equation) }});
     {% endfor %}

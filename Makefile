@@ -3,7 +3,7 @@ HDF5_INCLUDES=-I${HDF5_DIR}/include
 HDF5_LIBRARIES=-L${HDF5_DIR}/lib -lhdf5_hl -lhdf5
 CVODE_INCLUDES=-I${HDF5_DIR}/include/cvode
 CVODE_LIBRARIES=-L${HDF5_DIR}/lib -lsundials_cvode -lsundials_nvecserial
-CCFLAGS=-O0
+CCFLAGS=-O3
 
 all : test_primordial_solver run_test
 
