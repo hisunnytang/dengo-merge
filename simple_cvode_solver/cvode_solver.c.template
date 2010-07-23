@@ -34,14 +34,16 @@ typedef struct {{ solver_name }}_cvode_data {
     int ncells;
     double *T;
     double *rho;
-    double **rates;
     /* This is probably invalid, as CVODE may rewind */
+    double redshift;
     TableOfRates *rate_tables;
+    TableOfRates *cooling_tables;
 } {{ solver_name }}_cvode_data;
 
 /* These change with the particular reaction rate solver, so we do not
 outsource them to a header file. */
 TableOfRates *{{ solver_name }}_read_rate_tables();
+TableOfRates *{{ solver_name }}_read_cooling_tables();
 void {{ solver_name }}_interpolate_rates(double *outputvals,
         double T, TableOfRates *rate_tables);
 static int {{ solver_name }}_cvode_calc_derivs(
@@ -58,13 +60,10 @@ double {{ solver_name }}_cvode_compute_temperature(
 #ifdef SAMPLE_TEST_PROBLEM
 int main(int argc, char** argv)
 {
-    TableOfRates *my_rates = {{ solver_name }}_read_rate_tables();
-    fprintf(stderr, "Successfully read in rate tables.\n");
     /* Now we run some tests.  This is just equally-spaced interpolation. */
     int i, ri, offset = {{ num_solved_species }};
 
     {{ solver_name }}_cvode_data data;
-    my_rates->nrates = {{ rate_table | length }};
 
     /* INITIAL CONDITIONS */
     /* Note that this will be inefficient, memorywise ... */
@@ -86,11 +85,18 @@ int main(int argc, char** argv)
     data.ncells = dims;
     data.T = (double *) calloc(data.ncells, sizeof(double));
     data.rho = (double *) calloc(data.ncells, sizeof(double));
-    data.rates = (double **) calloc(my_rates->nrates, sizeof(double*));
-    for (i = 0; i < my_rates->nrates; i++)
-        data.rates[i] = (double *) calloc(data.ncells, sizeof(double));
 
+    TableOfRates *my_rates;
+    
+    my_rates = {{ solver_name }}_read_rate_tables();
+    fprintf(stderr, "Successfully read in rate tables.\n");
+    my_rates->nrates = {{ rate_table | length }};
     data.rate_tables = my_rates;
+
+    my_rates = {{ solver_name }}_read_cooling_tables();
+    fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    my_rates->nrates = {{ cooling_rate_table | length }};
+    data.cooling_tables = my_rates;
 
     /* Create serial vector of length NEQ for I.C. and abstol */
     N_Vector y = NULL;
@@ -309,7 +315,49 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
     i++;
     {%- endfor %}
 
+    H5Fclose(file_id);
+
     return chemical_rates;
+}
+
+TableOfRates *{{ solver_name }}_read_cooling_tables()
+{
+    TableOfRates *cooling_rates = 
+            (TableOfRates *) malloc(sizeof(TableOfRates));
+
+    herr_t status;
+    hid_t file_id = H5Fopen("{{ solver_name }}_cooling_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    hsize_t dims;
+
+    cooling_rates->nrates = {{ cooling_rate_table|length }};
+    cooling_rates->rates =
+            (RateTable *) malloc(sizeof(RateTable) * cooling_rates->nrates);
+
+    int i = 0, j;
+
+    RateTable *crate;
+
+    {%- for name, rate in cooling_rate_table|dictsort %}
+    /* Now reading our {{ cooling_rate_ids[name] }}-th rate, {{ rate.name }} */
+    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
+    crate = &cooling_rates->rates[{{ cooling_rate_ids[name] }}];
+    /* Assume log-spaced bins */
+    crate->bounds[0] = {{ rate.T_bounds[0] }};
+    crate->bounds[1] = {{ rate.T_bounds[1] }};
+    crate->nbins = {{ rate.T | length }};
+    crate->dbin = (log10(crate->bounds[1]) - log10(crate->bounds[0])) / crate->nbins;
+    crate->idbin = 1.0L / crate->dbin;
+    crate->values = (double *) malloc(crate->nbins * sizeof(double));
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
+    /*for (j = 0; j < {{ rate.T | length }} ; j++)
+        printf("{{ rate.name }}[%i] = %0.5e\n", j, crate->values[j]);*/
+    i++;
+    {%- endfor %}
+
+    H5Fclose(file_id);
+
+    return cooling_rates;
 }
 
 /*
@@ -379,6 +427,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
   int i, cell, offset;
   double T;
   double interpolated_rates[{{ reaction_varnames | length }}];
+  double interpolated_cooling_rates[{{ cooling_rate_table | length }}];
 
   realtype eq_temp_num, eq_temp_den;
 
@@ -421,6 +470,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
         cell, data);
 
       {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
+      {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
 
     {% block apply_constraints %}
 #error "You must implement the apply_constraints block, even if it is empty!"
@@ -442,11 +492,11 @@ static int {{ solver_name }}_cvode_calc_derivs(
          Which is: {{ rxn }}
       */
      {%- if sname in rxn.up_species %}
-       eq_temp_num += data->rates[{{ reaction_ids[rname] }}][cell]
+       eq_temp_num += interpolated_rates[{{ reaction_ids[rname] }}][cell]
             {%- for n, s1 in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endfor %};
      {%- endif %}
      {%- if sname in rxn.down_species %}
-       eq_temp_den += data->rates[{{ reaction_ids[rname] }}][cell]
+       eq_temp_den += interpolated_rates[{{ reaction_ids[rname] }}][cell]
             {%- for n, s1 in rxn.left_side %}{% if s1.name != sname%}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endif %}{% endfor %};
      {%- endif %}
 
@@ -471,8 +521,20 @@ static int {{ solver_name }}_cvode_calc_derivs(
 
     {%- endfor %}
 
+    /* CALCULATE COOLING TERMS */
+    realtype edot = 0.0;
+
+    {%- for aname, act in cooling_action_table|dictsort %}
+    /* HANDLING {{ aname }} */
+    edot += ({{ pp.doprint(act.equation) }});
+    {% endfor %}
+    //return(1);
+
+    edot /= CVODE_MH * data->rho[cell];
+    NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset ) = edot;
 
     {%- for sname, s in non_eq_species_table|dictsort %}
+      {% if sname == "ge" %}{% continue %}{% endif %}
       /*
          Handling species {{ sname }}
       */

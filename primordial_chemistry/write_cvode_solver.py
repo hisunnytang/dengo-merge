@@ -28,14 +28,19 @@ import numpy as na
 
 years = lambda a: a * 365*24*3600
 
-def create_tables(rate_list, solver_name):
+def create_tables(rate_list, cooling_rate_list, solver_name):
     f = h5py.File("%s_rate_tables.h5" % solver_name, "w")
     for name, rate in rate_list.items():
         f.create_dataset("/%s" % name, data = rate.values.astype("float64"))
     f.close()
+    f = h5py.File("%s_cooling_tables.h5" % solver_name, "w")
+    for name, rate in cooling_rate_list.items():
+        f.create_dataset("/%s" % name, data = rate.values.astype("float64"))
+    f.close()
 
 def create_cvode_solver(rate_table, reaction_table, species_table,
-                        solver_name):
+                        solver_name, cooling_rate_table, cooling_action_table,
+                        pp_class):
     # What we are handed here is:
     #   * rate_table, which is a dict of "kXX" to ReactionRate objects.  These
     #     will be used in the reading of rates from disk, but will not directly
@@ -86,6 +91,10 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
             loader = jinja2.FileSystemLoader(["simple_cvode_solver/","."]))
     solver_template = env.get_template(
         "simple_cvode_solver/%s_cvode_solver.c.template" % (solver_name))
+    # Now the cooling stuff
+    icooling_rate_table = dict([(cid, cname) 
+            for cid, cname in enumerate(sorted(cooling_rate_table))])
+    cooling_rate_ids = dict([(a, b) for b, a in icooling_rate_table.items()])
     #from IPython.Shell import IPShellEmbed
     #IPShellEmbed()()
     template_vars = dict(num_solved_species = num_solved_species,
@@ -103,7 +112,12 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
                          non_eq_species_ids = non_eq_species_ids,
                          eq_species_table = eq_species_table,
                          eq_species_ids = eq_species_ids,
-                         species_varnames = species_varnames)
+                         species_varnames = species_varnames,
+                         cooling_rate_table = cooling_rate_table,
+                         cooling_rate_ids = cooling_rate_ids,
+                         icooling_rate_table = icooling_rate_table,
+                         cooling_action_table = cooling_action_table)
+    template_vars['pp'] = pp_class(template_vars)
     solver_out = solver_template.render(**template_vars)
     f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
     f.write(solver_out)
@@ -118,12 +132,15 @@ def create_initial_conditions(values, solver_name, tfinal):
 if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
+    from primordial_cooling import cooling_action_table, CVODEPrinter, \
+        cooling_rates_table
+    #cooling_action_table.pop("gloverabel08")
 
-    NCELLS = 128
-    Temperature = 350
-    rho = 1.0e15 # total rho in amu/cc
+    NCELLS = 2
+    Temperature = 5000
+    rho = 1.0e12 # total rho in amu/cc
     X = 1e-4 # ionization fraction
-    fH2 = 1e-6 # ionization fraction
+    fH2 = 0.01 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,
@@ -142,11 +159,14 @@ if __name__ == "__main__":
     values['ge'] = ( (Temperature * number_density * kboltz)
                    / (rho * mh * (5.0/3.0 - 1))) # gamma ~ 5/3
     print values['ge']
+    #loki = raw_input("enter?")
     values['rho'] = na.ones(NCELLS, dtype='float64')*rho
     #ee = rho * 
     tdyn = na.sqrt(3.0*na.pi / (6.67e-8*1.67e-24*rho))
     create_initial_conditions(values, "primordial", tdyn*10.0)
 
-    create_tables(reaction_rates_table, "primordial")
+    create_tables(reaction_rates_table, cooling_rates_table, "primordial")
     create_cvode_solver(reaction_rates_table, reaction_table, species_table,
-                        "primordial")
+                        "primordial",
+                        cooling_rates_table,
+                        cooling_action_table, CVODEPrinter)

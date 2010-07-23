@@ -49,12 +49,19 @@ other_known_symbols.update(user_data_cell_vars)
 # We set up all the symbols we are aware of here.
 
 class CVODEPrinter(sympy.printing.str.StrPrinter):
+    def __init__(self, template_vars, *args, **kwargs):
+        sympy.printing.str.StrPrinter.__init__(self, *args, **kwargs)
+        self.template_vars = template_vars
+
     def _print_Symbol(self, symbol):
         s = str(symbol)
         if s in species_symbols:
-            return "{{ species_varnames[\"%s\"] }}" % s
+            vname = self.template_vars["species_varnames"][s]
+            return "%s" % vname
         elif s in cooling_rates_table:
-            return "{{ cooling_varnames[\"%s\"] }}" % s
+            cid = self.template_vars["cooling_rate_ids"][s]
+            vname = "interpolated_cooling_rates[%s]" % cid
+            return "%s" % vname
         elif s in known_variables:
             return s
         elif s in user_data_symbols:
@@ -336,8 +343,7 @@ cooling_action_table["compton"] = CoolingAction(
 
 cooling_action_table["brem"] = CoolingAction(
     ["brem"], ["HII","HeII","HeIII","de"],
-        "-HII * HeII/4.0 + HeIII * de")
-
+        "-brem*(HII * HeII/4.0 + HeIII * de)")
 
 # Skipped
 """
@@ -346,6 +352,16 @@ cooling_action_table["brem"] = CoolingAction(
      &             + float(igammah)*gammaha*(HI(i,j,k)+HII(i,j,k))
      &             *dom_inv)
 """
+
+# Glover & Abel 2008 H2 cooling
+# do we have gphdl right?
+cooling_action_table["gloverabel08"] = CoolingAction(
+    ["gaHI","gaH2","gaHe","gaHp","gael","gphdl"],
+    ["HI","H2I","HeI","HII","de"],
+    "-H2I*gphdl/(1.0+gphdl/galdl)*0.5",
+    temp_vars = [
+        ("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
+        ])
 
 if __name__ == "__main__":
     pp = CVODEPrinter()
