@@ -119,11 +119,11 @@ if __name__ == "__main__":
     from primordial_rates import reaction_rates_table, reaction_table, \
         species_table
 
-    NCELLS = 1
-    Temperature = 6000
-    rho = 1.0e17 # total rho in amu/cc
-    X = 1e-30 # ionization fraction
-    fH2 = 0.99 # ionization fraction
+    NCELLS = 128
+    Temperature = 350
+    rho = 1.0e15 # total rho in amu/cc
+    X = 1e-4 # ionization fraction
+    fH2 = 1e-6 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,
@@ -144,7 +144,8 @@ if __name__ == "__main__":
     print values['ge']
     values['rho'] = na.ones(NCELLS, dtype='float64')*rho
     #ee = rho * 
-    create_initial_conditions(values, "primordial", years(1e9))
+    tdyn = na.sqrt(3.0*na.pi / (6.67e-8*1.67e-24*rho))
+    create_initial_conditions(values, "primordial", tdyn*10.0)
 
     create_tables(reaction_rates_table, "primordial")
     create_cvode_solver(reaction_rates_table, reaction_table, species_table,

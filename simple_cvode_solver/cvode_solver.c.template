@@ -27,6 +27,8 @@
 #define CVODE_GAMMA 1.666667
 #define CVODE_KB 1.380e-16
 #define CVODE_MH 1.67e-24
+#define CVODE_PI 3.1415926
+#define CVODE_GRAV 6.67e-8
 
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
@@ -147,7 +149,8 @@ int main(int argc, char** argv)
 
     /* Call CVDense to specify the CVDENSE dense linear solver */
     //flag = CVDiag(cvode_mem);
-    flag = CVDense(cvode_mem, data.ncells * {{ num_solved_species }});
+    flag = CVBand(cvode_mem, data.ncells * {{ num_solved_species }},
+        {{ num_solved_species }}, {{ num_solved_species }});
     if (check_flag(&flag, "CVDense", 1)) return(1);
 
     /* In loop, call CVode, print results, and test for error.
@@ -185,7 +188,7 @@ int main(int argc, char** argv)
       if (write_vector_to_hdf5(y, &data, tout, 0)) return (1);
 
       if (tout >= tfinal) break;
-      tout = CVODE_MIN(tout*2.0, tfinal);
+      tout = CVODE_MIN(tout*1.5, tfinal);
     }
 
     if (write_vector_to_hdf5(y, &data, 0, 1)) return (1);
@@ -260,7 +263,7 @@ int write_vector_to_hdf5(N_Vector y,
     {%- endfor %}
   }
 
-  hsize_t dims[2] = { {{ num_solved_species }}, data->ncells };
+  hsize_t dims[2] = { data->ncells, {{ num_solved_species }}};
 
   snprintf(dataset_name, 255, "/%08i", iter++);
   //printf("Writing at t=%0.5e to %s\n", dataset_name);
