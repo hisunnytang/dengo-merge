@@ -5,7 +5,7 @@ Homepage: http://yt.enzotools.org/
 License:
   Copyright (C) 2010 Matthew Turk.  All Rights Reserved.
 
-  This file is part of the primordial_chemistry package.
+  This file is part of the dengo package.
 
   This file is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -88,9 +88,9 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
     num_solved_species = len(non_eq_species_table)
     num_total_species = len(species_varnames)
     env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
-            loader = jinja2.FileSystemLoader(["simple_cvode_solver/","."]))
+            loader = jinja2.FileSystemLoader(["cvode_templates/","."]))
     solver_template = env.get_template(
-        "simple_cvode_solver/%s_cvode_solver.c.template" % (solver_name))
+        "cvode_templates/%s_cvode_solver.c.template" % (solver_name))
     # Now the cooling stuff
     icooling_rate_table = dict([(cid, cname) 
             for cid, cname in enumerate(sorted(cooling_rate_table))])
@@ -119,7 +119,7 @@ def create_cvode_solver(rate_table, reaction_table, species_table,
                          cooling_action_table = cooling_action_table)
     template_vars['pp'] = pp_class(template_vars)
     solver_out = solver_template.render(**template_vars)
-    f = open("simple_cvode_solver/%s_cvode_solver.c" % solver_name, "w")
+    f = open("cvode_templates/%s_cvode_solver.c" % solver_name, "w")
     f.write(solver_out)
 
 def create_initial_conditions(values, solver_name, tfinal):

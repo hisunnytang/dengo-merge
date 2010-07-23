@@ -18,7 +18,7 @@ def configuration(parent_package='',top_path=None):
     
     config.make_config_py()
     config.make_svn_version_py()
-    config.add_subpackage('primordial_chemistry','primordial_chemistry')
+    config.add_subpackage('dengo','dengo')
     config.add_scripts("scripts/*")
 
     return config
@@ -28,10 +28,11 @@ def setup_package():
     from numpy.distutils.core import setup
 
     setup(
-        name = "primordial_chemistry",
+        name = "dengo",
         version = VERSION,
-        description = "A simple integrator for primordial-universe chemistry",
-        classifiers = [ "Development Status :: 5 - Production/Stable",
+        description = "A framework for creating chemical and radiative cooling"
+                    + "reaction networks"
+        classifiers = [ "Development Status :: 2 - Pre-Alpha",
                         "Environment :: Console",
                         "Intended Audience :: Science/Research",
                         "License :: OSI Approved :: GNU General Public License (GPL)",
@@ -49,7 +50,7 @@ def setup_package():
         configuration=configuration,
         app=APP, # for py2app
         zip_safe=False,
-        package_data = {'': ['*.so'], }
+        #package_data = {'': ['*.so'], }
         )
     return
 

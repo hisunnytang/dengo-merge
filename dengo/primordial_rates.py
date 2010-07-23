@@ -5,7 +5,7 @@ Homepage: http://yt.enzotools.org/
 License:
   Copyright (C) 2010 Matthew Turk.  All Rights Reserved.
 
-  This file is part of the primordial_chemistry package.
+  This file is part of the dengo package.
 
   This file is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
