@@ -61,6 +61,11 @@ class Reaction(object):
     def up_species(self):
         return [s.name for n, s in self.right_side]
 
+    def net_change(self, sname):
+        up = sum( n for n, s in self.right_side if s.name == sname)
+        down = sum( n for n, s in self.left_side if s.name == sname)
+        return up - down
+
     def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right
         # place

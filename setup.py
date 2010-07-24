@@ -7,6 +7,8 @@ distribute_setup.use_setuptools()
 
 import setuptools
 
+VERSION="0.1"
+
 def configuration(parent_package='',top_path=None):
     from numpy.distutils.misc_util import Configuration
 
@@ -50,7 +52,7 @@ def setup_package():
         configuration=configuration,
         app=APP, # for py2app
         zip_safe=False,
-        #package_data = {'': ['*.so'], }
+        package_data = {'': ['*.so'], }
         )
     return
 

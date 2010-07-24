@@ -136,9 +136,9 @@ if __name__ == "__main__":
         cooling_rates_table
     #cooling_action_table.pop("gloverabel08")
 
-    NCELLS = 512
+    NCELLS = 1024
     Temperature = 50
-    rho = 1.0e13 # total rho in amu/cc
+    rho = 1.0e2 # total rho in amu/cc
     X = 1e-4 # ionization fraction
     fH2 = 0.001 # ionization fraction
 

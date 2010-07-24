@@ -1,3 +1,4 @@
+{# Welcome to the CVODE template for Dengo! #}
 /* 
    THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY.
    
@@ -48,13 +49,11 @@ void {{ solver_name }}_interpolate_rates(double *outputvals,
         double T, TableOfRates *rate_tables);
 static int {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data);
-#if 0
 static int {{ solver_name }}_cvode_calc_jacobian
               (int N, int mu, int ml,
                realtype t, N_Vector u, N_Vector fu, 
                DlsMat J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-#endif
 static int check_flag(void *flagvalue, char *funcname, int opt);
 int write_vector_to_hdf5(N_Vector y, 
                           {{ solver_name }}_cvode_data *data,
@@ -163,8 +162,12 @@ int main(int argc, char** argv)
     /* Call CVDense to specify the CVDENSE dense linear solver */
     //flag = CVDiag(cvode_mem);
     flag = CVBand(cvode_mem, data.ncells * {{ num_solved_species }},
-        {{ num_solved_species }}, {{ num_solved_species }});
+        {{ num_solved_species }}-1, {{ num_solved_species }}-1);
     if (check_flag(&flag, "CVDense", 1)) return(1);
+
+    /* Set the user-supplied Jacobian routine Jac */
+    //flag = CVDlsSetBandJacFn(cvode_mem, {{ solver_name }}_cvode_calc_jacobian);
+    //if(check_flag(&flag, "CVDlsSetBandJacFn", 1)) return(1);
 
     /* In loop, call CVode, print results, and test for error.
        Break out of loop when NOUT preset output times have been reached.  */
@@ -379,8 +382,8 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 void {{ solver_name }}_interpolate_rates(double outputvals[], double T,
                        TableOfRates *rate_tables)
 {
-
     int i, ri, bin_id;
+    static ncalls = 0;
     RateTable *crate;
     double logT = log10(T);
     double dd, bv, dy, lb, ub;
@@ -555,18 +558,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
            {{ rxn }}
            DOWN: {{ rxn.down_species }}
            UP  : {{ rxn.up_species }} */
-        {%- for nchange, s1 in rxn.right_side %}
-          {% if s1.name == s.name %}
-          /* Contribution from right side */
-          +{{ nchange|float }}L * {{ reaction_varnames[rname] }}
-          {%- endif %}
-        {%- endfor %}
-        {%- for nchange, s1 in rxn.left_side %}
-          {% if s1.name == s.name %}
-          /* Contribution from left side */
-          -{{ nchange|float }}L * {{ reaction_varnames[rname] }}
-          {%- endif %}
-        {%- endfor %}
+          +{{ rxn.net_change(sname)|float }}L * {{ reaction_varnames[rname] }}
         {%- endif %}
       {%- endfor %}
       );
@@ -578,9 +570,11 @@ static int {{ solver_name }}_cvode_calc_derivs(
            NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
 #endif
 
-    {% block end_of_derivatives %}{% endblock %}
-
     {%- endfor %}
+
+    {% block end_of_derivatives %}{% endblock %}
+    NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset ) = edot;
+
 
   }
 
@@ -588,16 +582,90 @@ static int {{ solver_name }}_cvode_calc_derivs(
 
 }
 
-#if 0
 static int {{ solver_name }}_cvode_calc_jacobian
               (int N, int mu, int ml,
-               realtype t, N_Vector u, N_Vector fu, 
-               DlsMat J, void *user_data,
+               realtype t, N_Vector y, N_Vector fy, 
+               DlsMat jac, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
 {
-  long int i, j, k;
   
+  int i, cell, offset;
+  double T;
+  double interpolated_rates[{{ reaction_varnames | length }}];
+  double interpolated_cooling_rates[{{ cooling_rate_table | length }}];
 
+  /* We map all of our species to variables:
+     {%- for v, vname in species_varnames|dictsort %}
+     {{ "% 8s => % 8s" | format(v, vname) }}
+     {%- endfor %}
+  */
+  realtype {% for v in species_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
+
+  /* We map all of our reactions to variables:
+     {%- for v, vname in reaction_varnames|dictsort %}
+     {{ "% 8s => % 8s" | format(v, vname) }}
+     {%- endfor %}
+  */
+  realtype {% for v in reaction_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
+
+  /* We calculate our offset between identical species for different cells */
+  int species_offset = {{ num_solved_species }};
+
+  /* Now we have our user_data object. */
+  {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
+
+
+  for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
+  {
+
+    {% for sname, sid in non_eq_species_ids|dictsort %}
+    {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
+    {% endfor %}
+
+      {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
+      {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
+
+    {%- for sn1, s1 in non_eq_species_table|dictsort %}
+      {%- if sn1 == "ge" %}{% continue %}{%- endif %}
+      {%- for sn2, s2 in non_eq_species_table|dictsort %}
+        {%- if sn2 == "ge" %}{% continue %}{%- endif %}
+
+          /*
+             Handling species d{{ sn1 }}'/d{{ sn2 }}
+          */
+
+          BAND_ELEM(jac, {{ non_eq_species_ids[sn1] }} + offset,
+                         {{ non_eq_species_ids[sn2] }} + offset) =
+                   {{ s1.weight }} * (0.0 
+          {%- for rname, rxn in reaction_table|dictsort %}
+            {%- if sn1 not in rxn.considered %}{% continue %}{%- endif %}
+            {%- if sn2 not in rxn.down_species %}{% continue %}{%- endif %}
+            /* REACTION: {{ rxn.name }}
+               {{ rxn }}
+               DOWN: {{ rxn.down_species }}
+               UP  : {{ rxn.up_species }} */
+            
+            +  interpolated_rates[{{reaction_ids[rname]}}] * {{ rxn.net_change(sn1)|float }}L  {# multiplied below #}
+            {%- for nchange, s3 in rxn.left_side %}
+              {%- if s3.name == sn2 %}{% set niter = nchange - 1 %}
+                    {% else %}{% set niter = nchange %}{% endif %}
+                {%- for i in range(niter) %}*({{ species_varnames[s3.name] }} / {{ s3.weight }}){% endfor %}
+            {%- endfor %}
+          {%- endfor %}
+            );
+        {%- endfor %}
+      {%- endfor %}
+#define {{ solver_name }}_CVODE_DEBUG_OFF
+#ifdef {{ solver_name }}_CVODE_DEBUG
+    printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
+           cell, "{{ sname }}",
+           {{ species_varnames[sname] }},
+           NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
+#endif
+
+    }
+
+#if 0
   data = (UserData) user_data;
   hordc = data->hdcoef;
   horac = data->hacoef;
@@ -617,10 +685,10 @@ static int {{ solver_name }}_cvode_calc_jacobian
       if (j != MY) BAND_COL_ELEM(kthCol,k+1,k)  = verdc;
     }
   }
+#endif
 
   return(0);
 }
-#endif
 
 static int check_flag(void *flagvalue, char *funcname, int opt)
 {
