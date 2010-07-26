@@ -167,7 +167,7 @@ int main(int argc, char** argv)
 
     /* Set the user-supplied Jacobian routine Jac */
     //flag = CVDlsSetBandJacFn(cvode_mem, {{ solver_name }}_cvode_calc_jacobian);
-    //if(check_flag(&flag, "CVDlsSetBandJacFn", 1)) return(1);
+    if(check_flag(&flag, "CVDlsSetBandJacFn", 1)) return(1);
 
     /* In loop, call CVode, print results, and test for error.
        Break out of loop when NOUT preset output times have been reached.  */
@@ -527,7 +527,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
        defined as {{ rxn }}
     */
     {{ reaction_varnames[rname] }} = interpolated_rates[{{ reaction_ids[rname] }}]
-        {% for n, s in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s.name] }}{% endfor %}{% endfor %};
+        {% for n, s in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s.name] }} / {{ s.weight }}{% endfor %}{% endfor %};
 
     {%- endfor %}
 
@@ -622,6 +622,11 @@ static int {{ solver_name }}_cvode_calc_jacobian
     {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
     {% endfor %}
 
+      T = {{ solver_name }}_cvode_compute_temperature(
+        {% for sname, s in species_varnames|dictsort %}{{ s }},
+        {% endfor %}
+        cell, data);
+
       {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
       {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
 
@@ -648,7 +653,8 @@ static int {{ solver_name }}_cvode_calc_jacobian
             +  interpolated_rates[{{reaction_ids[rname]}}] * {{ rxn.net_change(sn1)|float }}L  {# multiplied below #}
             {%- for nchange, s3 in rxn.left_side %}
               {%- if s3.name == sn2 %}{% set niter = nchange - 1 %}
-                    {% else %}{% set niter = nchange %}{% endif %}
+                    * (1.0L/{{s3.weight}})
+              {% else %}{% set niter = nchange %}{% endif %}
                 {%- for i in range(niter) %}*({{ species_varnames[s3.name] }} / {{ s3.weight }}){% endfor %}
             {%- endfor %}
           {%- endfor %}
