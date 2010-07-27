@@ -45,8 +45,7 @@
     temp += H * (k22 * Hsq - k13 * M);
     temp += M * (k21 * Hsq - k23 * M);
     /* H * (k22 * H^2 - k13 * H_2) + H_2 * (k21 * H^2 - k23 * H_2) */
-    NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset) += 
-        (7.177e-12 / (CVODE_MH * data->rho[cell])) * 0.5 * (temp);
+    edot += (7.177e-12 / (CVODE_MH * data->rho[cell])) * 0.5 * (temp);
     /*fprintf(stderr, "%0.5e %0.5e %0.5e %0.5e %0.5e %0.5e %0.5e\n",
             H, Hsq, M, k13, k21, k22, k23);*/
     {% set sname = "ge" %}

@@ -116,7 +116,7 @@ int main(int argc, char** argv)
     for (i = 0; i < data.ncells; i++)
     {
         NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) = values[i];
-        printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
+        //printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
     }
     {% endfor %}
 
@@ -218,6 +218,32 @@ int main(int argc, char** argv)
         NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
         NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
         data.T[0] );
+
+    /* Print statistics */
+    long int nsteps, nfevals, nlinsetups, netfails;
+    int qlast, qcur;
+    realtype hinused, hlast, hcur, tcur;
+
+    flag = CVodeGetIntegratorStats(cvode_mem, &nsteps, &nfevals, &nlinsetups,
+                &netfails, &qlast, &qcur, &hinused, &hlast, &hcur, &tcur);
+    if (check_flag(&flag, "CVodeGetIntegratorStats", 1)) return(1);
+
+    long int njevals;
+    flag = CVDlsGetNumJacEvals(cvode_mem, &njevals);
+    if (check_flag(&flag, "CVDlsGetNumJacEvals", 1)) return(1);
+
+    printf("Integrator Stats:\n");
+    printf("nsteps:     % 12li\n", nsteps);
+    printf("nfevals:    % 12li\n", nfevals);
+    printf("njevals:    % 12li\n", njevals);
+    printf("nlinsetups: % 12li\n", nlinsetups);
+    printf("netfails:   % 12li\n", netfails);
+    printf("qlast:      % 12i\n", qlast);
+    printf("qcur:       % 12i\n", qcur);
+    printf("hinused:    % 0.5e\n", hinused);
+    printf("hlast:      % 0.5e\n", hlast);
+    printf("hcur:       % 0.5e\n", hcur);
+    printf("tcur:       % 0.5e\n", tcur);
 
     /* Free y and abstol vectors */
     N_VDestroy_Serial(y);
@@ -573,6 +599,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
     {%- endfor %}
 
     {% block end_of_derivatives %}{% endblock %}
+    //if (cell == 0) printf("EDOT: %0.5e\n", edot);
     NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset ) = edot;
 
 
