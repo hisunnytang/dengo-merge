@@ -1,8 +1,8 @@
 {% extends "cvode_solver.c.template" %}
 {% block compute_temperature_function %}
-  /* P = (k rho T) / ( mu mh ) */
-  /* T = (1 - gamma) * e * mu * mh / k */
-  realtype p2d, tgas, rho_cgs;
+    /* P = (k rho T) / ( mu mh ) */
+    /* T = (1 - gamma) * e * mu * mh / k */
+    realtype p2d, tgas, rho_cgs, nh2, nother, x, gamma2;
     /* (gamma - 1) * rho (g / cm^3) * e (ergs / g) */
     rho_cgs = data->rho[cell]*CVODE_MH;
     p2d = (CVODE_GAMMA - 1.0)*rho_cgs*{{ species_varnames["ge"] }};
@@ -15,6 +15,28 @@
     {%- endfor %}
     tgas = p2d / (CVODE_KB * tgas);
     /*printf("%0.5e\n", tgas);*/
+
+    /* Now we apply a temperature correction for the gamma of H2 */
+    nh2 = 0.5 * ( {{ species_varnames['H2I'] }} + {{ species_varnames['H2II'] }} );
+    nother = 0.25 * ( {{ species_varnames['HeI'] }} +
+                      {{ species_varnames['HeII'] }} +
+                      {{ species_varnames['HeIII'] }} ) +
+                    ( {{ species_varnames['HI'] }} +
+                      {{ species_varnames['HII'] }} +
+                      {{ species_varnames['de'] }} );
+    if ((nh2 / nother) > 1.0e-3) {
+        x = 6100.0/tgas;
+        if (x > 10.0) {
+            gamma2 = 0.5*5.0;
+        } else {
+            gamma2 = 0.5 * (5.0 + 2.0*x*x * pow(exp(x)/(exp(x) - 1.0), 2.0));
+        }
+    } else {
+        gamma2 = 2.5;
+    }
+    gamma2 = 1.0 + (nh2 + nother) / (nh2 * gamma2 + nother/(CVODE_GAMMA-1.0));
+    tgas = tgas * (gamma2 - 1.0)/(CVODE_GAMMA - 1.0);
+
     return CVODE_MAX(tgas, 1.0);
 {% endblock %}
 
