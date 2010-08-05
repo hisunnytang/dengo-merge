@@ -1,4 +1,5 @@
 {# Welcome to the CVODE template for Dengo! #}
+{% block cvode_header %}
 /* 
    THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY.
    
@@ -63,6 +64,9 @@ double {{ solver_name }}_cvode_compute_temperature(
     {% for sname, s in species_varnames|dictsort %}realtype {{ s }},{% endfor %}
     int cell, {{ solver_name }}_cvode_data *data);
 
+{% endblock %} {# cvode_header #}
+
+{% block cvode_entry_point %}
 #ifdef SAMPLE_TEST_PROBLEM
 int main(int argc, char** argv)
 {
@@ -167,7 +171,7 @@ int main(int argc, char** argv)
 
     /* Set the user-supplied Jacobian routine Jac */
     //flag = CVDlsSetBandJacFn(cvode_mem, {{ solver_name }}_cvode_calc_jacobian);
-    if(check_flag(&flag, "CVDlsSetBandJacFn", 1)) return(1);
+    //if(check_flag(&flag, "CVDlsSetBandJacFn", 1)) return(1);
 
     /* In loop, call CVode, print results, and test for error.
        Break out of loop when NOUT preset output times have been reached.  */
@@ -318,6 +322,32 @@ int write_vector_to_hdf5(N_Vector y,
 
 #endif
 
+static int check_flag(void *flagvalue, char *funcname, int opt)
+{
+  int *errflag;
+
+  /* Check if SUNDIALS function returned NULL pointer - no memory allocated */
+  if (opt == 0 && flagvalue == NULL) {
+    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  /* Check if flag < 0 */
+  else if (opt == 1) {
+    errflag = (int *) flagvalue;
+    if (*errflag < 0) {
+      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
+	      funcname, *errflag);
+      return(1); }}
+
+  /* Check if function returned NULL pointer - no memory allocated */
+  else if (opt == 2 && flagvalue == NULL) {
+    fprintf(stderr, "\nMEMORY_ERROR: %s() failed - returned NULL pointer\n\n",
+	    funcname);
+    return(1); }
+
+  return(0);
+}
 TableOfRates *{{ solver_name }}_read_rate_tables()
 {
     TableOfRates *chemical_rates = 
@@ -395,7 +425,9 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 
     return cooling_rates;
 }
+{% endblock %} {# cvode_entry_point #}
 
+{% block cvode_interpolate_rates %}
 /*
    This setup may be different than the user may anticipate, as a result
    of the lockstep timestep we use for a pencil beam through the grid.
@@ -430,6 +462,7 @@ void {{ solver_name }}_interpolate_rates(double outputvals[], double T,
           ri, bin_id, crate->idbin, logT, lb, outputvals[ri]);*/
     }
 }
+{% endblock %} {# interpolate_rates #}
 
 double {{ solver_name }}_cvode_compute_temperature(
     {% for sname, s in species_varnames|dictsort %}realtype {{ s }},
@@ -441,6 +474,7 @@ double {{ solver_name }}_cvode_compute_temperature(
   {% endblock %}
 }
 
+{% block calc_derivs %}
 static int {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
@@ -608,7 +642,9 @@ static int {{ solver_name }}_cvode_calc_derivs(
   return (0);
 
 }
+{% endblock %} {# cvode_calc_derivs #}
 
+{% block cvode_calc_jacobian %}
 static int {{ solver_name }}_cvode_calc_jacobian
               (int N, int mu, int ml,
                realtype t, N_Vector y, N_Vector fy, 
@@ -657,6 +693,7 @@ static int {{ solver_name }}_cvode_calc_jacobian
       {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
       {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
 
+    
     {%- for sn1, s1 in non_eq_species_table|dictsort %}
       {%- if sn1 == "ge" %}{% continue %}{%- endif %}
       {%- for sn2, s2 in non_eq_species_table|dictsort %}
@@ -722,30 +759,5 @@ static int {{ solver_name }}_cvode_calc_jacobian
 
   return(0);
 }
+{% endblock %}{# cvode_calc_jacobian #}
 
-static int check_flag(void *flagvalue, char *funcname, int opt)
-{
-  int *errflag;
-
-  /* Check if SUNDIALS function returned NULL pointer - no memory allocated */
-  if (opt == 0 && flagvalue == NULL) {
-    fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed - returned NULL pointer\n\n",
-	    funcname);
-    return(1); }
-
-  /* Check if flag < 0 */
-  else if (opt == 1) {
-    errflag = (int *) flagvalue;
-    if (*errflag < 0) {
-      fprintf(stderr, "\nSUNDIALS_ERROR: %s() failed with flag = %d\n\n",
-	      funcname, *errflag);
-      return(1); }}
-
-  /* Check if function returned NULL pointer - no memory allocated */
-  else if (opt == 2 && flagvalue == NULL) {
-    fprintf(stderr, "\nMEMORY_ERROR: %s() failed - returned NULL pointer\n\n",
-	    funcname);
-    return(1); }
-
-  return(0);
-}
