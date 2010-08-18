@@ -1,0 +1,272 @@
+{% extends "primordial_cvode_solver.c.template" %}
+
+{% block cvode_comment_header %}
+/* THIS FILE HAS BEEN AUTO-GENERATED.  DO NOT EDIT. */
+
+/* This code comes with some caveats:
+    * currently it does not handle co-moving rates
+    * currently it cannot do MS=3 or radiation rates
+    * it will likely not work with radiative fields as defined by enzo unless
+      that is added by someone else
+    * It may simply give bad results!  Watch the project page for updates on
+      testing.
+
+   For more information on the generating code, see
+   http://code.google.com/p/dengo/
+*/
+
+{% endblock %}
+
+{% block cvode_local_type_defs %}
+#define CVODE_INT Eint32
+#define CVODE_FLOAT Eflt32
+#define CVODE_LONG Eint64
+#define CVODE_DOUBLE Eflt64
+{% endblock %}
+
+{% block cvode_includes %}
+
+{{ super() }}
+
+#include "ErrorExceptions.h"
+#include "macros_and_parameters.h"
+#include "typedefs.h"
+#include "global_data.h"
+#include "Fluxes.h"
+#include "GridList.h"
+#include "ExternalBoundary.h"
+#include "Grid.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+
+int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
+int GetUnits(float *DensityUnits, float *LengthUnits,
+	     float *TemperatureUnits, float *TimeUnits,
+	     float *VelocityUnits, FLOAT Time);
+int RadiationFieldCalculateRates(FLOAT Time);
+int FindField(int field, int farray[], int numfields);
+double ReturnWallTime();
+
+{% endblock %}
+
+{% block cvode_entry_point %}
+
+static TableOfRates *cvode_cooling_tables, *cvode_rate_tables;
+#define CVODE_CELLS_PER_STRIDE 32
+
+int grid::SolvePrimordialChemistryCVODE()
+{
+
+    int i;
+
+    if (!( (MultiSpecies == 3)
+         && RadiativeCooling
+         && (PrimordialChemistrySolver == 2))) return SUCCESS;
+
+  if (ProcessorNumber != MyProcessorNumber)
+    return SUCCESS;
+
+  if (NumberOfBaryonFields == 0)
+    return SUCCESS;
+
+  this->DebugCheck("SolveHighDensityPrimordialChemistry");
+
+  /* Declarations */
+
+  int DensNum, GENum, TENum, Vel1Num, Vel2Num, Vel3Num, B1Num, B2Num, B3Num;
+  int DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, HMNum, H2INum, H2IINum,
+      DINum, DIINum, HDINum;
+  FLOAT a = 1.0, dadt;
+    
+  /* Find fields: density, total energy, velocity1-3. */
+
+  this->IdentifyPhysicalQuantities(DensNum, GENum, Vel1Num, Vel2Num, 
+				       Vel3Num, TENum, B1Num, B2Num, B3Num);
+
+  /* Find Multi-species fields. */
+
+  if (MultiSpecies)
+    IdentifySpeciesFields(DeNum, HINum, HIINum, HeINum, HeIINum, HeIIINum, 
+                      HMNum, H2INum, H2IINum, DINum, DIINum, HDINum);
+
+  /* Find photo-ionization fields */
+
+  int kphHINum, kphHeINum, kphHeIINum, kdissH2INum;
+  int gammaNum;
+  IdentifyRadiativeTransferFields(kphHINum, gammaNum, kphHeINum, 
+				  kphHeIINum, kdissH2INum);
+
+  /* If using cosmology, compute the expansion factor and get units. */
+
+  float TemperatureUnits = 1, DensityUnits = 1, LengthUnits = 1, 
+    VelocityUnits = 1, TimeUnits = 1, MassUnits = 1, aUnits = 1;
+
+  if (ComovingCoordinates) {
+
+    if (CosmologyComputeExpansionFactor(Time+0.5*dtFixed, &a, &dadt) 
+	== FAIL) {
+            ENZO_FAIL("Error in CosmologyComputeExpansionFactors.");
+    }
+
+    aUnits = 1.0/(1.0 + InitialRedshift);
+
+  }
+
+  if (GetUnits(&DensityUnits, &LengthUnits, &TemperatureUnits,
+	       &TimeUnits, &VelocityUnits, Time) == FAIL) {
+        ENZO_FAIL("Error in GetUnits.");
+  }
+
+  /* We have several tasks.
+  
+    * If it is not already initialized, CVODE needs to be initialized.  This
+      means setting up:
+        * Table of rates (TableOfRates struct)
+        * Table of coolign rates (TableOfRates struct)
+    * We must also create our vector of species values, which involves copying
+      them and converting them on the fly to amu/cc
+    * cvode_mem has to be created
+    * We then iterate to completion on that vector
+    * Copy each value back
+  */
+
+  /* Set up the rates */
+  static int cvode_rates_setup = 0;
+  if (cvode_rates_setup == 0) {
+    TableOfRates *my_rates;
+    
+    cvode_rate_tables = {{ solver_name }}_read_rate_tables();
+    fprintf(stderr, "Successfully read in rate tables.\n");
+    cvode_rate_tables->nrates = {{ rate_table | length }};
+
+    cvode_cooling_tables = {{ solver_name }}_read_cooling_tables();
+    fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    cvode_cooling_tables->nrates = {{ cooling_rate_table | length }};
+
+    cvode_rates_setup = 1;
+  }
+
+  {{ solver_name }}_cvode_data data;
+  data.rate_tables = cvode_rate_tables;
+  data.cooling_tables = cvode_cooling_tables;
+  data.rho = (double *) malloc(sizeof(double)*CVODE_CELLS_PER_STRIDE);
+  void *user_data = (void *) &data;
+
+  int NumberOfCells = 1, start_index;
+  for (i = 0; i < GridRank; i++)
+    NumberOfCells *= GridDimension[i];
+
+    /* Create serial vector of length NEQ for I.C. and abstol */
+  N_Vector y = NULL;
+  y = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
+  int offset = {{num_solved_species}};
+  data.redshift = (1 + InitialRedshift) / a - 1;
+
+  float rho_units = DensityUnits / 1.67e-24;
+  float e_units = VelocityUnits * VelocityUnits;
+
+  for (start_index = 0; start_index < NumberOfCells;
+        start_index += CVODE_CELLS_PER_STRIDE) {
+    data.ncells = max(CVODE_CELLS_PER_STRIDE, NumberOfCells - start_index);
+    for (i = 0; i < data.ncells; i++) {
+      {% for sname, sid in non_eq_species_ids|dictsort %}
+
+      /* Copying {{ sname }} into temp vector */
+
+      {% if sname == 'ge' %}{% continue %}{% endif %}
+      {% if sname == 'de' %}{% set snumname = 'De' %}
+        {% else %}{% set snumname = sname %}{% endif %}
+
+      NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) = 
+        BaryonField[ {{ "%sNum" | format(snumname) }}][i + start_index]
+          * rho_units;
+      {% endfor %}
+
+      data.rho[i] = BaryonField[DensNum][i + start_index] * e_units;
+      NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) =
+        BaryonField[GENum][i + start_index] * e_units;
+    }
+   /* Now we create our memory and iterate */
+
+    /* Now boilerplate CVODE stuff */
+    realtype reltol, t, tout, abstol;
+    void *cvode_mem;
+    CVODE_INT flag, flagr, iout;
+
+    cvode_mem = NULL;
+
+    /* Set the scalar relative tolerance */
+    reltol = 1e-5; abstol = 0.0;
+
+    /* Call CVodeCreate to create the solver memory and specify the 
+     * Backward Differentiation Formula and the use of a Newton iteration */
+    cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+    if (check_flag((void *)cvode_mem, "CVodeCreate", 0))
+      ENZO_FAIL("CVodeCreate failed");
+
+    /* Call CVodeInit to initialize the integrator memory and specify the
+     * user's right hand side function in y'=f(t,y), the inital time T0, and
+     * the initial dependent variable vector y. */
+    flag = CVodeInit(cvode_mem, {{ solver_name }}_cvode_calc_derivs, 0.0, y);
+    if (check_flag(&flag, "CVodeInit", 1))
+      ENZO_FAIL("CVodeInit failed");
+
+    flag = CVodeSetUserData(cvode_mem, user_data);
+    if (check_flag(&flag, "CVodeSetUserData", 1))
+      ENZO_FAIL("CVodeSetUserData failed");
+
+    /* Call CVodeSVtolerances to specify the scalar relative tolerance
+     * and vector absolute tolerances */
+    flag = CVodeSStolerances(cvode_mem, reltol, abstol);
+    if (check_flag(&flag, "CVodeSVtolerances", 1))
+      ENZO_FAIL("CVodeSVtolerances failed");
+
+    flag = CVodeSetMaxNumSteps(cvode_mem, 10000);
+    if (check_flag(&flag, "CVodeSetMaxNumSteps", 1))
+      ENZO_FAIL("CVodeSetMaxNumSteps failed");
+
+    /* Call CVDense to specify the CVDENSE dense linear solver */
+    //flag = CVDiag(cvode_mem);
+    flag = CVBand(cvode_mem, data.ncells * {{ num_solved_species }},
+        {{ num_solved_species }}-1, {{ num_solved_species }}-1);
+    if (check_flag(&flag, "CVDense", 1))
+      ENZO_FAIL("CVDense failed");
+
+    /* We now subcycle a couple times */
+
+    realtype current_time = 0.0;
+    for (i = 0; i < 10; i ++) {
+      flag = CVode(cvode_mem, (dtFixed / 10.0) * i, y,
+                   &current_time, CV_NORMAL);
+      if (check_flag(&flag, "CVode", 1))
+        ENZO_FAIL("CVODE failed during integration");
+    }
+    for (i = 0; i < data.ncells; i++) {
+      {% for sname, sid in non_eq_species_ids|dictsort %}
+
+      /* Copying {{ sname }} into temp vector */
+
+      {% if sname == 'ge' %}{% continue %}{% endif %}
+      {% if sname == 'de' %}{% set snumname = 'De' %}
+        {% else %}{% set snumname = sname %}{% endif %}
+
+
+      BaryonField[ {{ "%sNum" | format(snumname) }}][i + start_index] =
+        NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) / rho_units;
+      {% endfor %}
+
+      BaryonField[GENum][i + start_index] =
+        NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) / e_units;
+    }
+    CVodeFree(&cvode_mem);
+  }
+
+  N_VDestroy_Serial(y);
+
+  return SUCCESS;
+}
+
+{% endblock %}
+
+#ifdef int
+#undef int

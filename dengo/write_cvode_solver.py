@@ -140,7 +140,7 @@ if __name__ == "__main__":
     Temperature = 2000
     rho = 1.0e17 # total rho in amu/cc
     X = 1e-4 # ionization fraction
-    fH2 = 0.99 # ionization fraction
+    fH2 = 0.90 # ionization fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,

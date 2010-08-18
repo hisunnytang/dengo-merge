@@ -1,18 +1,30 @@
 {# Welcome to the CVODE template for Dengo! #}
 {% block cvode_header %}
+{% block cvode_comment_header %}
 /* 
    THIS IS A GENERATED FILE: PLEASE DO NOT EDIT DIRECTLY.
    
    EDIT THE TEMPLATE INSTEAD.
 */
+{% endblock %}
 
+{% block cvode_includes %}
 /* CVODE includes */
 
 #include "cvode.h"
 #include <nvector/nvector_serial.h>  /* serial N_Vector types, fcts., macros */
 #include <cvode/cvode_dense.h>       /* prototype for CVDense */
+#include <cvode/cvode_band.h>       /* prototype for CVDense */
 #include <sundials/sundials_dense.h> /* definitions DlsMat DENSE_ELEM */
 #include <sundials/sundials_types.h> /* definition of type realtype */
+
+{% block cvode_local_type_defs %}
+{# this nonsense is because of the nasty type changes in Enzo #}
+#define CVODE_INT int
+#define CVODE_FLOAT float
+#define CVODE_LONG long
+#define CVODE_DOUBLE double
+{% endblock %}{# cvode_local_type_defs #}
 
 /* stdlib, hdf5, local includes */
 
@@ -31,10 +43,11 @@
 #define CVODE_MH 1.67e-24
 #define CVODE_PI 3.1415926
 #define CVODE_GRAV 6.67e-8
+{% endblock %} {# cvode_includes #}
 
+{% block cvode_structs_and_prototypes %}
 typedef struct {{ solver_name }}_cvode_data {
     int ncells;
-    double *T;
     double *rho;
     /* This is probably invalid, as CVODE may rewind */
     double redshift;
@@ -48,9 +61,9 @@ TableOfRates *{{ solver_name }}_read_rate_tables();
 TableOfRates *{{ solver_name }}_read_cooling_tables();
 void {{ solver_name }}_interpolate_rates(double *outputvals,
         double T, TableOfRates *rate_tables);
-static int {{ solver_name }}_cvode_calc_derivs(
+static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data);
-static int {{ solver_name }}_cvode_calc_jacobian
+static CVODE_INT {{ solver_name }}_cvode_calc_jacobian
               (int N, int mu, int ml,
                realtype t, N_Vector u, N_Vector fu, 
                DlsMat J, void *user_data,
@@ -62,8 +75,8 @@ int write_vector_to_hdf5(N_Vector y,
                           int final);
 double {{ solver_name }}_cvode_compute_temperature(
     {% for sname, s in species_varnames|dictsort %}realtype {{ s }},{% endfor %}
-    int cell, {{ solver_name }}_cvode_data *data);
-
+    CVODE_INT cell, {{ solver_name }}_cvode_data *data);
+{% endblock %} {# cvode_structs_and_prototypes #}
 {% endblock %} {# cvode_header #}
 
 {% block cvode_entry_point %}
@@ -93,7 +106,6 @@ int main(int argc, char** argv)
     herr_t status = H5LTget_dataset_info(file_id, "/{{ sn }}", &dims, NULL, NULL);
     printf("  ncells = % 3i\n", (int) dims);
     data.ncells = dims;
-    data.T = (double *) calloc(data.ncells, sizeof(double));
     data.rho = (double *) calloc(data.ncells, sizeof(double));
 
     TableOfRates *my_rates;
@@ -134,7 +146,7 @@ int main(int argc, char** argv)
     /* Now boilerplate CVODE stuff */
     realtype reltol, t, tout, abstol;
     void *cvode_mem;
-    int flag, flagr, iout;
+    CVODE_INT flag, flagr, iout;
 
     cvode_mem = NULL;
 
@@ -192,11 +204,11 @@ int main(int argc, char** argv)
     if (write_vector_to_hdf5(y, &data, tout, -1)) return (1);
 
     while(1) {
-      printf("Requesting output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e, T = %0.5e)\n",
+      printf("Requesting output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e)\n",
              tout,
              NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
              NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
-             data.T[0] );
+              );
       flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
 
       if (check_flag(&flag, "CVode", 1)) break;
@@ -217,11 +229,11 @@ int main(int argc, char** argv)
     wallf = tp.tv_sec + tp.tv_usec*(1e-6);
 
     printf("Took %0.5e seconds\n", (wallf-walli));
-    printf("Final output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e, T = %0.5e)\n",
+    printf("Final output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e)\n",
         tout,
         NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
         NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
-        data.T[0] );
+         );
 
     /* Print statistics */
     long int nsteps, nfevals, nlinsetups, netfails;
@@ -321,7 +333,9 @@ int write_vector_to_hdf5(N_Vector y,
 }
 
 #endif
+{% endblock %} {# cvode_entry_points #}
 
+{% block cvode_check_flag %}
 static int check_flag(void *flagvalue, char *funcname, int opt)
 {
   int *errflag;
@@ -348,6 +362,9 @@ static int check_flag(void *flagvalue, char *funcname, int opt)
 
   return(0);
 }
+{% endblock %} {# cvode_check_flag #}
+
+{% block cvode_read_tables %}
 TableOfRates *{{ solver_name }}_read_rate_tables()
 {
     TableOfRates *chemical_rates = 
@@ -425,7 +442,7 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 
     return cooling_rates;
 }
-{% endblock %} {# cvode_entry_point #}
+{% endblock %} {# cvode_read_tables #}
 
 {% block cvode_interpolate_rates %}
 /*
@@ -441,7 +458,7 @@ void {{ solver_name }}_interpolate_rates(double outputvals[], double T,
                        TableOfRates *rate_tables)
 {
     int i, ri, bin_id;
-    static ncalls = 0;
+    static int ncalls = 0;
     RateTable *crate;
     double logT = log10(T);
     double dd, bv, dy, lb, ub;
@@ -475,7 +492,7 @@ double {{ solver_name }}_cvode_compute_temperature(
 }
 
 {% block calc_derivs %}
-static int {{ solver_name }}_cvode_calc_derivs(
+static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data)
 {
   /* Psuedocode for calculating:
@@ -645,7 +662,7 @@ static int {{ solver_name }}_cvode_calc_derivs(
 {% endblock %} {# cvode_calc_derivs #}
 
 {% block cvode_calc_jacobian %}
-static int {{ solver_name }}_cvode_calc_jacobian
+static CVODE_INT {{ solver_name }}_cvode_calc_jacobian
               (int N, int mu, int ml,
                realtype t, N_Vector y, N_Vector fy, 
                DlsMat jac, void *user_data,
