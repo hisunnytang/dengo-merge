@@ -47,7 +47,7 @@
 
 {% block cvode_structs_and_prototypes %}
 typedef struct {{ solver_name }}_cvode_data {
-    int ncells;
+    CVODE_INT ncells;
     double *rho;
     /* This is probably invalid, as CVODE may rewind */
     double redshift;
@@ -510,7 +510,6 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
           calculate cooling
           ydot(ge) += cooling
   */
-
   int i, cell, offset;
   double T;
   double interpolated_rates[{{ reaction_varnames | length }}];
