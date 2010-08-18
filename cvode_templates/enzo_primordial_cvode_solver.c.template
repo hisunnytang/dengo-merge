@@ -14,7 +14,7 @@
    For more information on the generating code, see
    http://code.google.com/p/dengo/
 */
-
+#ifdef USE_CVODE
 {% endblock %}
 
 {% block cvode_local_type_defs %}
@@ -268,5 +268,6 @@ int grid::SolvePrimordialChemistryCVODE()
 
 {% endblock %}
 
-#ifdef int
-#undef int
+{% block cvode_footer %}
+#endif /* USE_CVODE */
+{% endblock %} {# cvode_footer #}

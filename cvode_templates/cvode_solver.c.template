@@ -778,3 +778,5 @@ static CVODE_INT {{ solver_name }}_cvode_calc_jacobian
 }
 {% endblock %}{# cvode_calc_jacobian #}
 
+{% block cvode_footer %}
+{% endblock %} {# cvode_footer #}
