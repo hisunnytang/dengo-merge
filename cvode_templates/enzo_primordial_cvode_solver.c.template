@@ -193,7 +193,7 @@ int grid::SolvePrimordialChemistryCVODE()
 
     /* Now boilerplate CVODE stuff */
     realtype reltol, t, tout, abstol;
-    realtype final_time = dtFixed;
+    realtype final_time = dtFixed * TimeUnits;
     void *cvode_mem;
     CVODE_INT flag, flagr, iout;
 
@@ -237,12 +237,13 @@ int grid::SolvePrimordialChemistryCVODE()
       ENZO_FAIL("CVDense failed");
 
     /* We now subcycle a couple times */
+#define NUM_CVODE_ITERATIONS 100
 
     realtype current_time = 0.0;
-    for (i = 0; i < 10; i ++) {
+    for (i = 0; i < NUM_CVODE_ITERATIONS; i ++) {
       /*fprintf(stderr, "Final Time: %0.5e Current Time: %0.5e\n",
               final_time, current_time);*/
-      flag = CVode(cvode_mem, (final_time / 10.0) * (i+1), y,
+      flag = CVode(cvode_mem, (final_time / NUM_CVODE_ITERATIONS) * (i+1), y,
                    &current_time, CV_NORMAL);
       if (check_flag(&flag, "CVode", 1))
         ENZO_FAIL("CVODE failed during integration");
@@ -261,8 +262,13 @@ int grid::SolvePrimordialChemistryCVODE()
         NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) / rho_units;
       {% endfor %}
 
+      float old_ge = BaryonField[GENum][i + start_index];
       BaryonField[GENum][i + start_index] =
         NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) / e_units;
+      BaryonField[TENum][i + start_index] +=
+        (BaryonField[GENum][i + start_index] - old_ge);
+      /*fprintf(stderr, "%0.5e\n", (BaryonField[GENum][i + start_index] - old_ge)
+                                 / BaryonField[GENum][i + start_index]);*/
     }
     CVodeFree(&cvode_mem);
   }
