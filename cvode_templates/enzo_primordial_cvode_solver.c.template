@@ -52,7 +52,7 @@ double ReturnWallTime();
 {% block cvode_entry_point %}
 
 static TableOfRates *cvode_cooling_tables, *cvode_rate_tables;
-#define CVODE_CELLS_PER_STRIDE 32
+#define CVODE_CELLS_PER_STRIDE 512
 
 int grid::SolvePrimordialChemistryCVODE()
 {
@@ -166,7 +166,7 @@ int grid::SolvePrimordialChemistryCVODE()
   data.redshift = (1 + InitialRedshift) / a - 1;
 
   float rho_units = DensityUnits / 1.67e-24;
-  float e_units = VelocityUnits * VelocityUnits;
+  float e_units = VelocityUnits * VelocityUnits; // 1.67e-24;
 
   for (start_index = 0; start_index < NumberOfCells;
         start_index += CVODE_CELLS_PER_STRIDE) {
@@ -185,7 +185,7 @@ int grid::SolvePrimordialChemistryCVODE()
          * rho_units;
      {% endfor %}
 
-     data.rho[i] = BaryonField[DensNum][i + start_index] * e_units;
+     data.rho[i] = BaryonField[DensNum][i + start_index] * rho_units;
      NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) =
        BaryonField[GENum][i + start_index] * e_units;
    }
