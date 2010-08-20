@@ -53,14 +53,18 @@ typedef struct {{ solver_name }}_cvode_data {
     double redshift;
     TableOfRates *rate_tables;
     TableOfRates *cooling_tables;
+    double *T;
+    double *logT;
+    double **rate_storage;
+    double **cooling_storage;
 } {{ solver_name }}_cvode_data;
 
 /* These change with the particular reaction rate solver, so we do not
 outsource them to a header file. */
 TableOfRates *{{ solver_name }}_read_rate_tables();
 TableOfRates *{{ solver_name }}_read_cooling_tables();
-void {{ solver_name }}_interpolate_rates(double *outputvals,
-        double T, TableOfRates *rate_tables);
+void {{ solver_name }}_interpolate_rates({{solver_name}}_cvode_data *data,
+            TableOfRates *rate_tables, double **outputvals);
 static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     realtype t, N_Vector y, N_Vector ydot, void *user_data);
 static CVODE_INT {{ solver_name }}_cvode_calc_jacobian
@@ -73,9 +77,6 @@ int write_vector_to_hdf5(N_Vector y,
                           {{ solver_name }}_cvode_data *data,
                           realtype t,
                           int final);
-double {{ solver_name }}_cvode_compute_temperature(
-    {% for sname, s in species_varnames|dictsort %}realtype {{ s }},{% endfor %}
-    CVODE_INT cell, {{ solver_name }}_cvode_data *data);
 {% endblock %} {# cvode_structs_and_prototypes #}
 {% endblock %} {# cvode_header #}
 
@@ -135,6 +136,21 @@ int main(int argc, char** argv)
         //printf("Setting {{ sname }}[%i] = %0.5e\n", i, values[i]);
     }
     {% endfor %}
+
+    /* Allocate our temporary storage space */
+
+    data.T = (double *)calloc(data.ncells, sizeof(double));
+    data.logT = (double *)calloc(data.ncells, sizeof(double));
+
+    data.rate_storage = (double **)calloc(
+        {{ rate_table | length }}, sizeof(double*));
+    for (i = 0 ; i < data.ncells * {{ rate_table | length }} ; i ++)
+        data.rate_storage[i] = (double *)calloc(data.ncells, sizeof(double));
+
+    data.cooling_storage = (double **)calloc(
+        {{ cooling_rate_table | length }}, sizeof(double*));
+    for (i = 0 ; i < data.ncells * {{ cooling_rate_table | length }} ; i ++)
+        data.cooling_storage[i] = (double *)calloc(data.ncells, sizeof(double));
 
     printf("Reading /rho\n");
     H5LTread_dataset_double(file_id, "/rho", data.rho);
@@ -207,7 +223,7 @@ int main(int argc, char** argv)
       printf("Requesting output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e)\n",
              tout,
              NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
-             NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
+             NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0]
               );
       flag = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
 
@@ -232,7 +248,7 @@ int main(int argc, char** argv)
     printf("Final output from CVODE at %0.3e (H2I = %0.5e, HI = %0.5e)\n",
         tout,
         NV_Ith_S(y, {{ non_eq_species_ids["H2I"] }}) / data.rho[0],
-        NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0],
+        NV_Ith_S(y, {{ non_eq_species_ids["HI"] }}) / data.rho[0]
          );
 
     /* Print statistics */
@@ -452,44 +468,30 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
    assumptions about the sizes of the rates.
 */
 
-
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates(double outputvals[], double T,
-                       TableOfRates *rate_tables)
+void {{ solver_name }}_interpolate_rates({{solver_name}}_cvode_data *data,
+                        TableOfRates *rate_tables, double **outputvals)
 {
     int i, ri, bin_id;
     static int ncalls = 0;
     RateTable *crate;
-    double logT = log10(T);
     double dd, bv, dy, lb, ub;
 
-    crate = &rate_tables->rates[0];
-    lb = log10(crate->bounds[0]);
-    ub = log10(crate->bounds[1]);
-    bin_id = (int) (crate->idbin * (logT - lb));
-    dd = (logT - (bin_id * crate->dbin + lb))*crate->idbin;
     for (ri = 0; ri < rate_tables->nrates; ri++) {
         crate = &rate_tables->rates[ri];
-        /* Our interpolation logic here */
-        /* Identify our bin */
-        bv = crate->values[bin_id];
-        dy = crate->values[bin_id + 1] - bv;
-        outputvals[ri] = bv + dd*dy;
-        /*fprintf(stdout, "AUGH %i %0.5e %0.5e %0.5e %0.5e\n",
-          ri, bin_id, crate->idbin, logT, lb, outputvals[ri]);*/
+        lb = log10(crate->bounds[0]);
+        ub = log10(crate->bounds[1]);
+        for (i = 0; i < data->ncells; i++) {
+            bin_id = (int) (crate->idbin * (data->logT[i] - lb));
+            dd = (data->logT[i] - (bin_id * crate->dbin + lb))*crate->idbin;
+            bv = crate->values[bin_id];
+            dy = crate->values[bin_id + 1] - bv;
+            outputvals[ri][i] = bv + dd*dy;
+        }
     }
+
 }
 {% endblock %} {# interpolate_rates #}
-
-double {{ solver_name }}_cvode_compute_temperature(
-    {% for sname, s in species_varnames|dictsort %}realtype {{ s }},
-    {% endfor %}
-    int cell, {{ solver_name }}_cvode_data *data)
-{
-  {% block compute_temperature_function %}
-#error "You must implement the compute_temperature block, even if it is empty!"
-  {% endblock %}
-}
 
 {% block calc_derivs %}
 static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
@@ -510,10 +512,8 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
           calculate cooling
           ydot(ge) += cooling
   */
-  int i, cell, offset;
   double T;
-  double interpolated_rates[{{ reaction_varnames | length }}];
-  double interpolated_cooling_rates[{{ cooling_rate_table | length }}];
+  int i, cell, offset;
 
   realtype eq_temp_num, eq_temp_den;
 
@@ -538,6 +538,30 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
   {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
 
 
+    /* First, we compute our temperature for ALL cells.  We then interpolate
+    the rates for ALL cells.  Then, we compute the derivatives. */
+
+   for (cell = 0, offset = 0; cell < data->ncells; cell++, offset += species_offset)
+   {
+
+    {% for sname, sid in non_eq_species_ids|dictsort %}
+    {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
+    {% endfor %}
+
+  {% block compute_temperature_function %}
+#error "You must implement the compute_temperature block, even if it is empty!"
+  {% endblock %}
+
+    data->T[cell] = T;
+    data->logT[cell] = log10(T);
+
+  }
+
+  {{ solver_name }}_interpolate_rates(data, data->rate_tables,
+                data->rate_storage);
+  {{ solver_name }}_interpolate_rates(data, data->cooling_tables,
+                data->cooling_storage);
+
   for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
   {
 
@@ -549,14 +573,10 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     {% for sname, sid in non_eq_species_ids|dictsort %}
     {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
     {% endfor %}
-
-      T = {{ solver_name }}_cvode_compute_temperature(
-        {% for sname, s in species_varnames|dictsort %}{{ s }},
-        {% endfor %}
-        cell, data);
-
-      {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
-      {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
+    {%- for rname, rxn in reaction_table|dictsort %}  
+    /* Calculating reaction value for {{ rxn.name }} defined as {{ rxn }} */
+    {{ reaction_varnames[rname] }} = data->rate_storage[{{ reaction_ids[rname] }}][cell];
+    {%- endfor %}
 
     {% block apply_constraints %}
 #error "You must implement the apply_constraints block, even if it is empty!"
@@ -578,11 +598,11 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
          Which is: {{ rxn }}
       */
      {%- if sname in rxn.up_species %}
-       eq_temp_num += interpolated_rates[{{ reaction_ids[rname] }}][cell]
+       eq_temp_num +=  reaction_varnames[rname]
             {%- for n, s1 in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endfor %};
      {%- endif %}
      {%- if sname in rxn.down_species %}
-       eq_temp_den += interpolated_rates[{{ reaction_ids[rname] }}][cell]
+       eq_temp_den += reaction_varnames[rname]
             {%- for n, s1 in rxn.left_side %}{% if s1.name != sname%}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endif %}{% endfor %};
      {%- endif %}
 
@@ -602,7 +622,7 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     /* Calculating reaction value for {{ rxn.name }}
        defined as {{ rxn }}
     */
-    {{ reaction_varnames[rname] }} = interpolated_rates[{{ reaction_ids[rname] }}]
+    {{ reaction_varnames[rname] }} = data->rate_storage[{{ reaction_ids[rname] }}][cell]
         {% for n, s in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s.name] }} / {{ s.weight }}{% endfor %}{% endfor %};
 
     {%- endfor %}
@@ -659,123 +679,6 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
 
 }
 {% endblock %} {# cvode_calc_derivs #}
-
-{% block cvode_calc_jacobian %}
-static CVODE_INT {{ solver_name }}_cvode_calc_jacobian
-              (int N, int mu, int ml,
-               realtype t, N_Vector y, N_Vector fy, 
-               DlsMat jac, void *user_data,
-               N_Vector tmp1, N_Vector tmp2, N_Vector tmp3)
-{
-  
-  int i, cell, offset;
-  double T;
-  double interpolated_rates[{{ reaction_varnames | length }}];
-  double interpolated_cooling_rates[{{ cooling_rate_table | length }}];
-
-  /* We map all of our species to variables:
-     {%- for v, vname in species_varnames|dictsort %}
-     {{ "% 8s => % 8s" | format(v, vname) }}
-     {%- endfor %}
-  */
-  realtype {% for v in species_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
-
-  /* We map all of our reactions to variables:
-     {%- for v, vname in reaction_varnames|dictsort %}
-     {{ "% 8s => % 8s" | format(v, vname) }}
-     {%- endfor %}
-  */
-  realtype {% for v in reaction_varnames.values()|sort %}{{ v }}{%- if not loop.last %}, {% endif %}{% endfor %};
-
-  /* We calculate our offset between identical species for different cells */
-  int species_offset = {{ num_solved_species }};
-
-  /* Now we have our user_data object. */
-  {{ solver_name }}_cvode_data *data = ({{ solver_name }}_cvode_data *) user_data;
-
-
-  for (cell = 0, offset = 0; cell < data->ncells; cell += 1, offset += species_offset)
-  {
-
-    {% for sname, sid in non_eq_species_ids|dictsort %}
-    {{ species_varnames[sname] }} = NV_Ith_S(y, offset + {{ sid }});
-    {% endfor %}
-
-      T = {{ solver_name }}_cvode_compute_temperature(
-        {% for sname, s in species_varnames|dictsort %}{{ s }},
-        {% endfor %}
-        cell, data);
-
-      {{ solver_name }}_interpolate_rates( interpolated_rates, T, data->rate_tables);
-      {{ solver_name }}_interpolate_rates( interpolated_cooling_rates, T, data->cooling_tables);
-
-    
-    {%- for sn1, s1 in non_eq_species_table|dictsort %}
-      {%- if sn1 == "ge" %}{% continue %}{%- endif %}
-      {%- for sn2, s2 in non_eq_species_table|dictsort %}
-        {%- if sn2 == "ge" %}{% continue %}{%- endif %}
-
-          /*
-             Handling species d{{ sn1 }}'/d{{ sn2 }}
-          */
-
-          BAND_ELEM(jac, {{ non_eq_species_ids[sn1] }} + offset,
-                         {{ non_eq_species_ids[sn2] }} + offset) =
-                   {{ s1.weight }} * (0.0 
-          {%- for rname, rxn in reaction_table|dictsort %}
-            {%- if sn1 not in rxn.considered %}{% continue %}{%- endif %}
-            {%- if sn2 not in rxn.down_species %}{% continue %}{%- endif %}
-            /* REACTION: {{ rxn.name }}
-               {{ rxn }}
-               DOWN: {{ rxn.down_species }}
-               UP  : {{ rxn.up_species }} */
-            
-            +  interpolated_rates[{{reaction_ids[rname]}}] * {{ rxn.net_change(sn1)|float }}L  {# multiplied below #}
-            {%- for nchange, s3 in rxn.left_side %}
-              {%- if s3.name == sn2 %}{% set niter = nchange - 1 %}
-                    * (1.0L/{{s3.weight}})
-              {% else %}{% set niter = nchange %}{% endif %}
-                {%- for i in range(niter) %}*({{ species_varnames[s3.name] }} / {{ s3.weight }}){% endfor %}
-            {%- endfor %}
-          {%- endfor %}
-            );
-        {%- endfor %}
-      {%- endfor %}
-#define {{ solver_name }}_CVODE_DEBUG_OFF
-#ifdef {{ solver_name }}_CVODE_DEBUG
-    printf("  cell = % 4i species = % 7s val = %0.5e dot = % 0.5e\n",
-           cell, "{{ sname }}",
-           {{ species_varnames[sname] }},
-           NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
-#endif
-
-    }
-
-#if 0
-  data = (UserData) user_data;
-  hordc = data->hdcoef;
-  horac = data->hacoef;
-  verdc = data->vdcoef;
-  
-  for (j=1; j <= MY; j++) {
-    for (i=1; i <= MX; i++) {
-      k = j-1 + (i-1)*MY;
-      kthCol = BAND_COL(J,k);
-
-      /* set the kth column of J */
-
-      BAND_COL_ELEM(kthCol,k,k) = -TWO*(verdc+hordc);
-      if (i != 1)  BAND_COL_ELEM(kthCol,k-MY,k) = hordc + horac;
-      if (i != MX) BAND_COL_ELEM(kthCol,k+MY,k) = hordc - horac;
-      if (j != 1)  BAND_COL_ELEM(kthCol,k-1,k)  = verdc;
-      if (j != MY) BAND_COL_ELEM(kthCol,k+1,k)  = verdc;
-    }
-  }
-#endif
-
-  return(0);
-}
-{% endblock %}{# cvode_calc_jacobian #}
 
 {% block cvode_footer %}
 {% endblock %} {# cvode_footer #}

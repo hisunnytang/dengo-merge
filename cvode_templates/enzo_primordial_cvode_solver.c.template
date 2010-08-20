@@ -146,6 +146,16 @@ int grid::SolvePrimordialChemistryCVODE()
     cvode_rates_setup = 1;
   }
 
+  data.rate_storage = (double **)calloc(
+      {{ rate_table | length }}, sizeof(double*));
+  for (i = 0 ; i < CVODE_CELLS_PER_STRIDE * {{ rate_table | length }} ; i ++)
+      data.rate_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, double);
+
+  data.cooling_storage = (double **)calloc(
+      {{ cooling_table | length }}, sizeof(double*));
+  for (i = 0 ; i < CVODE_CELLS_PER_STRIDE * {{ cooling_table | length }} ; i ++)
+      data.cooling_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, double);
+
   {{ solver_name }}_cvode_data data;
   data.rate_tables = cvode_rate_tables;
   data.cooling_tables = cvode_cooling_tables;
@@ -160,7 +170,7 @@ int grid::SolvePrimordialChemistryCVODE()
   N_Vector y = NULL;
   y = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
   if (check_flag((void *)y, "N_VNew_Serial", 0))
-    ENZO_FAIL("Failed to make y vector");
+    EZO_FAIL("Failed to make y vector");
 
   int offset = {{num_solved_species}};
   data.redshift = (1 + InitialRedshift) / a - 1;
@@ -237,7 +247,7 @@ int grid::SolvePrimordialChemistryCVODE()
       ENZO_FAIL("CVDense failed");
 
     /* We now subcycle a couple times */
-#define NUM_CVODE_ITERATIONS 100
+#define NUM_CVODE_ITERATIONS 10.0
 
     realtype current_time = 0.0;
     for (i = 0; i < NUM_CVODE_ITERATIONS; i ++) {

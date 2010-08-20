@@ -136,11 +136,11 @@ if __name__ == "__main__":
         cooling_rates_table
     #cooling_action_table.pop("gloverabel08")
 
-    NCELLS = 1024
-    Temperature = 2000
-    rho = 1.0e17 # total rho in amu/cc
+    NCELLS = 32
+    Temperature = 1000
+    rho = 1.0e15 # total rho in amu/cc
     X = 1e-4 # ionization fraction
-    fH2 = 0.90 # ionization fraction
+    fH2 = 0.01 # h2 fraction
 
     # This is the initial fraction of every species
     fracs = dict(HI    = 1.0 - X - fH2,

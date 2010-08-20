@@ -37,7 +37,8 @@
     gamma2 = 1.0 + (nh2 + nother) / (nh2 * gamma2 + nother/(CVODE_GAMMA-1.0));
     tgas = tgas * (gamma2 - 1.0)/(CVODE_GAMMA - 1.0);
 
-    return CVODE_MAX(tgas, 1.0);
+    T = CVODE_MAX(tgas, 1.0);
+    //fprintf(stderr, "SETTING T = %0.3e\n", T);
 {% endblock %}
 
 {% block apply_constraints %}
@@ -59,10 +60,10 @@
     long double H = {{ species_varnames["HI"] }};
     long double Hsq = H * H;
     long double M = {{ species_varnames["H2I"] }};
-    long double k13 = interpolated_rates[{{ reaction_ids['r13'] }}];
-    long double k21 = interpolated_rates[{{ reaction_ids['r21'] }}];
-    long double k22 = interpolated_rates[{{ reaction_ids['r22'] }}];
-    long double k23 = interpolated_rates[{{ reaction_ids['r23'] }}];
+    long double k13 = data->rate_storage[{{ reaction_ids['r13'] }}][cell];
+    long double k21 = data->rate_storage[{{ reaction_ids['r21'] }}][cell];
+    long double k22 = data->rate_storage[{{ reaction_ids['r22'] }}][cell];
+    long double k23 = data->rate_storage[{{ reaction_ids['r23'] }}][cell];
     long double temp = 0.0;
     temp += H * (k22 * Hsq - k13 * M);
     temp += M * (k21 * Hsq - k23 * M);

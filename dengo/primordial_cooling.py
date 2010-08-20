@@ -60,7 +60,7 @@ class CVODEPrinter(sympy.printing.str.StrPrinter):
             return "%s" % vname
         elif s in cooling_rates_table:
             cid = self.template_vars["cooling_rate_ids"][s]
-            vname = "interpolated_cooling_rates[%s]" % cid
+            vname = "data->cooling_storage[%s][cell]" % cid
             return "%s" % vname
         elif s in known_variables:
             return s
