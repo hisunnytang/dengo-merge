@@ -146,21 +146,24 @@ int grid::SolvePrimordialChemistryCVODE()
     cvode_rates_setup = 1;
   }
 
-  data.rate_storage = (double **)calloc(
-      {{ rate_table | length }}, sizeof(double*));
-  for (i = 0 ; i < CVODE_CELLS_PER_STRIDE * {{ rate_table | length }} ; i ++)
-      data.rate_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, double);
-
-  data.cooling_storage = (double **)calloc(
-      {{ cooling_table | length }}, sizeof(double*));
-  for (i = 0 ; i < CVODE_CELLS_PER_STRIDE * {{ cooling_table | length }} ; i ++)
-      data.cooling_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, double);
-
   {{ solver_name }}_cvode_data data;
+  void *user_data = (void *) &data;
+
   data.rate_tables = cvode_rate_tables;
   data.cooling_tables = cvode_cooling_tables;
-  data.rho = (double *) malloc(sizeof(double)*CVODE_CELLS_PER_STRIDE);
-  void *user_data = (void *) &data;
+  data.rho = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+  data.T = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+  data.logT = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+
+  data.rate_storage = (double **)calloc(
+      {{ rate_table | length }}, sizeof(double*));
+  for (i = 0 ; i < {{ rate_table | length }} ; i ++)
+      data.rate_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+
+  data.cooling_storage = (double **)calloc(
+      {{ cooling_rate_table | length }}, sizeof(double*));
+  for (i = 0 ; i < {{ cooling_rate_table | length }} ; i ++)
+      data.cooling_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
 
   int NumberOfCells = 1, start_index;
   for (i = 0; i < GridRank; i++)
@@ -170,7 +173,7 @@ int grid::SolvePrimordialChemistryCVODE()
   N_Vector y = NULL;
   y = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
   if (check_flag((void *)y, "N_VNew_Serial", 0))
-    EZO_FAIL("Failed to make y vector");
+    ENZO_FAIL("Failed to make y vector");
 
   int offset = {{num_solved_species}};
   data.redshift = (1 + InitialRedshift) / a - 1;
