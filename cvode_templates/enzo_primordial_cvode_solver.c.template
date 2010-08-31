@@ -28,6 +28,7 @@
 
 {{ super() }}
 
+#include "cvode_lapack.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -252,15 +253,35 @@ int grid::SolvePrimordialChemistryCVODE()
     /* We now subcycle a couple times */
 #define NUM_CVODE_ITERATIONS 10.0
 
-    realtype current_time = 0.0;
-    for (i = 0; i < NUM_CVODE_ITERATIONS; i ++) {
+    realtype current_reached_time = 0.0;
+    realtype current_desired_time = 0.0;
+    realtype current_dt = final_time / NUM_CVODE_ITERATIONS;
+    while(current_desired_time < final_time) {
       /*fprintf(stderr, "Final Time: %0.5e Current Time: %0.5e\n",
-              final_time, current_time);*/
-      flag = CVode(cvode_mem, (final_time / NUM_CVODE_ITERATIONS) * (i+1), y,
-                   &current_time, CV_NORMAL);
-      if (check_flag(&flag, "CVode", 1))
-        ENZO_FAIL("CVODE failed during integration");
+        final_time, current_reached_time);*/
+      flag = CVode(cvode_mem, current_desired_time, y,
+          &current_reached_time, CV_NORMAL);
+      if (flag < 0) {
+        switch (flag){
+          case CV_ERR_FAILURE:
+          case CV_TOO_MUCH_WORK:
+          case CV_CONV_FAILURE:
+            //current_dt *= 0.8;
+            break;
+          default:
+            check_flag(&flag, "CVode", 1);
+            ENZO_FAIL("Error is unknown\n");
+            break;
+        }
+      }
+      current_desired_time = min(current_reached_time + current_dt, final_time);
     }
+
+    current_reached_time /= TimeUnits;
+    if ( ABS(current_reached_time - dtFixed) / (current_reached_time + dtFixed) > 1e-8) {
+        ENZO_VFAIL("Rate solver failed to converge! %0.5e %0.5e %0.5e\n", current_reached_time, dtFixed, current_reached_time - dtFixed)
+    }
+
     for (i = 0; i < data.ncells; i++) {
       {% for sname, sid in non_eq_species_ids|dictsort %}
 
