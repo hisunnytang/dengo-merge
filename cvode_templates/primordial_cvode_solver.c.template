@@ -42,6 +42,12 @@
 {% endblock %}
 
 {% block apply_constraints %}
+    {{ species_varnames['de'] }} = 
+        {{species_varnames['HII']}} +
+        {{species_varnames['H2II']}} / 2.0 +
+        {{species_varnames['HeII']}} / 4.0 +
+        {{species_varnames['HeIII']}} / 2.0 -
+        {{species_varnames['HM']}};
 
 {% endblock %}
 
@@ -49,7 +55,7 @@
     /* We have gas energy in ergs/g */
     /* We have 7.177e-12 ergs / molecule */
     /* (7.177e-12 ergs / H2) * (H2 / ( s cm^3 )) => ergs / (s cm^3) */
-    /* So divide by rho in grames */
+    /* So divide by rho in grams */
     {
     /*
        This may be overkill, but by shuffling things around a bit we can reduce

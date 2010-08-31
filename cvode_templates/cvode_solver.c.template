@@ -598,11 +598,11 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
          Which is: {{ rxn }}
       */
      {%- if sname in rxn.up_species %}
-       eq_temp_num +=  reaction_varnames[rname]
+       eq_temp_num +=  {{reaction_varnames[rname]}}
             {%- for n, s1 in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endfor %};
      {%- endif %}
      {%- if sname in rxn.down_species %}
-       eq_temp_den += reaction_varnames[rname]
+       eq_temp_den += {{reaction_varnames[rname]}}
             {%- for n, s1 in rxn.left_side %}{% if s1.name != sname%}{% for i in range(n) %}*{{ species_varnames[s1.name] }}{% endfor %}{% endif %}{% endfor %};
      {%- endif %}
 
@@ -672,7 +672,14 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     //if (cell == 0) printf("EDOT: %0.5e\n", edot);
     NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset ) = edot;
 
-
+    realtype total_deriv = 0.0;
+    {% for sname, sid in non_eq_species_ids|dictsort %}
+        {% if sname == 'ge' %}{% continue %}{% endif %}
+        {% if sname == 'de' %}{% continue %}{% endif %}
+        /* SNAME == {{ sname }} */
+        total_deriv += NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset);
+    {% endfor %}
+    //fprintf(stderr, "Total Derivative: %0.5e\n", total_deriv);
   }
 
   return (0);
