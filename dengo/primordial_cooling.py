@@ -105,7 +105,8 @@ class CoolingRate(object):
     def init_temperature(cls, T_bounds, n_bins=1024):
         cls.n_bins = 1024
         cls.T = na.logspace(
-            na.log10(T_bounds[0]), na.log10(T_bounds[1]), n_bins)
+            na.log(T_bounds[0]), na.log(T_bounds[1]), n_bins,
+                   base = na.e)
         cls.logT = na.log(cls.T)
         cls.tev = cls.T / tevk
         cls.logtev = na.log(cls.tev)
@@ -222,6 +223,7 @@ cooling_rates_table['gpldl'] = CoolingRate('gpldl', vals)
 # high density limit from HM79 (typo corrected Aug 30/2007)
 # -- gphdl --
 t3 = tm/1000.
+# HDLR is from p31 of HM79.
 HDLR = ((9.5e-22*t3**3.76)/(1.+0.12*t3**2.1)*
         na.exp(-(0.13/t3)**3)+3.e-24*na.exp(-0.51/t3))
 HDLV = (6.7e-19*na.exp(-5.86/t3) + 1.6e-18*na.exp(-11.7/t3))
@@ -379,9 +381,10 @@ cooling_action_table["brem"] = CoolingAction(
 cooling_action_table["gloverabel08"] = CoolingAction(
     ["gaHI","gaH2","gaHe","gaHp","gael","gphdl"],
     ["HI","H2I","HeI","HII","de"],
-    "-H2I*gphdl/(1.0+gphdl/galdl)*0.5",
+    "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)",
     temp_vars = [
-        ("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
+        ("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de"),
+        ("gphdl1", "gphdl"),
         ])
 
 if __name__ == "__main__":

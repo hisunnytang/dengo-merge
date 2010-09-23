@@ -37,7 +37,7 @@
 
 #define CVODE_MAX(A, B) ((A) > (B) ? (A) : (B))
 #define CVODE_MIN(A, B) ((A) < (B) ? (A) : (B))
-#define CVODE_TINY 1.0e-30
+#define CVODE_TINY 1.0e-60
 #define CVODE_GAMMA 1.666667
 #define CVODE_KB 1.380e-16
 #define CVODE_MH 1.67e-24
@@ -167,7 +167,7 @@ int main(int argc, char** argv)
     cvode_mem = NULL;
 
     /* Set the scalar relative tolerance */
-    reltol = 1e-5; abstol = 0.0;
+    reltol = 1e-5; abstol = 1e-38;
 
     /* Call CVodeCreate to create the solver memory and specify the 
      * Backward Differentiation Formula and the use of a Newton iteration */
@@ -407,7 +407,7 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
     crate->bounds[0] = {{ rate.T_bounds[0] }};
     crate->bounds[1] = {{ rate.T_bounds[1] }};
     crate->nbins = {{ rate.T | length }};
-    crate->dbin = (log10(crate->bounds[1]) - log10(crate->bounds[0])) / crate->nbins;
+    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / (crate->nbins-1);
     crate->idbin = 1.0L / crate->dbin;
     crate->values = (double *) malloc(crate->nbins * sizeof(double));
     H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
@@ -445,7 +445,7 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
     crate->bounds[0] = {{ rate.T_bounds[0] }};
     crate->bounds[1] = {{ rate.T_bounds[1] }};
     crate->nbins = {{ rate.T | length }};
-    crate->dbin = (log10(crate->bounds[1]) - log10(crate->bounds[0])) / crate->nbins;
+    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / crate->nbins;
     crate->idbin = 1.0L / crate->dbin;
     crate->values = (double *) malloc(crate->nbins * sizeof(double));
     H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
@@ -476,17 +476,27 @@ void {{ solver_name }}_interpolate_rates({{solver_name}}_cvode_data *data,
     static int ncalls = 0;
     RateTable *crate;
     double dd, bv, dy, lb, ub;
+    double t1, t2, tdef;
 
     for (ri = 0; ri < rate_tables->nrates; ri++) {
         crate = &rate_tables->rates[ri];
-        lb = log10(crate->bounds[0]);
-        ub = log10(crate->bounds[1]);
+        lb = log(crate->bounds[0]);
+        ub = log(crate->bounds[1]);
         for (i = 0; i < data->ncells; i++) {
+            /* indixe */
             bin_id = (int) (crate->idbin * (data->logT[i] - lb));
-            dd = (data->logT[i] - (bin_id * crate->dbin + lb))*crate->idbin;
+            /*dd = (data->logT[i] - (bin_id * crate->dbin + lb))*crate->idbin;
             bv = crate->values[bin_id];
             dy = crate->values[bin_id + 1] - bv;
-            outputvals[ri][i] = bv + dd*dy;
+            outputvals[ri][i] = bv + dd*dy;*/
+            t1 = (lb + (bin_id - 1) * crate->dbin);
+            t2 = (lb + (bin_id    ) * crate->dbin);
+            tdef = (data->logT[i] - t1)/(t2 - t1);
+            outputvals[ri][i] = crate->values[bin_id] +
+                tdef * (crate->values[bin_id+1] - crate->values[bin_id]);
+            /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
+                    bin_id, data->logT[i], data->T[i],
+                    crate->bounds[0], crate->bounds[1]);*/
         }
     }
 
@@ -553,7 +563,8 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
   {% endblock %}
 
     data->T[cell] = T;
-    data->logT[cell] = log10(T);
+    /*fprintf(stderr, "T[%08d] = %0.5e\n", cell, T);*/
+    data->logT[cell] = log(T);
 
   }
 
@@ -623,7 +634,7 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
        defined as {{ rxn }}
     */
     {{ reaction_varnames[rname] }} = data->rate_storage[{{ reaction_ids[rname] }}][cell]
-        {% for n, s in rxn.left_side %}{% for i in range(n) %}*{{ species_varnames[s.name] }} / {{ s.weight }}{% endfor %}{% endfor %};
+        {% for n, s in rxn.left_side %}{% for i in range(n) %}*({{ species_varnames[s.name] }} / {{ s.weight }}){% endfor %}{% endfor %};
 
     {%- endfor %}
 
@@ -638,7 +649,7 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
     {% endfor %}
     //return(1);
 
-    edot /= CVODE_MH * data->rho[cell];
+    edot /= (CVODE_MH * data->rho[cell]);
     NV_Ith_S(ydot, {{ non_eq_species_ids["ge"] }} + offset ) = edot;
 
     {%- for sname, s in non_eq_species_table|dictsort %}
@@ -679,7 +690,12 @@ static CVODE_INT {{ solver_name }}_cvode_calc_derivs(
         /* SNAME == {{ sname }} */
         total_deriv += NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset);
     {% endfor %}
-    //fprintf(stderr, "Total Derivative: %0.5e\n", total_deriv);
+    total_deriv /= NV_Ith_S(ydot, {{non_eq_species_ids['HI']}} + offset);
+    if (total_deriv > 1e-7)
+        fprintf(stderr, "Total Derivative: %0.5e\n", total_deriv);
+    if (edot > 0.0)
+        fprintf(stderr, "edot greater than zero: %0.5e = e / edot\n", 
+                NV_Ith_S(y, {{ non_eq_species_ids["ge"] }} + offset) / edot);
   }
 
   return (0);

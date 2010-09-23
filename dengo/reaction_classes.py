@@ -39,7 +39,8 @@ class ReactionRate(object):
     def init_temperature(cls, T_bounds, n_bins=1024):
         cls.n_bins = 1024
         cls.T = na.logspace(
-            na.log10(T_bounds[0]), na.log10(T_bounds[1]), n_bins)
+            na.log(T_bounds[0]), na.log(T_bounds[1]), n_bins,
+                   base = na.e)
         cls.logT = na.log(cls.T)
         cls.tev = cls.T / tevk
         cls.logtev = na.log(cls.tev)

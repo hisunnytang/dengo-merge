@@ -28,7 +28,7 @@
 
 {{ super() }}
 
-#include "cvode_lapack.h"
+#include "cvode.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -171,17 +171,23 @@ int grid::SolvePrimordialChemistryCVODE()
     NumberOfCells *= GridDimension[i];
 
     /* Create serial vector of length NEQ for I.C. and abstol */
-  N_Vector y = NULL;
+  N_Vector y, abstol;
+  y = abstol = NULL;
   y = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
   if (check_flag((void *)y, "N_VNew_Serial", 0))
     ENZO_FAIL("Failed to make y vector");
+  abstol = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
+  if (check_flag((void *)abstol, "N_VNew_Serial", 0))
+    ENZO_FAIL("Failed to make abstol vector");
 
   int offset = {{num_solved_species}};
   data.redshift = (1 + InitialRedshift) / a - 1;
 
   float rho_units = DensityUnits / 1.67e-24;
   float e_units = VelocityUnits * VelocityUnits; // 1.67e-24;
+  realtype total_frac = 0.0;
 
+  realtype max_ge_delta = 1.0;
   for (start_index = 0; start_index < NumberOfCells;
         start_index += CVODE_CELLS_PER_STRIDE) {
     data.ncells = min(CVODE_CELLS_PER_STRIDE, NumberOfCells - start_index);
@@ -195,18 +201,49 @@ int grid::SolvePrimordialChemistryCVODE()
        {% else %}{% set snumname = sname %}{% endif %}
 
      NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) = 
-       BaryonField[ {{ "%sNum" | format(snumname) }}][i + start_index]
-         * rho_units;
+       CVODE_MAX(BaryonField[ {{ "%sNum" | format(snumname) }}][i + start_index] * rho_units, CVODE_TINY);
+     NV_Ith_S(abstol, i*offset + {{ non_eq_species_ids[sname] }}) = 
+       NV_Ith_S(y, i*offset + {{non_eq_species_ids[sname] }}) * 1e-5;
      {% endfor %}
-
      data.rho[i] = BaryonField[DensNum][i + start_index] * rho_units;
+
+    /* Apply H mass conservation */
+    total_frac = NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HI'] }})
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HII'] }})
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['H2I'] }});
+               /* Ignore for now ...
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['H2II'] }})
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HM'] }});
+               */
+
+    total_frac = 0.76 * data.rho[i] / total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HI'] }})   *= total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HII'] }})  *= total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['H2I'] }})  *= total_frac;
+    /* Ignore for now ...
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['H2II'] }}) *= total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HM'] }})   *= total_frac;
+    */
+
+    /* Apply He mass conservation */
+    total_frac = NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeI'] }})
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeII'] }})
+               + NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeIII'] }});
+
+    total_frac = 0.24 * data.rho[i] / total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeI'] }})   *= total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeII'] }})  *= total_frac;
+    NV_Ith_S(y, i*offset + {{ non_eq_species_ids['HeIII'] }}) *= total_frac;
+
      NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) =
        BaryonField[GENum][i + start_index] * e_units;
+     NV_Ith_S(abstol, i*offset + {{ non_eq_species_ids['ge'] }}) = 
+       NV_Ith_S(y, i*offset + {{non_eq_species_ids['ge'] }}) * 1e-5;
    }
    /* Now we create our memory and iterate */
 
     /* Now boilerplate CVODE stuff */
-    realtype reltol, t, tout, abstol;
+    realtype reltol, t, tout;
     realtype final_time = dtFixed * TimeUnits;
     void *cvode_mem;
     CVODE_INT flag, flagr, iout;
@@ -214,8 +251,7 @@ int grid::SolvePrimordialChemistryCVODE()
     cvode_mem = NULL;
 
     /* Set the scalar relative tolerance */
-    reltol = 1e-5; abstol = 0.0;
-
+    reltol = 1e-5;
     /* Call CVodeCreate to create the solver memory and specify the 
      * Backward Differentiation Formula and the use of a Newton iteration */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
@@ -235,7 +271,7 @@ int grid::SolvePrimordialChemistryCVODE()
 
     /* Call CVodeSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */
-    flag = CVodeSStolerances(cvode_mem, reltol, abstol);
+    flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
     if (check_flag(&flag, "CVodeSVtolerances", 1))
       ENZO_FAIL("CVodeSVtolerances failed");
 
@@ -254,11 +290,14 @@ int grid::SolvePrimordialChemistryCVODE()
 #define NUM_CVODE_ITERATIONS 10.0
 
     realtype current_reached_time = 0.0;
-    realtype current_desired_time = 0.0;
     realtype current_dt = final_time / NUM_CVODE_ITERATIONS;
+    realtype current_desired_time = -1.0;
+    int num_iters = 0;
     while(current_desired_time < final_time) {
+        num_iters++;
       /*fprintf(stderr, "Final Time: %0.5e Current Time: %0.5e\n",
         final_time, current_reached_time);*/
+      current_desired_time = min(current_reached_time + current_dt, final_time);
       flag = CVode(cvode_mem, current_desired_time, y,
           &current_reached_time, CV_NORMAL);
       if (flag < 0) {
@@ -274,8 +313,9 @@ int grid::SolvePrimordialChemistryCVODE()
             break;
         }
       }
-      current_desired_time = min(current_reached_time + current_dt, final_time);
     }
+    /*fprintf(stderr, "Reached %0.5e / %0.5e in %"ISYM" iterations\n",
+            current_reached_time, final_time, num_iters);*/
 
     current_reached_time /= TimeUnits;
     if ( ABS(current_reached_time - dtFixed) / (current_reached_time + dtFixed) > 1e-8) {
@@ -293,19 +333,29 @@ int grid::SolvePrimordialChemistryCVODE()
 
 
       BaryonField[ {{ "%sNum" | format(snumname) }}][i + start_index] =
-        NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}) / rho_units;
+        CVODE_MAX(NV_Ith_S(y, i*offset + {{ non_eq_species_ids[sname] }}), CVODE_TINY) / rho_units;
       {% endfor %}
 
       float old_ge = BaryonField[GENum][i + start_index];
       BaryonField[GENum][i + start_index] =
         NV_Ith_S(y, i*offset + {{ non_eq_species_ids['ge'] }}) / e_units;
+      max_ge_delta = CVODE_MIN(max_ge_delta,
+            CVODE_MIN(0.0, (BaryonField[GENum][i + start_index] - old_ge)/old_ge));
       BaryonField[TENum][i + start_index] +=
         (BaryonField[GENum][i + start_index] - old_ge);
-      /*fprintf(stderr, "%0.5e\n", (BaryonField[GENum][i + start_index] - old_ge)
-                                 / BaryonField[GENum][i + start_index]);*/
+
+      BaryonField[DeNum][i + start_index] =
+            BaryonField[HIINum][i + start_index] +
+            BaryonField[H2IINum][i + start_index] / 2.0 +
+            BaryonField[HeIINum][i + start_index] / 4.0 +
+            BaryonField[HeIIINum][i + start_index] / 2.0 -
+            BaryonField[HMNum][i + start_index];
+
     }
     CVodeFree(&cvode_mem);
   }
+
+  //fprintf(stderr, "GEDELTA %0.5e\n", max_ge_delta);
 
   N_VDestroy_Serial(y);
 

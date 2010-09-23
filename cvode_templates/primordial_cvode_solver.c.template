@@ -9,7 +9,7 @@
     tgas = 0.0;
     {%- for sname, s in non_eq_species_table|dictsort %}
     {%- if s.weight > 0 %}
-    /* particles / cm^3 */
+    /* {{sname}} in particles / cm^3 */
     tgas += {{ species_varnames[sname] }} / {{s.weight}};
     {%- endif %}
     {%- endfor %}
@@ -23,6 +23,7 @@
                       {{ species_varnames['HeIII'] }} ) +
                     ( {{ species_varnames['HI'] }} +
                       {{ species_varnames['HII'] }} +
+                      {{ species_varnames['HM'] }} +
                       {{ species_varnames['de'] }} );
     if ((nh2 / nother) > 1.0e-3) {
         x = 6100.0/tgas;
@@ -38,16 +39,63 @@
     tgas = tgas * (gamma2 - 1.0)/(CVODE_GAMMA - 1.0);
 
     T = CVODE_MAX(tgas, 1.0);
-    //fprintf(stderr, "SETTING T = %0.3e\n", T);
+    /*fprintf(stderr, "SETTING T = %0.3e\n", T);*/
 {% endblock %}
 
 {% block apply_constraints %}
+/* APPLYING CONSTRAINTS */
+/*
     {{ species_varnames['de'] }} = 
         {{species_varnames['HII']}} +
         {{species_varnames['H2II']}} / 2.0 +
         {{species_varnames['HeII']}} / 4.0 +
         {{species_varnames['HeIII']}} / 2.0 -
         {{species_varnames['HM']}};
+    {{ species_varnames['de'] }} = CVODE_MAX(CVODE_TINY, {{species_varnames['de']}});
+*/
+
+    /*realtype tr07 = data->rate_storage[{{ reaction_ids['r07'] }}][cell];
+    realtype tr08 = data->rate_storage[{{ reaction_ids['r08'] }}][cell];
+    realtype tr09 = data->rate_storage[{{ reaction_ids['r09'] }}][cell];
+    realtype tr10 = data->rate_storage[{{ reaction_ids['r10'] }}][cell];
+    realtype tr11 = data->rate_storage[{{ reaction_ids['r11'] }}][cell];
+    realtype tr14 = data->rate_storage[{{ reaction_ids['r14'] }}][cell];
+    realtype tr15 = data->rate_storage[{{ reaction_ids['r15'] }}][cell];
+    realtype tr16 = data->rate_storage[{{ reaction_ids['r16'] }}][cell];
+    realtype tr17 = data->rate_storage[{{ reaction_ids['r17'] }}][cell];
+    realtype tr18 = data->rate_storage[{{ reaction_ids['r18'] }}][cell];
+    realtype tr19 = data->rate_storage[{{ reaction_ids['r19'] }}][cell];
+
+    {{ species_varnames['HM'] }} =
+        (tr07 * {{species_varnames['HI']}} * {{species_varnames['de']}})
+      / ( (tr08 + tr15) * {{species_varnames['HI']}}
+      + ( (tr16 + tr17) * {{species_varnames['HII']}}
+        + tr14*{{species_varnames['de']}}));
+        
+    {{ species_varnames['HM'] }} = CVODE_MAX(CVODE_TINY, {{species_varnames['HM']}});
+
+    {{species_varnames['H2II']}} =
+        2.0 * (tr09*{{species_varnames['HI']}}*{{species_varnames['HII']}}
+              +0.5*tr11*{{species_varnames['H2I']}}*{{species_varnames['HII']}}
+              +tr17*{{species_varnames['HM']}}*{{species_varnames['HII']}}
+              ) /
+    ( tr10*{{species_varnames['HI']}} +
+      tr18*{{species_varnames['de']}} +
+      tr19*{{species_varnames['HM']}});
+
+    {{ species_varnames['H2II'] }} = CVODE_MAX(CVODE_TINY, {{species_varnames['H2II']}});
+
+    {{ species_varnames['de'] }} = 
+        {{species_varnames['HII']}} +
+        {{species_varnames['H2II']}} / 2.0 +
+        {{species_varnames['HeII']}} / 4.0 +
+        {{species_varnames['HeIII']}} / 2.0 -
+        {{species_varnames['HM']}};
+    {{ species_varnames['de'] }} = CVODE_MAX(CVODE_TINY, {{species_varnames['de']}});
+    if(data->rho[cell] > 0.5)
+        fprintf(stderr,"\nHM[%08i] = %0.5e ( %0.5e )\n", cell,
+                {{species_varnames['HM']}}/data->rho[cell],
+                data->rho[cell]);*/
 
 {% endblock %}
 
@@ -63,6 +111,7 @@
        the variables local to this clause by putting them inside the above
        brackets.
     */
+    
     long double H = {{ species_varnames["HI"] }};
     long double Hsq = H * H;
     long double M = {{ species_varnames["H2I"] }};
@@ -83,5 +132,13 @@
            {{ species_varnames[sname] }},
            NV_Ith_S(ydot, {{ non_eq_species_ids[sname] }} + offset));
            */
+    /*if(NV_Ith_S(ydot, {{ non_eq_species_ids['ge'] }} + offset) > 0.0)
+        ENZO_VFAIL("FAILED! %0.5e: %0.5e", 
+            NV_Ith_S(ydot, {{ non_eq_species_ids['ge'] }} + offset),
+            edot)*/
+    if(data->rho[cell] > 1.0e10)
+        fprintf(stderr,"\ncooling_time = %0.5e ( %0.5e )\n", cell,
+                NV_Ith_S(y, {{ non_eq_species_ids['ge'] }} + offset) / edot,
+                data->rho[cell]);
     }
 {% endblock %}
