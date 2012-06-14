@@ -14,21 +14,12 @@
    For more information on the generating code, see
    http://code.google.com/p/dengo/
 */
-#ifdef USE_CVODE
-{% endblock %}
-
-{% block cvode_local_type_defs %}
-#define CVODE_INT Eint32
-#define CVODE_FLOAT Eflt32
-#define CVODE_LONG Eint64
-#define CVODE_DOUBLE Eflt64
 {% endblock %}
 
 {% block cvode_includes %}
 
 {{ super() }}
 
-#include "cvode.h"
 #include "ErrorExceptions.h"
 #include "macros_and_parameters.h"
 #include "typedefs.h"
@@ -52,10 +43,9 @@ double ReturnWallTime();
 
 {% block cvode_entry_point %}
 
-static TableOfRates *cvode_cooling_tables, *cvode_rate_tables;
-#define CVODE_CELLS_PER_STRIDE 512
+static TableOfRates *qss_cooling_tables, *qss_rate_tables;
 
-int grid::SolvePrimordialChemistryCVODE()
+int grid::SolvePrimordialChemistryQSS()
 {
 
     int i;
@@ -70,7 +60,7 @@ int grid::SolvePrimordialChemistryCVODE()
   if (NumberOfBaryonFields == 0)
     return SUCCESS;
 
-  this->DebugCheck("SolveHighDensityPrimordialChemistry");
+  this->DebugCheck("SolveChemistryQSS");
 
   /* Declarations */
 
@@ -136,35 +126,35 @@ int grid::SolvePrimordialChemistryCVODE()
   if (cvode_rates_setup == 0) {
     TableOfRates *my_rates;
     
-    cvode_rate_tables = {{ solver_name }}_read_rate_tables();
+    qss_rate_tables = {{ solver_name }}_read_rate_tables();
     fprintf(stderr, "Successfully read in rate tables.\n");
-    cvode_rate_tables->nrates = {{ rate_table | length }};
+    qss_rate_tables->nrates = {{ rate_table | length }};
 
-    cvode_cooling_tables = {{ solver_name }}_read_cooling_tables();
+    qss_cooling_tables = {{ solver_name }}_read_cooling_tables();
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    cvode_cooling_tables->nrates = {{ cooling_rate_table | length }};
+    qss_cooling_tables->nrates = {{ cooling_rate_table | length }};
 
     cvode_rates_setup = 1;
   }
 
-  {{ solver_name }}_cvode_data data;
+  {{ solver_name }}_qss_data data;
   void *user_data = (void *) &data;
 
-  data.rate_tables = cvode_rate_tables;
-  data.cooling_tables = cvode_cooling_tables;
-  data.rho = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
-  data.T = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
-  data.logT = (double *) calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+  data.rate_tables = qss_rate_tables;
+  data.cooling_tables = qss_cooling_tables;
+  data.rho = (double *) alloca(GridDimensions[0], sizeof(double));
+  data.T = (double *) alloca(GridDimensions[0], sizeof(double));
+  data.logT = (double *) alloca(GridDimensions[0], sizeof(double));
 
-  data.rate_storage = (double **)calloc(
+  data.rate_storage = (double **)alloca(
       {{ rate_table | length }}, sizeof(double*));
   for (i = 0 ; i < {{ rate_table | length }} ; i ++)
-      data.rate_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+      data.rate_storage[i] = (double *)alloca(GridDimensions[0], sizeof(double));
 
-  data.cooling_storage = (double **)calloc(
+  data.cooling_storage = (double **)alloca(
       {{ cooling_rate_table | length }}, sizeof(double*));
   for (i = 0 ; i < {{ cooling_rate_table | length }} ; i ++)
-      data.cooling_storage[i] = (double *)calloc(CVODE_CELLS_PER_STRIDE, sizeof(double));
+      data.cooling_storage[i] = (double *)alloca(GridDimensions[0], sizeof(double));
 
   int NumberOfCells = 1, start_index;
   for (i = 0; i < GridRank; i++)
@@ -173,10 +163,10 @@ int grid::SolvePrimordialChemistryCVODE()
     /* Create serial vector of length NEQ for I.C. and abstol */
   N_Vector y, abstol;
   y = abstol = NULL;
-  y = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
+  y = N_VNew_Serial({{ num_solved_species }} * GridDimensions[0]);
   if (check_flag((void *)y, "N_VNew_Serial", 0))
     ENZO_FAIL("Failed to make y vector");
-  abstol = N_VNew_Serial({{ num_solved_species }} * CVODE_CELLS_PER_STRIDE);
+  abstol = N_VNew_Serial({{ num_solved_species }} * GridDimensions[0]);
   if (check_flag((void *)abstol, "N_VNew_Serial", 0))
     ENZO_FAIL("Failed to make abstol vector");
 
@@ -189,8 +179,8 @@ int grid::SolvePrimordialChemistryCVODE()
 
   realtype max_ge_delta = 1.0;
   for (start_index = 0; start_index < NumberOfCells;
-        start_index += CVODE_CELLS_PER_STRIDE) {
-    data.ncells = min(CVODE_CELLS_PER_STRIDE, NumberOfCells - start_index);
+        start_index += GridDimensions[0]) {
+    data.ncells = min(GridDimensions[0], NumberOfCells - start_index);
    for (i = 0; i < data.ncells; i++) {
      {% for sname, sid in non_eq_species_ids|dictsort %}
 

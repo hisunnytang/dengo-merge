@@ -1,0 +1,187 @@
+{% block solver_comment_header %}
+/* THIS FILE HAS BEEN AUTO-GENERATED.  DO NOT EDIT. */
+
+/* This code comes with some caveats:
+    * currently it does not handle co-moving rates
+    * currently it cannot do MS=3 or radiation rates
+    * it will likely not work with radiative fields as defined by enzo unless
+      that is added by someone else
+    * It may simply give bad results!  Watch the project page for updates on
+      testing.
+
+   For more information on the generating code, see
+   http://code.google.com/p/dengo/
+*/
+{% endblock %}
+
+{% block solver_includes %}
+#include "ErrorExceptions.h"
+#include "macros_and_parameters.h"
+#include "typedefs.h"
+#include "global_data.h"
+#include "Fluxes.h"
+#include "GridList.h"
+#include "ExternalBoundary.h"
+#include "Grid.h"
+#include "fortran.def"
+#include "CosmologyParameters.h"
+{% endblock %}
+
+{% block solver_structs_and_prototypes %}
+typedef struct {{ solver_name }}_solver_data {
+    double *rho;
+    /* This is probably invalid, as solver may rewind */
+    double redshift;
+    TableOfRates *rate_tables;
+    TableOfRates *cooling_tables;
+    double *T;
+    double *logT;
+    double **rate_storage;
+    double **cooling_storage;
+} {{ solver_name }}_solver_data;
+
+int CosmologyComputeExpansionFactor(FLOAT time, FLOAT *a, FLOAT *dadt);
+int GetUnits(float *DensityUnits, float *LengthUnits,
+	     float *TemperatureUnits, float *TimeUnits,
+	     float *VelocityUnits, FLOAT Time);
+int RadiationFieldCalculateRates(FLOAT Time);
+int FindField(int field, int farray[], int numfields);
+double ReturnWallTime();
+{% endblock %}
+
+{% block solver_entry_point %}
+
+static TableOfRates *qss_cooling_tables, *qss_rate_tables;
+
+{% block solver_read_tables %}
+TableOfRates *{{ solver_name }}_read_rate_tables()
+{
+    TableOfRates *chemical_rates = 
+            (TableOfRates *) malloc(sizeof(TableOfRates));
+
+    herr_t status;
+    hid_t file_id = H5Fopen("{{ solver_name }}_rate_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    hsize_t dims;
+
+    chemical_rates->nrates = {{ rate_table|length }};
+    chemical_rates->rates =
+            (RateTable *) malloc(sizeof(RateTable) * chemical_rates->nrates);
+
+    int i = 0;
+
+    RateTable *crate;
+
+    {%- for name, rate in rate_table|dictsort %}
+    /* Now reading our {{ rate_ids[name] }}-th rate, {{ rate.name }} */
+    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
+    crate = &chemical_rates->rates[{{ rate_ids[name] }}];
+    /* Assume log-spaced bins */
+    crate->bounds[0] = {{ rate.T_bounds[0] }};
+    crate->bounds[1] = {{ rate.T_bounds[1] }};
+    crate->nbins = {{ rate.T | length }};
+    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / (crate->nbins-1);
+    crate->idbin = 1.0L / crate->dbin;
+    crate->values = (double *) malloc(crate->nbins * sizeof(double));
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
+    i++;
+    {%- endfor %}
+
+    H5Fclose(file_id);
+
+    return chemical_rates;
+}
+
+TableOfRates *{{ solver_name }}_read_cooling_tables()
+{
+    TableOfRates *cooling_rates = 
+            (TableOfRates *) malloc(sizeof(TableOfRates));
+
+    herr_t status;
+    hid_t file_id = H5Fopen("{{ solver_name }}_cooling_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    hsize_t dims;
+
+    cooling_rates->nrates = {{ cooling_rate_table|length }};
+    cooling_rates->rates =
+            (RateTable *) malloc(sizeof(RateTable) * cooling_rates->nrates);
+
+    int i = 0, j;
+
+    RateTable *crate;
+
+    {%- for name, rate in cooling_rate_table|dictsort %}
+    /* Now reading our {{ cooling_rate_ids[name] }}-th rate, {{ rate.name }} */
+    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
+    crate = &cooling_rates->rates[{{ cooling_rate_ids[name] }}];
+    /* Assume log-spaced bins */
+    crate->bounds[0] = {{ rate.T_bounds[0] }};
+    crate->bounds[1] = {{ rate.T_bounds[1] }};
+    crate->nbins = {{ rate.T | length }};
+    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / crate->nbins;
+    crate->idbin = 1.0L / crate->dbin;
+    crate->values = (double *) malloc(crate->nbins * sizeof(double));
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
+    /*for (j = 0; j < {{ rate.T | length }} ; j++)
+        printf("{{ rate.name }}[%i] = %0.5e\n", j, crate->values[j]);*/
+    i++;
+    {%- endfor %}
+
+    H5Fclose(file_id);
+
+    return cooling_rates;
+}
+{% endblock %} {# solver_read_tables #}
+
+{% block solver_interpolate_rates %}
+/*
+   This setup may be different than the user may anticipate, as a result
+   of the lockstep timestep we use for a pencil beam through the grid.
+   As such, it accepts the number of things to interpolate and makes
+   assumptions about the sizes of the rates.
+*/
+
+/* This also requires no templating other than for the solver name...*/
+void {{ solver_name }}_interpolate_rates({{solver_name}}_solver_data *data,
+                        TableOfRates *rate_tables, double **outputvals)
+{
+    int i, ri, bin_id;
+    static int ncalls = 0;
+    RateTable *crate;
+    double dd, bv, dy, lb, ub;
+    double t1, t2, tdef;
+
+    for (ri = 0; ri < rate_tables->nrates; ri++) {
+        crate = &rate_tables->rates[ri];
+        lb = log(crate->bounds[0]);
+        ub = log(crate->bounds[1]);
+        for (i = 0; i < data->ncells; i++) {
+            /* indixe */
+            bin_id = (int) (crate->idbin * (data->logT[i] - lb));
+            /*dd = (data->logT[i] - (bin_id * crate->dbin + lb))*crate->idbin;
+            bv = crate->values[bin_id];
+            dy = crate->values[bin_id + 1] - bv;
+            outputvals[ri][i] = bv + dd*dy;*/
+            t1 = (lb + (bin_id - 1) * crate->dbin);
+            t2 = (lb + (bin_id    ) * crate->dbin);
+            tdef = (data->logT[i] - t1)/(t2 - t1);
+            outputvals[ri][i] = crate->values[bin_id] +
+                tdef * (crate->values[bin_id+1] - crate->values[bin_id]);
+            /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
+                    bin_id, data->logT[i], data->T[i],
+                    crate->bounds[0], crate->bounds[1]);*/
+        }
+    }
+
+}
+{% endblock %} {# interpolate_rates #}
+
+
+int {{ solver_name }}_calculate_derivatives(*u, *rhs, int nstrip, int nchem) {
+    
+}
+
+{% endblock %}
+
+{% block solver_footer %}
+{% endblock %} {# solver_footer #}
