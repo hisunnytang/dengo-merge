@@ -244,6 +244,20 @@ reaction_rates_table['k23'] = ReactionRate('k23', vals)
 del vals, _i1, _i2
 
 #
+# Rates for oxygen collision ionization and recombination
+#
+
+# We'll try using ChiantiPy to grab the rates
+import chianti.core as ch
+
+# -- k30 -- OV collisional ionization
+o5 = ch.ion('o_5', temperature=T)
+o5.ionizRate()
+vals = o5.IonizRate['rate']
+reaction_rates_table['k30'] = ReactionRate('k30', vals)
+
+
+#
 # Now we create a number of species tables
 #
 
@@ -258,6 +272,8 @@ species_table = dict(
     HM = Species("HM", 1.0, -1.0, equilibrium = False),
     H2I = Species("H2I", 2.0),
     H2II = Species("H2II", 2.0, 1.0, equilibrium = False),
+    OV = Species("OV", 16.0, 4.0),
+    OVI = Species("OVI", 16.0, 5.0),
     ge = Species("ge", 0.0, 0.0),
 )
 
@@ -288,6 +304,8 @@ reaction_table = dict(
     r21 = Reaction('k21', [   (2,HI),  (1,H2I)], [  (2,H2I),         ]), #3b
     r22 = Reaction('k22', [   (2,HI),   (1,HI)], [  (1,H2I),   (1,HI)]), #3b
     r23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]), #3b
+
+    r30 = Reaction('k30', [   (1,OV),   (1,de)], [  (1,OVI),   (2,de)]),
 )
 
 locals().update(reaction_table)
