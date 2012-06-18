@@ -264,6 +264,10 @@ if getOxygenRates == True:
         # so that we know where to start adding rates
         currentRateCount = len(reaction_rates_table.keys())
 
+        # Determine the start rate for the oxygen ion species
+        if i == 0:
+            oxygenFirstRate = currentRateCount+2
+
         # Grab the ion object from Chianti
         ion = ch.ion('o_%i' %(i+1), temperature=T)
 
@@ -277,7 +281,7 @@ if getOxygenRates == True:
         vals = ion.RecombRate['rate']
         reaction_rates_table['k%02i' %(currentRateCount+3)] = ReactionRate('k%02i' %(currentRateCount+3), vals)
 
-del vals, _i1, _i2, currentRateCount
+del vals, _i1, _i2, atomNum, currentRateCount, ion
 
 #
 # Now we create a number of species tables
@@ -335,6 +339,26 @@ reaction_table = dict(
 
     #r30 = Reaction('k30', [   (1,OV),   (1,de)], [  (1,OVI),   (2,de)]),
 )
+
+if getOxygenRates == True:
+    reaction_table['r%02i' %(oxygenFirstRate)] = Reaction('k%02i' %(oxygenFirstRate), [   (1,OI),   (1,de)], [  (1,OII),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+1)] = Reaction('k%02i' %(oxygenFirstRate+1), [   (1,OI),         ], [   (1,OI),         ]) # for completeness
+    reaction_table['r%02i' %(oxygenFirstRate+2)] = Reaction('k%02i' %(oxygenFirstRate+2), [  (1,OII),   (1,de)], [ (1,OIII),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+3)] = Reaction('k%02i' %(oxygenFirstRate+3), [  (1,OII),   (1,de)], [   (1,OI),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+4)] = Reaction('k%02i' %(oxygenFirstRate+4), [ (1,OIII),   (1,de)], [  (1,OIV),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+5)] = Reaction('k%02i' %(oxygenFirstRate+5), [ (1,OIII),   (1,de)], [  (1,OII),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+6)] = Reaction('k%02i' %(oxygenFirstRate+6), [  (1,OIV),   (1,de)], [   (1,OV),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+7)] = Reaction('k%02i' %(oxygenFirstRate+7), [  (1,OIV),   (1,de)], [ (1,OIII),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+8)] = Reaction('k%02i' %(oxygenFirstRate+8), [   (1,OV),   (1,de)], [  (1,OVI),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+9)] = Reaction('k%02i' %(oxygenFirstRate+9), [   (1,OV),   (1,de)], [  (1,OIV),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+10)] = Reaction('k%02i' %(oxygenFirstRate+10), [  (1,OVI),   (1,de)], [ (1,OVII),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+11)] = Reaction('k%02i' %(oxygenFirstRate+11), [  (1,OVI),   (1,de)], [   (1,OV),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+12)] = Reaction('k%02i' %(oxygenFirstRate+12), [ (1,OVII),   (1,de)], [ (1,OVII),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+13)] = Reaction('k%02i' %(oxygenFirstRate+13), [ (1,OVII),   (1,de)], [  (1,OVI),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+14)] = Reaction('k%02i' %(oxygenFirstRate+14), [(1,OVIII),   (1,de)], [  (1,OIX),   (2,de)])
+    reaction_table['r%02i' %(oxygenFirstRate+15)] = Reaction('k%02i' %(oxygenFirstRate+15), [(1,OVIII),   (1,de)], [ (1,OVII),         ])
+    reaction_table['r%02i' %(oxygenFirstRate+16)] = Reaction('k%02i' %(oxygenFirstRate+16), [  (1,OIX),         ], [  (1,OIX),         ]) # for completeness
+    reaction_table['r%02i' %(oxygenFirstRate+17)] = Reaction('k%02i' %(oxygenFirstRate+17), [  (1,OIX),   (1,de)], [(1,OVIII),         ])
 
 locals().update(reaction_table)
 
