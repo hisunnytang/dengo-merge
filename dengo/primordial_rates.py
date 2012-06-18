@@ -25,6 +25,7 @@ import numpy as na
 
 from chemistry_constants import tevk, tiny, mh
 from reaction_classes import ReactionRate, Species, Reaction, reaction_rates_table
+from roman_numeral_convert import *
 
 # First we set up our constants
 ReactionRate.init_temperature((1.0, 1e7))
@@ -32,6 +33,9 @@ T = ReactionRate.T
 logT = ReactionRate.logT
 tev= ReactionRate.tev
 logtev = ReactionRate.logtev
+
+# Do we want the rates for oxygen ion species?
+getOxygenRates = True
 
 # Now we actually set up our values...
 
@@ -241,21 +245,39 @@ vals = ((8.125e-8 / na.sqrt(T))
       * (1.0 - na.exp(-6000/T)))
 reaction_rates_table['k23'] = ReactionRate('k23', vals)
 
-del vals, _i1, _i2
+if getOxygenRates == True:
+    #
+    # Rates for oxygen collision ionization and recombination
+    #
 
-#
-# Rates for oxygen collision ionization and recombination
-#
+    # Define atomic number
+    atomNum = 8
 
-# We'll try using ChiantiPy to grab the rates
-import chianti.core as ch
+    # We'll try using ChiantiPy to grab the rates
+    import chianti.core as ch
 
-# -- k30 -- OV collisional ionization
-o5 = ch.ion('o_5', temperature=T)
-o5.ionizRate()
-vals = o5.IonizRate['rate']
-reaction_rates_table['k30'] = ReactionRate('k30', vals)
+    # Populate rates table with coll. ionization
+    # and recombination rates for all oxygen ions
+    for i in range(atomNum+1):
 
+        # Grab the current length of reaction_rates_table
+        # so that we know where to start adding rates
+        currentRateCount = len(reaction_rates_table.keys())
+
+        # Grab the ion object from Chianti
+        ion = ch.ion('o_%i' %(i+1), temperature=T)
+
+        # Get Chianti to compute the collisional ionization rate
+        ion.ionizRate()
+        vals = ion.IonizRate['rate']
+        reaction_rates_table['k%02i' %(currentRateCount+2)] = ReactionRate('k%02i' %(currentRateCount+2), vals)
+
+        # Get Chianti to compute the recombination rate
+        ion.recombRate()
+        vals = ion.RecombRate['rate']
+        reaction_rates_table['k%02i' %(currentRateCount+3)] = ReactionRate('k%02i' %(currentRateCount+3), vals)
+
+del vals, _i1, _i2, currentRateCount
 
 #
 # Now we create a number of species tables
@@ -272,10 +294,16 @@ species_table = dict(
     HM = Species("HM", 1.0, -1.0, equilibrium = False),
     H2I = Species("H2I", 2.0),
     H2II = Species("H2II", 2.0, 1.0, equilibrium = False),
-    OV = Species("OV", 16.0, 4.0),
-    OVI = Species("OVI", 16.0, 5.0),
     ge = Species("ge", 0.0, 0.0),
 )
+
+# If we computed the oxygen rates, we should
+# add in the oxygen species
+if getOxygenRates == True:
+    atomNum = 8
+    for i in range(atomNum+1):
+        romanNum = int_to_roman(i+1)
+        species_table['O%s' %romanNum] = Species("O%s" %romanNum, 2.0*atomNum, float(i))
 
 locals().update(species_table)
 
@@ -305,7 +333,8 @@ reaction_table = dict(
     r22 = Reaction('k22', [   (2,HI),   (1,HI)], [  (1,H2I),   (1,HI)]), #3b
     r23 = Reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)]), #3b
 
-    r30 = Reaction('k30', [   (1,OV),   (1,de)], [  (1,OVI),   (2,de)]),
+    #r30 = Reaction('k30', [   (1,OV),   (1,de)], [  (1,OVI),   (2,de)]),
 )
 
 locals().update(reaction_table)
+
