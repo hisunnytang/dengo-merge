@@ -23,36 +23,20 @@ License:
 
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
-
-reaction_rates_table = dict()
-
-class ReactionRate(object):
-    def __init__(self, name, values):
-        self.values = values
-        self.name = name
-
-    def __call__(self, quantities):
-        T = quantities['T']
-        return na.interp(T, self.T, self.values)
-
-    @classmethod
-    def init_temperature(cls, T_bounds, n_bins=1024):
-        cls.n_bins = 1024
-        cls.T = na.logspace(
-            na.log(T_bounds[0]), na.log(T_bounds[1]), n_bins,
-                   base = na.e)
-        cls.logT = na.log(cls.T)
-        cls.tev = cls.T / tevk
-        cls.logtev = na.log(cls.tev)
-        cls.T_bounds = T_bounds
+import types
 
 class Reaction(object):
-    def __init__(self, rate, left_side, right_side):
-        self.name = rate.replace("k","r")
+    def __init__(self, name, coeff_fn, left_side, right_side):
+        self.name = name
         self.rate = reaction_rates_table[rate]
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
+
+    def __contains__(self, c):
+        if isinstance(c, types.StringTypes):
+            return c in self.down_species + self.up_species
+        return c in (s for n, s in self.left_side + self.right_side)
 
     @property
     def down_species(self):
@@ -110,6 +94,9 @@ class Reaction(object):
                 for i in xrange(n)])]
         return " * ".join(st)
 
+    @classmethod
+    def create_reaction(
+
 class Species(object):
     def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False,
                  computed = False):
@@ -119,6 +106,7 @@ class Species(object):
         self.equilibrium = equilibrium
         self.computed = computed
         if equilibrium and computed: raise RuntimeError
+        if equilibrium: raise RuntimeError
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
