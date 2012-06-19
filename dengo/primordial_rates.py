@@ -273,20 +273,3 @@ def rxn(state):
           * (1.0 - na.exp(-6000/T)))
     return vals
 
-#
-# Now we create a number of species tables
-#
-
-# This is the table of Species we know about
-species_table = dict(
-    HI = Species("HI", 1.0),
-    HII = Species("HII", 1.0, 1.0),
-    HeI = Species("HeI", 4.0),
-    HeII = Species("HeII", 4.0, 1.0),
-    HeIII = Species("HeIII", 4.0, 2.0),
-    de = Species("de", 1.0),
-    HM = Species("HM", 1.0, -1.0, equilibrium = False),
-    H2I = Species("H2I", 2.0),
-    H2II = Species("H2II", 2.0, 1.0, equilibrium = False),
-    ge = Species("ge", 0.0, 0.0),
-)
