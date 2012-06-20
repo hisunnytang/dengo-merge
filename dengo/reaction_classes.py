@@ -96,7 +96,7 @@ class Reaction(object):
         st += "}\n"
         return st
 
-    def print_c_reaction_value(self, species_varnames):
+    def print_c_reaction_value(self, species_varnames = None):
         st = []
         for n, s in self.left_side:
             st += [" * ".join([

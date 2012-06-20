@@ -20,7 +20,6 @@ License:
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-from .reaction_table import ReactionTable
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry
@@ -29,8 +28,7 @@ import types
 class ChemicalNetwork(object):
 
     def __init__(self):
-        self.reactions = ReactionTable()
-        #self.cooling = cooling
+        self.reactions = {}
         self.required_species = set([])
 
     def add_reaction(self, reaction):
