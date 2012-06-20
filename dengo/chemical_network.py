@@ -23,16 +23,19 @@ License:
 from .reaction_table import ReactionTable
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
+from .reaction_classes import reaction_registry
+import types
 
 class ChemicalNetwork(object):
 
     def __init__(self):
         self.reactions = ReactionTable()
-        self.rates = rates
-        self.cooling = cooling
+        #self.cooling = cooling
         self.required_species = set([])
 
     def add_reaction(self, reaction):
+        if isinstance(reaction, types.StringTypes):
+            reaction = reaction_registry[reaction]
         if reaction.name in self.reactions:
             raise RuntimeError
         self.reactions[reaction.name] = reaction
@@ -40,6 +43,7 @@ class ChemicalNetwork(object):
             self.required_species.add(s)
         for n, s in reaction.right_side:
             self.required_species.add(s)
+        print "Adding reaction: %s" % reaction
     
     def init_temperature(self, T_bounds = (1, 1e8), n_bins=1024):
         self.n_bins = 1024
@@ -51,6 +55,8 @@ class ChemicalNetwork(object):
         self.logtev = na.log(self.tev)
         self.T_bounds = T_bounds
 
-    def __iter__(self):
-        for rxn in sorted(self.reactions, key=lambda a: a.name):
-            yield rxn
+    def species_reactions(self, species):
+        tr = []
+        for rn, rxn in sorted(self.reactions.items()):
+            if species in rxn: tr.append(rxn)
+        return tr

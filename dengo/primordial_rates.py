@@ -23,7 +23,7 @@ License:
 
 import numpy as na
 
-from reaction_classes import Species, Reaction, reaction_rates_table
+from reaction_classes import reaction
 from .known_species import *
 
 # -- k01 --
@@ -116,7 +116,7 @@ def rxn(state):
     vals = 3.36e-10/na.sqrt(state.T)/(T/1.e3)**0.2/(1+(T/1.e6)**0.7)
 
 # -- k07 --
-@reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ]),
+@reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ])
 def rxn(state):
     vals = 6.77e-15*state.tev**0.8779
 
@@ -223,7 +223,7 @@ def rxn(state):
     return vals
 
 # -- k16 --
-@reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ]):
+@reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ])
 def rxn(state):
     k16 = 6.5e-9/na.sqrt(state.tev)
     return k16

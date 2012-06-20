@@ -25,13 +25,17 @@ import numpy as na
 from chemistry_constants import tevk, tiny, mh
 import types
 
+reaction_registry = {}
+
 class Reaction(object):
+
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
-        self.rate = reaction_rates_table[rate]
+        self.coeff_fn = coeff_fn
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
+        reaction_registry[name] = self # Register myself
 
     def __contains__(self, c):
         if isinstance(c, types.StringTypes):
@@ -95,7 +99,12 @@ class Reaction(object):
         return " * ".join(st)
 
     @classmethod
-    def create_reaction(
+    def create_reaction(cls, name, left_side, right_side):
+        def _w(f):
+            rxn = cls(name, f, left_side, right_side)
+        return _w
+
+reaction = Reaction.create_reaction
 
 class Species(object):
     def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False,
@@ -173,3 +182,4 @@ class QuantitiesTable(object):
 
     def get_by_name(self, name):
         return self.species_list[self._names[name]]
+
