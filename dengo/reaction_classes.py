@@ -50,11 +50,11 @@ class Reaction(object):
 
     @property
     def down_species(self):
-        return [s.name for n, s in self.left_side]
+        return [s for n, s in self.left_side]
 
     @property
     def up_species(self):
-        return [s.name for n, s in self.right_side]
+        return [s for n, s in self.right_side]
 
     def net_change(self, sname):
         up = sum( n for n, s in self.right_side if s.name == sname)
@@ -79,30 +79,6 @@ class Reaction(object):
           + " => " \
           + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.right_side] )
         return a
-
-    def print_c_calculation(self):
-        # This function assumes we're inside a loop
-        st = ""
-        st += "for (i = 0; i < data->nvals ; i++)\n"
-        st += "{\n"
-        st += "  tv = 0.0\n"
-        for n, s in self.left_side:
-            #r *= s.number_density(quantities)**n
-            st += "  tv -= pow(y[%s], %s);\n" % (s.name, n)
-        for n, s in self.right_side:
-            #up_derivatives[s.name] += r * n * s.weight
-            st += "  tv += y[%s]*%s;\n" % (s.name, n)
-        st += "  ydot[i] * data->stride + ri;\n"
-        st += "}\n"
-        return st
-
-    def print_c_reaction_value(self, species_varnames = None):
-        st = []
-        for n, s in self.left_side:
-            st += [" * ".join([
-                s.print_c_number_density(species_varnames[s.name])
-                for i in xrange(n)])]
-        return " * ".join(st)
 
     @classmethod
     def create_reaction(cls, name, left_side, right_side):
@@ -161,12 +137,6 @@ class Species(object):
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
-
-    def print_c_convert_number_density(self, input, output):
-        return "%s = %s / %s;" % (output, input, self.weight)
-
-    def print_c_number_density(self, input):
-        return "(%s / %s)" % (input, self.weight)
 
     def __repr__(self):
         return "Species: %s" % (self.name)

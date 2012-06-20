@@ -58,3 +58,7 @@ class ChemicalNetwork(object):
         for rn, rxn in sorted(self.reactions.items()):
             if species in rxn: tr.append(rxn)
         return tr
+
+    def __iter__(self):
+        for rname, rxn in sorted(self.reactions.items()):
+            yield rxn

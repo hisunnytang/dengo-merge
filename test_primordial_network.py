@@ -1,5 +1,6 @@
 from dengo.chemical_network import ChemicalNetwork, reaction_registry
 import dengo.primordial_rates
+from dengo.solver_writer import write_reaction, write_species_deriv
 
 primordial = ChemicalNetwork()
 for i in range(23):
@@ -14,3 +15,10 @@ for species in primordial.required_species:
     print "Querying: ", species
     for rxn in primordial.species_reactions(species):
         print "  ", rxn
+
+for rxn in primordial:
+    write_reaction(rxn)
+
+for species in primordial.required_species:
+    print species.name
+    write_species_deriv(species, primordial.species_reactions(species))
