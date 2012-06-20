@@ -63,7 +63,7 @@ def write_species_deriv(species, reactions, snames = None, rnames = None):
         snn = "%0.1f  * " % (species.weight)
     else:
         snn = ""
-    c = "%s_p = %s( %s ) - ( %s )" % (
+    c = "%s_p = %s(( %s ) - ( %s ))" % (
             snames.get(species.name, species.name), snn,
             " + ".join(f), " + ".join(d))
     print c
