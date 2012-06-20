@@ -141,7 +141,7 @@ def chianti_rate(species):
         return vals
     if species_r in species_registry:
         species_r = species_registry[species_r]
-        Reaction("%s_r" % species.name, ion_rate,
+        Reaction("%s_r" % species.name, rec_rate,
                  [(1, species), (1, de)], # left side
                  [(1, species_r), ]) # right side
         new_rates.append("%s_r" % species.name)
