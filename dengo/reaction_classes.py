@@ -25,7 +25,13 @@ import numpy as na
 from chemistry_constants import tevk, tiny, mh
 import types
 
+try:
+    import chianti.core as ch
+except ImportError:
+    ch = None
+
 reaction_registry = {}
+species_registry = {}
 
 class Reaction(object):
 
@@ -105,6 +111,41 @@ class Reaction(object):
         return _w
 
 reaction = Reaction.create_reaction
+def chianti_rate(species):
+    if ch is None: raise ImportError
+    if "_" not in species.name:
+        print "Name must be in ChiantiPy format."
+        raise RuntimeError
+    ion_name = species.name
+    element_name = ion_name.split("_")[0]
+    ion_state = int(ion_name.split("_")[1])
+    species_i = "%s_%s" % (element_name, ion_state + 1)
+    species_r = "%s_%s" % (element_name, ion_state - 1)
+    de = species_registry['de']
+    new_rates = []
+    def ion_rate(network):
+        ion = ch.ion(ion_name, temperature = network.T)
+        ion.ionizRate()
+        vals = ion.IonizRate['rate']
+        return vals
+    if species_i in species_registry:
+        species_i = species_registry[species_i]
+        Reaction("%s_i" % species.name, ion_rate,
+                 [(1, species), (1, de)], # left side
+                 [(1, species_i), (2, de)]) # right side
+        new_rates.append("%s_i" % species.name)
+    def rec_rate(network):
+        ion = ch.ion(ion_name, temperature = network.T)
+        ion.recombRate()
+        vals = ion.RecombRate['rate']
+        return vals
+    if species_r in species_registry:
+        species_r = species_registry[species_r]
+        Reaction("%s_r" % species.name, ion_rate,
+                 [(1, species), (1, de)], # left side
+                 [(1, species_r), ]) # right side
+        new_rates.append("%s_r" % species.name)
+    return new_rates
 
 class Species(object):
     def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False,
@@ -116,6 +157,7 @@ class Species(object):
         self.computed = computed
         if equilibrium and computed: raise RuntimeError
         if equilibrium: raise RuntimeError
+        species_registry[name] = self
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
