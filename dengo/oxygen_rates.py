@@ -26,4 +26,8 @@ from reaction_classes import Species, chianti_rate
 for i in range(9):
     ion_state = i + 1
     s = Species("o_%s" % ion_state, 16, i)
+    if ion_state != 9:
+        # we need to do this to make sure the 'ion_state + 1' species
+        # exists when chianti_rate is called
+        splusone = Species("o_%s" % (ion_state+1), 16, i+1)
     chianti_rate(s)
