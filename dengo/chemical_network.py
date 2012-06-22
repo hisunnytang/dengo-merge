@@ -57,7 +57,7 @@ class ChemicalNetwork(object):
     def species_reactions(self, species):
         tr = []
         for rn, rxn in sorted(self.reactions.items()):
-            if species in rxn: tr.append(rxn)
+            if species in rxn.down_species: tr.append(rxn)
         return tr
 
     def __iter__(self):

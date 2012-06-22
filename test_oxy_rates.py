@@ -6,7 +6,6 @@ import dengo.oxygen_rates
 oxygen_network = ChemicalNetwork()
 
 for rate in sorted(reaction_registry):
-
     if rate.startswith("o_"):
         oxygen_network.add_reaction(rate)
 
