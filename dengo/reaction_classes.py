@@ -99,6 +99,7 @@ def chianti_rate(species):
     species_r = "%s_%s" % (element_name, ion_state - 1)
     de = species_registry['de']
     new_rates = []
+    
     def ion_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.ionizRate()

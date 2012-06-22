@@ -37,6 +37,7 @@ class ChemicalNetwork(object):
         if reaction.name in self.reactions:
             raise RuntimeError
         self.reactions[reaction.name] = reaction
+        
         for n, s in reaction.left_side:
             self.required_species.add(s)
         for n, s in reaction.right_side:

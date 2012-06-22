@@ -21,13 +21,23 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import Species, chianti_rate
+from reaction_classes import Species, chianti_rate, species_registry
 
 for i in range(9):
     ion_state = i + 1
-    s = Species("o_%s" % ion_state, 16, i)
+    speciesName = "o_%s" % ion_state
+    # Check if the species already exists
+    # in the species registry, if it does
+    # we don't want to create it again
+    if (speciesName in species_registry) == False:
+        s = Species(speciesName, 16, i)
+    else:
+        s = species_registry[speciesName]
+
     if ion_state != 9:
         # we need to do this to make sure the 'ion_state + 1' species
         # exists when chianti_rate is called
-        splusone = Species("o_%s" % (ion_state+1), 16, i+1)
+        speciesNamePlusOne = "o_%s" % (ion_state+1)
+        if (speciesNamePlusOne in species_registry) == False:
+            splusone = Species(speciesNamePlusOne, 16, i+1)
     chianti_rate(s)
