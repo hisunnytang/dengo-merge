@@ -24,11 +24,12 @@ License:
 from chemistry_constants import tevk
 import numpy as na
 import sympy
-from primordial_rates import species_table, reaction_rates_table
+from reaction_classes import reaction_registry, species_registry
+#from primordial_rates import species_table, reaction_rates_table
 
 species_symbols = dict( [
     (sname, sympy.Symbol(sname)) for
-     sname in species_table ])
+     sname in species_registry ])
 
 known_variables = dict( 
     T = sympy.Symbol("T"),
