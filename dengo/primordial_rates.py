@@ -22,7 +22,7 @@ License:
 """
 
 import numpy as na
-
+from chemistry_constants import tevk, tiny, mh
 from reaction_classes import reaction
 from .known_species import *
 

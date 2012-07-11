@@ -2,7 +2,7 @@ import h5py
 import numpy as na
 from primordial_cooling import CoolingRate, CoolingAction, cooling_rates_table, cooling_action_table
 
-CoolingRate.init_temperature((1.0, 1e8))
+CoolingRate.init_temperature((1.0, 1e9))
 T = CoolingRate.T
 logT = CoolingRate.logT
 tev= CoolingRate.tev

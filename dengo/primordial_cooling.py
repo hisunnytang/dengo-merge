@@ -25,7 +25,8 @@ from chemistry_constants import tevk
 import numpy as na
 import sympy
 from reaction_classes import reaction_registry, species_registry
-#from primordial_rates import species_table, reaction_rates_table
+import primordial_rates
+
 
 species_symbols = dict( [
     (sname, sympy.Symbol(sname)) for
@@ -175,15 +176,15 @@ val = 5.01e-27*(T)**(-0.1687)/(1.+na.sqrt(T/1.0e5)) \
 cooling_rates_table['ciHeIS'] = CoolingRate('ciHeIS', vals)
 
 # -- ciHI --
-vals = 2.18e-11*reaction_rates_table['k01'](qtable)
+vals = 2.18e-11*reaction_registry['k01'].coeff_fn(CoolingRate)
 cooling_rates_table['ciHI'] = CoolingRate('ciHI', vals)
 
 # -- ciHeI --
-vals = 3.94e-11*reaction_rates_table['k03'](qtable)
+vals = 3.94e-11*reaction_registry['k03'].coeff_fn(CoolingRate)
 cooling_rates_table['ciHeI'] = CoolingRate('ciHeI', vals)
 
 # -- ciHeII --
-vals = 8.72e-11*reaction_rates_table['k05'](qtable)
+vals = 8.72e-11*reaction_registry['k05'].coeff_fn(CoolingRate)
 cooling_rates_table['ciHeII'] = CoolingRate('ciHeII', vals)
 
 # -- reHII --
