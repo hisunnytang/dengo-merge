@@ -274,7 +274,7 @@ def cool(eq):
 # Compton cooling (Peebles 1971)
 # -- comp --
 # FIX THIS
-@cooling_action("compton", "-comp1*(state.T - comp2)*de + comp3")
+#@cooling_action("compton", "-comp1*(T - comp2)*de + comp3")
 def cool(eq):
     @eq.table
     def comp(state):

@@ -32,6 +32,7 @@ except ImportError:
     ch = None
 
 reaction_registry = {}
+cooling_registry = {}
 species_registry = {}
 
 class Reaction(object):
@@ -133,6 +134,7 @@ class Species(object):
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
         self.computed = computed
+        self.symbol = sympy.Symbol(name)
         if equilibrium and computed: raise RuntimeError
         if equilibrium: raise RuntimeError
         species_registry[name] = self
@@ -198,12 +200,38 @@ class QuantitiesTable(object):
         return self.species_list[self._names[name]]
 
 class CoolingAction(object):
+    eq = None
     def __init__(self, name, equation):
         self.name = name
-        self.equation = equation
+        self._equation = equation
         self.tables = {}
         self.temporaries = {}
-        
+        self.table_symbols = {}
+        self.temp_symbols = {}
+        cooling_registry[name] = self # Register myself
+
+    @property
+    def equation(self):
+        if self.eq is not None: return self.eq
+        symbols = dict((n, s.symbol) for n, s in species_registry.items())
+        self.table_symbols.update(
+            dict((n, sympy.Symbol(n)) for n in self.tables))
+        self.temp_symbols.update(
+            dict((n, sympy.Symbol(n)) for n in self.temporaries))
+        symbols.update(self.table_symbols)
+        symbols.update(self.temp_symbols)
+        self.eq = eval(self._equation, symbols)
+        return self.eq
+
+    @property
+    def species(self):
+        self.equation
+        bad = set(self.temp_symbols.values() + self.table_symbols.values())
+        species = set([])
+        for s in self.equation.atoms(sympy.Symbol):
+            if s not in bad: species.add(species_registry[str(s)])
+        return species
+
     def table(self, func):
         self.tables[func.func_name] = func
 

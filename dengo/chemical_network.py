@@ -22,13 +22,14 @@ License:
 """
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
-from .reaction_classes import reaction_registry
+from .reaction_classes import reaction_registry, cooling_registry
 import types
 
 class ChemicalNetwork(object):
 
     def __init__(self):
         self.reactions = {}
+        self.cooling_actions = {}
         self.required_species = set([])
 
     def add_reaction(self, reaction):
@@ -43,6 +44,12 @@ class ChemicalNetwork(object):
         for n, s in reaction.right_side:
             self.required_species.add(s)
         print "Adding reaction: %s" % reaction
+
+    def add_cooling(self, cooling_term):
+        if cooling_term.name in self.cooling_actions:
+            raise RuntimeError
+        self.cooling_actions[cooling_term.name] = cooling_term
+        self.required_species.update(cooling_term.species)
     
     def init_temperature(self, T_bounds = (1, 1e8), n_bins=1024):
         self.n_bins = 1024
