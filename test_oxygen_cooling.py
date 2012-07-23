@@ -9,7 +9,6 @@ from dengo.solver_writer import write_reaction, write_species_deriv
 oxygen = ChemicalNetwork()
 for ca in cooling_registry.values():
     if ca.name.startswith("o_"):
-        print "ca = %s" %ca
         oxygen.add_cooling(ca)
 
 print "These species are required for cooling alone:"
@@ -21,3 +20,9 @@ for s in reaction_registry.values():
 
 print "These species are required for chemistry and cooling:"
 print "\n".join([s.name for s in sorted(oxygen.required_species)])
+
+oxygen.init_temperature()
+
+o_6_c = cooling_registry['o_6_c']
+o_6_c.tables['o_6_c'](oxygen)
+
