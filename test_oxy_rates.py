@@ -33,7 +33,7 @@ Tlog_bounds = (1, 9)
 T = na.logspace(Tlog_bounds[0], Tlog_bounds[1], 1024)
 
 # Write the ionization/recombination rate values to file
-f = h5py.File('oxygen_rates_table.h5', 'w')
+f = h5py.File('oxygen_rates_tables.h5', 'w')
 for rxn_name in na.sort(oxygen_network.reactions.keys()):
     print 'Reaction %s is being written to HDF5 File...' %rxn_name
     dset = f.create_dataset('/%s' %rxn_name,
@@ -50,7 +50,7 @@ for s in oxygen_network.required_species:
 cooling_rate_list = na.sort(cooling_rate_list)
 
 # Write cooling rates to HDF5 file
-f = h5py.File('oxygen_cooling_table.h5', 'w')
+f = h5py.File('oxygen_cooling_tables.h5', 'w')
 for r in cooling_rate_list:
     print 'Cooling rate for %s is being written to HDF5 File...' %r
     dset = f.create_dataset('/%s' %r,

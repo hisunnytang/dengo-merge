@@ -25,6 +25,7 @@ import numpy as na
 from chemistry_constants import tevk, tiny, mh
 import types
 import sympy
+import h5py
 
 try:
     import chianti.core as ch
@@ -266,6 +267,34 @@ class CoolingAction(object):
         return _W
 
 cooling_action = CoolingAction.create_cooling_action
+
+def ion_cooling_rate(species):
+    if "_" not in species.name:
+        print "Name must be in 'Ion Species' format."
+        raise RuntimeError
+    ion_name = species.name
+    element_name = ion_name.split("_")[0]
+    ion_state = int(ion_name.split("_")[1])
+    species_c = ion_name
+    de = species_registry['de']
+    new_rates = []
+
+    def cooling_rate(network):
+        # Read in cooling rates from Gnat & Ferland 2012
+        # and do linear interpolation
+        f = h5py.File('%s_ion_by_ion_cooling.h5' %(element_name))
+        data = f['Table']
+        vals = na.interp(network.T, data['T'], data['%s' %(ion_name)])
+        f.close()
+        return vals
+
+    if species_c in species_registry:
+        species_c = species_registry[species_c]
+        ion_cooling_action = CoolingAction("%s_c" % ion_name, #name
+                      "-%s_c * %s * de" %(ion_name, ion_name)) #equation
+        ion_cooling_action.table(cooling_rate)
+        new_rates.append("%s_c" % ion_name)
+    return new_rates
 
 class CVODEPrinter(sympy.printing.str.StrPrinter):
     def __init__(self, template_vars, *args, **kwargs):
