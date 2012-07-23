@@ -282,7 +282,7 @@ def ion_cooling_rate(species):
     def cooling_rate(network):
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation
-        f = h5py.File('%s_ion_by_ion_cooling.h5' %(element_name))
+        f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
         data = f['Table']
         vals = na.interp(network.T, data['T'], data['%s' %(ion_name)])
         f.close()
@@ -291,8 +291,8 @@ def ion_cooling_rate(species):
     if species_c in species_registry:
         species_c = species_registry[species_c]
         ion_cooling_action = CoolingAction("%s_c" % ion_name, #name
-                      "-%s_c * %s * de" %(ion_name, ion_name)) #equation
-        ion_cooling_action.table(cooling_rate)
+                                           "-%s_c * %s * de" %(ion_name, ion_name)) #equation
+        ion_cooling_action.tables["%s_c" % ion_name] = cooling_rate
         new_rates.append("%s_c" % ion_name)
     return new_rates
 
