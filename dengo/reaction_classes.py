@@ -36,10 +36,10 @@ cooling_registry = {}
 species_registry = {}
 
 class Reaction(object):
-
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
+        self.coeff_sym = sympy.Symbol(name)
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
@@ -57,6 +57,10 @@ class Reaction(object):
     @property
     def up_species(self):
         return [s for n, s in self.right_side]
+
+    @property
+    def species(self):
+        return set(self.down_species + self.up_species)
 
     def net_change(self, sname):
         up = sum( n for n, s in self.right_side if s.name == sname)
@@ -87,6 +91,22 @@ class Reaction(object):
         def _w(f):
             rxn = cls(name, f, left_side, right_side)
         return _w
+
+    def species_equation(self, species):
+        if isinstance(species, types.StringTypes):
+            species = species_registry[species]
+        elif isinstance(species, sympy.Symbol):
+            species = species_registry[str(species)]
+        if species not in self.species: return 0
+        nr = self.net_change(species.name)
+        return nr * self.lhs_equation
+        
+    @property
+    def lhs_equation(self):
+        eqs = " + ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] )
+        all_symbols = dict((s.name, s.symbol) for s in self.species)
+        eq = eval(eqs, all_symbols) * self.coeff_sym
+        return eq
 
 reaction = Reaction.create_reaction
 def chianti_rate(species):
@@ -200,7 +220,7 @@ class QuantitiesTable(object):
         return self.species_list[self._names[name]]
 
 class CoolingAction(object):
-    eq = None
+    _eq = None
     def __init__(self, name, equation):
         self.name = name
         self._equation = equation
@@ -212,7 +232,7 @@ class CoolingAction(object):
 
     @property
     def equation(self):
-        if self.eq is not None: return self.eq
+        if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         self.table_symbols.update(
             dict((n, sympy.Symbol(n)) for n in self.tables))
@@ -220,8 +240,8 @@ class CoolingAction(object):
             dict((n, sympy.Symbol(n)) for n in self.temporaries))
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
-        self.eq = eval(self._equation, symbols)
-        return self.eq
+        self._eq = eval(self._equation, symbols)
+        return self._eq
 
     @property
     def species(self):

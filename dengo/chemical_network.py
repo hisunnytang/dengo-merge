@@ -24,6 +24,7 @@ import numpy as na
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry
 import types
+import sympy
 
 class ChemicalNetwork(object):
 
@@ -60,6 +61,12 @@ class ChemicalNetwork(object):
         self.tev = self.T / tevk
         self.logtev = na.log(self.tev)
         self.T_bounds = T_bounds
+
+    def species_total(self, species):
+        eq = 0
+        for rn, rxn in sorted(self.reactions.items()):
+            eq += rxn.species_equation(species)
+        return eq
 
     def species_reactions(self, species):
         tr = []
