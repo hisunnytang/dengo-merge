@@ -24,6 +24,7 @@ License:
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
 import types
+import sympy
 
 try:
     import chianti.core as ch
@@ -195,4 +196,63 @@ class QuantitiesTable(object):
 
     def get_by_name(self, name):
         return self.species_list[self._names[name]]
+
+class CoolingAction(object):
+    def __init__(self, name, equation):
+        self.name = name
+        self.equation = equation
+        self.tables = {}
+        self.temporaries = {}
+        
+    def table(self, func):
+        self.tables[func.func_name] = func
+
+    def temporary(self, name, eq):
+        self.temporaries[name] = eq
+        
+    @classmethod
+    def create_cooling_action(cls, name, equation):
+        obj = cls(name, equation)
+        def _W(f):
+            f(obj)
+        return _W
+
+cooling_action = CoolingAction.create_cooling_action
+
+class CVODEPrinter(sympy.printing.str.StrPrinter):
+    def __init__(self, template_vars, *args, **kwargs):
+        sympy.printing.str.StrPrinter.__init__(self, *args, **kwargs)
+        self.template_vars = template_vars
+
+    def _print_Symbol(self, symbol):
+        s = str(symbol)
+        if s in species_symbols:
+            vname = self.template_vars["species_varnames"][s]
+            return "%s" % vname
+        elif s in cooling_rates_table:
+            cid = self.template_vars["cooling_rate_ids"][s]
+            vname = "data->cooling_storage[%s][cell]" % cid
+            return "%s" % vname
+        elif s in known_variables:
+            return s
+        elif s in user_data_symbols:
+            return "data->%s" % s
+        elif s in user_data_cell_vars:
+            return "data->%s[cell]" % s
+        else:
+            raise RuntimeError
+
+    def _print_Derivative(self, expr):
+        # Using the sympy printing docs as a hint here!
+        rate = str(expr.args[0].func)
+        if rate not in cooling_rates_table:
+            raise RuntimeError
+        cid = self.template_vars["cooling_rate_ids"][rate]
+        vname = "cooling_slopes[%s]" % cid
+        return "%s" % vname
+
+    def _print_Pow(self, expr):
+        PREC = sympy.printing.precedence.precedence(expr)
+        return 'pow(%s,%s)'%(self.parenthesize(expr.base, PREC),
+                             self.parenthesize(expr.exp, PREC))
 

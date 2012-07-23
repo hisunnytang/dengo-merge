@@ -20,5 +20,4 @@ for rxn in primordial:
     write_reaction(rxn)
 
 for species in primordial.required_species:
-    print species.name
     write_species_deriv(species, primordial.species_reactions(species))
