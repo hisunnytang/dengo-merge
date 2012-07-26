@@ -36,11 +36,14 @@ reaction_registry = {}
 cooling_registry = {}
 species_registry = {}
 
+count_m = sympy.Symbol('m', integer=True)
+index_i = sympy.Idx('i', count_m)
+
 class Reaction(object):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
-        self.coeff_sym = sympy.Symbol(name)
+        self.coeff_sym = sympy.IndexedBase(name, (count_m,))
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
@@ -96,7 +99,7 @@ class Reaction(object):
     def species_equation(self, species):
         if isinstance(species, types.StringTypes):
             species = species_registry[species]
-        elif isinstance(species, sympy.Symbol):
+        elif isinstance(species, sympy.IndexedBase):
             species = species_registry[str(species)]
         if species not in self.species: return 0
         nr = self.net_change(species.name)
@@ -104,9 +107,12 @@ class Reaction(object):
         
     @property
     def lhs_equation(self):
-        eqs = " * ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] )
+        eqs = " * ".join( ["%s*%s[i]" % (i, s.name) for i, s in self.left_side] )
+        eqs = "%s[i] * ( %s )" % (self.name, eqs)
         all_symbols = dict((s.name, s.symbol) for s in self.species)
-        eq = eval(eqs, all_symbols) * self.coeff_sym
+        all_symbols['i'] = index_i
+        all_symbols[self.name] = self.coeff_sym
+        eq = eval(eqs, all_symbols)
         return eq
 
 reaction = Reaction.create_reaction
@@ -155,7 +161,7 @@ class Species(object):
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
         self.computed = computed
-        self.symbol = sympy.Symbol(name)
+        self.symbol = sympy.IndexedBase(name, (count_m,))
         if equilibrium and computed: raise RuntimeError
         if equilibrium: raise RuntimeError
         species_registry[name] = self
@@ -236,9 +242,9 @@ class CoolingAction(object):
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         self.table_symbols.update(
-            dict((n, sympy.Symbol(n)) for n in self.tables))
+            dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
         self.temp_symbols.update(
-            dict((n, sympy.Symbol(n)) for n in self.temporaries))
+            dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
         self._eq = eval(self._equation, symbols)
@@ -249,7 +255,7 @@ class CoolingAction(object):
         self.equation
         bad = set(self.temp_symbols.values() + self.table_symbols.values())
         species = set([])
-        for s in self.equation.atoms(sympy.Symbol):
+        for s in self.equation.atoms(sympy.IndexedBase):
             if s not in bad: species.add(species_registry[str(s)])
         return species
 
