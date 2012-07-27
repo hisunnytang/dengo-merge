@@ -26,5 +26,5 @@ for species in primordial.required_species:
     print "// HANDLING SPECIES", species.name
     print
     eq = primordial.species_total(species)
-    ds_dt = sympy.IndexedBase("d_%s" % species.name, (count_m,))
-    print_ccode(eq, assign_to = ds_dt[index_i])
+    ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
+    print_ccode(eq, assign_to = ds_dt)
