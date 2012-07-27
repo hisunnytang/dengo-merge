@@ -107,12 +107,10 @@ class Reaction(object):
         
     @property
     def lhs_equation(self):
-        eqs = " * ".join( ["%s*%s[i]" % (i, s.name) for i, s in self.left_side] )
-        eqs = "%s[i] * ( %s )" % (self.name, eqs)
-        all_symbols = dict((s.name, s.symbol) for s in self.species)
-        all_symbols['i'] = index_i
-        all_symbols[self.name] = self.coeff_sym
-        eq = eval(eqs, all_symbols)
+        eq = self.coeff_sym[index_i]
+        for i, s in self.left_side:
+            for ii in range(i):
+                eq *= s.symbol[index_i]
         return eq
 
 reaction = Reaction.create_reaction
