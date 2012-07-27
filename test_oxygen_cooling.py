@@ -2,11 +2,13 @@ from dengo.chemical_network import \
     ChemicalNetwork, \
     reaction_registry, \
     cooling_registry
+from dengo.reaction_classes import index_i, count_m
 import dengo.primordial_rates, dengo.primordial_cooling
 import dengo.oxygen_rates, dengo.oxygen_cooling
 from dengo.solver_writer import write_reaction, write_species_deriv
+from dengo.write_rate_reader import create_rate_tables
+import sympy
 from sympy.printing import print_ccode
-#from matplotlib import pylab
 
 oxygen = ChemicalNetwork()
 for ca in cooling_registry.values():
@@ -23,15 +25,17 @@ for s in reaction_registry.values():
 print "These species are required for chemistry and cooling:"
 print "\n".join([s.name for s in sorted(oxygen.required_species)])
 
-oxygen.init_temperature(T_bounds=(1.0e4, 1.0e8))
-
-# Let's create a cooling function plot for all oxygen ion species
-#pylab.ion()
-#pylab.figure(1)
-#for cooling_action in oxygen.cooling_actions.values():
-#    pylab.loglog(oxygen.T, cooling_action.tables[cooling_action.name](oxygen), label=cooling_action.name)
-#pylab.legend()
-
 for species in oxygen.required_species:
+    print
+    print "// HANDLING SPECIES", species.name
+    print
     eq = oxygen.species_total(species)
-    print_ccode(eq, assign_to = "d_%s" % species.name)
+    ds_dt = sympy.IndexedBase("d_%s" % species.name, (count_m,))
+    print_ccode(eq, assign_to = ds_dt[index_i])
+
+T_bounds = [1.0e4, 1.0e8]
+oxygen.init_temperature(T_bounds)
+print
+print "// WRITING RATE TABLES TO HDF5 FILES"
+print
+create_rate_tables(oxygen, "oxygen")
