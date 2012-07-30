@@ -15,7 +15,8 @@
 #include "sys/time.h"
 #include "stdlib.h"
 #include "math.h"
-#include "H5LT.h"
+#include "hdf5_hl.h"
+#include "stdio.h"
 #include "rates_and_rate_tables.h"
 
 {% endblock %} {# includes #}
@@ -32,13 +33,24 @@ typedef struct {{ solver_name }}_data {
 
 TableOfRates *{{ solver_name }}_read_rate_tables();
 TableOfRates *{{ solver_name }}_read_cooling_tables();
-void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
-            TableOfRates *rate_tables, double **outputvals);
 {% endblock %} {# data_struct_for_rates #}
 
 {% block entry_point %}
 int main(int argc, char** argv)
 {
+    {{ solver_name }}_rate_data data;
+
+    TableOfRates *my_rates;
+    
+    my_rates = {{ solver_name }}_read_rate_tables();
+    fprintf(stderr, "Successfully read in rate tables.\n");
+    my_rates->nrates = {{ rate_table | length }};
+    data.rate_tables = my_rates;
+
+    my_rates = {{ solver_name }}_read_cooling_tables();
+    fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    my_rates->nrates = {{ cooling_rate_table | length }};
+    data.cooling_tables = my_rates;
 
 }
 {% endblock %} {# entry_point #}
@@ -166,5 +178,3 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
 
 }
 {% endblock %} {# interpolate_rates #}
-
-#}

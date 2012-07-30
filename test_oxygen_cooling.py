@@ -30,8 +30,8 @@ for species in oxygen.required_species:
     print "// HANDLING SPECIES", species.name
     print
     eq = oxygen.species_total(species)
-    ds_dt = sympy.IndexedBase("d_%s" % species.name, (count_m,))
-    print_ccode(eq, assign_to = ds_dt[index_i])
+    ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
+    print_ccode(eq, assign_to = ds_dt)
 
 T_bounds = [1.0e4, 1.0e8]
 oxygen.init_temperature(T_bounds)
