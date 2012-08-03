@@ -15,6 +15,7 @@
 #include "sys/time.h"
 #include "stdlib.h"
 #include "math.h"
+#include "hdf5.h"
 #include "hdf5_hl.h"
 #include "stdio.h"
 #include "rates_and_rate_tables.h"
