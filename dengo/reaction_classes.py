@@ -39,12 +39,28 @@ species_registry = {}
 count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
 
+class ReactionCoefficient(sympy.Symbol):
+    def _eval_derivative(self, s):
+        if s == self.energy:
+            return sympy.Symbol("r%s" % self)
+        else:
+            return super(ReactionCoefficient, self)._eval_derivative(s)
+
+    energy = None
+
+    @property
+    def free_symbols(self):
+        if self.energy is not None:
+            return set([self, self.energy])
+        else:
+            return set([sefl])
+
 class Reaction(object):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
         #self.coeff_sym = sympy.IndexedBase(name, (count_m,))
-        self.coeff_sym = sympy.Symbol("%s[i]" % name)
+        self.coeff_sym = ReactionCoefficient("%s[i]" % name)
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
@@ -53,7 +69,7 @@ class Reaction(object):
     updated = False
     def update(self, e):
         if self.updated: return
-        self.coeff_sym = self.coeff_sym(e)
+        self.coeff_sym.energy = e
         self.updated = True
 
     def __contains__(self, c):
