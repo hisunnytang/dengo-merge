@@ -50,6 +50,12 @@ class Reaction(object):
         self.considered = set( (s.name for n, s in left_side + right_side) )
         reaction_registry[name] = self # Register myself
 
+    updated = False
+    def update(self, e):
+        if self.updated: return
+        self.coeff_sym = self.coeff_sym(e)
+        self.updated = True
+
     def __contains__(self, c):
         if isinstance(c, types.StringTypes):
             return c in self.down_species + self.up_species

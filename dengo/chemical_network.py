@@ -23,12 +23,14 @@ License:
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
-    count_m, index_i
+    count_m, index_i, species_registry
 import types
 import sympy
 from sympy.printing import print_ccode
 
 class ChemicalNetwork(object):
+
+    energy_term = None
 
     def __init__(self):
         self.reactions = {}
@@ -49,6 +51,9 @@ class ChemicalNetwork(object):
         print "Adding reaction: %s" % reaction
 
     def add_cooling(self, cooling_term):
+        if self.energy_term is None:
+            self.energy_term = species_registry["ge"]
+            self.required_species.add(self.energy_term)
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError
         self.cooling_actions[cooling_term.name] = cooling_term
@@ -65,8 +70,11 @@ class ChemicalNetwork(object):
         self.T_bounds = T_bounds
 
     def species_total(self, species):
+        if species == self.energy_term:
+            return sum(v.equation for n, v in sorted(self.cooling_actions.items()))
         eq = 0
         for rn, rxn in sorted(self.reactions.items()):
+            rxn.update(self.energy_term.symbol)
             eq += rxn.species_equation(species)
         return eq
 
@@ -80,15 +88,18 @@ class ChemicalNetwork(object):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
 
-    def print_ccode(self, species):
+    def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
-        assign_to = sympy.Symbol("d_%s[i]" % species.name)
+        if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
         print_ccode(self.species_total(species),
                     assign_to = assign_to)
 
-    def print_jacobian(self, species):
+    def print_jacobian(self, species, assign_vec = None):
         eq = self.species_total(species)
         for s2 in self.required_species:
-            assign_to = sympy.Symbol("d_%s_%s[i]" % (species.name, s2.name))
+            if assign_vec is None:
+                assign_to = sympy.Symbol("d_%s_%s[i]" % (species.name, s2.name))
+            else:
+                assign_to = assign_vec[s2.name]
             print_ccode(sympy.diff(eq, s2.symbol), assign_to = assign_to)
 

@@ -24,6 +24,8 @@ print "\n".join([s.name for s in sorted(primordial.required_species)])
 
 functions = []
 
+cooling = sum(v.equation for n,v in sorted(primordial.cooling_actions.items()))
+
 for species in primordial.required_species:
     print
     print "// HANDLING SPECIES", species.name
@@ -31,6 +33,10 @@ for species in primordial.required_species:
     eq = primordial.species_total(species)
     primordial.print_ccode(species)
     primordial.print_jacobian(species)
+
+#primordial.print_ccode(primordial.energy_term)
+#primordial.print_jacobian(primordial.energy_term)
+
     #ds_dt = sympy.IndexedBase("d_%s" % species.name, (count_m,))
     #expr = sympy.Equality(ds_dt[index_i], eq)
     #functions.append(("d_%s" % species.name, expr))
