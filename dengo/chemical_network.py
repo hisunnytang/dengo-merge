@@ -22,9 +22,11 @@ License:
 """
 import numpy as na
 from chemistry_constants import tevk, tiny, mh
-from .reaction_classes import reaction_registry, cooling_registry
+from .reaction_classes import reaction_registry, cooling_registry, \
+    count_m, index_i
 import types
 import sympy
+from sympy.printing import print_ccode
 
 class ChemicalNetwork(object):
 
@@ -77,3 +79,16 @@ class ChemicalNetwork(object):
     def __iter__(self):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
+
+    def print_ccode(self, species):
+        #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
+        assign_to = sympy.Symbol("d_%s[i]" % species.name)
+        print_ccode(self.species_total(species),
+                    assign_to = assign_to)
+
+    def print_jacobian(self, species):
+        eq = self.species_total(species)
+        for s2 in self.required_species:
+            assign_to = sympy.Symbol("d_%s_%s[i]" % (species.name, s2.name))
+            print_ccode(sympy.diff(eq, s2.symbol), assign_to = assign_to)
+

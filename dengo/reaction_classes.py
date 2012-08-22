@@ -43,7 +43,8 @@ class Reaction(object):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
-        self.coeff_sym = sympy.IndexedBase(name, (count_m,))
+        #self.coeff_sym = sympy.IndexedBase(name, (count_m,))
+        self.coeff_sym = sympy.Symbol("%s[i]" % name)
         self.left_side = left_side
         self.right_side = right_side
         self.considered = set( (s.name for n, s in left_side + right_side) )
@@ -99,7 +100,7 @@ class Reaction(object):
     def species_equation(self, species):
         if isinstance(species, types.StringTypes):
             species = species_registry[species]
-        elif isinstance(species, sympy.IndexedBase):
+        elif isinstance(species, (sympy.IndexedBase, sympy.Symbol)):
             species = species_registry[str(species)]
         if species not in self.species: return 0
         nr = self.net_change(species.name)
@@ -107,10 +108,12 @@ class Reaction(object):
         
     @property
     def lhs_equation(self):
-        eq = self.coeff_sym[index_i]
+        #eq = self.coeff_sym[index_i]
+        eq = self.coeff_sym
         for i, s in self.left_side:
             for ii in range(i):
-                eq *= s.symbol[index_i]
+                #eq *= s.symbol[index_i]
+                eq *= s.symbol
         return eq
 
 reaction = Reaction.create_reaction
@@ -138,6 +141,7 @@ def chianti_rate(species):
                  [(1, species), (1, de)], # left side
                  [(1, species_i), (2, de)]) # right side
         new_rates.append("%s_i" % species.name)
+
     def rec_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.recombRate()
@@ -159,7 +163,8 @@ class Species(object):
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
         self.computed = computed
-        self.symbol = sympy.IndexedBase(name, (count_m,))
+        #self.symbol = sympy.IndexedBase(name, (count_m,))
+        self.symbol = sympy.Symbol("%s[i]" % name)
         if equilibrium and computed: raise RuntimeError
         if equilibrium: raise RuntimeError
         species_registry[name] = self
@@ -239,10 +244,12 @@ class CoolingAction(object):
     def equation(self):
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
-        self.table_symbols.update(
-            dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
-        self.temp_symbols.update(
-            dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
+        #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
+        ta_sym = dict((n, sympy.Symbol("%s[i]" % n)) for n in self.tables)
+        self.table_symbols.update(ta_sym)
+        #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
+        tp_sym = dict((n, sympy.Symbol("%s[i]" % n)) for n in self.temporaries)
+        self.temp_symbols.update(tp_sym)
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
         self._eq = eval(self._equation, symbols)
@@ -253,8 +260,10 @@ class CoolingAction(object):
         self.equation
         bad = set(self.temp_symbols.values() + self.table_symbols.values())
         species = set([])
-        for s in self.equation.atoms(sympy.IndexedBase):
-            if s not in bad: species.add(species_registry[str(s)])
+        #for s in self.equation.atoms(sympy.IndexedBase):
+        for s in self.equation.atoms(sympy.Symbol):
+            if s not in bad:
+                species.add(species_registry[str(s).replace("[i]","")])
         return species
 
     def table(self, func):
