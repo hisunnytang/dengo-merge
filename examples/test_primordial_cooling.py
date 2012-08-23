@@ -4,6 +4,7 @@ from dengo.chemical_network import \
     cooling_registry
 from dengo.reaction_classes import index_i, count_m
 import dengo.primordial_rates, dengo.primordial_cooling
+from dengo.write_rate_reader import create_rate_tables, create_rate_reader
 import sympy
 from sympy.utilities.codegen import codegen
 from sympy.printing import print_ccode
@@ -45,4 +46,14 @@ for species in primordial.required_species:
 #from sympy.abc import x, y, z
 #print codegen(("f", x+y*z), "C", "test")
 
+T_bounds = [1.0e4, 1.0e8]
+primordial.init_temperature(T_bounds)
+print
+print "// WRITING RATE TABLES TO HDF5 FILES"
+print
+create_rate_tables(primordial, "primordial")
 
+print
+print "// WRITING C CODE TO READ HDF5 FILES"
+print
+create_rate_reader(primordial, "primordial")
