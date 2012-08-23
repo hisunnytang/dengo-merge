@@ -25,13 +25,19 @@ for s in reaction_registry.values():
 print "These species are required for chemistry and cooling:"
 print "\n".join([s.name for s in sorted(oxygen.required_species)])
 
+functions = []
+
+cooling = sum(v.equation for n,v in sorted(oxygen.cooling_actions.items()))
+
 for species in oxygen.required_species:
     print
     print "// HANDLING SPECIES", species.name
     print
     eq = oxygen.species_total(species)
-    ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
-    print_ccode(eq, assign_to = ds_dt)
+    oxygen.print_ccode(species)
+    oxygen.print_jacobian(species)
+    #ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
+    #print_ccode(eq, assign_to = ds_dt)
 
 T_bounds = [1.0e4, 1.0e8]
 oxygen.init_temperature(T_bounds)

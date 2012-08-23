@@ -45,12 +45,12 @@ int main(int argc, char** argv)
     
     my_rates = {{ solver_name }}_read_rate_tables();
     fprintf(stderr, "Successfully read in rate tables.\n");
-    my_rates->nrates = {{ rate_table | length }};
+    my_rates->nrates = {{ network.reactions | length }};
     data.rate_tables = my_rates;
 
     my_rates = {{ solver_name }}_read_cooling_tables();
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    my_rates->nrates = {{ cooling_rate_table | length }};
+    my_rates->nrates = {{ network.cooling_actions | length }};
     data.cooling_tables = my_rates;
 
 }
@@ -67,7 +67,7 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 
-    chemical_rates->nrates = {{ rate_table | length }};
+    chemical_rates->nrates = {{ network.reactions | length }};
     chemical_rates->rates =
             (RateTable *) malloc(sizeof(RateTable) * chemical_rates->nrates);
 
@@ -75,7 +75,7 @@ TableOfRates *{{ solver_name }}_read_rate_tables()
 
     RateTable *crate;
 
-    {%- for name, rate in rate_table | dictsort %}
+    {%- for name, rate in network.reactions | dictsort %}
     /* Now reading our {{ rate_ids[rate] }}-th rate, {{ rate.name }} */
     status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
     crate = &chemical_rates->rates[{{ rate_ids[rate] }}];
@@ -105,7 +105,7 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 
-    cooling_rates->nrates = {{ cooling_rate_table | length }};
+    cooling_rates->nrates = {{ network.cooling_actions | length }};
     cooling_rates->rates =
             (RateTable *) malloc(sizeof(RateTable) * cooling_rates->nrates);
 
@@ -113,7 +113,7 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 
     RateTable *crate;
 
-    {%- for name, rate in cooling_rate_table | dictsort %}
+    {%- for name, rate in network.cooling_actions | dictsort %}
     /* Now reading our {{ cooling_rate_ids[name] }}-th rate, {{ rate.name }} */
     status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
     crate = &cooling_rates->rates[{{ cooling_rate_ids[name] }}];

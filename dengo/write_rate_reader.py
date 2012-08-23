@@ -79,23 +79,23 @@ def create_rate_reader(network, solver_name): #, pp_class):
     # template_vars = dict(num_solved_species = num_solved_species,
     #                      num_total_species = num_total_species,
     template_vars = dict(network = network,
-                         rate_table = rate_table,
+                         # rate_table = rate_table,
                          rate_ids = rate_ids,
-                         irate_table = irate_table, 
+                         # irate_table = irate_table, 
                          # reaction_table = reaction_table,
-                         reaction_ids = reaction_ids,
-                         reaction_varnames = reaction_varnames,
-                         ireaction_table = ireaction_table,
+                         # reaction_ids = reaction_ids,
+                         # reaction_varnames = reaction_varnames,
+                         # ireaction_table = ireaction_table,
                          solver_name = solver_name,
-                         species_table = species_table,
+                         # species_table = species_table,
                          # non_eq_species_table = non_eq_species_table,
                          # non_eq_species_ids = non_eq_species_ids,
                          # eq_species_table = eq_species_table,
                          # eq_species_ids = eq_species_ids,
                          # species_varnames = species_varnames,
-                         cooling_rate_table = cooling_rate_table,
-                         cooling_rate_ids = cooling_rate_ids,
-                         icooling_rate_table = icooling_rate_table)
+                         # cooling_rate_table = cooling_rate_table,
+                         cooling_rate_ids = cooling_rate_ids)
+                         # icooling_rate_table = icooling_rate_table)
                          # cooling_action_table = cooling_action_table)
     #template_vars['pp'] = pp_class(template_vars)
     solver_out = solver_template.render(**template_vars)
