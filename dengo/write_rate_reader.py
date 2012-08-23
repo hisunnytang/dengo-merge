@@ -17,20 +17,12 @@ def create_rate_tables(network, solver_name):
                 data=action.tables[tab](network).astype("float64"))
     f.close()
 
-def create_rate_reader(network, solver_name): #, pp_class):
-    # This comment block is currently out of date -- Devin 7/27/2012
+def create_rate_reader(network, solver_name):
     # What we are handed here is:
-    #   * rate_table, which is a dict of "kXX" to ReactionRate objects.  These
-    #     will be used in the reading of rates from disk, but will not directly
-    #     be used in the calculation of the derivatives.
-    #   * reaction_table, which is a dict of "rXX" to Reaction objects.  These
-    #     objects have left_side, right_side, and considered attributes that
-    #     describe which species are members of each and how they contribute.
-    #     Note that *left_side* and *right_side* are tuples of (n, S), where S
-    #     is an instance of Species, but that *considered* is a set of strings.
-    #   * species_table, which is a dict of "H2I" (etc) to Species objects.
-    #     The Species objects are notable for having information about whether
-    #     they are in *equilibrium*, as well as their atomic weight.
+    #   * network, a python object which holds all of the species, reactions,
+    #     rate, etc. that we're keeping track of and will be solving in Enzo
+    #   * solver_name, an identifier to produce a unique template and to
+    #     correctly grab the right HDF5 tables
     #
     # To utilize these inside our template, we will generate convenience
     # handlers that will explicitly number them.
