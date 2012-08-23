@@ -5,7 +5,6 @@ from dengo.chemical_network import \
 from dengo.reaction_classes import index_i, count_m
 import dengo.primordial_rates, dengo.primordial_cooling
 import dengo.oxygen_rates, dengo.oxygen_cooling
-from dengo.solver_writer import write_reaction, write_species_deriv
 from dengo.write_rate_reader import create_rate_tables, create_rate_reader
 import sympy
 from sympy.printing import print_ccode

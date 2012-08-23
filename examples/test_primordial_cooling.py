@@ -4,7 +4,6 @@ from dengo.chemical_network import \
     cooling_registry
 from dengo.reaction_classes import index_i, count_m
 import dengo.primordial_rates, dengo.primordial_cooling
-from dengo.solver_writer import write_reaction, write_species_deriv
 import sympy
 from sympy.utilities.codegen import codegen
 from sympy.printing import print_ccode

@@ -1,6 +1,5 @@
 from dengo.chemical_network import ChemicalNetwork, reaction_registry
 import dengo.primordial_rates
-from dengo.solver_writer import write_reaction, write_species_deriv
 
 primordial = ChemicalNetwork()
 for i in range(23):

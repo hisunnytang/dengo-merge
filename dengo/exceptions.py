@@ -21,15 +21,19 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import types
-from .reaction_classes import reaction_registry, species_registry
+class DengoException(Exception):
+    pass
 
-def ensure_reaction(rxn):
-    if isinstance(rxn, types.StringTypes):
-        rxn = reaction_registry[rxn]
-    return rxn
+class UnknownReaction(DengoException):
+    def __init__(self, name):
+        self.name = name
 
-def ensure_species(s):
-    if isinstance(s, types.StringTypes):
-        s = species_registry[rxn]
-    return s
+    def __str__(self):
+        return "Dengo doesn't know about reaction %s" % (self.name)
+
+class UnknownSpecies(DengoException):
+    def __init__(self, name):
+        self.name = name
+
+    def __str__(self):
+        return "Dengo doesn't know about species %s" % (self.name)

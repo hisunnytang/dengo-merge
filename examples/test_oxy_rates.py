@@ -5,7 +5,6 @@ from dengo.reaction_classes import Species, chianti_rate, reaction_registry, spe
 import dengo.primordial_rates
 import dengo.oxygen_rates
 from dengo.oxygen_cooling import cooling_rates_table, cooling_action_table
-from dengo.solver_writer import write_reaction, write_species_deriv
 
 oxygen_network = ChemicalNetwork()
 
