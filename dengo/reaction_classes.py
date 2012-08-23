@@ -29,7 +29,7 @@ import h5py
 
 try:
     import chianti.core as ch
-except ImportError:
+except (ImportError, KeyError):
     ch = None
 
 reaction_registry = {}

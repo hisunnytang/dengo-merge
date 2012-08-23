@@ -24,7 +24,7 @@ License:
 from chemistry_constants import tevk
 import numpy as na
 import sympy
-from reaction_classes import cooling_action
+from reaction_classes import cooling_action, reaction_registry
 
 dhuge = 1.0e30
 
@@ -65,7 +65,7 @@ def cool(eq):
     @eq.table
     def ciHeIS(state):
         vals = 5.01e-27*(state.T)**(-0.1687)/(1.+na.sqrt(state.T/1.0e5)) \
-                * na.exp(-na.minimum(na.log(dhuge),55338.0/T))
+                * na.exp(-na.minimum(na.log(dhuge),55338.0/state.T))
         return vals
 
 # -- ciHI --
@@ -117,8 +117,8 @@ def cool(eq):
     @eq.table
     def reHeII2(state):
         vals = 1.24e-13*state.T**(-1.5) \
-            * na.exp(-na.minimum(na.log(dhuge),470000.0/T)) \
-            * (1.+0.3*na.exp(-na.minimum(na.log(dhuge),94000.0/T))) 
+            * na.exp(-na.minimum(na.log(dhuge),470000.0/state.T)) \
+            * (1.+0.3*na.exp(-na.minimum(na.log(dhuge),94000.0/state.T))) 
         return vals
 
 # -- reHeIII --
@@ -159,6 +159,8 @@ def cool(eq):
     def gphdl(state):
         # high density limit from HM79 (typo corrected Aug 30/2007)
         # -- gphdl --
+        tm  = na.maximum(state.T, 10.0e0)
+        tm  = na.minimum(tm, 1.e4)
         t3 = tm/1000.
         # HDLR is from p31 of HM79.
         HDLR = ((9.5e-22*t3**3.76)/(1.+0.12*t3**2.1)*

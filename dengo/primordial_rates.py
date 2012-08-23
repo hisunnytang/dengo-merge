@@ -86,11 +86,10 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.8)
     _i2 = ~_i1
-    vals = (1.54e-9*(1.+0.3/na.exp(8.099328789667/tev))
-                   / (na.exp(40.49664394833662/tev)*state.tev**1.5)
-                   + 3.92e-13/tev**0.6353) 
+    vals = (1.54e-9*(1.+0.3/na.exp(8.099328789667/state.tev))
+                   / (na.exp(40.49664394833662/state.tev)*state.tev**1.5)
+                   + 3.92e-13/state.tev**0.6353) 
     vals[_i2] = tiny
-    reaction_rates_table['k04'] = ReactionRate('k04', vals)
     return vals
 
 # -- k05 --
@@ -113,12 +112,15 @@ def rxn(state):
 # -- k06 --
 @reaction('k06', [(1,HeIII),   (1,de)], [ (1,HeII),         ])
 def rxn(state):
-    vals = 3.36e-10/na.sqrt(state.T)/(T/1.e3)**0.2/(1+(T/1.e6)**0.7)
+    vals = (3.36e-10/na.sqrt(state.T)/(state.T/1.e3)**0.2 /
+            (1+(state.T/1.e6)**0.7))
+    return vals
 
 # -- k07 --
 @reaction('k07', [   (1,HI),   (1,de)], [   (1,HM),         ])
 def rxn(state):
     vals = 6.77e-15*state.tev**0.8779
+    return vals
 
 # -- k08 --
 @reaction('k08', [   (1,HM),   (1,HI)], [  (1,H2I),   (1,de)])
@@ -142,7 +144,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.T > 6.7e3)
     vals = 1.85e-23*state.T**1.8
-    vals[_i1] = 5.81e-16*(T/56200)**(-0.6657*na.log10(T/56200))
+    vals[_i1] = 5.81e-16*(state.T/56200)**(-0.6657*na.log10(state.T/56200))
     return vals
 
 # -- k10 --
@@ -173,7 +175,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.3)
     _i2 = ~_i1
-    vals = 5.6e-11*na.exp(-102124/T)*state.T**0.5
+    vals = 5.6e-11*na.exp(-102124/state.T)*state.T**0.5
     return vals
 
 # -- k13 --
@@ -249,7 +251,7 @@ def rxn(state):
 # -- k19 --
 @reaction('k19', [ (1,H2II),   (1,HM)], [   (1,HI),  (1,H2I)])
 def rxn(state):
-    vals = 5.e-7*na.sqrt(100./T)
+    vals = 5.e-7*na.sqrt(100./state.T)
     return vals
 
 # -- k21 --
@@ -269,7 +271,7 @@ def rxn(state):
 @reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)])
 def rxn(state):
     vals = ((8.125e-8 / na.sqrt(state.T))
-          * na.exp(-52000/T)
-          * (1.0 - na.exp(-6000/T)))
+          * na.exp(-52000/state.T)
+          * (1.0 - na.exp(-6000/state.T)))
     return vals
 
