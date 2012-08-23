@@ -73,9 +73,9 @@ def create_rate_reader(network, solver_name): #, pp_class):
     cooling_rate_ids = dict([(a, b) for b, a in icooling_rate_table.items()])
 
     env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
-            loader = jinja2.FileSystemLoader(["enzo_templates/","."]))
+            loader = jinja2.FileSystemLoader(["templates/","."]))
     solver_template = env.get_template(
-        "enzo_templates/%s_data.c.template" % (solver_name))
+        "templates/%s_data.c.template" % (solver_name))
     # template_vars = dict(num_solved_species = num_solved_species,
     #                      num_total_species = num_total_species,
     template_vars = dict(network = network,
@@ -99,5 +99,6 @@ def create_rate_reader(network, solver_name): #, pp_class):
                          # cooling_action_table = cooling_action_table)
     #template_vars['pp'] = pp_class(template_vars)
     solver_out = solver_template.render(**template_vars)
-    f = open("enzo_templates/%s_data.c" % solver_name, "w")
+    if not os.path.isdir("output"): os.makedirs("output")
+    f = open("output/%s_data.c" % solver_name, "w")
     f.write(solver_out)
