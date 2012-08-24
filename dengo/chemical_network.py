@@ -26,7 +26,7 @@ from .reaction_classes import reaction_registry, cooling_registry, \
     count_m, index_i, species_registry
 import types
 import sympy
-from sympy.printing import print_ccode
+from sympy.printing import ccode
 
 class ChemicalNetwork(object):
 
@@ -91,8 +91,7 @@ class ChemicalNetwork(object):
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
-        print_ccode(self.species_total(species),
-                    assign_to = assign_to)
+        return ccode(self.species_total(species), assign_to = assign_to)
 
     def print_jacobian(self, species, assign_vec = None):
         eq = self.species_total(species)
@@ -101,5 +100,5 @@ class ChemicalNetwork(object):
                 assign_to = sympy.Symbol("d_%s_%s[i]" % (species.name, s2.name))
             else:
                 assign_to = assign_vec[s2.name]
-            print_ccode(sympy.diff(eq, s2.symbol), assign_to = assign_to)
+            return ccode(sympy.diff(eq, s2.symbol), assign_to = assign_to)
 

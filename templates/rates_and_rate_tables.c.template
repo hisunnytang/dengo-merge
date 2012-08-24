@@ -20,112 +20,86 @@
 #include "stdio.h"
 #include "rates_and_rate_tables.h"
 
+#define MAX_NCELLS
+
 {% endblock %} {# includes #}
 
 {% block data_structs_for_rates %}
-typedef struct {{ solver_name }}_data {
-    TableOfRates *rate_tables;
-    TableOfRates *cooling_tables;
-    double *T;
-    double *logT;
-    double **rate_storage;
-    double **cooling_storage;
-} {{ solver_name }}_rate_data;
 
-TableOfRates *{{ solver_name }}_read_rate_tables();
-TableOfRates *{{ solver_name }}_read_cooling_tables();
+typedef struct {{ solver_name }}_data_ {
+
+    /* All of the network bins will be the same width */
+    double dbin;
+    double idbin;
+    double bounds[2];
+
+    double Ts[MAX_NCELLS];
+    double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
+    double logTs[MAX_NCELLS];
+    /* Now we do all of our cooling and chemical tables */
+    {%- for name, rate in network.reactions | dictsort %}
+    double r_{{name}}[{{ network.T | length }}];
+    double rs_{{name}}[MAX_NCELLS];
+    {% endfor %}
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    double c_{{name}}[{{ network.T | length }}];
+    double cs_{{name}}[MAX_NCELLS];
+    {% endfor %}
+    int bin_id[MAX_NCELLS];
+    int ncells;
+} {{ solver_name }}_data;
+
+void {{ solver_name }}_read_rate_tables(*{{solver_name}}_data);
+void {{ solver_name }}_read_cooling_tables(*{{solver_name}}_data);
 {% endblock %} {# data_struct_for_rates #}
 
 {% block entry_point %}
 int main(int argc, char** argv)
 {
-    {{ solver_name }}_rate_data data;
+    {{ solver_name }}_data *data;
 
-    TableOfRates *my_rates;
+    data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data);
+
+    data->bounds[0] = {{ network.T_bounds[0] }};
+    data->bounds[1] = {{ network.T_bounds[1] }};
+    data->nbins = {{ network.T | length }};
+    data->dbin = (log(data->bounds[1]) - log(data->bounds[0])) / data->nbins;
+    data->idbin = 1.0L / data->dbin;
     
-    my_rates = {{ solver_name }}_read_rate_tables();
+    my_rates = {{ solver_name }}_read_rate_tables(data);
     fprintf(stderr, "Successfully read in rate tables.\n");
-    my_rates->nrates = {{ network.reactions | length }};
-    data.rate_tables = my_rates;
 
-    my_rates = {{ solver_name }}_read_cooling_tables();
+    my_rates = {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    my_rates->nrates = {{ network.cooling_actions | length }};
-    data.cooling_tables = my_rates;
 
 }
 {% endblock %} {# entry_point #}
 
 {% block read_tables %}
-TableOfRates *{{ solver_name }}_read_rate_tables()
+void {{ solver_name }}_read_rate_tables({{solver_name}}_rate_data *data)
 {
-    TableOfRates *chemical_rates = 
-            (TableOfRates *) malloc(sizeof(TableOfRates));
-
     herr_t status;
     hid_t file_id = H5Fopen("{{ solver_name }}_rate_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 
-    chemical_rates->nrates = {{ network.reactions | length }};
-    chemical_rates->rates =
-            (RateTable *) malloc(sizeof(RateTable) * chemical_rates->nrates);
-
-    int i = 0;
-
-    RateTable *crate;
-
     {%- for name, rate in network.reactions | dictsort %}
-    /* Now reading our i-th rate, {{ rate.name }} */
-    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
-    crate = &chemical_rates->rates[i];
-    /* Assume log-spaced bins */
-    crate->bounds[0] = {{ network.T_bounds[0] }};
-    crate->bounds[1] = {{ network.T_bounds[1] }};
-    crate->nbins = {{ network.T | length }};
-    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / (crate->nbins-1);
-    crate->idbin = 1.0L / crate->dbin;
-    crate->values = (double *) malloc(crate->nbins * sizeof(double));
-    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
-    i++;
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", data->rate_{{name}});
     {%- endfor %}
 
     H5Fclose(file_id);
-
-    return chemical_rates;
 }
 
-TableOfRates *{{ solver_name }}_read_cooling_tables()
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
 {
-    TableOfRates *cooling_rates = 
-            (TableOfRates *) malloc(sizeof(TableOfRates));
 
     herr_t status;
     hid_t file_id = H5Fopen("{{ solver_name }}_cooling_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 
-    cooling_rates->nrates = {{ network.cooling_actions | length }};
-    cooling_rates->rates =
-            (RateTable *) malloc(sizeof(RateTable) * cooling_rates->nrates);
-
-    int i = 0, j;
-
-    RateTable *crate;
-
     {%- for name, rate in network.cooling_actions | dictsort %}
-    /* Now reading our i-th rate, {{ rate.name }} */
-    status = H5LTget_dataset_info(file_id, "/{{ rate.name }}", &dims, NULL, NULL);
-    crate = &cooling_rates->rates[i];
-    /* Assume log-spaced bins */
-    crate->bounds[0] = {{ network.T_bounds[0] }};
-    crate->bounds[1] = {{ network.T_bounds[1] }};
-    crate->nbins = {{ network.T | length }};
-    crate->dbin = (log(crate->bounds[1]) - log(crate->bounds[0])) / crate->nbins;
-    crate->idbin = 1.0L / crate->dbin;
-    crate->values = (double *) malloc(crate->nbins * sizeof(double));
-    H5LTread_dataset_double(file_id, "/{{ rate.name }}", crate->values);
-    i++;
+    H5LTread_dataset_double(file_id, "/{{ rate.name }}", data->cool_{{name}});
     {%- endfor %}
 
     H5Fclose(file_id);
@@ -134,8 +108,6 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 }
 
 {% endblock %} {# read_tables #}
-
-{#
 
 {% block interpolate_rates %}
 /*
@@ -146,36 +118,64 @@ TableOfRates *{{ solver_name }}_read_cooling_tables()
 */
 
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
-                        TableOfRates *rate_tables, double **outputvals)
+void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
 {
     int i, ri, bin_id;
     static int ncalls = 0;
     RateTable *crate;
     double dd, bv, dy, lb, ub;
     double t1, t2, tdef;
-
-    for (ri = 0; ri < rate_tables->nrates; ri++) {
-        crate = &rate_tables->rates[ri];
-        lb = log(crate->bounds[0]);
-        ub = log(crate->bounds[1]);
-        for (i = 0; i < data->ncells; i++) {
-            /* indixe */
-            bin_id = (int) (crate->idbin * (data->logT[i] - lb));
-            /*dd = (data->logT[i] - (bin_id * crate->dbin + lb))*crate->idbin;
-            bv = crate->values[bin_id];
-            dy = crate->values[bin_id + 1] - bv;
-            outputvals[ri][i] = bv + dd*dy;*/
-            t1 = (lb + (bin_id - 1) * crate->dbin);
-            t2 = (lb + (bin_id    ) * crate->dbin);
-            tdef = (data->logT[i] - t1)/(t2 - t1);
-            outputvals[ri][i] = crate->values[bin_id] +
-                tdef * (crate->values[bin_id+1] - crate->values[bin_id]);
-            /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
-                    bin_id, data->logT[i], data->T[i],
-                    crate->bounds[0], crate->bounds[1]);*/
-        }
+    lb = log(data->bounds[0]);
+    ub = log(data->bounds[1]);
+    for (i = 0; i < data->ncells; i++) {
+        data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
+        t1 = (lb + (bin_id - 1) * data->dbin);
+        t2 = (lb + (bin_id    ) * data->dbin);
+        data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
     }
+
+        /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
+                bin_id, data->logT[i], data->T[i],
+                crate->bounds[0], crate->bounds[1]);*/
+    }
+
+    {%- for name, rate in network.reactions | dictsort %}
+    for (i = 0; i < data->ncells; i++) {
+        bin_id = data->bin_id[i];
+        data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
+            tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+    }
+    {% endfor %}
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    for (i = 0; i < data->ncells; i++) {
+        bin_id = data->bin_id[i];
+        data->cs_{{name}}[i] = data->c_{{name}}[bin_id] +
+            tdef * (data->c_{{name}}[bin_id+1] - data->c_{{name}}[bin_id]);
+    }
+    {% endfor %}
 
 }
 {% endblock %} {# interpolate_rates #}
+
+{% block calculate_rhs %}
+
+int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
+                  int nchem)
+{
+    /* We iterate over all of the rates */
+    /* Calculate temperature first */
+
+    /*{{solver_name}}_interpolate_rates( ... )*/
+
+    
+    
+    {%- for species in network.required_species | sort %}
+        {{ network.print_ccode(species) }}
+    {%- endfor %}
+}
+
+{% endblock %}
+
+{% block calculate_jacobian %}
+
+{% endblock %}

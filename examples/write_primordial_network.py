@@ -4,7 +4,6 @@ from dengo.chemical_network import \
     cooling_registry
 import dengo.primordial_rates, dengo.primordial_cooling
 from dengo.write_rate_reader import create_rate_tables, create_rate_reader
-from dengo.write_rate_reader import create_rate_tables, create_rate_reader
 
 primordial = ChemicalNetwork()
 for ca in cooling_registry.values():
