@@ -71,7 +71,12 @@ class ChemicalNetwork(object):
 
     def species_total(self, species):
         if species == self.energy_term:
-            return sum(v.equation for n, v in sorted(self.cooling_actions.items()))
+            eq = 0
+            temps = []
+            for n, v in sorted(self.cooling_actions.items()):
+                temps += v.temporaries.items()
+                eq += v.equation
+            return (temps, eq)
         eq = 0
         for rn, rxn in sorted(self.reactions.items()):
             rxn.update(self.energy_term.symbol)
@@ -91,6 +96,14 @@ class ChemicalNetwork(object):
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
+        st = self.species_total(species)
+        if isinstance(st, (list, tuple)):
+            codes = []
+            for temp_name, temp_eq in st[0]:
+                teq = sympy.sympify(temp_eq)
+                codes.append(ccode(teq, assign_to = temp_name))
+            codes.append(ccode(st[1], assign_to = assign_to))
+            return "\n".join(codes)
         return ccode(self.species_total(species), assign_to = assign_to)
 
     def print_jacobian(self, species, assign_vec = None):

@@ -185,8 +185,16 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
+    {%- for species in network.required_species | sort %}
+        double {{species.name}};
+    {% endfor %}
 
     for (i = 0; i<data->ncells; i++) {
+        j = i * nchem;
+    {%- for species in network.required_species | sort %}
+        {{species.name}} = input[j];
+        j++;
+    {% endfor %}
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         // 

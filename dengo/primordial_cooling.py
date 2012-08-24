@@ -143,7 +143,8 @@ def cool(eq):
 
 # Glover and Abel 2008.  Note that this includes the unused Galli & Palla 1999
 # low density table.
-@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)")
+#@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)")
+@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl/galdl)")
 def cool(eq):
     @eq.table
     def gpldl(state):
@@ -271,7 +272,7 @@ def cool(eq):
 
     eq.temporary("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
     # do we have gphdl right?
-    eq.temporary("gphdl1", "gphdl")
+    #eq.temporary("gphdl1", "gphdl")
 
 # Compton cooling (Peebles 1971)
 # -- comp --
