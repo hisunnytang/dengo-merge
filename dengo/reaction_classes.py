@@ -267,10 +267,10 @@ class CoolingAction(object):
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
-        ta_sym = dict((n, sympy.Symbol("%s[i]" % n)) for n in self.tables)
+        ta_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.tables)
         self.table_symbols.update(ta_sym)
         #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
-        tp_sym = dict((n, sympy.Symbol("%s[i]" % n)) for n in self.temporaries)
+        tp_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.temporaries)
         self.temp_symbols.update(tp_sym)
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)

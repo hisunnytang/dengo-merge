@@ -42,8 +42,10 @@ typedef struct {{ solver_name }}_data_ {
     double rs_{{name}}[MAX_NCELLS];
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
-    double c_{{name}}[{{ network.T | length }}];
-    double cs_{{name}}[MAX_NCELLS];
+    {%- for name2 in rate.tables | sort %}
+    double c_{{name}}_{{name2}}[{{ network.T | length }}];
+    double cs_{{name}}_{{name2}}[MAX_NCELLS];
+    {% endfor %}
     {% endfor %}
     int bin_id[MAX_NCELLS];
     int ncells;
@@ -84,7 +86,7 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_rate_data *data)
     hsize_t dims;
 
     {%- for name, rate in network.reactions | dictsort %}
-    H5LTread_dataset_double(file_id, "/{{ rate.name }}", data->rate_{{name}});
+    H5LTread_dataset_double(file_id, "/{{ name }}", data->rate_{{name}});
     {%- endfor %}
 
     H5Fclose(file_id);
@@ -99,7 +101,10 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
     hsize_t dims;
 
     {%- for name, rate in network.cooling_actions | dictsort %}
-    H5LTread_dataset_double(file_id, "/{{ rate.name }}", data->cool_{{name}});
+    {%- for name2 in rate.tables | sort %}
+    H5LTread_dataset_double(file_id, "/{{name}}_{{name2}}",
+                            data->cool_{{name}}_{{name2}});
+    {%- endfor %}
     {%- endfor %}
 
     H5Fclose(file_id);
@@ -147,11 +152,13 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
     }
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
     for (i = 0; i < data->ncells; i++) {
         bin_id = data->bin_id[i];
-        data->cs_{{name}}[i] = data->c_{{name}}[bin_id] +
-            tdef * (data->c_{{name}}[bin_id+1] - data->c_{{name}}[bin_id]);
+        data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
+            tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
     }
+    {% endfor %}
     {% endfor %}
 
 }
@@ -160,18 +167,35 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
 {% block calculate_rhs %}
 
 int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
-                  int nchem)
+                  int nchem, {{solver_name}}_data *data)
 {
     /* We iterate over all of the rates */
     /* Calculate temperature first */
+    {{solver_name}}_calculate_temperature(data);
 
-    /*{{solver_name}}_interpolate_rates( ... )*/
+    {{solver_name}}_interpolate_rates(data);
 
-    
-    
-    {%- for species in network.required_species | sort %}
-        {{ network.print_ccode(species) }}
+    /* Now we set up some temporaries */
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
     {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+
+    for (i = 0; i<data->ncells; i++) {
+        j = i * nchem;
+    {%- for species in network.required_species | sort %}
+        // 
+        // Species: {{species.name}}
+        // 
+        {{ network.print_ccode(species, assign_to = "rhs[j]") }}
+        j++;
+    {% endfor %}
+    }
 }
 
 {% endblock %}
