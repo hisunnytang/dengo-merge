@@ -123,7 +123,8 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
 */
 
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
+void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
+                    int nstrip)
 {
     int i, ri, bin_id;
     static int ncalls = 0;
@@ -132,7 +133,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
     double t1, t2, tdef;
     lb = log(data->bounds[0]);
     ub = log(data->bounds[1]);
-    for (i = 0; i < data->ncells; i++) {
+    for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
         t1 = (lb + (bin_id - 1) * data->dbin);
         t2 = (lb + (bin_id    ) * data->dbin);
@@ -145,7 +146,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
     }
 
     {%- for name, rate in network.reactions | dictsort %}
-    for (i = 0; i < data->ncells; i++) {
+    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
             tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
@@ -153,7 +154,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data)
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
-    for (i = 0; i < data->ncells; i++) {
+    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
             tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
@@ -173,7 +174,7 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
     /* Calculate temperature first */
     {{solver_name}}_calculate_temperature(data);
 
-    {{solver_name}}_interpolate_rates(data);
+    {{solver_name}}_interpolate_rates(data, nstrip);
 
     /* Now we set up some temporaries */
     {%- for name, rate in network.reactions | dictsort %}
@@ -186,10 +187,10 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
     {%- endfor %}
     {%- endfor %}
     {%- for species in network.required_species | sort %}
-        double {{species.name}};
-    {% endfor %}
+    double {{species.name}};
+    {%- endfor %}
 
-    for (i = 0; i<data->ncells; i++) {
+    for (i = 0; i<nstrip; i++) {
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
@@ -204,10 +205,54 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
         j++;
     {% endfor %}
     }
+    return 0;
 }
 
 {% endblock %}
 
 {% block calculate_jacobian %}
+int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
+        int nstrip, int nchem, {{solver_name}}_data *data)
+{
+    /* We iterate over all of the rates */
+    /* Calculate temperature first */
+    {{solver_name}}_calculate_temperature(data);
 
+    {{solver_name}}_interpolate_rates(data, nstrip);
+
+    /* Now we set up some temporaries */
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+
+    for (i = 0; i<nstrip; i++) {
+        j = i * nchem * nchem;
+    {%- for species in network.required_species | sort %}
+        {{species.name}} = input[j];
+        j++;
+    {% endfor %}
+        j = i * nchem * nchem;
+    {%- for s1 in network.required_species | sort %}
+        // 
+        // Species: {{s1.name }}
+        // 
+        {%- for s2 in network.required_species | sort %}
+            // {{s1.name}} by {{s2.name}}
+            {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
+            j++;
+        {%- endfor %}
+    {% endfor %}
+    }
+    return 0;
+    
+}
 {% endblock %}

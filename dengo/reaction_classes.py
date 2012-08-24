@@ -263,10 +263,6 @@ class CoolingAction(object):
         cooling_registry[name] = self # Register myself
 
     @property
-    def tequation(self):
-        if self._teq is not None: return self._teq
-
-    @property
     def equation(self):
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
@@ -274,11 +270,16 @@ class CoolingAction(object):
         ta_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.tables)
         self.table_symbols.update(ta_sym)
         #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
-        tp_sym = dict((n, sympy.Symbol("%s_%s" % (self.name, n))) for n in self.temporaries)
+        tp_sym = dict((n, sympy.Symbol("%s" % (n))) for n in self.temporaries)
         self.temp_symbols.update(tp_sym)
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
         self._eq = eval(self._equation, symbols)
+        for n, e in self.temporaries.items():
+            e = sympy.sympify(e)
+            for n2, e2 in ta_sym.items():
+                e = e.subs(n2, e2)
+            self._eq = self._eq.subs(n, e)
         return self._eq
 
     @property

@@ -70,14 +70,7 @@ class ChemicalNetwork(object):
         self.T_bounds = T_bounds
 
     def species_total(self, species):
-        if species == self.energy_term:
-            eq = 0
-            temps = []
-            for n, v in sorted(self.cooling_actions.items()):
-                temps += v.temporaries.items()
-                eq += v.equation
-            return (temps, eq)
-        eq = 0
+        eq = sympy.sympify("0")
         for rn, rxn in sorted(self.reactions.items()):
             rxn.update(self.energy_term.symbol)
             eq += rxn.species_equation(species)
@@ -96,7 +89,12 @@ class ChemicalNetwork(object):
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
-        st = self.species_total(species)
+        return ccode(self.species_total(species), assign_to = assign_to)
+
+    def print_jacobian_component(self, s1, s2, assign_to = None):
+        st = self.species_total(s1)
+        if assign_to is None:
+            assign_to = sympy.Symbol("d_%s_%s" % (s1.name, s2.name))
         if isinstance(st, (list, tuple)):
             codes = []
             for temp_name, temp_eq in st[0]:
@@ -104,14 +102,5 @@ class ChemicalNetwork(object):
                 codes.append(ccode(teq, assign_to = temp_name))
             codes.append(ccode(st[1], assign_to = assign_to))
             return "\n".join(codes)
-        return ccode(self.species_total(species), assign_to = assign_to)
-
-    def print_jacobian(self, species, assign_vec = None):
-        eq = self.species_total(species)
-        for s2 in self.required_species:
-            if assign_vec is None:
-                assign_to = sympy.Symbol("d_%s_%s[i]" % (species.name, s2.name))
-            else:
-                assign_to = assign_vec[s2.name]
-            return ccode(sympy.diff(eq, s2.symbol), assign_to = assign_to)
+        return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
