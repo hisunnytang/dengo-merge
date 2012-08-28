@@ -104,3 +104,28 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
+    def print_number_density(self):
+        eq = sympy.sympify("0")
+        for s in sorted(self.required_species):
+            if s.name != 'ge': 
+                eq += (1.0/s.weight * sympy.sympify(s.name))
+        return ccode(eq)
+    
+    def gamma_equation(self):
+        species_list = []
+        eq = sympy.sympify("0")
+        nH2eq = sympy.sympify("0")
+        n = sympy.Symbol('number_density')
+        nH2 = sympy.Symbol('nH2')
+        gamma = sympy.Symbol('gamma')
+        gammaH2 = sympy.Symbol('gammaH2')
+        for s in sorted(self.required_species):
+            species_list.append(s.name)
+        # Check for molecular hydrogen
+        if 'H2I' in species_list:
+            nH2eq += 0.5 * (sympy.sympify('H2I') + sympy.sympify('H2II'))
+            eq += 1.0 + n / (nH2eq * gammaH2 + (n - nH2eq) / (gamma-1.0))
+        # if not there, the gamma equation is just gamma
+        else:
+            eq += gamma
+        return ccode(eq)
