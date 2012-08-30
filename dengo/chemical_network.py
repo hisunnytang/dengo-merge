@@ -82,6 +82,12 @@ class ChemicalNetwork(object):
             if species in rxn: tr.append(rxn)
         return tr
 
+    def species_list(self):
+        species_list = []
+        for s in sorted(self.required_species):
+            species_list.append(s.name)
+        return species_list
+
     def __iter__(self):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
@@ -110,22 +116,18 @@ class ChemicalNetwork(object):
             if s.name != 'ge': 
                 eq += (1.0/s.weight * sympy.sympify(s.name))
         return ccode(eq)
-    
-    def gamma_equation(self):
-        species_list = []
-        eq = sympy.sympify("0")
-        nH2eq = sympy.sympify("0")
-        n = sympy.Symbol('number_density')
-        nH2 = sympy.Symbol('nH2')
-        gamma = sympy.Symbol('gamma')
-        gammaH2 = sympy.Symbol('gammaH2')
-        for s in sorted(self.required_species):
-            species_list.append(s.name)
-        # Check for molecular hydrogen
-        if 'H2I' in species_list:
-            nH2eq += 0.5 * (sympy.sympify('H2I') + sympy.sympify('H2II'))
-            eq += 1.0 + n / (nH2eq * gammaH2 + (n - nH2eq) / (gamma-1.0))
-        # if not there, the gamma equation is just gamma
+
+    def species_gamma(self, species):
+        if species.name == 'H2I' or species.name == 'H2II':
+            gamma = sympy.Symbol('gammaH2')
         else:
-            eq += gamma
+            gamma = sympy.Symbol('gamma')
+        return gamma
+
+    def gamma_factor(self):
+        eq = sympy.sympify("0")
+        for s in sorted(self.required_species):
+            if s.name != 'ge':
+                eq += (1.0/s.weight * sympy.sympify(s.name)) / \
+                    (self.species_gamma(s) - 1.0)
         return ccode(eq)

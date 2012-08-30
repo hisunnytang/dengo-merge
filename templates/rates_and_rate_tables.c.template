@@ -117,16 +117,16 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
 {% block calculate_temperature %}
 void {{ solver_name }}_calculate_temperature({{ solver_name }}_rate_data *data)
 {
-    double pressure;
+    double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
+    double gamma = 5.d0/3.d0;
+    {% if 'H2I' in network.species_list() %}
+    double gammaH2 = 7.d0/5.d0; // Should be a function of temperature
+    	   	     		// this is a temporary solution
+    {% endif %}
     double temperature;
-    double number_density;
-    double gamma;
-    double gammaH2;
 
-    number_density = {{ network.print_number_density() }};
-    gamma = {{ network.gamma_equation() }};
-    pressure = (gamma - 1.0)*density*ge;
-    temperature = (pressure * TemperatureUnits) / number_density;
+    temperature = density*ge /
+    		  (kb * ({{ network.gamma_factor() }});
          
 }
 {% endblock %} {# calculate_temperature #}

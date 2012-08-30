@@ -16,5 +16,3 @@ primordial.init_temperature((1e4, 1e8))
 
 create_rate_tables(primordial, "primordial")
 create_rate_reader(primordial, "primordial")
-
-primordial.gamma_equation()
