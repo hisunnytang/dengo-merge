@@ -125,8 +125,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_rate_data *data)
     {% endif %}
     double temperature;
 
-    temperature = density*ge /
-    		  (kb * ({{ network.gamma_factor() }});
+    temperature = {{ network.temperature_calculation() }}
          
 }
 {% endblock %} {# calculate_temperature #}

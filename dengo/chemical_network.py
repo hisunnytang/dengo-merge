@@ -130,4 +130,18 @@ class ChemicalNetwork(object):
             if s.name != 'ge':
                 eq += (1.0/s.weight * sympy.sympify(s.name)) / \
                     (self.species_gamma(s) - 1.0)
+        return eq
+
+    def temperature_calculation(self, derivative=False):
+        # If derivative=True, returns the derivative of
+        # temperature with respect to ge.  Otherwise,
+        # returns just the temperature function
+        ge = sympy.Symbol('ge')
+        function_eq = (sympy.Symbol('density') * ge) / \
+            (sympy.Symbol('kb') * (self.gamma_factor()))
+        deriv_eq = sympy.diff(function_eq, ge)
+        if derivative == True:
+            eq = deriv_eq
+        else:
+            eq = function_eq
         return ccode(eq)
