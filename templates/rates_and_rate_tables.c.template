@@ -35,16 +35,19 @@ typedef struct {{ solver_name }}_data_ {
 
     double Ts[MAX_NCELLS];
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
+    double dT[MAX_NCELLS]; /* t1, t2, tdef */
     double logTs[MAX_NCELLS];
     /* Now we do all of our cooling and chemical tables */
     {%- for name, rate in network.reactions | dictsort %}
     double r_{{name}}[{{ network.T | length }}];
     double rs_{{name}}[MAX_NCELLS];
+    double drs_{{name}}[MAX_NCELLS];
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double c_{{name}}_{{name2}}[{{ network.T | length }}];
     double cs_{{name}}_{{name2}}[MAX_NCELLS];
+    double dcs_{{name}}_{{name2}}[MAX_NCELLS];
     {% endfor %}
     {% endfor %}
     int bin_id[MAX_NCELLS];
@@ -154,6 +157,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
         t1 = (lb + (bin_id - 1) * data->dbin);
         t2 = (lb + (bin_id    ) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
+        data->dT[i] = (t2 - t1)
     }
 
         /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
@@ -165,7 +169,9 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
-            tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+            data->Tdef[i] * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[i] /= data->dT[i];
     }
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
@@ -173,7 +179,9 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
-            tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+            data->Tdef[i] * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);;
+        data->drs_{{name}}[i] /= data->dT[i];
     }
     {% endfor %}
     {% endfor %}
