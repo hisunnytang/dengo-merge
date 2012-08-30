@@ -128,7 +128,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_rate_data *data)
     {% endif %}
     double temperature;
 
-    temperature = {{ network.temperature_calculation() }}
+    {{ network.temperature_calculation(assign_to = "temperature") }};
          
 }
 {% endblock %} {# calculate_temperature #}

@@ -132,7 +132,7 @@ class ChemicalNetwork(object):
                     (self.species_gamma(s) - 1.0)
         return eq
 
-    def temperature_calculation(self, derivative=False):
+    def temperature_calculation(self, derivative=False, assign_to = None):
         # If derivative=True, returns the derivative of
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
@@ -142,6 +142,10 @@ class ChemicalNetwork(object):
         deriv_eq = sympy.diff(function_eq, ge)
         if derivative == True:
             eq = deriv_eq
+            if assign_to == None:
+                assign_to = sympy.Symbol("d_T_ge")
         else:
             eq = function_eq
-        return ccode(eq)
+            if assign_to == None:
+                assign_to = sympy.Symbol("temperature")
+        return ccode(eq, assign_to = assign_to)
