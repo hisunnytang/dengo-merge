@@ -117,6 +117,13 @@ class ChemicalNetwork(object):
                 eq += (1.0/s.weight * s.symbol)
         return ccode(eq)
 
+    def print_mass_density(self):
+        eq = 0
+        for s in sorted(self.required_species):
+            if s.name != 'ge': 
+                eq += s.symbol
+        return ccode(eq)
+
     def species_gamma(self, species):
         if species.name == 'H2I' or species.name == 'H2II':
             gamma = sympy.Symbol('gammaH2')
@@ -132,20 +139,16 @@ class ChemicalNetwork(object):
                     (self.species_gamma(s) - 1.0)
         return eq
 
-    def temperature_calculation(self, derivative=False, assign_to = None):
+    def temperature_calculation(self, derivative=False):
         # If derivative=True, returns the derivative of
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
         ge = sympy.Symbol('ge')
         function_eq = (sympy.Symbol('density') * ge) / \
             (sympy.Symbol('kb') * (self.gamma_factor()))
-        deriv_eq = sympy.diff(function_eq, ge)
         if derivative == True:
-            eq = deriv_eq
-            if assign_to == None:
-                assign_to = sympy.Symbol("d_T_ge")
+            deriv_eq = sympy.diff(function_eq, ge)
+            return ccode(deriv_eq)
         else:
-            eq = function_eq
-            if assign_to == None:
-                assign_to = sympy.Symbol("temperature")
-        return ccode(eq, assign_to = assign_to)
+            return ccode(function_eq)
+        return ccode(eq)

@@ -116,8 +116,11 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {% endblock %} {# read_tables #}
 
 {% block calculate_temperature %}
-void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data)
+void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
+                        float *input, int nstrip, int nchem)
 {
+    int i, j;
+    double density;
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
     double gamma = 5.e0/3.e0;
     {% if 'H2I' in network.species_list() %}
@@ -125,8 +128,21 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data)
     	   	     		// this is a temporary solution
     {% endif %}
     double temperature;
+    /* Calculate total density */
 
-    /*{{ network.temperature_calculation(assign_to = "temperature") }};*/
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+
+    for (i = 0; i<nstrip; i++) {
+        j = i * nchem;
+    {%- for species in network.required_species | sort %}
+        {{species.name}} = input[j];
+        j++;
+    {% endfor %}
+        density = {{network.print_mass_density()}};
+        data->Ts[i] = {{ network.temperature_calculation() }};
+    }
          
 }
 {% endblock %} {# calculate_temperature #}
@@ -189,7 +205,7 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
     /* We iterate over all of the rates */
     /* Calculate temperature first */
     int i, j;
-    {{solver_name}}_calculate_temperature(data);
+    {{solver_name}}_calculate_temperature(data, input, nstrip, nchem);
 
     {{solver_name}}_interpolate_rates(data, nstrip);
 
@@ -234,7 +250,7 @@ int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
     /* We iterate over all of the rates */
     /* Calculate temperature first */
     int i, j;
-    {{solver_name}}_calculate_temperature(data);
+    {{solver_name}}_calculate_temperature(data, input, nstrip, nchem);
 
     {{solver_name}}_interpolate_rates(data, nstrip);
 
