@@ -247,11 +247,13 @@ int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
     /* Now we set up some temporaries */
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}};
+    double *r{{name}} = data->drs_{{name}};
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->rcs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
     {%- for species in network.required_species | sort %}

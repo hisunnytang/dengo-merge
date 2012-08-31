@@ -111,10 +111,10 @@ class ChemicalNetwork(object):
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
     def print_number_density(self):
-        eq = sympy.sympify("0")
+        eq = 0
         for s in sorted(self.required_species):
             if s.name != 'ge': 
-                eq += (1.0/s.weight * sympy.sympify(s.name))
+                eq += (1.0/s.weight * s.symbol)
         return ccode(eq)
 
     def species_gamma(self, species):
