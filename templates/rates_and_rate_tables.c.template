@@ -18,9 +18,8 @@
 #include "hdf5.h"
 #include "hdf5_hl.h"
 #include "stdio.h"
-#include "rates_and_rate_tables.h"
 
-#define MAX_NCELLS
+#define MAX_NCELLS 1024
 
 {% endblock %} {# includes #}
 
@@ -32,6 +31,7 @@ typedef struct {{ solver_name }}_data_ {
     double dbin;
     double idbin;
     double bounds[2];
+    int nbins;
 
     double Ts[MAX_NCELLS];
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
@@ -54,8 +54,8 @@ typedef struct {{ solver_name }}_data_ {
     int ncells;
 } {{ solver_name }}_data;
 
-void {{ solver_name }}_read_rate_tables(*{{solver_name}}_data);
-void {{ solver_name }}_read_cooling_tables(*{{solver_name}}_data);
+void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
 {% endblock %} {# data_struct_for_rates #}
 
 {% block entry_point %}
@@ -63,7 +63,7 @@ int main(int argc, char** argv)
 {
     {{ solver_name }}_data *data;
 
-    data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data);
+    data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
     data->bounds[0] = {{ network.T_bounds[0] }};
     data->bounds[1] = {{ network.T_bounds[1] }};
@@ -71,17 +71,17 @@ int main(int argc, char** argv)
     data->dbin = (log(data->bounds[1]) - log(data->bounds[0])) / data->nbins;
     data->idbin = 1.0L / data->dbin;
     
-    my_rates = {{ solver_name }}_read_rate_tables(data);
+    {{ solver_name }}_read_rate_tables(data);
     fprintf(stderr, "Successfully read in rate tables.\n");
 
-    my_rates = {{ solver_name }}_read_cooling_tables(data);
+    {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
 
 }
 {% endblock %} {# entry_point #}
 
 {% block read_tables %}
-void {{ solver_name }}_read_rate_tables({{solver_name}}_rate_data *data)
+void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 {
     herr_t status;
     hid_t file_id = H5Fopen("{{ solver_name }}_rate_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -89,13 +89,13 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_rate_data *data)
     hsize_t dims;
 
     {%- for name, rate in network.reactions | dictsort %}
-    H5LTread_dataset_double(file_id, "/{{ name }}", data->rate_{{name}});
+    H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
     {%- endfor %}
 
     H5Fclose(file_id);
 }
 
-void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
 
     herr_t status;
@@ -106,29 +106,27 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_rate_data *data)
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     H5LTread_dataset_double(file_id, "/{{name}}_{{name2}}",
-                            data->cool_{{name}}_{{name2}});
+                            data->c_{{name}}_{{name2}});
     {%- endfor %}
     {%- endfor %}
 
     H5Fclose(file_id);
-
-    return cooling_rates;
 }
 
 {% endblock %} {# read_tables #}
 
 {% block calculate_temperature %}
-void {{ solver_name }}_calculate_temperature({{ solver_name }}_rate_data *data)
+void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data)
 {
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
-    double gamma = 5.d0/3.d0;
+    double gamma = 5.e0/3.e0;
     {% if 'H2I' in network.species_list() %}
-    double gammaH2 = 7.d0/5.d0; // Should be a function of temperature
+    double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
     {% endif %}
     double temperature;
 
-    {{ network.temperature_calculation(assign_to = "temperature") }};
+    /*{{ network.temperature_calculation(assign_to = "temperature") }};*/
          
 }
 {% endblock %} {# calculate_temperature #}
@@ -142,12 +140,11 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_rate_data *data)
 */
 
 /* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
+void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                     int nstrip)
 {
     int i, ri, bin_id;
     static int ncalls = 0;
-    RateTable *crate;
     double dd, bv, dy, lb, ub;
     double t1, t2, tdef;
     lb = log(data->bounds[0]);
@@ -157,12 +154,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
         t1 = (lb + (bin_id - 1) * data->dbin);
         t2 = (lb + (bin_id    ) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
-        data->dT[i] = (t2 - t1)
-    }
-
-        /*fprintf(stderr, "%04i %0.5e %0.5e %0.5e %0.5e\n",
-                bin_id, data->logT[i], data->T[i],
-                crate->bounds[0], crate->bounds[1]);*/
+        data->dT[i] = (t2 - t1);
     }
 
     {%- for name, rate in network.reactions | dictsort %}
@@ -181,7 +173,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_rate_data *data,
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
             data->Tdef[i] * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
         data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);;
-        data->drs_{{name}}[i] /= data->dT[i];
+        data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
     }
     {% endfor %}
     {% endfor %}
@@ -196,6 +188,7 @@ int calculate_rhs_{{solver_name}}(float *input, float *rhs, int nstrip,
 {
     /* We iterate over all of the rates */
     /* Calculate temperature first */
+    int i, j;
     {{solver_name}}_calculate_temperature(data);
 
     {{solver_name}}_interpolate_rates(data, nstrip);
@@ -240,6 +233,7 @@ int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
 {
     /* We iterate over all of the rates */
     /* Calculate temperature first */
+    int i, j;
     {{solver_name}}_calculate_temperature(data);
 
     {{solver_name}}_interpolate_rates(data, nstrip);
@@ -253,7 +247,7 @@ int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->rcs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
     {%- for species in network.required_species | sort %}
