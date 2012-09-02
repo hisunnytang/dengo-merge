@@ -5,6 +5,9 @@ import numpy as na
 import os
 
 def create_rate_tables(network, solver_name):
+    # This writes out the rates for the species in the
+    # chemical network to HDF5 files which can later be
+    # read by the C++ code that is output by the template
     if not os.path.isdir("output"): os.makedirs("output")
     f = h5py.File("output/%s_rate_tables.h5" % solver_name, "w")
     for rxn in sorted(network.reactions.values()):
@@ -38,3 +41,11 @@ def create_rate_reader(network, solver_name):
     if not os.path.isdir("output"): os.makedirs("output")
     f = open("output/%s_solver.c" % solver_name, "w")
     f.write(solver_out)
+
+def create_initial_conditions(init_values, solver_name):
+    # This write outs a set of initial conditions for to be fed
+    # into C++ code for testing purposes
+    f = h5py.File("output/%s_initial_conditions.h5" % solver_name, "w")
+    for name, init_value in init_values.items():
+        f.create_dataset("/%s" % name, data=init_value.astype('float64'))
+    f.close()
