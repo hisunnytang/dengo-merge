@@ -78,6 +78,30 @@ int main(int argc, char** argv)
     {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
 
+    /* Initial conditions */
+
+    hid_t file_id = H5Fopen("{{ solver_name }}_initial_conditions.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    if (file_id < 0) {fprintf(stderr, "Failed to open "
+        "{{ solver_name }}_initial_conditions.h5 so dying.\n");
+        return(1);}
+
+    /* Allocate the correct number of cells */
+    hsize_t dims; /* We have flat versus number of species */
+
+    /* Check gas energy to get the number of cells */
+    printf("Getting dimensionality from {{ network.energy_term.name }}:\n");
+    herr_t status = H5LTget_dataset_info(file_id, "/{{ network.energy_term.name }}", &dims, NULL, NULL);
+    printf("  ncells = % 3i\n", (int) dims);
+    data->ncells = dims;
+
+    double *ics = (double *) calloc(dims, sizeof(double));
+    {% for s in network.required_species | sort %}
+    printf("Reading I.C. for /{{ s.name }}\n");
+    H5LTread_dataset_double(file_id, "/{{ s.name }}", ics);
+    {% endfor %}
+
+    H5Fclose(file_id);
+
 }
 {% endblock %} {# entry_point #}
 
