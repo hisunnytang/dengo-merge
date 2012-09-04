@@ -37,7 +37,7 @@ typedef struct {{ solver_name }}_data_ {
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
     double dT[MAX_NCELLS]; /* t1, t2, tdef */
     double logTs[MAX_NCELLS];
-    double dTs_{{ network.energy_term.name }};
+    double dTs_{{ network.energy_term.name }}[MAX_NCELLS];
     /* Now we do all of our cooling and chemical tables */
     {%- for name, rate in network.reactions | dictsort %}
     double r_{{name}}[{{ network.T | length }}];
@@ -167,7 +167,8 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     {% endfor %}
         density = {{network.print_mass_density()}};
         data->Ts[i] = {{ network.temperature_calculation() }};
-	data->dTs_{{ network.energy_term.name }}[i] = {{ network.temperature_calculation(derivative=True) }}
+	data->dTs_{{ network.energy_term.name }}[i] = 
+        {{ network.temperature_calculation(derivative=True) }};
     }
          
 }
@@ -311,7 +312,7 @@ int calculate_jacobian_{{solver_name}}(float *input, float *Joutput,
         {%- for s2 in network.required_species | sort %}
             // {{s1.name}} by {{s2.name}}
             {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
-	    {% if s2.name == 'ge' %}Joutput[j] *= T{{ network.energy_term.name }}[i]{% endif %}
+	    {% if s2.name == 'ge' %}Joutput[j] *= T{{ network.energy_term.name }}[i]{% endif %};
             j++;
         {%- endfor %}
     {% endfor %}
