@@ -1,9 +1,14 @@
 {% block solver_comment_header %}
 /* THIS FILE HAS BEEN AUTO-GENERATED.  DO NOT EDIT. */
 
-/* This code sets up C++ code to read HDF5 files for
-   the oxygen ion reaction rates and the oxygen
-   ion-by-ion cooling rates
+/* This is C++ code to read HDF5 files for
+   reaction rates, cooling rates, and initial
+   conditions for the chemical network defined
+   by the user.  In addition, this contains
+   code for calculating temperature from the
+   gas energy and computing the RHS and the
+   Jacobian of the system of equations which
+   will be fed into the solver.
 */
 {% endblock %}
 
