@@ -136,7 +136,7 @@ int main(int argc, char** argv)
 
     H5Fclose(file_id);
 
-    float dt = 1e2;
+    float dt = 1e0;
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
     int rv = BE_chem_solve(f, jf, ics, dt, rtol, atol, dims, N, (void *) data);
@@ -205,9 +205,11 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
     {% endfor %}
         density = {{network.print_mass_density()}};
-        data->Ts[i] = {{ network.temperature_calculation() }};
+        data->Ts[i] = {{ network.temperature_calculation() }} * 1.67e-24;
+        data->logTs[i] = log(data->Ts[i]);
 	data->dTs_{{ network.energy_term.name }}[i] = 
         {{ network.temperature_calculation(derivative=True) }};
+        fprintf(stderr, "T[%d] = %0.5g\n", i, data->Ts[i]);
     }
          
 }
@@ -231,12 +233,15 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     double t1, t2, tdef;
     lb = log(data->bounds[0]);
     ub = log(data->bounds[1]);
+    fprintf(stderr, "lb = %0.5g, ub = %0.5g\n", lb, ub);
     for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
         t1 = (lb + (bin_id - 1) * data->dbin);
         t2 = (lb + (bin_id    ) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
         data->dT[i] = (t2 - t1);
+        fprintf(stderr, "INTERP: %d, bin_id = %d, dT = %0.5g, T = %0.5g, logT = %0.5g\n",
+                i, data->bin_id[i], data->dT[i], data->Ts[i], data->logTs[i]);
     }
 
     {%- for name, rate in network.reactions | dictsort %}
@@ -354,7 +359,13 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         {%- for s2 in network.required_species | sort %}
             // {{s1.name}} by {{s2.name}}
             {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
-	    {% if s2.name == 'ge' %}Joutput[j] *= T{{ network.energy_term.name }}[i]{% endif %};
+	    {% if s2.name == 'ge' %}
+            Joutput[j] *= T{{ network.energy_term.name }}[i];
+        {% endif %}
+            if(Joutput[j] != 0.0) {
+                fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = %0.5g\n",
+                    i, Joutput[j]);
+            }
             j++;
         {%- endfor %}
     {% endfor %}

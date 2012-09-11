@@ -16,7 +16,7 @@ for ca in cooling_registry.values():
 for s in reaction_registry.values():
     primordial.add_reaction(s)
 
-primordial.init_temperature((1e4, 1e8))
+primordial.init_temperature((1e0, 1e8))
 
 create_rate_tables(primordial, "primordial")
 create_rate_reader(primordial, "primordial")
