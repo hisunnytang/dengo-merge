@@ -62,8 +62,3 @@ if generate_initial_conditions:
                          / (number_density * mh * (gamma - 1)))
     
     create_initial_conditions(init_values, 'primordial')
-
-    
-
-    
-
