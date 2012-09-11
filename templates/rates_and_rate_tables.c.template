@@ -108,9 +108,9 @@ int main(int argc, char** argv)
     hsize_t dims; /* We have flat versus number of species */
 
     /* Check gas energy to get the number of cells */
-    printf("Getting dimensionality from {{ network.energy_term.name }}:\n");
+    fprintf(stderr, "Getting dimensionality from {{ network.energy_term.name }}:\n");
     herr_t status = H5LTget_dataset_info(file_id, "/{{ network.energy_term.name }}", &dims, NULL, NULL);
-    printf("  ncells = % 3i\n", (int) dims);
+    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
     data->ncells = dims;
 
     double atol[{{network.required_species | length}}];
@@ -123,12 +123,12 @@ int main(int argc, char** argv)
     {% for s in network.required_species | sort %}
     atol[i] = 1.0;
     rtol[i] = 1e-7;
-    printf("Reading I.C. for /{{ s.name }}\n");
+    fprintf(stderr, "Reading I.C. for /{{ s.name }}\n");
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
     for (j = 0; j < dims; j++) {
         ics[j * N + i] = tics[j];
         if(j==0) {
-            fprintf(stdout, "{{s.name}}[0] = %0.3g\n", tics[j]);
+            fprintf(stderr, "{{s.name}}[0] = %0.3g\n", tics[j]);
         }
     }
     i++;
