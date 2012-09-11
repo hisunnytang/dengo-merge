@@ -212,7 +212,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         data->logTs[i] = log(data->Ts[i]);
 	data->dTs_{{ network.energy_term.name }}[i] = 
         {{ network.temperature_calculation(derivative=True) }};
-        fprintf(stderr, "T[%d] = %0.5g\n", i, data->Ts[i]);
+        fprintf(stderr, "T[%d] = %0.5g, LogT[%d] = %0.5g\n", i, data->Ts[i], i, data->logTs[i]);
     }
          
 }
