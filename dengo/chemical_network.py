@@ -144,7 +144,7 @@ class ChemicalNetwork(object):
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
         ge = sympy.Symbol('ge')
-        function_eq = (sympy.Symbol('density') * ge) / \
+        function_eq = (sympy.Symbol('density') * ge * sympy.Symbol('mh')) / \
             (sympy.Symbol('kb') * (self.gamma_factor()))
         if derivative == True:
             deriv_eq = sympy.diff(function_eq, ge)

@@ -189,6 +189,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     int i, j;
     double density;
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
+    double mh = 1.67e-24;
     double gamma = 5.e0/3.e0;
     {% if 'H2I' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
@@ -208,7 +209,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
     {% endfor %}
         density = {{network.print_mass_density()}};
-        data->Ts[i] = {{ network.temperature_calculation() }} * 1.67e-24;
+        data->Ts[i] = {{ network.temperature_calculation() }};
         data->logTs[i] = log(data->Ts[i]);
 	data->dTs_{{ network.energy_term.name }}[i] = 
         {{ network.temperature_calculation(derivative=True) }};
@@ -365,10 +366,15 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
             {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
 	    {% if s2.name == 'ge' %}
             Joutput[j] *= T{{ network.energy_term.name }}[i];
-        {% endif %}
+            {% endif %}
             if(Joutput[j] != 0.0) {
+	    	{% if s2.name != 'ge' %}
                 fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = %0.5g\n",
                     i, Joutput[j]);
+		{% else %}
+		fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = %0.5g, T{{ network.energy_term.name }}[%d] = %0.5g\n",
+                    i, Joutput[j], i, Tge[i]);
+		{% endif %}
             }
             j++;
         {%- endfor %}
