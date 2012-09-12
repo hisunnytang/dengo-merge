@@ -95,10 +95,23 @@ class ChemicalNetwork(object):
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
-        return ccode(self.species_total(species), assign_to = assign_to)
+        if species == self.energy_term:
+            return self.print_cooling(assign_to)
+        return ccode(species.weight * self.species_total(species),
+                     assign_to = assign_to)
+
+    def print_cooling(self, assign_to):
+        eq = 0
+        for term in self.cooling_actions:
+            eq += self.cooling_actions[term].equation
+        return ccode(eq, assign_to = assign_to)
 
     def print_jacobian_component(self, s1, s2, assign_to = None):
-        st = self.species_total(s1)
+        if s1 == self.energy_term:
+            st = sum(self.cooling_actions[ca].equation
+                     for ca in sorted(self.cooling_actions))
+        else:
+            st = self.species_total(s1)
         if assign_to is None:
             assign_to = sympy.Symbol("d_%s_%s" % (s1.name, s2.name))
         if isinstance(st, (list, tuple)):
