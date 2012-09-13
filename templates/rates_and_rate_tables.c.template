@@ -127,10 +127,10 @@ int main(int argc, char** argv)
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
     for (j = 0; j < dims; j++) {
         ics[j * N + i] = tics[j];
-        atol[j] = tics[j] * 1e-7;
-        rtol[j] = 1e-7;
+        atol[j * N + i] = tics[j] * 1e-1 * 0.0;
+        rtol[j * N + i] = 1e-1;
         if(j==0) {
-            fprintf(stderr, "{{s.name}}[0] = %0.3g, atol => %0.5g\n",
+            fprintf(stderr, "{{s.name}}[0] = %0.3g, atol => % 0.16g\n",
                     tics[j], atol[j]);
         }
     }
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
 
     H5Fclose(file_id);
 
-    float dt = 1e8;
+    float dt = 1e5;
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
     int rv = BE_chem_solve(f, jf, ics, dt, rtol, atol, dims, N, (void *) data);
@@ -206,17 +206,22 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
+        fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
+                i, {{species.name}});
         j++;
     {% endfor %}
         density = {{network.print_mass_density()}};
         data->Ts[i] = {{ network.temperature_calculation() }};
-        if (data->Ts[i] < data->bounds[0]) data->Ts[i] = data->bounds[0];
-        if (data->Ts[i] > data->bounds[1]) data->Ts[i] = data->bounds[1];
+        if (data->Ts[i] < data->bounds[0]) {
+            data->Ts[i] = data->bounds[0];
+        } else if (data->Ts[i] > data->bounds[1]) {
+            data->Ts[i] = data->bounds[1];
+        }
         data->logTs[i] = log(data->Ts[i]);
 	data->dTs_{{ network.energy_term.name }}[i] = 
         {{ network.temperature_calculation(derivative=True) }};
-        fprintf(stderr, "T[%d] = %0.5g, LogT[%d] = %0.5g, dTdee = %0.5g\n", i,
-        data->Ts[i], i, data->logTs[i], data->dTs_{{network.energy_term.name}}[i]);
+        fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
+                i, data->Ts[i], density);
     }
          
 }
@@ -240,14 +245,19 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     double t1, t2, tdef;
     lb = log(data->bounds[0]);
     ub = log(data->bounds[1]);
-    fprintf(stderr, "lb = %0.5g, ub = %0.5g\n", lb, ub);
+    fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);
     for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
+        if (data->bin_id[i] == 0) {
+            data->bin_id[i] = 1;
+        } else if (data->bin_id[i] == data->nbins) {
+            data->bin_id[i] = data->nbins - 1;
+        }
         t1 = (lb + (bin_id - 1) * data->dbin);
         t2 = (lb + (bin_id    ) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
         data->dT[i] = (t2 - t1);
-        fprintf(stderr, "INTERP: %d, bin_id = %d, dT = %0.5g, T = %0.5g, logT = %0.5g\n",
+        fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
                 i, data->bin_id[i], data->dT[i], data->Ts[i], data->logTs[i]);
     }
 
@@ -302,29 +312,47 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     double {{species.name}};
     {%- endfor %}
 
-    double total;
+    double total, total_e;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-        total = 0.0;
+        total = total_e = 0.0;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
+        if ({{species.name}} < 0.0) {
+          fprintf(stderr, "Negative[%d][{{species.name}}] = % 0.16g\n",
+            i, {{species.name}});
+          {{species.name}} = 1e-20;
+        }
+        {%if species.name != "ge" %}
+        {%if species.name != "de" %}
+          total+={{species.name}};
+        {%endif%}
+        fprintf(stderr, "Density[%d][{{species.name}}] = % 0.16g\n",
+                i, {{species.name}});
+        {{species.name}} /= {{species.weight}};
+        {%endif%}
         j++;
     {% endfor %}
+        fprintf(stderr, "Density[%d] = % 0.16g\n", i, total);
+        total = 0.0;
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         // 
         // Species: {{species.name}}
         // 
         {{ network.print_ccode(species, assign_to = "rhs[j]") }}
-        fprintf(stderr, "rhs[{{species.name}}][%d] = %0.5g\n", i, rhs[j]);
-        {% if species.name != "ge" %}
-        total += rhs[j];
-        {% else %}
-        rhs[j] = 0.0;
+        fprintf(stderr, "rhs[{{species.name}}][%d] = % 0.16g\n", i, rhs[j]);
+        {% if species.name != "ge" and species.name != "de" %}
+            /* Already in number density, not mass density */
+            total += rhs[j];
+            total_e += {{species.name}} * {{species.free_electrons}};
+        {% elif species.name == "ge" %}
+            rhs[j] = 0.0;
         {% endif %}
         j++;
     {% endfor %}
-        fprintf(stderr, "rhs_total[%d] = %0.5g\n", i, total);
+        fprintf(stderr, "rhs_total[%d] = % 0.16g total_e = % 0.16g\n",
+                i, total, total_e - de);
     }
     return 0;
 }
@@ -364,7 +392,13 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
     {%- for species in network.required_species | sort %}
-        {{species.name}} = input[j];
+        {{species.name}} = input[j] / {{species.weight}};
+        if ({{species.name}} < 0.0) {
+          fprintf(stderr, "Negative[%d][{{species.name}}] = % 0.16g\n",
+            i, {{species.name}});
+          /*{{species.name}} = 0.0;*/
+          {{species.name}} = 1e-20;
+        }
         j++;
     {% endfor %}
         j = i * nchem * nchem;
@@ -374,16 +408,20 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         // 
         {%- for s2 in network.required_species | sort %}
             // {{s1.name}} by {{s2.name}}
+            {% if s1.name == s2.name %}
+            Joutput[j] = 1.0;
+            {% else %}
             {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
+            {% endif %}
 	        {% if s2.name == 'ge' %}
             Joutput[j] *= T{{ network.energy_term.name }}[i];
             {% endif %}
             if(Joutput[j] != -100.0) {
 	    	{% if s2.name != 'geaaaa' %}
-                fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = %0.5g\n",
+                fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = % 0.16g\n",
                     i, Joutput[j]);
 		{% else %}
-		fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = %0.5g, T{{ network.energy_term.name }}[%d] = %0.5g\n",
+		fprintf(stderr, "Joutput[{{s1.name}}][{{s2.name}}][%d] = % 0.16g, T{{ network.energy_term.name }}[%d] = % 0.16g\n",
                     i, Joutput[j], i, Tge[i]);
 		{% endif %}
             }
@@ -401,7 +439,7 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         if (Joutput[i] > ma) ma = Joutput[i];
         avg += Joutput[i];
     }
-    fprintf(stderr, "JOUTPUTSTATS %d %0.5g %0.5g %d %0.5g\n",
+    fprintf(stderr, "JOUTPUTSTATS %d % 0.16g % 0.16g %d % 0.16g\n",
         nchem*nchem*nstrip, mi, ma, nzero, avg / (nchem*nchem*nstrip));
     return 0;
     

@@ -8,12 +8,21 @@ from dengo.write_rate_reader import \
     create_rate_reader, \
     create_initial_conditions
 from dengo.chemistry_constants import tiny, kboltz, mh
+from dengo.known_species import *
 
 primordial = ChemicalNetwork()
 for ca in cooling_registry.values():
+    #if any(sn.name.startswith("HeI") for sn in
+           #ca.species): continue
     primordial.add_cooling(ca)
 
-for s in reaction_registry.values():
+for i, rname in enumerate(sorted(reaction_registry)):
+    s = reaction_registry[rname]
+    if i == -14:
+        print "rhs_total[0] skipping", rname, s
+        #continue
+    if any(sn in ("H2II","HM") for sn in 
+           s.considered): continue
     primordial.add_reaction(s)
 
 primordial.init_temperature((1e0, 1e8))
@@ -33,22 +42,33 @@ if generate_initial_conditions:
 
     init_values = dict()
     init_values['density'] = density * init_array
-    init_values['HI'] = init_array # use conservation to set this below
+    init_values['HI'] = init_array.copy() # use conservation to set this below
     # populate initial fractional values for the other species
     for s in sorted(primordial.required_species):
         if s.name != 'ge' and s.name != 'HI':
-            if s.name == 'de' or s.name == 'HII':
+            if s.name == 'de':
+                continue
+            elif s.name == 'HII':
                 init_values[s.name] = X * init_array
+                print s.name, init_values[s.name][0]
             else:
                 init_values[s.name] = tiny * init_array
             init_values['HI'] -= init_values[s.name]
+    init_values['de'] = init_array * 0.0
+    for s in sorted(primordial.required_species):
+        if s.name == "ge": continue
+        init_values['de'] += init_values[s.name] * s.free_electrons / s.weight
 
+    print init_values['de'][0] / init_values['HII'][0],
+    print init_values['de'][0],  init_values['HII'][0]
     # convert to masses to multiplying by the density factor
     for iv in init_values:
         init_values[iv] *= density
+    print init_values['de'][0] / init_values['HII'][0],
+    print init_values['de'][0],  init_values['HII'][0]
     
     # set up initial temperatures values used to define ge
-    temperature = na.logspace(2, 6, NCELLS)
+    temperature = na.logspace(2, 4, NCELLS)
 
     # calculate the number density
     number_density = 0.0

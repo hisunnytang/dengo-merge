@@ -19,7 +19,7 @@ for s in reaction_registry.values():
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-oxygen.init_temperature((1e4, 1e8))
+oxygen.init_temperature((1e0, 1e8))
 
 create_rate_tables(oxygen, "oxygen")
 create_rate_reader(oxygen, "oxygen")
@@ -36,15 +36,22 @@ if generate_initial_conditions:
 
     init_values = dict()
     init_values['density'] = density * init_array
-    init_values['o_1'] = init_array # use conservation to set this below
+    init_values['o_1'] = init_array.copy() # use conservation to set this below
     # populate initial fractional values for the other species
     for s in sorted(oxygen.required_species):
         if s.name != 'ge' and s.name != 'o_1':
-            if s.name == 'de' or s.name == 'o_2':
+            if s.name == 'de':
+                continue
+            if s.name == 'o_2':
                 init_values[s.name] = X * init_array
             else:
                 init_values[s.name] = tiny * init_array
             init_values['o_1'] -= init_values[s.name]
+    init_values['de'] = init_array * 0.0
+    for s in sorted(oxygen.required_species):
+        if s.name == "ge": continue
+        init_values['de'] += init_values[s.name] * s.free_electrons / s.weight
+    print init_values['de'][0] / (init_values['o_2'][0] / 16.0)
 
     # convert to masses to multiplying by the density factor
     for iv in init_values:
@@ -58,7 +65,7 @@ if generate_initial_conditions:
     for s in sorted(oxygen.required_species):
         if s.name != 'ge':
             number_density += init_values[s.name]/s.weight
-            init_values[s.name] /= s.weight
+            init_values[s.name]
 
     # calculate ge (very crudely)
     gamma = 5.e0/3.e0

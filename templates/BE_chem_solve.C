@@ -124,6 +124,8 @@ int BE_chem_solve(rhs_f f, jac_f J,
       // check error in this cell (max norm)
       for (i=0; i<nchem; i++) {
 	if ( fabs(s[i]) > (atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]))) {
+      fprintf(stderr, "Unsolved[%d]: %d % 0.5g % 0.5g\n",
+         ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]));
 	  unsolved = 1;
 	  break;
 	}

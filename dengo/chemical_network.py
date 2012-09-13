@@ -121,7 +121,7 @@ class ChemicalNetwork(object):
                 codes.append(ccode(teq, assign_to = temp_name))
             codes.append(ccode(st[1], assign_to = assign_to))
             return "\n".join(codes)
-        return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
+        return ccode(s1.weight * sympy.diff(st, s2.symbol), assign_to = assign_to)
 
     def print_number_density(self):
         eq = 0
