@@ -133,7 +133,7 @@ class ChemicalNetwork(object):
     def print_mass_density(self):
         eq = 0
         for s in sorted(self.required_species):
-            if s.name != 'ge':
+            if s.name not in ('de', 'ge'):
                 eq += s.symbol
         return ccode(eq)
 
