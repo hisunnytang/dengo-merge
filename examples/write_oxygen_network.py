@@ -29,10 +29,10 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 8
-    density = 1.0e3
+    NCELLS = 64
+    density = 1.0e4
     init_array = na.ones(NCELLS) 
-    X = 1.0e-4
+    X = 1.0/9.0
 
     init_values = dict()
     init_values['density'] = density * init_array
@@ -45,31 +45,36 @@ if generate_initial_conditions:
             if s.name == 'o_2':
                 init_values[s.name] = X * init_array
             else:
-                init_values[s.name] = tiny * init_array
+                init_values[s.name] = X * init_array
             init_values['o_1'] -= init_values[s.name]
     init_values['de'] = init_array * 0.0
     for s in sorted(oxygen.required_species):
         if s.name == "ge": continue
         init_values['de'] += init_values[s.name] * s.free_electrons / s.weight
-    print init_values['de'][0] / (init_values['o_2'][0] / 16.0)
+    #print init_values['de'][0] / (init_values['o_2'][0] / 16.0)
 
-    # convert to masses to multiplying by the density factor
-    for iv in init_values:
-        init_values[iv] *= density
+    # convert to masses to multiplying by the density factor and the species weight
+    for s in oxygen.required_species:
+        if s.name == 'ge': continue
+        if s.name == 'de':
+            init_values[s.name] *= (density)
+        else:
+            init_values[s.name] *= (density * s.weight)
     
+    #compute new total density and number density
+    density = 0.0
+    number_density = 0.0
+    for s in sorted(oxygen.required_species):
+        if s.name == 'ge': continue
+        density += init_values[s.name][0]
+        number_density += init_values[s.name][0]/s.weight
+
     # set up initial temperatures values used to define ge
     temperature = na.logspace(4, 8, NCELLS)
 
-    # calculate the number density
-    number_density = 0.0
-    for s in sorted(oxygen.required_species):
-        if s.name != 'ge':
-            number_density += init_values[s.name]/s.weight
-            init_values[s.name]
-
     # calculate ge (very crudely)
     gamma = 5.e0/3.e0
-    init_values['ge'] = ((temperature * density * kboltz)
-                         / (number_density * mh * (gamma - 1)))
+    init_values['ge'] = ((temperature * number_density * kboltz)
+                         / (density * mh * (gamma - 1)))
     
     create_initial_conditions(init_values, 'oxygen')

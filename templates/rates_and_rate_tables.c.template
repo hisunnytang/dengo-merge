@@ -392,7 +392,11 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
     {%- for species in network.required_species | sort %}
+    	{% if species.name != 'ge' %}
         {{species.name}} = input[j] / {{species.weight}};
+	{% else %}
+	{{species.name}} = input[j];
+	{% endif %}
         if ({{species.name}} < 0.0) {
           fprintf(stderr, "Negative[%d][{{species.name}}] = % 0.16g\n",
             i, {{species.name}});
