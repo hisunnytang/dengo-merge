@@ -29,7 +29,7 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 64
+    NCELLS = 8
     density = 1.0e3
     init_array = na.ones(NCELLS) 
     X = 1.0e-4

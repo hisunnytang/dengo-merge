@@ -127,8 +127,8 @@ int main(int argc, char** argv)
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
     for (j = 0; j < dims; j++) {
         ics[j * N + i] = tics[j];
-        atol[j * N + i] = tics[j] * 1e-1 * 0.0;
-        rtol[j * N + i] = 1e-1;
+        atol[j * N + i] = tics[j] * 1e-4;
+        rtol[j * N + i] = 1e-7;
         if(j==0) {
             fprintf(stderr, "{{s.name}}[0] = %0.3g, atol => % 0.16g\n",
                     tics[j], atol[j]);
@@ -139,7 +139,7 @@ int main(int argc, char** argv)
 
     H5Fclose(file_id);
 
-    float dt = 1e5;
+    float dt = 1e10;
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
     int rv = BE_chem_solve(f, jf, ics, dt, rtol, atol, dims, N, (void *) data);
@@ -407,13 +407,9 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         // Species: {{s1.name }}
         // 
         {%- for s2 in network.required_species | sort %}
-            // {{s1.name}} by {{s2.name}}
-            {% if s1.name == s2.name %}
-            Joutput[j] = 1.0;
-            {% else %}
-            {{ network.print_jacobian_component(s1, s2, assign_to="Joutput[j]") }}
-            {% endif %}
-	        {% if s2.name == 'ge' %}
+            // {{s2.name}} by {{s1.name}}
+            {{ network.print_jacobian_component(s2, s1, assign_to="Joutput[j]") }}
+	        {% if s1.name == 'ge' %}
             Joutput[j] *= T{{ network.energy_term.name }}[i];
             {% endif %}
             if(Joutput[j] != -100.0) {

@@ -11,19 +11,17 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
 primordial = ChemicalNetwork()
-for ca in cooling_registry.values():
-    #if any(sn.name.startswith("HeI") for sn in
-           #ca.species): continue
-    primordial.add_cooling(ca)
+#for ca in cooling_registry.values():
+#    primordial.add_cooling(ca)
+primordial.add_cooling(cooling_registry["ceHI"])
 
-for i, rname in enumerate(sorted(reaction_registry)):
-    s = reaction_registry[rname]
-    if i == -14:
-        print "rhs_total[0] skipping", rname, s
-        #continue
-    if any(sn in ("H2II","HM") for sn in 
-           s.considered): continue
-    primordial.add_reaction(s)
+#for i, rname in enumerate(sorted(reaction_registry)):
+#    s = reaction_registry[rname]
+#    primordial.add_reaction(s)
+s = reaction_registry["k01"]
+primordial.add_reaction(s)
+s = reaction_registry["k02"]
+primordial.add_reaction(s)
 
 primordial.init_temperature((1e0, 1e8))
 
@@ -35,10 +33,10 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 64
+    NCELLS = 8
     density = 1.0e3
     init_array = na.ones(NCELLS) 
-    X = 1.0e-4
+    X = 0.5
 
     init_values = dict()
     init_values['density'] = density * init_array
