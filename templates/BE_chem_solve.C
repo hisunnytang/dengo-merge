@@ -104,9 +104,9 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
     // compute nonlinear residual and Jacobian
     if (BE_Resid_Fun(f, u, u0, gu, dt, nstrip, nchem, sdata) != 0)
-      ENZO_FAIL("Error in BE_Resid_Fun");
+      /*ENZO_FAIL("Error in BE_Resid_Fun");*/ return 1;
     if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, sdata) != 0)
-      ENZO_FAIL("Error in BE_Resid_Jac");
+      /*ENZO_FAIL("Error in BE_Resid_Jac");*/ return 1;
 
     // Newton update for each cell in strip, accumulate convergence check
     unsolved = 0;
@@ -169,7 +169,8 @@ int BE_Resid_Fun(rhs_f f, float *u,
 
   // call user-supplied RHS function at current guess
   if (f(u, gu, nstrip, nchem, sdata) != 0)
-    ENZO_FAIL("Error in user-supplied ODE RHS function f(u)");
+    /*ENZO_FAIL("Error in user-supplied ODE RHS function f(u)");*/
+    return 1;
 
   // update RHS function to additionally include remaining terms for residual,
   //   g(u) = u - u0 - dt*f(u)
@@ -189,7 +190,8 @@ int BE_Resid_Jac(jac_f J, float *u,
 
   // call user-supplied Jacobian function at current guess
   if (J(u, Ju, nstrip, nchem, sdata) != 0)
-    ENZO_FAIL("Error in user-supplied ODE Jacobian function J(u)");
+    /*ENZO_FAIL("Error in user-supplied ODE Jacobian function J(u)");*/
+    return 1;
 
   // update Jacobian to additionally include remaining terms,
   //   J = I - dt*Jf(u)

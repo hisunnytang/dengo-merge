@@ -97,8 +97,7 @@ class ChemicalNetwork(object):
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
         if species == self.energy_term:
             return self.print_cooling(assign_to)
-        return ccode(species.weight * self.species_total(species),
-                     assign_to = assign_to)
+        return ccode(self.species_total(species), assign_to = assign_to)
 
     def print_cooling(self, assign_to):
         eq = 0
@@ -121,20 +120,20 @@ class ChemicalNetwork(object):
                 codes.append(ccode(teq, assign_to = temp_name))
             codes.append(ccode(st[1], assign_to = assign_to))
             return "\n".join(codes)
-        return ccode(s1.weight * sympy.diff(st, s2.symbol), assign_to = assign_to)
+        return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
     def print_number_density(self):
         eq = 0
         for s in sorted(self.required_species):
             if s.name != 'ge': 
-                eq += (1.0/s.weight * s.symbol)
+                eq += s.symbol
         return ccode(eq)
 
     def print_mass_density(self):
         eq = 0
         for s in sorted(self.required_species):
             if s.name not in ('ge', 'de'): 
-                eq += s.symbol
+                eq += s.symbol * s.weight
         return ccode(eq)
 
     def species_gamma(self, species):

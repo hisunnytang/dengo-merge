@@ -19,7 +19,7 @@ for s in reaction_registry.values():
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-oxygen.init_temperature((1e0, 1e8))
+oxygen.init_temperature((1e0, 1e7))
 
 create_rate_tables(oxygen, "oxygen")
 create_rate_reader(oxygen, "oxygen")
@@ -29,7 +29,7 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 64
+    NCELLS = 8
     density = 1.0e4
     init_array = na.ones(NCELLS) 
     X = 1.0/9.0
@@ -49,8 +49,13 @@ if generate_initial_conditions:
             init_values['o_1'] -= init_values[s.name]
     init_values['de'] = init_array * 0.0
     for s in sorted(oxygen.required_species):
-        if s.name == "ge": continue
-        init_values['de'] += init_values[s.name] * s.free_electrons / s.weight
+        if s.name in ("ge", "de"): continue
+        init_values['de'] += init_values[s.name] * s.free_electrons# / s.weight
+        print "Adding %0.5e to electrons from %s" % (
+            (init_values[s.name] * s.free_electrons/s.weight)[0],
+            s.name,
+        )
+    print "Total de: %0.5e" % (init_values['de'][0])
     #print init_values['de'][0] / (init_values['o_2'][0] / 16.0)
 
     # convert to masses to multiplying by the density factor and the species weight

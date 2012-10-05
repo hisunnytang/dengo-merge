@@ -11,17 +11,17 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
 primordial = ChemicalNetwork()
-#for ca in cooling_registry.values():
-#    primordial.add_cooling(ca)
-primordial.add_cooling(cooling_registry["ceHI"])
+for ca in cooling_registry.values():
+    primordial.add_cooling(ca)
+#primordial.add_cooling(cooling_registry["ceHI"])
 
-#for i, rname in enumerate(sorted(reaction_registry)):
-#    s = reaction_registry[rname]
-#    primordial.add_reaction(s)
-s = reaction_registry["k01"]
-primordial.add_reaction(s)
-s = reaction_registry["k02"]
-primordial.add_reaction(s)
+for i, rname in enumerate(sorted(reaction_registry)):
+    s = reaction_registry[rname]
+    primordial.add_reaction(s)
+#s = reaction_registry["k01"]
+#primordial.add_reaction(s)
+#s = reaction_registry["k02"]
+#primordial.add_reaction(s)
 
 primordial.init_temperature((1e0, 1e8))
 
