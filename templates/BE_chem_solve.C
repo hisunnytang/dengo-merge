@@ -141,6 +141,12 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
   } // end newton iterations
 
+  // free temporary arrays
+  delete[] u0;
+  delete[] s;
+  delete[] gu;
+  delete[] Ju;
+
   // final check, diagnostics output
   if (unsolved) {
     printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
@@ -149,12 +155,6 @@ int BE_chem_solve(rhs_f f, jac_f J,
     printf("BE_chem_solve: solved with %i total iterations\n",isweep);
     return 0;
   }
-
-  // free temporary arrays
-  delete[] u0;
-  delete[] s;
-  delete[] gu;
-  delete[] Ju;
 
 }
 

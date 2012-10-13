@@ -145,7 +145,7 @@ int main(int argc, char** argv)
 
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
-    float dtf = 1e5;
+    float dtf = 3.1557e16;
     float dt = dtf;
     int niter = 0;
     double ttot = 0;
@@ -174,10 +174,54 @@ int main(int argc, char** argv)
                 break;
             }
         }
+	/* Write intermediate  results to HDF5 file */
+	char imfilename[30];
+	sprintf(imfilename,"{{ solver_name  }}_intermediate_%04d.h5", niter);
+    	file_id = H5Fcreate(imfilename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    	hsize_t dimsarr[1];
+    	dimsarr[0] = dims;
+    	i = 0;
+    	{% for s in network.required_species | sort %}
+    	double {{ s.name }}[dims];
+    	for (j = 0; j < dims; j++) {
+            {{ s.name }}[j] = input[j * N + i];
+    	}
+    	fprintf(stderr, "Writing solution for /{{ s.name }}\n");
+    	H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});
+    	i++;
+    	{% endfor %}
+    	double temperature[dims];
+    	for (j = 0; j < dims; j++) {
+    	    temperature[j] = data->Ts[j];
+    	}
+    	H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
+    	H5Fclose(file_id);
         niter++;
     }
     fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
         ttot, dtf, dtf-ttot);
+
+    /* Write results to HDF5 file */
+    file_id = H5Fcreate("{{ solver_name }}_solution.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    hsize_t dimsarr[1];
+    dimsarr[0] = dims;
+    i = 0;
+    {% for s in network.required_species | sort %}
+    double {{ s.name }}[dims];
+    for (j = 0; j < dims; j++) {
+        {{ s.name }}[j] = input[j * N + i];
+    }
+    fprintf(stderr, "Writing solution for /{{ s.name }}\n");
+    H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});
+    i++;
+    {% endfor %}
+    double temperature[dims];
+    for (j = 0; j < dims; j++) {
+    	temperature[j] = data->Ts[j];
+    }
+    H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
+    H5Fclose(file_id);
+    
 }
 {% endblock %} {# entry_point #}
 

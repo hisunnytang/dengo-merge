@@ -146,8 +146,8 @@ class ChemicalNetwork(object):
     def gamma_factor(self):
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if s.name != 'ge':
-                eq += (1.0/s.weight * sympy.sympify(s.name)) / \
+            if s.name != 'ge' and s.name !=  'de':
+                eq += (sympy.sympify(s.name)) / \
                     (self.species_gamma(s) - 1.0)
         return eq
 

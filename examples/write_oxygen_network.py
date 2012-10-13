@@ -29,8 +29,8 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 8
-    density = 1.0e4
+    NCELLS = 128
+    density = 1.0
     init_array = na.ones(NCELLS) 
     X = 1.0/9.0
 
@@ -62,7 +62,7 @@ if generate_initial_conditions:
     for s in oxygen.required_species:
         if s.name == 'ge': continue
         if s.name == 'de':
-            init_values[s.name] *= (density)
+            init_values[s.name] *= (density) # this is still just number density
         else:
             init_values[s.name] *= (density * s.weight)
     
@@ -71,11 +71,13 @@ if generate_initial_conditions:
     number_density = 0.0
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
-        density += init_values[s.name][0]
+        if s.name == 'de': continue #don't want this in density
         number_density += init_values[s.name][0]/s.weight
+        density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge
-    temperature = na.logspace(4, 8, NCELLS)
+    temperature = na.logspace(4, 6.7, NCELLS)
+    init_values['T'] = temperature
 
     # calculate ge (very crudely)
     gamma = 5.e0/3.e0
