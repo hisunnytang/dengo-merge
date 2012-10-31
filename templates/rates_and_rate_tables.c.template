@@ -174,6 +174,7 @@ int main(int argc, char** argv)
                 break;
             }
         }
+	{% if network.write_intermediate_solutions %}
 	/* Write intermediate  results to HDF5 file */
 	char imfilename[30];
 	sprintf(imfilename,"{{ solver_name  }}_intermediate_%04d.h5", niter);
@@ -196,6 +197,7 @@ int main(int argc, char** argv)
     	}
     	H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
     	H5Fclose(file_id);
+	{% endif %}
         niter++;
     }
     fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
@@ -391,10 +393,11 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     double {{species.name}};
     {%- endfor %}
 
-    double total, total_e, total_de;
+    double mh = 1.67e-24;
+    double total, total_e, total_de, mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-        total = total_e = total_de = 0.0;
+        total = total_e = total_de = mdensity = 0.0;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
         if ({{species.name}} < 0.0) {
@@ -413,6 +416,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         j++;
     {% endfor %}
         /*fprintf(stderr, "Density[%d] = % 0.16g\n", i, total);*/
+        mdensity = total * mh;
         total = 0.0;
         j = i * nchem;
     {%- for species in network.required_species | sort %}
@@ -427,7 +431,8 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
             total += rhs[j] * {{species.weight}};
             total_e += {{species.name}} * {{species.free_electrons}};
         {% elif species.name == "ge" %}
-            rhs[j] = 0.0;
+            //rhs[j] = 0.0;
+	    rhs[j] /= mdensity;
         {% endif %}
         {% if species.name == "de" %}
             total_de += -rhs[j];
@@ -439,7 +444,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         /*fprintf(stderr, "rhs_total[%d] = % 0.16g total_e = % 0.16g total_de = %0.16g\n",
                 i, total, total_e - de, total_de);
                 */
-    }
+    }  
     return 0;
 }
 
@@ -475,8 +480,11 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     double {{species.name}};
     {%- endfor %}
 
+    double mh = 1.67e-24;
+    double total, mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
+	total = mdensity = 0.0;
     {%- for species in network.required_species | sort %}
     	{% if species.name != 'ge' %}
         {{species.name}} = input[j];
@@ -490,8 +498,15 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
           {{species.name}} = 1e-20;
           return 1;
         }
+	{%if species.name != "ge" %}
+        {%if species.name != "de" %}
+          total+={{species.name}} * {{species.weight}};
+        {%endif%}
+	{%endif%}
         j++;
     {% endfor %}
+        mdensity = total * mh;
+        
         j = i * nchem * nchem;
     {%- for s1 in network.required_species | sort %}
         // 
@@ -500,7 +515,10 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         {%- for s2 in network.required_species | sort %}
             // {{s2.name}} by {{s1.name}}
             {{ network.print_jacobian_component(s2, s1, assign_to="Joutput[j]") }}
-	        {% if s1.name == 'ge' %}
+	    {% if s2.name == 'ge' %}
+	    Joutput[j] /= mdensity;
+	    {% endif %}
+	    {% if s1.name == 'ge' %}
             Joutput[j] *= T{{ network.energy_term.name }}[i];
             {% endif %}
             if(Joutput[j] != -100.0) {
@@ -530,6 +548,7 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     /*fprintf(stderr, "JOUTPUTSTATS %d % 0.16g % 0.16g %d % 0.16g\n",
         nchem*nchem*nstrip, mi, ma, nzero, avg / (nchem*nchem*nstrip));
         */
+
     return 0;
     
 }

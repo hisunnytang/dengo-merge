@@ -20,6 +20,8 @@ for s in reaction_registry.values():
         oxygen.add_reaction(s)
 
 oxygen.init_temperature((1e0, 1e7))
+oxygen.write_intermediate_solutions = True
+
 
 create_rate_tables(oxygen, "oxygen")
 create_rate_reader(oxygen, "oxygen")
@@ -71,8 +73,8 @@ if generate_initial_conditions:
     number_density = 0.0
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
-        if s.name == 'de': continue #don't want this in density
         number_density += init_values[s.name][0]/s.weight
+        if s.name == 'de': continue #don't want this in either density
         density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge
@@ -83,5 +85,7 @@ if generate_initial_conditions:
     gamma = 5.e0/3.e0
     init_values['ge'] = ((temperature * number_density * kboltz)
                          / (density * mh * (gamma - 1)))
+    #init_values['ge'] = ((temperature * number_density * kboltz)
+    #                     / ((gamma - 1)))
     
     create_initial_conditions(init_values, 'oxygen')

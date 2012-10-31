@@ -36,6 +36,7 @@ class ChemicalNetwork(object):
         self.reactions = {}
         self.cooling_actions = {}
         self.required_species = set([])
+        self.write_intermediate_solutions = False
 
     def add_reaction(self, reaction):
         if isinstance(reaction, types.StringTypes):
@@ -146,7 +147,7 @@ class ChemicalNetwork(object):
     def gamma_factor(self):
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if s.name != 'ge' and s.name !=  'de':
+            if s.name != 'ge':
                 eq += (sympy.sympify(s.name)) / \
                     (self.species_gamma(s) - 1.0)
         return eq
@@ -158,6 +159,8 @@ class ChemicalNetwork(object):
         ge = sympy.Symbol('ge')
         function_eq = (sympy.Symbol('density') * ge * sympy.Symbol('mh')) / \
             (sympy.Symbol('kb') * (self.gamma_factor()))
+        #function_eq = (ge) / \
+        #    (sympy.Symbol('kb') * (self.gamma_factor()))
         if derivative == True:
             deriv_eq = sympy.diff(function_eq, ge)
             return ccode(deriv_eq)
