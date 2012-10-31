@@ -38,7 +38,6 @@ int BE_chem_solve(rhs_f f, jac_f J, double *u, double dt, double *rtol,
 {% block data_structs_for_rates %}
 
 typedef struct {{ solver_name }}_data_ {
-
     /* All of the network bins will be the same width */
     double dbin;
     double idbin;
@@ -148,6 +147,7 @@ int main(int argc, char** argv)
     float dtf = 3.1557e16;
     float dt = dtf;
     int niter = 0;
+    int siter = 0;
     double ttot = 0;
     for (i = 0; i < dims * N; i++) input[i] = prev[i] = ics[i];
     while (ttot < dtf) {
@@ -163,9 +163,40 @@ int main(int argc, char** argv)
             }
         }
         if (rv == 0) {
+	    siter++;
             ttot += dt;
             dt = min(dt * 2.0, dtf - ttot);
             for (i = 0; i < dims * N; i++) prev[i] = input[i];
+	    {% if network.write_intermediate_solutions %}
+	    /* Write intermediate  results to HDF5 file */
+	    char imfilename[30];
+	    sprintf(imfilename,"{{ solver_name  }}_intermediate_%04d.h5", siter);
+    	    file_id = H5Fcreate(imfilename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    	    hsize_t dimsarr[1];
+    	    dimsarr[0] = dims;
+    	    i = 0;
+    	    {% for s in network.required_species | sort %}
+    	    double {{ s.name }}[dims];
+    	    for (j = 0; j < dims; j++) {
+            	{{ s.name }}[j] = input[j * N + i];
+    	    }
+    	    fprintf(stderr, "Writing solution for /{{ s.name }}\n");
+    	    H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});
+    	    i++;
+    	    {% endfor %}
+    	    double temperature[dims];
+    	    for (j = 0; j < dims; j++) {
+    	    	temperature[j] = data->Ts[j];
+    	    }
+    	    H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
+	    double time[1];
+	    time[0] = ttot;
+	    double timestep[1];
+	    timestep[0] = dt;
+	    H5LTset_attribute_double(file_id, "/", "time", time, 1); 
+	    H5LTset_attribute_double(file_id, "/", "timestep", timestep, 1);
+    	    H5Fclose(file_id);
+	    {% endif %}
         } else {
             dt /= 2.0;
             for (i = 0; i < dims * N; i++) input[i] = prev[i];
@@ -174,30 +205,6 @@ int main(int argc, char** argv)
                 break;
             }
         }
-	{% if network.write_intermediate_solutions %}
-	/* Write intermediate  results to HDF5 file */
-	char imfilename[30];
-	sprintf(imfilename,"{{ solver_name  }}_intermediate_%04d.h5", niter);
-    	file_id = H5Fcreate(imfilename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-    	hsize_t dimsarr[1];
-    	dimsarr[0] = dims;
-    	i = 0;
-    	{% for s in network.required_species | sort %}
-    	double {{ s.name }}[dims];
-    	for (j = 0; j < dims; j++) {
-            {{ s.name }}[j] = input[j * N + i];
-    	}
-    	fprintf(stderr, "Writing solution for /{{ s.name }}\n");
-    	H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});
-    	i++;
-    	{% endfor %}
-    	double temperature[dims];
-    	for (j = 0; j < dims; j++) {
-    	    temperature[j] = data->Ts[j];
-    	}
-    	H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
-    	H5Fclose(file_id);
-	{% endif %}
         niter++;
     }
     fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
@@ -222,6 +229,12 @@ int main(int argc, char** argv)
     	temperature[j] = data->Ts[j];
     }
     H5LTmake_dataset_double(file_id, "/T", 1, dimsarr, temperature);
+    double time[1];
+    time[0] = ttot;
+    double timestep[1];
+    timestep[0] = dt;
+    H5LTset_attribute_double(file_id, "/", "time", time, 1); 
+    H5LTset_attribute_double(file_id, "/", "timestep", timestep, 1);
     H5Fclose(file_id);
     
 }
