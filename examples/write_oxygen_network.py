@@ -13,14 +13,14 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
 for ca in cooling_registry.values():
-    if ca.name in ('o_1', 'o_2', 'de'):
-    #if ca.name.startswith("o_"):
+    #if ca.name in ('o_1', 'o_2', 'de'):
+    if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
         print ca
 
 for s in reaction_registry.values():
-    if all(sp.name in ('o_1', 'o_2', 'de', 'ge') for sp in s.species):
-    #if s.name.startswith("o_"):
+    #if all(sp.name in ('o_1', 'o_2', 'de', 'ge') for sp in s.species):
+    if s.name.startswith("o_"):
         oxygen.add_reaction(s)
         print s
 
@@ -36,7 +36,7 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 128
+    NCELLS = 4
     density = 1.0
     init_array = na.ones(NCELLS) 
     X = 1.0/9.0
@@ -78,12 +78,12 @@ if generate_initial_conditions:
     number_density = 0.0
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
-        if s.name == 'de': continue #don't want this in either density
         number_density += init_values[s.name][0]/s.weight
+        if s.name == 'de': continue #don't want this in either density
         density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge
-    temperature = na.logspace(4, 6.7, NCELLS)
+    temperature = na.logspace(4, 6, NCELLS)
     init_values['T'] = temperature
 
     # calculate ge (very crudely)
