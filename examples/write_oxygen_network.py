@@ -16,11 +16,13 @@ for ca in cooling_registry.values():
     if ca.name in ('o_1', 'o_2', 'de'):
     #if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
+        print ca
 
 for s in reaction_registry.values():
     if all(sp.name in ('o_1', 'o_2', 'de', 'ge') for sp in s.species):
     #if s.name.startswith("o_"):
         oxygen.add_reaction(s)
+        print s
 
 oxygen.init_temperature((1e0, 1e7))
 oxygen.write_intermediate_solutions = True
