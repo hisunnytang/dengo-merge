@@ -11,13 +11,14 @@ from dengo.write_rate_reader import \
 from dengo.chemistry_constants import tiny, kboltz, mh
 
 oxygen = ChemicalNetwork()
+oxygen.add_energy_term()
 for ca in cooling_registry.values():
     if ca.name in ('o_1', 'o_2', 'de'):
     #if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
-    if s.name in ('o_1', 'o_2', 'de'):
+    if all(sp.name in ('o_1', 'o_2', 'de', 'ge') for sp in s.species):
     #if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 

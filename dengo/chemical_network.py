@@ -50,11 +50,13 @@ class ChemicalNetwork(object):
         for n, s in reaction.right_side:
             self.required_species.add(s)
         print "Adding reaction: %s" % reaction
-
-    def add_cooling(self, cooling_term):
+    def add_energy_term(self):
         if self.energy_term is None:
             self.energy_term = species_registry["ge"]
             self.required_species.add(self.energy_term)
+
+    def add_cooling(self, cooling_term):
+        self.add_energy_term()
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError
         self.cooling_actions[cooling_term.name] = cooling_term
