@@ -444,7 +444,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
             total += rhs[j] * {{species.weight}};
             total_e += {{species.name}} * {{species.free_electrons}};
         {% elif species.name == "ge" %}
-            //rhs[j] = 0.0;
+            rhs[j] = 0.0;
 	    rhs[j] /= mdensity;
         {% endif %}
         {% if species.name == "de" %}

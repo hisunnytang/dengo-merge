@@ -12,11 +12,13 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 
 oxygen = ChemicalNetwork()
 for ca in cooling_registry.values():
-    if ca.name.startswith("o_"):
+    if ca.name in ('o_1', 'o_2', 'de'):
+    #if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
-    if s.name.startswith("o_"):
+    if s.name in ('o_1', 'o_2', 'de'):
+    #if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
 oxygen.init_temperature((1e0, 1e7))
@@ -73,8 +75,8 @@ if generate_initial_conditions:
     number_density = 0.0
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
-        number_density += init_values[s.name][0]/s.weight
         if s.name == 'de': continue #don't want this in either density
+        number_density += init_values[s.name][0]/s.weight
         density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge

@@ -101,7 +101,7 @@ class ChemicalNetwork(object):
         return ccode(self.species_total(species), assign_to = assign_to)
 
     def print_cooling(self, assign_to):
-        eq = 0
+        eq = sympy.sympify("0")
         for term in self.cooling_actions:
             eq += self.cooling_actions[term].equation
         return ccode(eq, assign_to = assign_to)
@@ -124,14 +124,14 @@ class ChemicalNetwork(object):
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
     def print_number_density(self):
-        eq = 0
+        eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if s.name != 'ge': 
+            if s.name != 'ge' and s.name != 'de': 
                 eq += s.symbol
         return ccode(eq)
 
     def print_mass_density(self):
-        eq = 0
+        eq = sympy.sympify("0")
         for s in sorted(self.required_species):
             if s.name not in ('ge', 'de'): 
                 eq += s.symbol * s.weight
@@ -147,7 +147,7 @@ class ChemicalNetwork(object):
     def gamma_factor(self):
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if s.name != 'ge':
+            if s.name != 'ge' and s.name != 'de':
                 eq += (sympy.sympify(s.name)) / \
                     (self.species_gamma(s) - 1.0)
         return eq
