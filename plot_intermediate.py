@@ -77,7 +77,8 @@ class ResultsPlotter:
                     plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
         plt.xlabel("Time")
         plt.ylim(1e-20, 1e8)
-        plt.legend(loc = "best")
+        leg = plt.legend(loc = "best")
+        leg.set_alpha(0.1)
         plt.savefig("%s_time.png" % (self.network_name))
         
         # plot the initial conditions and the final solution
@@ -94,7 +95,8 @@ class ResultsPlotter:
                 plt.loglog(self.fsdata['ge'][:], self.fsdata[s][:], '--', lw=1.5)
         plt.xlabel("Temperature")
         plt.ylim(1e-3, 10)
-        plt.legend(loc = "best")
+        leg = plt.legend(loc = "best")
+        leg.set_alpha(0.1)
         plt.savefig("%s_ic_final.png" %(self.network_name))
 
 if __name__ == "__main__":
