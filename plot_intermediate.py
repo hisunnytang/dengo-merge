@@ -76,10 +76,23 @@ class ResultsPlotter:
                 else:
                     plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
         plt.xlabel("Time")
-        plt.ylim(1e-20, 1e16)
+        plt.ylim(1e-20, 1e10)
         leg = plt.legend(loc = "best")
-        leg.set_alpha(0.1)
+        leg.legendPatch.set_alpha(0.1)
         plt.savefig("%s_time.png" % (self.network_name))
+        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies)))]
+        plt.clf()
+        for s in sorted(self.species):
+            #if s != 'ge':
+            if s == 'HII':
+                plt.loglog(self.t, self.data[s][0,:]/self.data[s][0,0], '-', label=s, lw=1.5, marker='x')
+            else:
+                plt.loglog(self.t, self.data[s][0,:]/self.data[s][0,0], '-', label=s, lw=1.5)
+        plt.xlabel("Time")
+        plt.ylim(1e-4, 1e1)
+        leg = plt.legend(loc = "best")
+        leg.legendPatch.set_alpha(0.1)
+        plt.savefig("%s_time_relative.png" % (self.network_name))
         
         # plot the initial conditions and the final solution
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies - 2)))]
@@ -98,6 +111,7 @@ class ResultsPlotter:
         leg = plt.legend(loc = "best")
         leg.set_alpha(0.1)
         plt.savefig("%s_ic_final.png" %(self.network_name))
+        
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

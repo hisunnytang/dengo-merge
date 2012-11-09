@@ -15,14 +15,14 @@ want = ("HI", "HII", "de", "ge")
 primordial = ChemicalNetwork()
 primordial.add_energy_term()
 primordial.write_intermediate_solutions = True
-#for ca in cooling_registry.values():
-    #if not all(sp.name in want for sp in ca.species): continue
-#    primordial.add_cooling(ca)
+for ca in cooling_registry.values():
+    if not all(sp.name in want for sp in ca.species): continue
+    primordial.add_cooling(ca)
 #primordial.add_cooling(cooling_registry["ceHI"])
 
 for i, rname in enumerate(sorted(reaction_registry)):
     s = reaction_registry[rname]
-    #if not all(sp.name in want for sp in s.species): continue
+    if not all(sp.name in want for sp in s.species): continue
     primordial.add_reaction(s)
 #s = reaction_registry["k01"]
 #primordial.add_reaction(s)
@@ -41,7 +41,7 @@ generate_initial_conditions = True
 if generate_initial_conditions:
     import numpy as na
     NCELLS = 8
-    density = 1.0e15
+    density = 1.0
     init_array = na.ones(NCELLS) 
     X = 0.5
 
@@ -74,7 +74,7 @@ if generate_initial_conditions:
     
     # set up initial temperatures values used to define ge
     temperature = na.logspace(2, 4, NCELLS)
-    temperature[:] = 1e3
+    temperature[:] = 2e4
 
     # calculate the number density
     number_density = 0.0
