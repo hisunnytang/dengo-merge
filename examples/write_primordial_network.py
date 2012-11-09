@@ -10,15 +10,19 @@ from dengo.write_rate_reader import \
 from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
+want = ("HI", "HII", "de", "ge")
+
 primordial = ChemicalNetwork()
+primordial.add_energy_term()
+primordial.write_intermediate_solutions = True
 for ca in cooling_registry.values():
-    if any(sp.name in ("H2I", "H2II", "HeI", "HeII", "HeIII") for sp in ca.species): continue
+    #if not all(sp.name in want for sp in ca.species): continue
     primordial.add_cooling(ca)
 #primordial.add_cooling(cooling_registry["ceHI"])
 
 for i, rname in enumerate(sorted(reaction_registry)):
     s = reaction_registry[rname]
-    if any(sp.name in ("H2I", "H2II", "HeI", "HeII", "HeIII") for sp in s.species): continue
+    #if not all(sp.name in want for sp in s.species): continue
     primordial.add_reaction(s)
 #s = reaction_registry["k01"]
 #primordial.add_reaction(s)
@@ -70,6 +74,7 @@ if generate_initial_conditions:
     
     # set up initial temperatures values used to define ge
     temperature = na.logspace(2, 4, NCELLS)
+    temperature[:] = 2000000
 
     # calculate the number density
     number_density = 0.0

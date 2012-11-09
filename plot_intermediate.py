@@ -13,7 +13,7 @@ class ResultsPlotter:
 
     def grab_results(self):
         # grab initial conditions
-        icfn = "output/%s_initial_conditions.h5" %(self.network_name)
+        icfn = "%s_initial_conditions.h5" %(self.network_name)
         icf = h5py.File(icfn)
         self.icspecies = icf.keys()
         self.icnspecies = len(self.icspecies)
@@ -26,7 +26,7 @@ class ResultsPlotter:
         icf.close()
 
         # grab intermediate data
-        fns = glob.glob("output/%s_intermediate_*.h5" % (self.network_name))
+        fns = glob.glob("%s_intermediate_*.h5" % (self.network_name))
         if len(fns) == 0: raise RuntimeError
         f = h5py.File(fns[0])
         self.species = f.keys()
@@ -53,7 +53,7 @@ class ResultsPlotter:
 
         # grab the final solution
                 # grab initial conditions
-        fsfn = "output/%s_solution.h5" %(self.network_name)
+        fsfn = "%s_solution.h5" %(self.network_name)
         fsf = h5py.File(fsfn)
         self.fsspecies = fsf.keys()
         self.fsnspecies = len(self.fsspecies)
@@ -78,7 +78,7 @@ class ResultsPlotter:
         plt.xlabel("Time")
         plt.ylim(1e-20, 1e8)
         plt.legend(loc = "best")
-        plt.savefig("output/%s_time.png" % (self.network_name))
+        plt.savefig("%s_time.png" % (self.network_name))
         
         # plot the initial conditions and the final solution
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies - 2)))]
@@ -95,7 +95,7 @@ class ResultsPlotter:
         plt.xlabel("Temperature")
         plt.ylim(1e-3, 10)
         plt.legend(loc = "best")
-        plt.savefig("output/%s_ic_final.png" %(self.network_name))
+        plt.savefig("%s_ic_final.png" %(self.network_name))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
