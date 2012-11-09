@@ -14,18 +14,17 @@ oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
 for ca in cooling_registry.values():
     #if ca.name in ('o_1', 'o_2', 'de'):
+    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
     if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
-        print ca
 
 for s in reaction_registry.values():
-    #if all(sp.name in ('o_1', 'o_2', 'de', 'ge') for sp in s.species):
+    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
-        print s
 
 oxygen.init_temperature((1e0, 1e7))
-oxygen.write_intermediate_solutions = True
+oxygen.write_intermediate_solutions = False
 
 
 create_rate_tables(oxygen, "oxygen")
@@ -36,7 +35,7 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 4
+    NCELLS = 16
     density = 1.0
     init_array = na.ones(NCELLS) 
     X = 1.0/9.0
@@ -83,7 +82,7 @@ if generate_initial_conditions:
         density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge
-    temperature = na.logspace(4, 6, NCELLS)
+    temperature = na.logspace(4, 6.7, NCELLS)
     init_values['T'] = temperature
 
     # calculate ge (very crudely)

@@ -12,11 +12,13 @@ from dengo.known_species import *
 
 primordial = ChemicalNetwork()
 for ca in cooling_registry.values():
+    if any(sp.name in ("H2I", "H2II", "HeI", "HeII", "HeIII") for sp in ca.species): continue
     primordial.add_cooling(ca)
 #primordial.add_cooling(cooling_registry["ceHI"])
 
 for i, rname in enumerate(sorted(reaction_registry)):
     s = reaction_registry[rname]
+    if any(sp.name in ("H2I", "H2II", "HeI", "HeII", "HeIII") for sp in s.species): continue
     primordial.add_reaction(s)
 #s = reaction_registry["k01"]
 #primordial.add_reaction(s)
@@ -24,6 +26,7 @@ for i, rname in enumerate(sorted(reaction_registry)):
 #primordial.add_reaction(s)
 
 primordial.init_temperature((1e0, 1e8))
+primordial.write_intermediate_solutions = True
 
 create_rate_tables(primordial, "primordial")
 create_rate_reader(primordial, "primordial")

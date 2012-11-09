@@ -66,32 +66,32 @@ class ResultsPlotter:
         fsf.close()
 
     def plot_all(self):
-        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,11))]
+        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies - 1)))]
         # plot the time evolution of a species for a given T
         plt.clf()
         for s in sorted(self.species):
             if s != 'ge':
-                if s == 'de':
-                    plt.loglog(self.t, self.data[s][-1,:], '-', label=s, lw=1.5, marker='x')
+                if s == 'HII':
+                    plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5, marker='x')
                 else:
-                    plt.loglog(self.t, self.data[s][-1,:], '-', label=s, lw=1.5)
+                    plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
         plt.xlabel("Time")
-        plt.ylim(1e-10, 1e8)
+        plt.ylim(1e-20, 1e8)
         plt.legend(loc = "best")
         plt.savefig("output/%s_time.png" % (self.network_name))
         
         # plot the initial conditions and the final solution
-        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,10))]
+        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies - 2)))]
         plt.clf()
         for s in self.species:
             if s not in ('ge', 'T'):
                 if s != 'de':
-                    plt.loglog(self.icdata['T'][:], self.icdata[s][:]/16.0, label=s, lw=1.5)
+                    plt.loglog(self.icdata['ge'][:], self.icdata[s][:]/16.0, label=s, lw=1.5)
                 else:
-                    plt.loglog(self.icdata['T'][:], self.icdata[s][:], label=s, lw=1.5)
+                    plt.loglog(self.icdata['ge'][:], self.icdata[s][:], label=s, lw=1.5)
         for s in self.species:
             if s not in ('ge', 'T'):
-                plt.loglog(self.fsdata['T'][:], self.fsdata[s][:], '--', lw=1.5)
+                plt.loglog(self.fsdata['ge'][:], self.fsdata[s][:], '--', lw=1.5)
         plt.xlabel("Temperature")
         plt.ylim(1e-3, 10)
         plt.legend(loc = "best")

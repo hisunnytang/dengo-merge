@@ -163,6 +163,7 @@ int main(int argc, char** argv)
             }
         }
         if (rv == 0) {
+	    if (siter == 9999) break;
 	    siter++;
             ttot += dt;
             dt = min(dt * 2.0, dtf - ttot);
