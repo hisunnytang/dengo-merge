@@ -76,7 +76,7 @@ class ResultsPlotter:
                 else:
                     plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
         plt.xlabel("Time")
-        plt.ylim(1e-20, 1e8)
+        plt.ylim(1e-20, 1e16)
         leg = plt.legend(loc = "best")
         leg.set_alpha(0.1)
         plt.savefig("%s_time.png" % (self.network_name))
