@@ -189,6 +189,9 @@ int BE_Resid_Fun(rhs_f f, float *u, float *u0, float *gu, float dt,
     /*ENZO_FAIL("Error in user-supplied ODE RHS function f(u)");*/
     return 1;
 
+  // rescale u to scaled variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
+
   // rescale rhs to normalized variables variables
   for (i=0; i<nstrip*nchem; i++)  gu[i] /= scaling[i];
 
@@ -206,7 +209,7 @@ int BE_Resid_Jac(jac_f J, float *u, float *Ju, float dt,
 		 int nstrip, int nchem, float *scaling, void *sdata)
 {
   // local variables
-  int ix, ivar, jvar;
+  int ix, ivar, jvar, i;
 
   // rescale back to input variables
   for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
@@ -215,6 +218,9 @@ int BE_Resid_Jac(jac_f J, float *u, float *Ju, float dt,
   if (J(u, Ju, nstrip, nchem, sdata) != 0)
     /*ENZO_FAIL("Error in user-supplied ODE Jacobian function J(u)");*/
     return 1;
+
+  // rescale u to scaled variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
 
   // rescale Jacobian rows to use normalization
   for (ix=0; ix<nstrip; ix++)
