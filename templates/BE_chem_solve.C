@@ -70,24 +70,27 @@ typedef int(*rhs_f)(float *, float *, int, int, void *);
 typedef int(*jac_f)(float *, float *, int, int, void *);
 
 // function prototypes
-int BE_Resid_Fun(rhs_f, float *u, 
-		 float *u0, float *gu, float dt, int nstrip, int nchem, void *sdata);
-int BE_Resid_Jac(jac_f, float *u, 
-		 float *Ju, float dt, int nstrip, int nchem, void *sdata);
+int BE_Resid_Fun(rhs_f, float *u, float *u0, float *gu, float dt, 
+		 int nstrip, int nchem, float *scaling, void *sdata);
+int BE_Resid_Jac(jac_f, float *u, float *Ju, float dt, 
+		 int nstrip, int nchem, float *scaling, void *sdata);
 int Gauss_Elim(float *A, float *x, float *b, int n);
 
 
 // solver function
 int BE_chem_solve(rhs_f f, jac_f J,
 		  float *u, float dt, float *rtol, 
-                  float *atol, int nstrip, int nchem,
-                  void *sdata) {
+                  float *atol, int nstrip, int nchem, 
+		  float *scaling, void *sdata) {
 
   // local variables
   int i, j, ix, isweep, ier, ONE=1, ioff;
   int sweeps=50;
   float lam=1.0;
   int unsolved;
+
+  // rescale input to normalized variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
 
   // create/initialize temporary arrays
   float *u0 = new float[nchem*nstrip];        // initial state
@@ -103,10 +106,16 @@ int BE_chem_solve(rhs_f f, jac_f J,
   for (isweep=0; isweep<sweeps; isweep++) {
 
     // compute nonlinear residual and Jacobian
-    if (BE_Resid_Fun(f, u, u0, gu, dt, nstrip, nchem, sdata) != 0)
+    if (BE_Resid_Fun(f, u, u0, gu, dt, nstrip, nchem, scaling, sdata) != 0) {
+      // rescale back to input variables
+      for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
       /*ENZO_FAIL("Error in BE_Resid_Fun");*/ return 1;
-    if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, sdata) != 0)
+    }
+    if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, scaling, sdata) != 0) {
+      // rescale back to input variables
+      for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
       /*ENZO_FAIL("Error in BE_Resid_Jac");*/ return 1;
+    }
 
     // Newton update for each cell in strip, accumulate convergence check
     unsolved = 0;
@@ -131,6 +140,8 @@ int BE_chem_solve(rhs_f f, jac_f J,
 	}
 	if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
 	  printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i)\n",isweep,ix,i);
+	  // rescale back to input variables
+	  for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
 	  return 1;
 	}
       } // i loop
@@ -147,6 +158,9 @@ int BE_chem_solve(rhs_f f, jac_f J,
   delete[] gu;
   delete[] Ju;
 
+  // rescale back to input variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+
   // final check, diagnostics output
   if (unsolved) {
     printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
@@ -161,16 +175,22 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
 // nonlinear residual calculation function, forms nonlinear residual defined 
 // by backwards Euler discretization, using user-provided RHS function f.
-int BE_Resid_Fun(rhs_f f, float *u, 
-		 float *u0, float *gu, float dt, int nstrip, int nchem, void *sdata) 
+int BE_Resid_Fun(rhs_f f, float *u, float *u0, float *gu, float dt, 
+		 int nstrip, int nchem, float *scaling, void *sdata) 
 {
   // local variables
   int i;
+
+  // rescale back to input variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
 
   // call user-supplied RHS function at current guess
   if (f(u, gu, nstrip, nchem, sdata) != 0)
     /*ENZO_FAIL("Error in user-supplied ODE RHS function f(u)");*/
     return 1;
+
+  // rescale rhs to normalized variables variables
+  for (i=0; i<nstrip*nchem; i++)  gu[i] /= scaling[i];
 
   // update RHS function to additionally include remaining terms for residual,
   //   g(u) = u - u0 - dt*f(u)
@@ -182,16 +202,31 @@ int BE_Resid_Fun(rhs_f f, float *u,
 
 // nonlinear residual Jacobian function, forms Jacobian defined by backwards
 //  Euler discretization, using user-provided Jacobian function J.
-int BE_Resid_Jac(jac_f J, float *u, 
-		 float *Ju, float dt, int nstrip, int nchem, void *sdata)
+int BE_Resid_Jac(jac_f J, float *u, float *Ju, float dt, 
+		 int nstrip, int nchem, float *scaling, void *sdata)
 {
   // local variables
-  int ix, ivar;
+  int ix, ivar, jvar;
+
+  // rescale back to input variables
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
 
   // call user-supplied Jacobian function at current guess
   if (J(u, Ju, nstrip, nchem, sdata) != 0)
     /*ENZO_FAIL("Error in user-supplied ODE Jacobian function J(u)");*/
     return 1;
+
+  // rescale Jacobian rows to use normalization
+  for (ix=0; ix<nstrip; ix++)
+    for (jvar=0; jvar<nchem; jvar++) 
+      for (ivar=0; ivar<nchem; ivar++) 
+	Ju[(ix*nchem+jvar)*nchem+ivar] /= scaling[ix*nchem+ivar];
+
+  // rescale Jacobian columns to account for normalization
+  for (ix=0; ix<nstrip; ix++)
+    for (ivar=0; ivar<nchem; ivar++) 
+      for (jvar=0; jvar<nchem; jvar++) 
+	Ju[(ix*nchem+jvar)*nchem+ivar] *= scaling[ix*nchem+jvar];
 
   // update Jacobian to additionally include remaining terms,
   //   J = I - dt*Jf(u)
