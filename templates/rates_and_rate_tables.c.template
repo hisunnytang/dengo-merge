@@ -168,7 +168,7 @@ int main(int argc, char** argv)
             }
         }
         if (rv == 0) {
-	    if (siter == 9999) break;
+	    if (siter == 99999) break;
 	    siter++;
             fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
                      siter, dt, dtf);
@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
 	    char imfilename[30];
-	    sprintf(imfilename,"{{ solver_name  }}_intermediate_%04d.h5", siter);
+	    sprintf(imfilename,"{{ solver_name  }}_intermediate_%06d.h5", siter);
     	    file_id = H5Fcreate(imfilename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     	    hsize_t dimsarr[1];
     	    dimsarr[0] = dims;
