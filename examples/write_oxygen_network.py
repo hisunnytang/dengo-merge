@@ -12,19 +12,19 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
-# for ca in cooling_registry.values():
-#     if ca.name in ('o_1', 'o_2', 'de'):
-#     if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
-#     if ca.name.startswith("o_"):
-#        oxygen.add_cooling(ca)
+for ca in cooling_registry.values():
+    #if ca.name in ('o_1', 'o_2', 'de'):
+    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
+    if ca.name.startswith("o_"):
+       oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
     #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-oxygen.init_temperature((1e0, 1e7))
-oxygen.write_intermediate_solutions = False
+oxygen.init_temperature((5e3, 1e8))
+oxygen.write_intermediate_solutions = True
 
 
 create_rate_tables(oxygen, "oxygen")
@@ -35,10 +35,10 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 16
+    NCELLS = 1
     density = 1.0
     init_array = na.ones(NCELLS) 
-    X = 1.0/9.0
+    X = 1e-6
 
     init_values = dict()
     init_values['density'] = density * init_array
@@ -83,6 +83,7 @@ if generate_initial_conditions:
 
     # set up initial temperatures values used to define ge
     temperature = na.logspace(4, 6.7, NCELLS)
+    temperature[:] = 1e6;
     init_values['T'] = temperature
 
     # calculate ge (very crudely)

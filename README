@@ -9,3 +9,16 @@ For more information, please contact the authors:
 
     Matthew Turk (matthew.turk@gmail.com)
     Devin Silvia (devin.silvia@gmail.com)
+
+Dependencies:
+    CHIANTI -- Atomic Database for astrophysical spectroscopy
+    
+        - Download from http://www.chiantidatabase.org/download/CHIANTI_7.1_data.tar.gz
+	- Place in unique directory before untarring (it doesn't have a containment folder)
+        - Need to set special environment variable, XUVTOP
+            (example: 'setenv XUVTOP /path/to/CHIANTI' )
+
+    ChiantiPy -- ChiantiPy is the Python interface to the CHIANTI atomic database
+
+        - Download from http://sourceforge.net/projects/chiantipy/
+        - run 'python setup.py install' in ChiantiPy directory

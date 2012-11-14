@@ -321,10 +321,16 @@ def ion_cooling_rate(species):
 
     def cooling_rate(network):
         # Read in cooling rates from Gnat & Ferland 2012
-        # and do linear interpolation
+        # and do linear interpolation with extrapolation on the ends
         f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
         data = f['Table']
         vals = na.interp(network.T, data['T'], data['%s' %(ion_name)])
+        vals[network.T < data['T'][0]] = data['%s' %(ion_name)][0] + \
+            (network.T-data['T'][0]) * (data['%s' %(ion_name)][0]-data['%s' %(ion_name)][1]) \
+            / (data['T'][0]-data['T'][1])
+        vals[network.T > data['T'][-1]] = data['%s' %(ion_name)][-1] \
+            + (network.T-data['T'][-1]) * (data['%s' %(ion_name)][-1]-data['%s' %(ion_name)][-2]) \
+            / (data['T'][-1]-data['T'][-2])
         f.close()
         return vals
 
