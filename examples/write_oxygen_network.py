@@ -12,18 +12,18 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
-for ca in cooling_registry.values():
-    #if ca.name in ('o_1', 'o_2', 'de'):
-    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
-    if ca.name.startswith("o_"):
-       oxygen.add_cooling(ca)
+# for ca in cooling_registry.values():
+#     #if ca.name in ('o_1', 'o_2', 'de'):
+#     #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
+#     if ca.name.startswith("o_"):
+#        oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
     #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-oxygen.init_temperature((5e3, 1e8))
+oxygen.init_temperature((1e4, 1e8))
 oxygen.write_intermediate_solutions = True
 
 
@@ -83,7 +83,7 @@ if generate_initial_conditions:
 
     # set up initial temperatures values used to define ge
     temperature = na.logspace(4, 6.7, NCELLS)
-    temperature[:] = 1e6;
+    temperature[:] = 1e7;
     init_values['T'] = temperature
 
     # calculate ge (very crudely)
