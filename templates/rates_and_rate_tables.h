@@ -18,3 +18,8 @@ typedef struct TableOfRates {
   int nrates;
   RateTable *rates;
 } TableOfRates;
+
+typedef struct {
+  int *field_types;
+  double **field_pointer;
+}
