@@ -24,7 +24,7 @@ for s in reaction_registry.values():
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-oxygen.init_temperature((5e3, 1e8))
+oxygen.init_temperature((1e4, 1e8))
 oxygen.write_intermediate_solutions = True
 
 
