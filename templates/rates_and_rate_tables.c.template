@@ -226,7 +226,7 @@ int main(int argc, char** argv)
     {% for s in network.required_species | sort %}
     double {{ s.name }}[dims];
     for (j = 0; j < dims; j++) {
-        {{ s.name }}[j] = input[j * N + i];
+        {{ s.name }}[j] = input[j * N + i] * {{ s.weight }};
     }
     fprintf(stderr, "Writing solution for /{{ s.name }}\n");
     H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});

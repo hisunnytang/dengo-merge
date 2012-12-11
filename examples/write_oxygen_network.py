@@ -12,14 +12,15 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
-for ca in cooling_registry.values():
-    #if ca.name in ('o_1', 'o_2', 'de'):
-    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
-    if ca.name.startswith("o_"):
-       oxygen.add_cooling(ca)
+
+# for ca in cooling_registry.values():
+#     #if ca.name in ('o_1', 'o_2', 'de'):
+#     #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
+#     if ca.name.startswith("o_"):
+#        oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
-    #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in s.species):
+    #if all(sp.name in ('o_3', 'o_4', 'o_6', 'o_7', 'de', 'ge') for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
@@ -42,17 +43,16 @@ if generate_initial_conditions:
 
     init_values = dict()
     init_values['density'] = density * init_array
-    init_values['o_1'] = init_array.copy() # use conservation to set this below
+    initial_state = 'o_1'
+    init_values[initial_state] = init_array.copy() # use conservation to set this below
     # populate initial fractional values for the other species
     for s in sorted(oxygen.required_species):
-        if s.name != 'ge' and s.name != 'o_1':
+        if s.name != 'ge' and s.name != initial_state:
             if s.name == 'de':
                 continue
-            if s.name == 'o_2':
-                init_values[s.name] = X * init_array
             else:
                 init_values[s.name] = X * init_array
-            init_values['o_1'] -= init_values[s.name]
+            init_values[initial_state] -= init_values[s.name]
     init_values['de'] = init_array * 0.0
     for s in sorted(oxygen.required_species):
         if s.name in ("ge", "de"): continue
@@ -83,7 +83,7 @@ if generate_initial_conditions:
 
     # set up initial temperatures values used to define ge
     temperature = na.logspace(4, 6.7, NCELLS)
-    temperature[:] = 1e6;
+    temperature[:] = 1e7;
     init_values['T'] = temperature
 
     # calculate ge (very crudely)

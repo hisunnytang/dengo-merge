@@ -4,6 +4,7 @@ import numpy as np
 import h5py
 import glob
 import argparse
+import docutils.utils.roman as roman
 
 class ResultsPlotter:
 
@@ -66,19 +67,30 @@ class ResultsPlotter:
         fsf.close()
 
     def plot_all(self):
-        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies - 1)))]
+        mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.jet(np.linspace(0,1,(self.nspecies - 1)))]
+        mpl.rc('xtick', labelsize=14)
+        mpl.rc('ytick', labelsize=14)
+        mpl.rc('axes', labelsize=18)
         # plot the time evolution of a species for a given T
         plt.clf()
+        i = 0
         for s in sorted(self.species):
             if s != 'ge':
-                if s == 'HII':
-                    plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5, marker='x')
+                i += 1
+                if s == 'T':
+                    plt.loglog(self.t, self.data[s][0,:], '--', label='$T (K)$', lw=1.5)
                 else:
-                    plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
-        plt.xlabel("Time")
-        plt.ylim(1e-10, 1e7)
-        leg = plt.legend(loc = "best")
-        leg.legendPatch.set_alpha(0.1)
+                    if s == 'de':
+                        plt.loglog(self.t, self.data[s][0,:], '-.', label='$e^{-}$', lw=1.5, marker='o', markersize=5.0)
+                    else:
+                        
+                        plt.loglog(self.t, self.data[s][0,:], '-', label='$O_{%s}$' %(roman.toRoman(i+1)), lw=1.5)
+        plt.xlabel("Time (s)")
+        plt.ylabel("n$_{s}$")
+        plt.ylim(1e-8, 2e7)
+        plt.xlim(1e4,1e12)
+        leg = plt.legend(loc = (0.02, 0.54), ncol=2)
+        #leg.legendPatch.set_alpha(0.9)
         plt.savefig("%s_time.png" % (self.network_name))
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies)))]
         plt.clf()
