@@ -10,18 +10,22 @@ from dengo.write_rate_reader import \
     create_initial_conditions
 from dengo.chemistry_constants import tiny, kboltz, mh
 
+# If only a subset of species are wanted put them here
+# and change the commented lines below
+want = ('o_5', 'o_6', 'o_7', 'de', 'ge')
+
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
 
 for ca in cooling_registry.values():
     # The following line can be used to specify a subset of species
-    #if all(sp.name in ('o_5', 'o_6', 'o_7', 'de', 'ge') for sp in ca.species):
+    #if all(sp.name in want for sp in ca.species):
     if ca.name.startswith("o_"):
        oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
     # The following line can be used to specify a subset of species
-    #if all(sp.name in ('o_5', 'o_6', 'o_7', 'de', 'ge') for sp in s.species):
+    #if all(sp.name in want for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
@@ -62,7 +66,7 @@ if generate_initial_conditions:
         if s.name in ("ge", "de"): continue
         init_values['de'] += init_values[s.name] * s.free_electrons
         print "Adding %0.5e to electrons from %s" % (
-            (init_values[s.name] * s.free_electrons/s.weight)[0], s.name)
+            (init_values[s.name] * s.free_electrons)[0], s.name)
     print "Total de: %0.5e" % (init_values['de'][0])
 
     # convert to masses to multiplying by the density factor and the species weight

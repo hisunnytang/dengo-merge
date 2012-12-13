@@ -65,7 +65,7 @@ if generate_initial_conditions:
         if s.name in ('ge', 'de'): continue
         init_values['de'] += init_values[s.name] * s.free_electrons
         print "Adding %0.5e to electrons from %s" % (
-            (init_values[s.name] * s.free_electrons/s.weight)[0], s.name)
+            (init_values[s.name] * s.free_electrons)[0], s.name)
     print "Total de: %0.5e" % (init_values['de'][0])
 
     # convert to masses to multiplying by the density factor and the species weight
