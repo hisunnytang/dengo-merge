@@ -13,21 +13,25 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
 
-# for ca in cooling_registry.values():
-#     #if ca.name in ('o_1', 'o_2', 'de'):
-#     #if all(sp.name in ('o_1', 'o_2', 'o_3', 'de', 'ge') for sp in ca.species):
-#     if ca.name.startswith("o_"):
-#        oxygen.add_cooling(ca)
+for ca in cooling_registry.values():
+    # The following line can be used to specify a subset of species
+    #if all(sp.name in ('o_5', 'o_6', 'o_7', 'de', 'ge') for sp in ca.species):
+    if ca.name.startswith("o_"):
+       oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
-    #if all(sp.name in ('o_3', 'o_4', 'o_6', 'o_7', 'de', 'ge') for sp in s.species):
+    # The following line can be used to specify a subset of species
+    #if all(sp.name in ('o_5', 'o_6', 'o_7', 'de', 'ge') for sp in s.species):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
+# This defines the temperature range for the rate tables
 oxygen.init_temperature((1e4, 1e8))
+
+# Set to false if you don't want intermediate solution output
 oxygen.write_intermediate_solutions = True
 
-
+# Write the rate tables and the corresponding C++ code
 create_rate_tables(oxygen, "oxygen")
 create_rate_reader(oxygen, "oxygen")
 
@@ -56,13 +60,10 @@ if generate_initial_conditions:
     init_values['de'] = init_array * 0.0
     for s in sorted(oxygen.required_species):
         if s.name in ("ge", "de"): continue
-        init_values['de'] += init_values[s.name] * s.free_electrons# / s.weight
+        init_values['de'] += init_values[s.name] * s.free_electrons
         print "Adding %0.5e to electrons from %s" % (
-            (init_values[s.name] * s.free_electrons/s.weight)[0],
-            s.name,
-        )
+            (init_values[s.name] * s.free_electrons/s.weight)[0], s.name)
     print "Total de: %0.5e" % (init_values['de'][0])
-    #print init_values['de'][0] / (init_values['o_2'][0] / 16.0)
 
     # convert to masses to multiplying by the density factor and the species weight
     for s in oxygen.required_species:
@@ -78,19 +79,18 @@ if generate_initial_conditions:
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
         number_density += init_values[s.name][0]/s.weight
-        if s.name == 'de': continue #don't want this in either density
+        if s.name == 'de': continue
         density += init_values[s.name][0]
 
     # set up initial temperatures values used to define ge
     temperature = na.logspace(4, 6.7, NCELLS)
-    temperature[:] = 1e7;
+    temperature[:] = 1e7; # need to remove this line for the above one to matter
     init_values['T'] = temperature
 
     # calculate ge (very crudely)
     gamma = 5.e0/3.e0
     init_values['ge'] = ((temperature * number_density * kboltz)
                          / (density * mh * (gamma - 1)))
-    #init_values['ge'] = ((temperature * number_density * kboltz)
-    #                     / ((gamma - 1)))
     
+    # Write the initial conditions file
     create_initial_conditions(init_values, 'oxygen')
