@@ -82,15 +82,14 @@ class ResultsPlotter:
                 else:
                     if s == 'de':
                         plt.loglog(self.t, self.data[s][0,:], '-.', label='$e^{-}$', lw=1.5, marker='o', markersize=5.0)
-                    else:
-                        
-                        plt.loglog(self.t, self.data[s][0,:], '-', label='$O_{%s}$' %(roman.toRoman(i+1)), lw=1.5)
+                    else:                        
+                        plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
         plt.xlabel("Time (s)")
         plt.ylabel("n$_{s}$")
         plt.ylim(1e-8, 2e7)
-        plt.xlim(1e4,1e12)
-        leg = plt.legend(loc = (0.02, 0.54), ncol=2)
-        #leg.legendPatch.set_alpha(0.9)
+        #plt.xlim(1e4,1e12)
+        leg = plt.legend(loc = 'best', ncol=2)
+        leg.legendPatch.set_alpha(0.8)
         plt.savefig("%s_time.png" % (self.network_name))
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies)))]
         plt.clf()

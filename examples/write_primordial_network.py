@@ -24,7 +24,6 @@ for ca in cooling_registry.values():
     #if not all(sp.name in want for sp in ca.species): continue
     primordial.add_cooling(ca)
 
-
 for i, rname in enumerate(sorted(reaction_registry)):
     s = reaction_registry[rname]
     #if not all(sp.name in want for sp in s.species): continue
@@ -87,7 +86,7 @@ if generate_initial_conditions:
     
     # set up initial temperatures values used to define ge
     temperature = na.logspace(2, 4, NCELLS)
-    temperature[:] = 2e2
+    temperature[:] = 1e3
     init_values['T'] = temperature
 
     # calculate ge (very crudely)
