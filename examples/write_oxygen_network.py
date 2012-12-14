@@ -44,7 +44,7 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as na
-    NCELLS = 1
+    NCELLS = 1024
     density = 1.0
     init_array = na.ones(NCELLS) 
     X = 1e-6
