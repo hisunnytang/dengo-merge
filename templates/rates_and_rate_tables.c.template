@@ -224,12 +224,12 @@ double dengo_evolve_{{solver_name}} (float dtf, float &dt, double *input,
             fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
                      siter, dt, dtf);
             ttot += dt;
-	    if (dtfail) {
-	      dt = min((dt + dtprev)/2.0, dtf - ttot);
-	      dtfail = false;
-	    } else {
+	    //if (dtfail) {
+	    //  dt = min((dt + dtprev)/2.0, dtf - ttot);
+	    //  dtfail = false;
+	    //} else {
 	      dt = min(dt * 1.1, dtf - ttot);
-	    }
+	    //}
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
 	    char imfilename[30];
@@ -262,9 +262,10 @@ double dengo_evolve_{{solver_name}} (float dtf, float &dt, double *input,
 	    {% endif %}
 	    for (i = 0; i < dims * N; i++) prev[i] = input[i];
         } else {
-	    dtprev = dt;
-	    dtfail = true;
-            dt /= 2.0;
+	    //dtprev = dt;
+	    //dtfail = true;
+            //dt /= 2.0;
+	    dt *= 0.9;
             for (i = 0; i < dims * N; i++) input[i] = prev[i];
             if (dt == 0.0)  {
                 fprintf(stderr, "Dying!\n");
