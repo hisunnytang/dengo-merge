@@ -291,14 +291,14 @@ def cool(eq):
 #  with epsilon=0.05, G_0=1.7 (rate in erg s^-1 cm^-3)
 # -- gammah --
 # FIX THIS
-@cooling_action("gammah", "gammah * HI * HII")
+@cooling_action("gammah", "0.0*gammah * HI * HII")
 def cool(eq):
     @eq.table
     def gammah(state):
-        vals = 8.5e-26 + state.T*0.0
+        vals = 8.5e-26 + state.T
         return vals
 
-@cooling_action("h2formation", "h2mheat * HI * HI * HI - h2mcool * H2I * HI")
+@cooling_action("h2formation", "h2mheat*HI*HI*HI - h2mcool*H2I*HI")
 def h2formation(eq):
     @eq.table
     def h2mheat(state):
