@@ -297,3 +297,15 @@ def cool(eq):
     def gammah(state):
         vals = 8.5e-26 + state.T*0.0
         return vals
+
+@cooling_action("h2formation", "h2mheat * HI * HI * HI - h2mcool * H2I * HI")
+def h2formation(eq):
+    @eq.table
+    def h2mheat(state):
+        vals = 7.177e-12 * reaction_registry['k22'].coeff_fn(state)
+        return vals
+
+    @eq.table
+    def h2mcool(state):
+        vals = 7.177e-12 * reaction_registry['k13'].coeff_fn(state)
+        return vals
