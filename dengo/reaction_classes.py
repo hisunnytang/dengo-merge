@@ -145,6 +145,7 @@ def chianti_rate(species):
         print "Name must be in ChiantiPy format."
         raise RuntimeError
     ion_name = species.name
+    print "ion name is:", ion_name
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
     species_i = "%s_%s" % (element_name, ion_state + 1)

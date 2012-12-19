@@ -33,10 +33,7 @@ def create_rate_reader(network, solver_name):
             loader = jinja2.FileSystemLoader(["templates/","."]))
     solver_template = env.get_template(
         "templates/rates_and_rate_tables.c.template")
-    # template_vars = dict(num_solved_species = num_solved_species,
-    #                      num_total_species = num_total_species,
     template_vars = dict(network = network, solver_name = solver_name)
-    #template_vars['pp'] = pp_class(template_vars)
     solver_out = solver_template.render(**template_vars)
     if not os.path.isdir("output"): os.makedirs("output")
     f = open("output/%s_solver.c" % solver_name, "w")
