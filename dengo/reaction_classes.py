@@ -324,13 +324,25 @@ def ion_cooling_rate(species):
         # and do linear interpolation with extrapolation on the ends
         f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
         data = f['Table']
+        
+        # interpolation
         vals = na.interp(network.T, data['T'], data['%s' %(ion_name)])
-        vals[network.T < data['T'][0]] = data['%s' %(ion_name)][0] + \
-            (network.T-data['T'][0]) * (data['%s' %(ion_name)][0]-data['%s' %(ion_name)][1]) \
-            / (data['T'][0]-data['T'][1])
-        vals[network.T > data['T'][-1]] = data['%s' %(ion_name)][-1] \
-            + (network.T-data['T'][-1]) * (data['%s' %(ion_name)][-1]-data['%s' %(ion_name)][-2]) \
-            / (data['T'][-1]-data['T'][-2])
+        
+        # extrapolation in logspace
+        vals = na.log10(vals)
+        logT = na.log10(network.T)
+        logdataT = na.log10(data['T'])
+        logdataS = na.log10(data['%s' %(ion_name)])
+        extrapdown = logdataS[0] + \
+            (logT - logdataT[0]) * (logdataS[0] - logdataS[1]) \
+            / (logdataT[0] - logdataT[1])
+        vals[logT < logdataT[0]] = extrapdown[logT < logdataT[0]]
+        extrapup = logdataS[-1] + \
+            (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
+            / (logdataT[-1] - logdataT[-2])
+        vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+        vals = 10.0**vals
+        
         f.close()
         return vals
 

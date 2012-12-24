@@ -43,15 +43,15 @@ create_rate_reader(oxygen, "oxygen")
 # Generate initial conditions (switch to False to disable this)
 generate_initial_conditions = True
 start_neutral = False
+initial_state = 'o_9' # if using start_neutral = True, this should be the _1 state
+                      # if starting in a close to CIE state, this should be the
+                      # ion species that will be closest for one for the given Temp.
+                      # note, this will get hairy when we're not testing a single T
 
 if generate_initial_conditions:
     import numpy as np
     NCELLS = 1
     density = 1
-    initial_state = 'o_9' # if using start_neutral = True, this should be the _1 state
-                          # if starting in a close to CIE state, this should be the
-                          # ion species that will be closest for one for the given Temp.
-                          # note, this will get hairy when we're not testing a single T
     init_array = np.ones(NCELLS)
     init_values = dict()
     init_values['density'] = density * init_array
