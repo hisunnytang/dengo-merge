@@ -84,6 +84,7 @@ if generate_initial_conditions:
     else:
         # Unless neutral is desired, we'll start in a perturbed CIE solution
         import chianti.core as ch
+        import chianti.util as chu
 
         # populate initial fractional values for the species
         for s in sorted(carbon.required_species):
@@ -91,7 +92,8 @@ if generate_initial_conditions:
                 if s.name == 'de':
                     continue
                 else:
-                    ion = ch.ion(s.name, temperature=init_values['T'])
+                    ion_name = chu.zion2name(s.number, s.free_electrons + 1)
+                    ion = ch.ion(ion_name, temperature=init_values['T'])
                     ion.ioneqOne()
                     ion_frac = ion.IoneqOne
                     if ion_frac == 0.0:
