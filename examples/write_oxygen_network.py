@@ -12,7 +12,7 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 
 # If only a subset of species are wanted put them here
 # and change the commented lines below
-want = ('o_5', 'o_6', 'o_7', 'de', 'ge')
+want = ('OV', 'OVI', 'OVII', 'de', 'ge')
 
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
@@ -20,13 +20,13 @@ oxygen.add_energy_term()
 # for ca in cooling_registry.values():
 #     # The following line can be used to specify a subset of species
 #     #if all(sp.name in want for sp in ca.species):
-#     if ca.name.startswith("o_"):
+#     if ca.name.startswith("O"):
 #        oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
     # The following line can be used to specify a subset of species
     #if all(sp.name in want for sp in s.species):
-    if s.name.startswith("o_"):
+    if s.name.startswith("O"):
         oxygen.add_reaction(s)
 
 # This defines the temperature range for the rate tables
@@ -42,7 +42,7 @@ create_rate_reader(oxygen, "oxygen")
 # Generate initial conditions (switch to False to disable this)
 generate_initial_conditions = True
 start_neutral = False
-initial_state = 'o_9' # if using start_neutral = True, this should be the _1 state
+initial_state = 'OIX' # if using start_neutral = True, this should be the _1 state
                       # if starting in a close to CIE state, this should be the
                       # ion species that will be closest for one for the given Temp.
                       # note, this will get hairy when we're not testing a single T

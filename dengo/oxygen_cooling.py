@@ -22,22 +22,23 @@ License:
 """
 
 from reaction_classes import Species, ion_cooling_rate, species_registry
+import docutils.utils.roman as roman
 
 # Note: the atomic/species properties have to be hard-coded for this
 # we may want to come up with a better solution here...
-atomicSymbol = 'o'
+atomicSymbol = 'O'
 atomicNumber = 8
 atomicWeight = 16
 nIons = atomicNumber + 1
 
 for i in range(nIons):
     ion_state = i + 1
-    speciesName = "%s_%s" %(atomicSymbol, ion_state)
+    speciesName = "%s%s" %(atomicSymbol, roman.toRoman(ion_state))
     # Check if the species already exists
     # in the species registry, if it does
     # we don't want to create it again
     if (speciesName in species_registry) == False:
-        s = Species(speciesName, atomicWeight, i)
+        s = Species(speciesName, atomicNumber, atomicWeight, i)
     else:
         s = species_registry[speciesName]
     ion_cooling_rate(s)

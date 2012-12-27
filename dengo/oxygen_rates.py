@@ -22,30 +22,31 @@ License:
 """
 
 from reaction_classes import Species, chianti_rate, species_registry
+import docutils.utils.roman as roman
 
 # Note: the atomic/species properties have to be hard-coded for this
 # we may want to come up with a better solution here...
-atomicSymbol = 'o'
+atomicSymbol = 'O'
 atomicNumber = 8
 atomicWeight = 16
 nIons = atomicNumber + 1
 
 for i in range(nIons):
     ion_state = i + 1
-    speciesName = "%s_%s" %(atomicSymbol, ion_state)
+    speciesName = "%s%s" %(atomicSymbol, roman.toRoman(ion_state))
     # Check if the species already exists
     # in the species registry, if it does
     # we don't want to create it again
     if (speciesName in species_registry) == False:
-        s = Species(speciesName, atomicWeight, i)
+        s = Species(speciesName, atomicNumber, atomicWeight, i)
     else:
         s = species_registry[speciesName]
 
     if ion_state != nIons:
         # we need to do this to make sure the 'ion_state + 1' species
         # exists when chianti_rate is called
-        speciesNamePlusOne = "%s_%s" % (atomicSymbol, ion_state+1)
+        speciesNamePlusOne = "%s%s" % (atomicSymbol, roman.toRoman(ion_state+1))
         if (speciesNamePlusOne in species_registry) == False:
-            splusone = Species(speciesNamePlusOne, atomicWeight, i+1)
+            splusone = Species(speciesNamePlusOne, atomicNumber, atomicWeight, i+1)
 
     chianti_rate(s)

@@ -26,11 +26,14 @@ from chemistry_constants import tevk, tiny, mh
 import types
 import sympy
 import h5py
+import docutils.utils.roman as roman
 
 try:
     import chianti.core as ch
+    import chianti.util as chu
 except (ImportError, KeyError):
     ch = None
+    chu = None
 
 reaction_registry = {}
 cooling_registry = {}
@@ -141,14 +144,18 @@ class Reaction(object):
 reaction = Reaction.create_reaction
 def chianti_rate(species):
     if ch is None: raise ImportError
-    if "_" not in species.name:
+    if chu is None: raise ImportError
+    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    if "_" not in ion_name:
         print "Name must be in ChiantiPy format."
         raise RuntimeError
-    ion_name = species.name
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
-    species_i = "%s_%s" % (element_name, ion_state + 1)
-    species_r = "%s_%s" % (element_name, ion_state - 1)
+    species_i = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state + 1))
+    if ion_state != 1:
+        species_r = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state - 1))
+    else:
+        species_r = None
     de = species_registry['de']
     new_rates = []
     
@@ -178,9 +185,10 @@ def chianti_rate(species):
     return new_rates
 
 class Species(object):
-    def __init__(self, name, weight, free_electrons = 0.0, equilibrium = False,
+    def __init__(self, name, number, weight, free_electrons = 0.0, equilibrium = False,
                  computed = False):
         self.name = name
+        self.number = number
         self.weight = weight
         self.free_electrons = free_electrons
         self.equilibrium = equilibrium
@@ -309,13 +317,14 @@ class CoolingAction(object):
 cooling_action = CoolingAction.create_cooling_action
 
 def ion_cooling_rate(species):
-    if "_" not in species.name:
+    if chu is None: raise ImportError
+    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError
-    ion_name = species.name
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
-    species_c = ion_name
+    species_c = species.name
     de = species_registry['de']
     new_rates = []
 
@@ -348,10 +357,10 @@ def ion_cooling_rate(species):
 
     if species_c in species_registry:
         species_c = species_registry[species_c]
-        ion_cooling_action = CoolingAction("%s_c" % ion_name, #name
-                                           "-%s_c * %s * de" %(ion_name, ion_name)) #equation
-        ion_cooling_action.tables["%s_c" % ion_name] = cooling_rate
-        new_rates.append("%s_c" % ion_name)
+        ion_cooling_action = CoolingAction("%s_c" % species.name, #name
+                                           "-%s_c * %s * de" %(species.name, species.name)) #equation
+        ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
+        new_rates.append("%s_c" % species.name)
     return new_rates
 
 class CVODEPrinter(sympy.printing.str.StrPrinter):
