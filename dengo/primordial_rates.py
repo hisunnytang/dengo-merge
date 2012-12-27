@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as na
+import numpy as np
 from chemistry_constants import tevk, tiny, mh
 from reaction_classes import reaction
 from .known_species import *
@@ -29,7 +29,7 @@ from .known_species import *
 # -- k01 --
 @reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)])
 def rxn(state):
-    vals = na.exp(-32.71396786375 
+    vals = np.exp(-32.71396786375 
                  + 13.53655609057*state.logtev
                  - 5.739328757388*state.logtev**2 
                  + 1.563154982022*state.logtev**3
@@ -46,7 +46,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.T > 5500)
     _i2 = ~_i1
-    vals = na.exp(-28.61303380689232
+    vals = np.exp(-28.61303380689232
                   - 0.7241125657826851*state.logtev
                   - 0.02026044731984691*state.logtev**2
                   - 0.002380861877349834*state.logtev**3
@@ -57,8 +57,8 @@ def rxn(state):
                   - 1.856767039775261e-8*state.logtev**8
                   - 3.071135243196595e-9*state.logtev**9)
     _i1 = (state.tev < 0.8)
-    vals[_i2] = (1.54e-9*(1.+0.3/na.exp(8.099328789667/state.tev))
-                  / (na.exp(40.49664394833662/state.tev)*state.tev**1.5)
+    vals[_i2] = (1.54e-9*(1.+0.3/np.exp(8.099328789667/state.tev))
+                  / (np.exp(40.49664394833662/state.tev)*state.tev**1.5)
                   + 3.92e-13/state.tev**0.6353) 
     vals[_i1] = 3.92e-13/state.tev**0.6353
     return vals
@@ -68,7 +68,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.8)
     _i2 = ~_i1
-    vals = na.exp(-44.09864886561001
+    vals = np.exp(-44.09864886561001
                   + 23.91596563469*state.logtev
                   - 10.75323019821*state.logtev**2
                   + 3.058038757198*state.logtev**3
@@ -86,8 +86,8 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.8)
     _i2 = ~_i1
-    vals = (1.54e-9*(1.+0.3/na.exp(8.099328789667/state.tev))
-                   / (na.exp(40.49664394833662/state.tev)*state.tev**1.5)
+    vals = (1.54e-9*(1.+0.3/np.exp(8.099328789667/state.tev))
+                   / (np.exp(40.49664394833662/state.tev)*state.tev**1.5)
                    + 3.92e-13/state.tev**0.6353) 
     vals[_i2] = tiny
     return vals
@@ -97,7 +97,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.8)
     _i2 = ~_i1
-    vals = na.exp(-68.71040990212001
+    vals = np.exp(-68.71040990212001
                   + 43.93347632635*state.logtev
                   - 18.48066993568*state.logtev**2
                   + 4.701626486759002*state.logtev**3
@@ -112,7 +112,7 @@ def rxn(state):
 # -- k06 --
 @reaction('k06', [(1,HeIII),   (1,de)], [ (1,HeII),         ])
 def rxn(state):
-    vals = (3.36e-10/na.sqrt(state.T)/(state.T/1.e3)**0.2 /
+    vals = (3.36e-10/np.sqrt(state.T)/(state.T/1.e3)**0.2 /
             (1+(state.T/1.e6)**0.7))
     return vals
 
@@ -127,7 +127,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.1)
     _i2 = ~_i1
-    vals = na.exp(-20.06913897587003
+    vals = np.exp(-20.06913897587003
                   + 0.2289800603272916*state.logtev
                   + 0.03599837721023835*state.logtev**2
                   - 0.004555120027032095*state.logtev**3
@@ -144,7 +144,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.T > 6.7e3)
     vals = 1.85e-23*state.T**1.8
-    vals[_i1] = 5.81e-16*(state.T/56200)**(-0.6657*na.log10(state.T/56200))
+    vals[_i1] = 5.81e-16*(state.T/56200)**(-0.6657*np.log10(state.T/56200))
     return vals
 
 # -- k10 --
@@ -158,7 +158,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.3)
     _i2 = ~_i1
-    vals = na.exp(-24.24914687731536
+    vals = np.exp(-24.24914687731536
                   + 3.400824447095291*state.logtev
                   - 3.898003964650152*state.logtev**2
                   + 2.045587822403071*state.logtev**3
@@ -175,17 +175,17 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.3)
     _i2 = ~_i1
-    vals = 5.6e-11*na.exp(-102124/state.T)*state.T**0.5
+    vals = 5.6e-11*np.exp(-102124/state.T)*state.T**0.5
     return vals
 
 # -- k13 --
 # NOTE: This is the Glover 2008 rate
 @reaction('k13', [  (1,H2I),   (1,HI)], [   (3,HI),         ])
 def rxn(state):
-    vals = 10.0**(-178.4239 - 68.42243 * na.log10(state.T) 
-                            + 43.20243 * na.log10(state.T)**2
-                            - 4.633167 * na.log10(state.T)**3 
-                            + 69.70086 * na.log10(1 + 40870.38 / state.T)
+    vals = 10.0**(-178.4239 - 68.42243 * np.log10(state.T) 
+                            + 43.20243 * np.log10(state.T)**2
+                            - 4.633167 * np.log10(state.T)**3 
+                            + 69.70086 * np.log10(1 + 40870.38 / state.T)
                             - (23705.7 / state.T))
     return vals
 
@@ -194,7 +194,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.04)
     _i2 = ~_i1
-    vals = na.exp(-18.01849334273
+    vals = np.exp(-18.01849334273
                   + 2.360852208681*state.logtev
                   - 0.2827443061704*state.logtev**2
                   + 0.01623316639567*state.logtev**3
@@ -211,7 +211,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.tev > 0.1)
     _i2 = ~_i1
-    vals = na.exp(-20.37260896533324
+    vals = np.exp(-20.37260896533324
                   + 1.139449335841631*state.logtev
                   - 0.1421013521554148*state.logtev**2
                   + 0.00846445538663*state.logtev**3
@@ -227,7 +227,7 @@ def rxn(state):
 # -- k16 --
 @reaction('k16', [   (1,HM),  (1,HII)], [   (2,HI),         ])
 def rxn(state):
-    k16 = 6.5e-9/na.sqrt(state.tev)
+    k16 = 6.5e-9/np.sqrt(state.tev)
     return k16
 
 # -- k17 --
@@ -236,7 +236,7 @@ def rxn(state):
     _i1 = (state.T < 1e4)
     _i2 = ~_i1
     vals = 1.0e-8*state.T**(-0.4)
-    vals[_i2] = 4.0e-4*state.T**(-1.4)*na.exp(-15100.0/state.T)
+    vals[_i2] = 4.0e-4*state.T**(-1.4)*np.exp(-15100.0/state.T)
     return vals
 
 # -- k18 --
@@ -251,7 +251,7 @@ def rxn(state):
 # -- k19 --
 @reaction('k19', [ (1,H2II),   (1,HM)], [   (1,HI),  (1,H2I)])
 def rxn(state):
-    vals = 5.e-7*na.sqrt(100./state.T)
+    vals = 5.e-7*np.sqrt(100./state.T)
     return vals
 
 # -- k21 --
@@ -270,8 +270,8 @@ def rxn(state):
 # -- k23 --
 @reaction('k23', [  (1,H2I),  (1,H2I)], [   (2,HI),  (1,H2I)])
 def rxn(state):
-    vals = ((8.125e-8 / na.sqrt(state.T))
-          * na.exp(-52000/state.T)
-          * (1.0 - na.exp(-6000/state.T)))
+    vals = ((8.125e-8 / np.sqrt(state.T))
+          * np.exp(-52000/state.T)
+          * (1.0 - np.exp(-6000/state.T)))
     return vals
 

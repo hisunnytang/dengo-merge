@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-import numpy as na
+import numpy as np
 from chemistry_constants import tevk, tiny, mh
 import types
 import sympy
@@ -241,7 +241,7 @@ class QuantitiesTable(object):
         for i,s in enumerate(species_list):
             self._names[s.name] = i
         self.species_list = species_list
-        self.values = na.zeros(len(species_list), dtype='float64')
+        self.values = np.zeros(len(species_list), dtype='float64')
         if initial_values is not None:
             for s, v in initial_values.items():
                 self.values[self._names[s]] = v
@@ -335,13 +335,13 @@ def ion_cooling_rate(species):
         data = f['Table']
         
         # interpolation
-        vals = na.interp(network.T, data['T'], data['%s' %(ion_name)])
+        vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
         
         # extrapolation in logspace
-        vals = na.log10(vals)
-        logT = na.log10(network.T)
-        logdataT = na.log10(data['T'])
-        logdataS = na.log10(data['%s' %(ion_name)])
+        vals = np.log10(vals)
+        logT = np.log10(network.T)
+        logdataT = np.log10(data['T'])
+        logdataS = np.log10(data['%s' %(ion_name)])
         extrapdown = logdataS[0] + \
             (logT - logdataT[0]) * (logdataS[0] - logdataS[1]) \
             / (logdataT[0] - logdataT[1])
@@ -350,6 +350,10 @@ def ion_cooling_rate(species):
             (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
             / (logdataT[-1] - logdataT[-2])
         vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+
+        # vals[logT < logdataT[0]] = np.log10(tiny)
+        # vals[logT > logdataT[-1]] = np.log10(tiny)
+
         vals = 10.0**vals
         
         f.close()

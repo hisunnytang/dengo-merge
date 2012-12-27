@@ -20,7 +20,7 @@ License:
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
-import numpy as na
+import numpy as np
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
     count_m, index_i, species_registry
@@ -64,12 +64,12 @@ class ChemicalNetwork(object):
     
     def init_temperature(self, T_bounds = (1, 1e8), n_bins=1024):
         self.n_bins = 1024
-        self.T = na.logspace(na.log(T_bounds[0]),
-                             na.log(T_bounds[1]),
-                             n_bins, base = na.e)
-        self.logT = na.log(self.T)
+        self.T = np.logspace(np.log(T_bounds[0]),
+                             np.log(T_bounds[1]),
+                             n_bins, base = np.e)
+        self.logT = np.log(self.T)
         self.tev = self.T / tevk
-        self.logtev = na.log(self.tev)
+        self.logtev = np.log(self.tev)
         self.T_bounds = T_bounds
 
     def species_total(self, species):

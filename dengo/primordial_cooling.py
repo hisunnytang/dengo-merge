@@ -22,7 +22,7 @@ License:
 """
 
 from chemistry_constants import tevk
-import numpy as na
+import numpy as np
 import sympy
 from reaction_classes import cooling_action, reaction_registry
 
@@ -35,8 +35,8 @@ dhuge = 1.0e30
 def cool(eq):
     @eq.table
     def ceHI(state):
-        vals = 7.5e-19*na.exp(-na.minimum(na.log(dhuge), 118348.0/state.T)) \
-                    / (1.0 + na.sqrt(state.T/1.0e5))
+        vals = 7.5e-19*np.exp(-np.minimum(np.log(dhuge), 118348.0/state.T)) \
+                    / (1.0 + np.sqrt(state.T/1.0e5))
         return vals
 
 # -- ceHeI --
@@ -44,8 +44,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def ceHeI(state):
-        vals = 9.1e-27*na.exp(-na.minimum(na.log(dhuge), 13179.0/state.T)) \
-                      *state.T**(-0.1687)/(1.0 + na.sqrt(state.T/1.0e5))
+        vals = 9.1e-27*np.exp(-np.minimum(np.log(dhuge), 13179.0/state.T)) \
+                      *state.T**(-0.1687)/(1.0 + np.sqrt(state.T/1.0e5))
         return vals
 
 # -- ceHeIIa --
@@ -53,8 +53,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def ceHeII(state):
-        vals = 5.54e-17*na.exp(-na.minimum(na.log(dhuge),473638.0/state.T)) \
-                       *state.T**(-0.397)/(1.+na.sqrt(state.T/1.0e5))
+        vals = 5.54e-17*np.exp(-np.minimum(np.log(dhuge),473638.0/state.T)) \
+                       *state.T**(-0.397)/(1.+np.sqrt(state.T/1.0e5))
         return vals
 
 # Collisional ionizations
@@ -64,8 +64,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def ciHeIS(state):
-        vals = 5.01e-27*(state.T)**(-0.1687)/(1.+na.sqrt(state.T/1.0e5)) \
-                * na.exp(-na.minimum(na.log(dhuge),55338.0/state.T))
+        vals = 5.01e-27*(state.T)**(-0.1687)/(1.+np.sqrt(state.T/1.0e5)) \
+                * np.exp(-np.minimum(np.log(dhuge),55338.0/state.T))
         return vals
 
 # -- ciHI --
@@ -99,7 +99,7 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def reHII(state):
-        vals = 8.70e-27*na.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
+        vals = 8.70e-27*np.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
             / (1.0 + (state.T/1.0e6)**(0.7)) 
         return vals
 
@@ -117,8 +117,8 @@ def cool(eq):
     @eq.table
     def reHeII2(state):
         vals = 1.24e-13*state.T**(-1.5) \
-            * na.exp(-na.minimum(na.log(dhuge),470000.0/state.T)) \
-            * (1.+0.3*na.exp(-na.minimum(na.log(dhuge),94000.0/state.T))) 
+            * np.exp(-np.minimum(np.log(dhuge),470000.0/state.T)) \
+            * (1.+0.3*np.exp(-np.minimum(np.log(dhuge),94000.0/state.T))) 
         return vals
 
 # -- reHeIII --
@@ -126,7 +126,7 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def reHeIII(state):
-        vals = 3.48e-26*na.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
+        vals = 3.48e-26*np.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
             / (1.0 + (state.T/1.0e6)**(0.7))
         return vals
 
@@ -135,8 +135,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def brem(state):
-        vals = 1.43e-27*na.sqrt(state.T) \
-             *(1.1+0.34*na.exp(-(5.5-na.log10(state.T))**2/3.0))
+        vals = 1.43e-27*np.sqrt(state.T) \
+             *(1.1+0.34*np.exp(-(5.5-np.log10(state.T))**2/3.0))
         return vals
 
 # Galli & Palla 1999 cooling
@@ -148,8 +148,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def gpldl(state):
-        tm = na.minimum(na.maximum(state.T, 13.0), 1e5)
-        lt = na.log10(tm)
+        tm = np.minimum(np.maximum(state.T, 13.0), 1e5)
+        lt = np.log10(tm)
         # Low density limit from Galli & Palla
         # -- gpldl --
         vals = 10.**(-103.0+97.59*lt-48.05*lt**2+10.80*lt*lt*lt
@@ -160,13 +160,13 @@ def cool(eq):
     def gphdl(state):
         # high density limit from HM79 (typo corrected Aug 30/2007)
         # -- gphdl --
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
         t3 = tm/1000.
         # HDLR is from p31 of HM79.
         HDLR = ((9.5e-22*t3**3.76)/(1.+0.12*t3**2.1)*
-                na.exp(-(0.13/t3)**3)+3.e-24*na.exp(-0.51/t3))
-        HDLV = (6.7e-19*na.exp(-5.86/t3) + 1.6e-18*na.exp(-11.7/t3))
+                np.exp(-(0.13/t3)**3)+3.e-24*np.exp(-0.51/t3))
+        HDLV = (6.7e-19*np.exp(-5.86/t3) + 1.6e-18*np.exp(-11.7/t3))
         vals  = (HDLR + HDLV) 
         return vals
 
@@ -176,9 +176,9 @@ def cool(eq):
     @eq.table
     def gaHI(state):
         # Low density rates from Glover & Abel 2008
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
-        lt3 = na.log10(tm / 1.e3)  
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
+        lt3 = np.log10(tm / 1.e3)  
 
         _i1 = (state.T < 100.0)
         _i2 = (state.T < 1000.0)
@@ -207,9 +207,9 @@ def cool(eq):
     # -- gaH2 --
     @eq.table
     def gaH2(state):
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
-        lt3 = na.log10(tm / 1.e3)  
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
+        lt3 = np.log10(tm / 1.e3)  
         vals = 10**(-23.962112e0
              + 2.09433740e0  * lt3
              - 0.77151436e0  * lt3**2
@@ -222,9 +222,9 @@ def cool(eq):
     # -- gaHe --
     @eq.table
     def gaHe(state):
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
-        lt3 = na.log10(tm / 1.e3)  
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
+        lt3 = np.log10(tm / 1.e3)  
         vals = 10**(-23.689237e0
              + 2.1892372e0  * lt3
              - 0.81520438e0 * lt3**2
@@ -237,9 +237,9 @@ def cool(eq):
     # -- gaHp --
     @eq.table
     def gaHp(state):
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
-        lt3 = na.log10(tm / 1.e3)  
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
+        lt3 = np.log10(tm / 1.e3)  
         vals = 10**(-21.716699e0
              + 1.3865783e0   * lt3
              - 0.37915285e0  * lt3**2
@@ -252,9 +252,9 @@ def cool(eq):
     # -- gael --
     @eq.table
     def gael(state):
-        tm  = na.maximum(state.T, 10.0e0)
-        tm  = na.minimum(tm, 1.e4)
-        lt3 = na.log10(tm / 1.e3)  
+        tm  = np.maximum(state.T, 10.0e0)
+        tm  = np.minimum(tm, 1.e4)
+        lt3 = np.log10(tm / 1.e3)  
         _i1 = (state.T < 200)
         vals = 10**(-22.190316
              + 1.5728955  * lt3

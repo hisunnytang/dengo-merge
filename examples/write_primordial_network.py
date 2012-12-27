@@ -40,10 +40,10 @@ create_rate_reader(primordial, "primordial")
 generate_initial_conditions = True
 
 if generate_initial_conditions:
-    import numpy as na
+    import numpy as np
     NCELLS = 1
     density = 1e7
-    init_array = na.ones(NCELLS) 
+    init_array = np.ones(NCELLS) 
     X = 0.5
 
     init_values = dict()
@@ -85,7 +85,7 @@ if generate_initial_conditions:
         density += init_values[s.name][0]
     
     # set up initial temperatures values used to define ge
-    temperature = na.logspace(2, 4, NCELLS)
+    temperature = np.logspace(2, 4, NCELLS)
     temperature[:] = 1e3
     init_values['T'] = temperature
 
