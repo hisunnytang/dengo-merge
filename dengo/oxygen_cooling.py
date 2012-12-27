@@ -1,31 +1,43 @@
-#import h5py
-#import numpy as na
-#from primordial_cooling import CoolingRate, CoolingAction, cooling_rates_table, cooling_action_table
+"""
+Author: Devin Silvia <devin.silvia@gmail.com>
+Affiliation: UC Boulder
+Homepage: http://yt.enzotools.org/
+License:
+  Copyright (C) 2012 Matthew Turk.  All Rights Reserved.
+
+  This file is part of the dengo package.
+
+  This file is free software; you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation; either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+"""
+
 from reaction_classes import Species, ion_cooling_rate, species_registry
 
-for i in range(9):
+# Note: the atomic/species properties have to be hard-coded for this
+# we may want to come up with a better solution here...
+atomicSymbol = 'o'
+atomicNumber = 8
+atomicWeight = 16
+nIons = atomicNumber + 1
+
+for i in range(nIons):
     ion_state = i + 1
-    speciesName = "o_%s" % ion_state
+    speciesName = "%s_%s" %(atomicSymbol, ion_state)
     # Check if the species already exists
     # in the species registry, if it does
     # we don't want to create it again
     if (speciesName in species_registry) == False:
-        s = Species(speciesName, 16, i)
+        s = Species(speciesName, atomicWeight, i)
     else:
         s = species_registry[speciesName]
     ion_cooling_rate(s)
-
-#CoolingRate.init_temperature((1.0, 1e9))
-#T = CoolingRate.T
-#logT = CoolingRate.logT
-#tev= CoolingRate.tev
-#logtev = CoolingRate.logtev
-
-# oxygen cooling rates
-#f = h5py.File('o_ion_by_ion_cooling.h5')
-#data = f['Table']
-#for i in range(len(data.dtype.names) - 2):
-#    vals = na.interp(T, data['T'], data['o_%i' %(i+1)])
-#    cooling_rates_table['o_%i_c' %(i+1)] = CoolingRate('o_%i_c' %(i+1), vals)
-#    cooling_action_table["o_%i_c" %(i+1)] = CoolingAction(
-#        ["o_%i_c" %(i+1)], ["o_%i" %(i+1),"de"], "-o_%i_c * o_%i * de" %(i+1,i+1))
