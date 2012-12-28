@@ -73,6 +73,8 @@ class ResultsPlotter:
         mpl.rc('axes', labelsize=18)
         # plot the time evolution of a species for a given T
         plt.clf()
+        fig = plt.figure(1, dpi=100)
+        fig.set_size_inches(12,6)
         i = 0
         for s in sorted(self.species):
             if s != 'ge':
@@ -88,8 +90,12 @@ class ResultsPlotter:
         plt.ylabel("n$_{s}$")
         plt.ylim(1e-8, 2e7)
         #plt.xlim(1e4,1e12)
-        leg = plt.legend(loc = 'best', ncol=2)
-        leg.legendPatch.set_alpha(0.8)
+        ax = plt.axes()
+        box = ax.get_position()
+        ax.set_position([box.x0 - 0.05, box.y0, box.width * 0.9, box.height * 1.1])
+        leg = plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), ncol=2)
+        #leg = plt.legend(loc = 'best', ncol=2)
+        # leg.legendPatch.set_alpha(0.8)
         plt.savefig("%s_time.png" % (self.network_name))
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies)))]
         plt.clf()

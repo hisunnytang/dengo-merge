@@ -217,7 +217,7 @@ double dengo_evolve_{{solver_name}} (float dtf, float &dt, double *input,
             }
         }
         if (rv == 0) {
-	    if (siter == 99999) break;
+	    if (siter == 9999) break;
 	    siter++;
             fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
                      siter, dt, dtf);
