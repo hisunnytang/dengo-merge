@@ -17,11 +17,11 @@ want = ('OV', 'OVI', 'OVII', 'de', 'ge')
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
 
-# for ca in cooling_registry.values():
-#     # The following line can be used to specify a subset of species
-#     #if all(sp.name in want for sp in ca.species):
-#     if ca.name.startswith("O"):
-#        oxygen.add_cooling(ca)
+for ca in cooling_registry.values():
+    # The following line can be used to specify a subset of species
+    #if all(sp.name in want for sp in ca.species):
+    if ca.name.startswith("O"):
+       oxygen.add_cooling(ca)
 
 for s in reaction_registry.values():
     # The following line can be used to specify a subset of species
@@ -30,7 +30,7 @@ for s in reaction_registry.values():
         oxygen.add_reaction(s)
 
 # This defines the temperature range for the rate tables
-oxygen.init_temperature((1e4, 1e8))
+oxygen.init_temperature((1e0, 1e8))
 
 # Set to false if you don't want intermediate solution output
 oxygen.write_intermediate_solutions = True
