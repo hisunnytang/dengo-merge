@@ -330,32 +330,50 @@ def ion_cooling_rate(species):
 
     def cooling_rate(network):
         # Read in cooling rates from Gnat & Ferland 2012
-        # and do linear interpolation with extrapolation on the ends
+        # and do linear interpolation and then recompute
+        # the ends with either an extrapolation or falloff
         f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
         data = f['Table']
         
-        # interpolation
+        ### Intepolate values within table values ###
         vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
         
-        # extrapolation in logspace
-        vals = np.log10(vals)
-        logT = np.log10(network.T)
-        logdataT = np.log10(data['T'])
-        logdataS = np.log10(data['%s' %(ion_name)])
-        extrapdown = logdataS[0] + \
-            (logT - logdataT[0]) * (logdataS[0] - logdataS[1]) \
-            / (logdataT[0] - logdataT[1])
-        vals[logT < logdataT[0]] = extrapdown[logT < logdataT[0]]
-        extrapup = logdataS[-1] + \
-            (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
-            / (logdataT[-1] - logdataT[-2])
-        vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+        end_method = 1 # 0 = extrapolation, 1 = gaussian falloff
 
-        # vals[logT < logdataT[0]] = np.log10(tiny)
-        # vals[logT > logdataT[-1]] = np.log10(tiny)
+        if end_method == 0:
+            ### Extrapolation in logspace ###
+            # convert to log space
+            vals = np.log10(vals)
+            logT = np.log10(network.T)
+            logdataT = np.log10(data['T'])
+            logdataS = np.log10(data['%s' %(ion_name)])
 
-        vals = 10.0**vals
-        
+            # extrapolate
+            extrapdown = logdataS[0] + \
+                (logT - logdataT[0]) * (logdataS[0] - logdataS[1]) \
+                / (logdataT[0] - logdataT[1])
+            vals[logT < logdataT[0]] = extrapdown[logT < logdataT[0]]
+            extrapup = logdataS[-1] + \
+                (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
+                / (logdataT[-1] - logdataT[-2])
+            vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+
+            # convert back to linear
+            vals = 10.0**vals
+                
+        if end_method == 1:
+            ### Gaussian falloff when values extend beyond table values ###
+            # rename some variables to symplify code
+            T = network.T
+            dataT = data['T']
+            dataS = data['%s' %(ion_name)]
+
+            # compute gaussian tails
+            gaussdown = dataS[0] * (tiny/dataS[0])**(((T - dataT[0])/(T[0] - dataT[0])))**2
+            vals[T < dataT[0]] = gaussdown[T < dataT[0]]
+            gaussup = dataS[-1] * (tiny/dataS[-1])**(((T - dataT[-1])/(T[-1] - dataT[-1])))**2
+            vals[T > dataT[-1]] = gaussup[T > dataT[-1]]
+
         f.close()
         return vals
 
