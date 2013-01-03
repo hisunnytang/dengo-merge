@@ -1,5 +1,7 @@
+import numpy
 import pyximport
-pyximport.install()
+pyximport.install(setup_args={"include_dirs":numpy.get_include()},
+                  reload_support=True)
 
 import {{solver_name}}_solver_run
 {{solver_name}}_solver_run.main_run_{{solver_name}}()
