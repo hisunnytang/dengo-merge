@@ -19,17 +19,17 @@
 /               ||(xnew - xold)/(atol + rtol*xnew)||_RMS < 1
 /
 / Solver API: 
-/ int BE_chem_solve(int (*f)(float *, float *, int, int), 
-/                   int (*J)(float *, float *, int, int), 
-/                   float *u, float dt, float *rtol, 
-/                   float *atol, int nstrip, int nchem)
+/ int BE_chem_solve(int (*f)(double *, double *, int, int), 
+/                   int (*J)(double *, double *, int, int), 
+/                   double *u, double dt, double *rtol, 
+/                   double *atol, int nstrip, int nchem)
 /
 / output: integer flag denoting success (0) or failure (1)
 /
 / inputs:
 /
 /   int *f -- function pointer that has the form
-/             int f(float *u, float *fu, int nstrip, int nchem)
+/             int f(double *u, double *fu, int nstrip, int nchem)
 /       Here, the set of unknowns *u is defined over a strip of length
 /       nstrip that contains nchem species per cell, and outputs an array
 /       *fu of the same size/shape as *u that gives the ODE RHS
@@ -37,7 +37,7 @@
 /       denote success (0) or failure (1). 
 /
 /   int *J -- function pointer that has the form
-/             int J(float *u, float *Ju, int nstrip, int nchem)
+/             int J(double *u, double *Ju, int nstrip, int nchem)
 /       Here the Jacobian Ju should be a 1D array of length
 /       nchem*nchem*nstrip.  Here, for spatial location k, with Jacobian
 /       matrix row i and column j, the entries should be ordered as i
@@ -45,15 +45,15 @@
 /       matrix for each cell is stored in a contiguous block, in 
 /       column-major (Fortran) ordering.
 /
-/   float *u -- initial conditions, stored in the form u[nstrip*nchem], 
+/   double *u -- initial conditions, stored in the form u[nstrip*nchem], 
 /       with the nchem variables in a given cell stored contiguously.
 /
-/   float dt -- desired time step size
+/   double dt -- desired time step size
 /
-/   float *rtol -- relative tolerance in each equation, of same size 
+/   double *rtol -- relative tolerance in each equation, of same size 
 /       and ordering as u.
 /
-/   float *atol -- absolute tolerance in each equation, of the same 
+/   double *atol -- absolute tolerance in each equation, of the same 
 /       size and ordering as u.
 /
 /   int nstrip, int nchem -- inputs denoting the size of the spatial
@@ -61,42 +61,40 @@
 /
 ************************************************************************/
 
-#include "preincludes.h"
-#include "macros_and_parameters.h"
-#include "typedefs.h"
-#include "global_data.h"
+#include <stdio.h>
+#include <math.h>
 
-typedef int(*rhs_f)(float *, float *, int, int, void *);
-typedef int(*jac_f)(float *, float *, int, int, void *);
+typedef int(*rhs_f)(double *, double *, int, int, void *);
+typedef int(*jac_f)(double *, double *, int, int, void *);
 
 // function prototypes
-int BE_Resid_Fun(rhs_f, float *u, float *u0, float *gu, float dt, 
-		 int nstrip, int nchem, float *scaling, void *sdata);
-int BE_Resid_Jac(jac_f, float *u, float *Ju, float dt, 
-		 int nstrip, int nchem, float *scaling, void *sdata);
-int Gauss_Elim(float *A, float *x, float *b, int n);
+int BE_Resid_Fun(rhs_f, double *u, double *u0, double *gu, double dt, 
+		 int nstrip, int nchem, double *scaling, void *sdata);
+int BE_Resid_Jac(jac_f, double *u, double *Ju, double dt, 
+		 int nstrip, int nchem, double *scaling, void *sdata);
+int Gauss_Elim(double *A, double *x, double *b, int n);
 
 
 // solver function
 int BE_chem_solve(rhs_f f, jac_f J,
-		  float *u, float dt, float *rtol, 
-                  float *atol, int nstrip, int nchem, 
-		  float *scaling, void *sdata) {
+		  double *u, double dt, double *rtol, 
+                  double *atol, int nstrip, int nchem, 
+		  double *scaling, void *sdata) {
 
   // local variables
   int i, j, ix, isweep, ier, ONE=1, ioff;
   int sweeps=50;
-  float lam=1.0;
+  double lam=1.0;
   int unsolved;
 
   // rescale input to normalized variables
   for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
 
   // create/initialize temporary arrays
-  float *u0 = new float[nchem*nstrip];        // initial state
-  float *s  = new float[nchem];               // Newton update (each cell)
-  float *gu = new float[nchem*nstrip];        // nonlinear residual
-  float *Ju = new float[nchem*nchem*nstrip];  // Jacobian 
+  double *u0 = new double[nchem*nstrip];        // initial state
+  double *s  = new double[nchem];               // Newton update (each cell)
+  double *gu = new double[nchem*nstrip];        // nonlinear residual
+  double *Ju = new double[nchem*nchem*nstrip];  // Jacobian 
   
   for (i=0; i<nstrip*nchem; i++)        u0[i] = u[i];
   for (i=0; i<nstrip*nchem; i++)        gu[i] = 0.0;
@@ -125,7 +123,8 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
       // solve for Newton update
       if (Gauss_Elim(&(Ju[ix*nchem*nchem]), s, &(gu[ioff]), nchem) != 0)
-	ENZO_FAIL("Error in Gauss_Elim");
+    return 1;
+	/*ENZO_FAIL("Error in Gauss_Elim");*/
 
       // update solution in this cell
       for (i=0; i<nchem; i++)  u[ioff+i] -= lam*s[i];
@@ -175,8 +174,8 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
 // nonlinear residual calculation function, forms nonlinear residual defined 
 // by backwards Euler discretization, using user-provided RHS function f.
-int BE_Resid_Fun(rhs_f f, float *u, float *u0, float *gu, float dt, 
-		 int nstrip, int nchem, float *scaling, void *sdata) 
+int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt, 
+		 int nstrip, int nchem, double *scaling, void *sdata) 
 {
   // local variables
   int i;
@@ -205,8 +204,8 @@ int BE_Resid_Fun(rhs_f f, float *u, float *u0, float *gu, float dt,
 
 // nonlinear residual Jacobian function, forms Jacobian defined by backwards
 //  Euler discretization, using user-provided Jacobian function J.
-int BE_Resid_Jac(jac_f J, float *u, float *Ju, float dt, 
-		 int nstrip, int nchem, float *scaling, void *sdata)
+int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt, 
+		 int nstrip, int nchem, double *scaling, void *sdata)
 {
   // local variables
   int ix, ivar, jvar, i;
@@ -251,11 +250,11 @@ int BE_Resid_Jac(jac_f J, float *u, float *Ju, float dt,
 // stored in column-major (Fortran) ordering, and where x and b are vectors 
 // of length n.
 #define idx(i,j,n) ( j*n + i )
-int Gauss_Elim(float *A, float *x, float *b, int n)
+int Gauss_Elim(double *A, double *x, double *b, int n)
 {
   // local variables
   int i, j, k, p;
-  float m, dtmp;
+  double m, dtmp;
 
   // copy rhs into solution
   for (i=0; i<n; i++)  x[i] = b[i];
