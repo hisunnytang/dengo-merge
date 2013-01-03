@@ -13,7 +13,7 @@ import os
 
 # If only a subset of species are wanted put them here
 # and change the commented lines below
-want = ('OV', 'OVI', 'OVII', 'de', 'ge')
+want = ('OI', 'OII', 'OIII', 'de', 'ge')
 
 oxygen = ChemicalNetwork()
 oxygen.add_energy_term()
@@ -26,7 +26,7 @@ for ca in cooling_registry.values():
 
 for s in reaction_registry.values():
     # The following line can be used to specify a subset of species
-    #if all(sp.name in want for sp in s.species):
+    # if all(sp.name in want for sp in s.species):
     if s.name.startswith("O"):
         oxygen.add_reaction(s)
 
@@ -43,14 +43,12 @@ create_rate_reader(oxygen, "oxygen")
 # Generate initial conditions (switch to False to disable this)
 generate_initial_conditions = True
 start_neutral = False
-initial_state = 'OIX' # if using start_neutral = True, this should be the _1 state
-                      # if starting in a close to CIE state, this should be the
-                      # ion species that will be closest for one for the given Temp.
-                      # note, this will get hairy when we're not testing a single T
+initial_state = 'OI' # if using start_neutral = True, this should be the _1 state
+                      # if starting in a close to CIE state this doesn't really matter
 
 if generate_initial_conditions:
     import numpy as np
-    NCELLS = 1
+    NCELLS = 32
     density = 1
     init_array = np.ones(NCELLS)
     init_values = dict()
@@ -59,7 +57,7 @@ if generate_initial_conditions:
            
     # set up initial temperatures values used to define ge
     temperature = np.logspace(4, 6.7, NCELLS)
-    temperature[:] = 1e7; # need to remove this line for the above one to matter
+    #temperature[:] = 1e7; # need to remove this line for the above one to matter
     init_values['T'] = temperature
 
     if start_neutral:
@@ -82,13 +80,24 @@ if generate_initial_conditions:
         print "Total de: %0.5e" % (init_values['de'][0])
 
     else:
-        # Unless neutral is desired, we'll start in a perturbed CIE solution
+        # Unless neutral is desired, we'll start in a CIE solution
         import chianti.core as ch
         import chianti.util as chu
 
+        # Note: ChiantiPy can return a full array of CIE values
+        # for a given species, while that would minimize the number
+        # of times we would have to call upon ChiantiPy, which would
+        # would make the IC generation faster, it might get tricky
+        # for a combined network.  However, with careful thought
+        # a solution could be found.
+        # This would use code that looks something like:
+        #     ion_frac = ch.ioneq(s.number, init_values['T'])
+        #     ion_frac = ion_frac.Ioneq
+        #     init_values[s.name] = ion_frac[s.free_electrons] * init_array
+
         # populate initial fractional values for the species
         for s in sorted(oxygen.required_species):
-            if s.name != 'ge' and s.name != initial_state:
+            if s.name != 'ge':
                 if s.name == 'de':
                     continue
                 else:
@@ -96,21 +105,18 @@ if generate_initial_conditions:
                     ion = ch.ion(ion_name, temperature=init_values['T'])
                     ion.ioneqOne()
                     ion_frac = ion.IoneqOne
-                    if ion_frac == 0.0:
-                        init_values[s.name] = tiny * init_array
-                    else:
-                        ion_frac[ion_frac < tiny] = tiny
-                        init_values[s.name] = ion_frac * init_array
+                    init_values[s.name] = ion_frac * init_array
                 
-                # add some random noise
-                init_values[s.name] += 0.5 * init_values[s.name] * np.random.randn(NCELLS)
-                # in case something went negative:
+                # # add some random noise
+                # init_values[s.name] += 0.5 * init_values[s.name] * np.random.randn(NCELLS)
+                
+                # in case something is negative or super small:
                 init_values[s.name][init_values[s.name] < tiny] = tiny
+                print init_values[s.name]
                 
-                # conservation...
-                init_values[initial_state] -= init_values[s.name]
+                # # conservation...
+                # init_values[initial_state] -= init_values[s.name]
         
-        init_values[initial_state][init_values[initial_state] < tiny] = tiny
         init_values['de'] = init_array * 0.0
         for s in sorted(oxygen.required_species):
             if s.name in ("ge", "de"): continue
@@ -128,13 +134,14 @@ if generate_initial_conditions:
             init_values[s.name] *= (density * s.weight)
 
     #compute new total density and number density
-    density = 0.0
-    number_density = 0.0
+    density = init_array * 0.0
+    number_density = init_array * 0.0
     for s in sorted(oxygen.required_species):
         if s.name == 'ge': continue
-        number_density += init_values[s.name][0]/s.weight
+        number_density += init_values[s.name]/s.weight
         if s.name == 'de': continue
-        density += init_values[s.name][0]
+        density += init_values[s.name]
+    init_values['density'] = density
 
     # calculate ge (very crudely)
     gamma = 5.e0/3.e0

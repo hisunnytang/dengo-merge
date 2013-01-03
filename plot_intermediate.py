@@ -74,29 +74,31 @@ class ResultsPlotter:
         # plot the time evolution of a species for a given T
         plt.clf()
         fig = plt.figure(1, dpi=100)
-        fig.set_size_inches(12,6)
-        i = 0
-        for s in sorted(self.species):
-            if s != 'ge':
-                i += 1
-                if s == 'T':
-                    plt.loglog(self.t, self.data[s][0,:], '--', label='$T (K)$', lw=1.5)
-                else:
-                    if s == 'de':
-                        plt.loglog(self.t, self.data[s][0,:], '-.', label='$e^{-}$', lw=1.5, marker='o', markersize=5.0)
-                    else:                        
-                        plt.loglog(self.t, self.data[s][0,:], '-', label=s, lw=1.5)
-        plt.xlabel("Time (s)")
-        plt.ylabel("n$_{s}$")
-        plt.ylim(1e-8, 2e7)
-        #plt.xlim(1e4,1e12)
-        ax = plt.axes()
-        box = ax.get_position()
-        ax.set_position([box.x0 - 0.05, box.y0, box.width * 0.9, box.height * 1.1])
-        leg = plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), ncol=2)
-        #leg = plt.legend(loc = 'best', ncol=2)
-        # leg.legendPatch.set_alpha(0.8)
-        plt.savefig("%s_time.png" % (self.network_name))
+        fig.set_size_inches(12,8)
+        for j in range(self.ncells):
+            i = 0
+            for s in sorted(self.species):
+                if s != 'ge':
+                    i += 1
+                    if s == 'T':
+                        plt.loglog(self.t, self.data[s][j,:], '--', label='$T (K)$', lw=1.5)
+                    else:
+                        if s == 'de':
+                            plt.loglog(self.t, self.data[s][j,:], '-.', label='$e^{-}$', lw=1.5, marker='o', markersize=5.0)
+                        else:                        
+                            plt.loglog(self.t, self.data[s][j,:], '-', label=s, lw=1.5)
+            plt.xlabel("Time (s)")
+            plt.ylabel("n$_{s}$")
+            plt.ylim(1e-8, 2e7)
+            #plt.xlim(1e4,1e12)
+            ax = plt.axes()
+            box = ax.get_position()
+            ax.set_position([box.x0 - 0.05, box.y0, box.width * 0.9, box.height * 1.1])
+            leg = plt.legend(loc='upper left', bbox_to_anchor=(1.0, 1.0), ncol=2)
+            #leg = plt.legend(loc = 'best', ncol=2)
+            # leg.legendPatch.set_alpha(0.8)
+            plt.savefig("%s_time_%04i.png" % (self.network_name, j))
+            plt.clf()
         mpl.rcParams['axes.color_cycle'] = [list(clr) for clr in mpl.cm.spectral(np.linspace(0,1,(self.nspecies)))]
         plt.clf()
         for s in sorted(self.species):
