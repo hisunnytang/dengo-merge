@@ -174,6 +174,36 @@ class ChemicalNetwork(object):
             return ccode(function_eq)
         return ccode(eq)
 
+    def calculate_number_density(self, values, skip = ()):
+        # values should be a dict with all of the required species in it
+        # The values should be in *mass* density
+        n = np.zeros_like(values.values()[0])
+        skip = tuple(skip) + (self.energy_term.name,)
+        for s in self.required_species:
+            if s.name in skip: continue
+            n += values[s.name] / s.weight
+        return n
+
+    def calculate_free_electrons(self, values, skip = ()):
+        # values should be a dict with all of the required species in it
+        # The values should be in *mass* density
+        n = np.zeros_like(values.values()[0])
+        skip = tuple(skip) + ("de", self.energy_term.name)
+        for s in self.required_species:
+            if s.name in skip: continue
+            n += ( values[s.name] / s.weight ) * s.free_electrons
+        return n
+
+    def calculate_mass_density(self, values, skip = ()):
+        # values should be a dict with all of the required species in it
+        # The values should be in *mass* density
+        n = np.zeros_like(values.values()[0])
+        skip = tuple(skip) + ("de", self.energy_term.name)
+        for s in self.required_species:
+            if s.name in skip: continue
+            n += values[s.name] * s.free_electrons
+        return n
+
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
