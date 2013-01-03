@@ -1,5 +1,8 @@
 cimport numpy as np
 
+cdef extern from "alloca.h":
+    void *alloca(int)
+
 DEF NSPECIES = {{network.required_species | length}}
 DEF MAX_NCELLS = 1024
 
@@ -19,13 +22,13 @@ cdef extern from "{{solver_name}}_solver.h":
         double r_{{name}}[{{ network.T | length }}]
         double rs_{{name}}[MAX_NCELLS]
         double drs_{{name}}[MAX_NCELLS]
-        {% endfor %}
+        {%- endfor %}
         {%- for name, rate in network.cooling_actions | dictsort %}
         {%- for name2 in rate.tables | sort %}
         double c_{{name}}_{{name2}}[{{ network.T | length }}]
         double cs_{{name}}_{{name2}}[MAX_NCELLS]
         double dcs_{{name}}_{{name2}}[MAX_NCELLS]
-        {% endfor %}
+        {%- endfor %}
         {% endfor %}
         int bin_id[MAX_NCELLS]
         int ncells
@@ -42,3 +45,27 @@ cdef extern from "{{solver_name}}_solver.h":
 def main_run_{{solver_name}}():
     {{solver_name}}_main(0, NULL)
 
+def run_{{solver_name}}(ics, double tf):
+    {%- for s in network.required_species | sort %}
+    cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
+    {%- endfor %}
+
+    cdef int i, j, k
+    cdef int N = {{network.energy_term.name}}_arr.shape[0]
+    cdef double *input = <double *> alloca(N * NSPECIES)
+    cdef double *atol = <double *> alloca(N * NSPECIES)
+    cdef double *rtol = <double *> alloca(N * NSPECIES)
+    
+    j = 0
+    for i in range(N):
+        {%- for s in network.required_species | sort %}
+        input[j] = {{s.name}}_arr[i] / {{s.weight}}
+        atol[j] = input[j] * 1e-11;
+        rtol[j] = 1e-11;
+        j += 1
+        {%- endfor %}
+
+    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data()
+
+    cdef double dt = 0.0
+    dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
