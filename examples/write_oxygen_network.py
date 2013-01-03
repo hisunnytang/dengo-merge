@@ -4,10 +4,6 @@ from dengo.chemical_network import \
     cooling_registry
 import dengo.primordial_rates, dengo.primordial_cooling
 import dengo.oxygen_rates, dengo.oxygen_cooling
-from dengo.write_rate_reader import \
-    create_rate_tables, \
-    create_rate_reader, \
-    create_initial_conditions
 from dengo.chemistry_constants import tiny, kboltz, mh
 
 # If only a subset of species are wanted put them here
@@ -34,10 +30,6 @@ oxygen.init_temperature((1e0, 1e8))
 
 # Set to false if you don't want intermediate solution output
 oxygen.write_intermediate_solutions = True
-
-# Write the rate tables and the corresponding C++ code
-create_rate_tables(oxygen, "oxygen")
-create_rate_reader(oxygen, "oxygen")
 
 # Generate initial conditions (switch to False to disable this)
 generate_initial_conditions = True
@@ -139,4 +131,5 @@ if generate_initial_conditions:
                          / (density * mh * (gamma - 1)))
 
     # Write the initial conditions file
-    create_initial_conditions(init_values, 'oxygen')
+oxygen.write_solver("oxygen", output_dir = ".",
+                    init_values=init_values)

@@ -26,6 +26,10 @@ from .reaction_classes import reaction_registry, cooling_registry, \
     count_m, index_i, species_registry
 import types
 import sympy
+import pkgutil
+import os
+import jinja2
+import h5py
 from sympy.printing import ccode
 
 class ChemicalNetwork(object):
@@ -169,3 +173,65 @@ class ChemicalNetwork(object):
         else:
             return ccode(function_eq)
         return ccode(eq)
+
+    def write_solver(self, solver_name,
+                     solver_template = "rates_and_rate_tables.c.template",
+                     ode_solver_source = "BE_chem_solve.C",
+                     output_dir = ".", init_values = None):
+        if not os.path.isdir(output_dir): os.makedirs(output_dir)
+        # What we are handed here is:
+        #   * self, a python object which holds all of the species, reactions,
+        #     rate, etc. that we're keeping track of and will be solving in Enzo
+        #   * solver_name, an identifier to produce a unique template and to
+        #     correctly grab the right HDF5 tables
+        #   * ode_solver_source, the ODE solver we will be linking against
+        #   * solver_template, the template for the solver we will write
+        #   * output_dir, a place to stick everythign
+        #   * init_values, a set of initial conditions
+        #
+        # To utilize these inside our template, we will generate convenience
+        # handlers that will explicitly number them.
+        root_path = os.path.join(os.path.dirname(__file__), "templates")
+        env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
+                loader = jinja2.PackageLoader("dengo", "templates"))
+        
+        template_inst = env.get_template(solver_template)
+        template_vars = dict(network = self, solver_name = solver_name)
+        solver_out = template_inst.render(**template_vars)
+        f = open(os.path.join(output_dir, "%s_solver.c" % solver_name), "w")
+        f.write(solver_out)
+        f.close()
+
+        # Now we copy over anything else we might need.
+        if ode_solver_source is not None:
+            src = pkgutil.get_data("dengo", os.path.join("solvers", ode_solver_source))
+            with open(os.path.join(output_dir, ode_solver_source), "w") as f:
+                f.write(src)
+        if solver_template.endswith(".c.template"):
+            hfn = solver_template.rsplit(".", 2)[0] + ".h"
+            src = pkgutil.get_data("dengo", os.path.join("templates", hfn))
+            with open(os.path.join(output_dir, hfn), "w") as f:
+                f.write(src)
+        
+        # This writes out the rates for the species in the
+        # chemical network to HDF5 files which can later be
+        # read by the C++ code that is output by the template
+        ofn = os.path.join(output_dir, "%s_tables.h5" % solver_name)
+        f = h5py.File(ofn, "w")
+        for rxn in sorted(self.reactions.values()):
+            f.create_dataset("/%s" % rxn.name, data = rxn.coeff_fn(self).astype("float64"))
+        for action in sorted(self.cooling_actions.values()):
+            for tab in action.tables:
+                f.create_dataset("/%s_%s" % (action.name, tab),
+                    data=action.tables[tab](self).astype("float64"))
+        f.close()
+
+        if init_values is None: return
+
+        # This write outs a set of initial conditions for to be fed
+        # into C++ code for testing purposes
+        ofn = os.path.join(output_dir, "%s_initial_conditions.h5" % solver_name)
+        f = h5py.File(ofn, "w")
+        for name, init_value in init_values.items():
+            f.create_dataset("/%s" % name, data=init_value.astype('float64'))
+        f.close()

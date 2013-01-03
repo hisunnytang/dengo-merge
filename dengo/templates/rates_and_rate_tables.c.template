@@ -275,7 +275,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 {
     herr_t status;
-    hid_t file_id = H5Fopen("{{ solver_name }}_rate_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 
@@ -290,7 +290,7 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
 
     herr_t status;
-    hid_t file_id = H5Fopen("{{ solver_name }}_cooling_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     hsize_t dims;
 

@@ -3,10 +3,6 @@ from dengo.chemical_network import \
     reaction_registry, \
     cooling_registry
 import dengo.primordial_rates, dengo.primordial_cooling
-from dengo.write_rate_reader import \
-    create_rate_tables, \
-    create_rate_reader, \
-    create_initial_conditions
 from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
@@ -31,10 +27,6 @@ for i, rname in enumerate(sorted(reaction_registry)):
 
 # This defines the temperature range for the rate tables
 primordial.init_temperature((1e0, 1e8))
-
-# Write the rate tables and corresponding C++ code
-create_rate_tables(primordial, "primordial")
-create_rate_reader(primordial, "primordial")
 
 # Generate initial conditions (switch to False to disable this)
 generate_initial_conditions = True
@@ -95,4 +87,6 @@ if generate_initial_conditions:
                          / (number_density * mh * (gamma - 1)))
     
     # Write the initial conditions file
-    create_initial_conditions(init_values, 'primordial')
+
+primordial.write_solver("primordial", output_dir = ".",
+                        init_values=init_values)
