@@ -14,7 +14,7 @@
 
 #include "{{solver_name}}_solver.h"
 
-{{solver_name}}_data *setup_data(void) {
+{{solver_name}}_data *{{solver_name}}_setup_data(void) {
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
@@ -52,6 +52,10 @@ int {{solver_name}}_main(int argc, char** argv)
     /* Check gas energy to get the number of cells */
     fprintf(stderr, "Getting dimensionality from {{ network.energy_term.name }}:\n");
     herr_t status = H5LTget_dataset_info(file_id, "/{{ network.energy_term.name }}", &dims, NULL, NULL);
+    if(status == -1) {
+        fprintf(stderr, "Error opening initial conditions file.\n");
+        return 1;
+    }
     fprintf(stderr, "  ncells = % 3i\n", (int) dims);
     data->ncells = dims;
 
@@ -65,7 +69,7 @@ int {{solver_name}}_main(int argc, char** argv)
     double *ics = (double *) alloca(dims * N * sizeof(double));
     double *input = (double *) alloca(dims * N * sizeof(double));
     
-    int i = 0, j;
+    unsigned int i = 0, j;
     {% for s in network.required_species | sort %}
     fprintf(stderr, "Reading I.C. for /{{ s.name }}\n");
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
@@ -159,7 +163,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
             fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
                      siter, dt, dtf);
             ttot += dt;
-	    dt = MIN(dt * 1.1, dtf - ttot);
+	    dt = DMIN(dt * 1.1, dtf - ttot);
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
 	    char imfilename[255];
@@ -295,11 +299,9 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
 void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                     int nstrip)
 {
-    int i, ri, bin_id;
-    double dd, bv, dy, lb, ub;
-    double t1, t2, tdef;
+    int i, bin_id;
+    double lb, t1, t2;
     lb = log(data->bounds[0]);
-    ub = log(data->bounds[1]);
     /*fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);*/
     for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
