@@ -18,10 +18,7 @@ def configuration(parent_package='',top_path=None):
                        delegate_options_to_subpackages=True,
                        quiet=True)
     
-    config.make_config_py()
-    config.make_svn_version_py()
     config.add_subpackage('dengo','dengo')
-    config.add_scripts("scripts/*")
 
     return config
 
@@ -33,7 +30,7 @@ def setup_package():
         name = "dengo",
         version = VERSION,
         description = "A framework for creating chemical and radiative cooling"
-                    + "reaction networks"
+                    + "reaction networks",
         classifiers = [ "Development Status :: 2 - Pre-Alpha",
                         "Environment :: Console",
                         "Intended Audience :: Science/Research",
@@ -47,13 +44,11 @@ def setup_package():
         keywords='astronomy astrophysics chemistry',
         author="Matthew J. Turk",
         author_email="matthewturk@gmail.com",
-        url = "http://yt.enzotools.org/",
+        url = "http://bitbucket.org/MatthewTurk/dengo",
         license="GPL-3",
         configuration=configuration,
-        app=APP, # for py2app
         zip_safe=False,
-        package_data = {'': ['*.so'], }
-        )
+    )
     return
 
 if __name__ == '__main__':
