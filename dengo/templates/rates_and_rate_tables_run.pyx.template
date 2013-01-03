@@ -1,0 +1,7 @@
+cimport numpy as np
+
+cdef extern from "rates_and_rate_tables.h":
+    int {{solver_name}}_main(int argc, char **argv)
+
+def run_{{solver_name}}():
+    {{solver_name}}_main(0, NULL)

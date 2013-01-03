@@ -174,10 +174,18 @@ class ChemicalNetwork(object):
             return ccode(function_eq)
         return ccode(eq)
 
+    def _write_template(self, template_name, env, template_vars, output_dir):
+        template_inst = env.get_template(template_name + ".template")
+        solver_out = template_inst.render(**template_vars)
+        ofn = os.path.join(output_dir, os.path.splitext(template_name)[0])
+        with open(ofn ,"w") as f:
+            f.write(solver_out)
+
     def write_solver(self, solver_name,
-                     solver_template = "rates_and_rate_tables.c.template",
+                     solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
-                     output_dir = ".", init_values = None):
+                     output_dir = ".", init_values = None,
+                     main_name = "main"):
         if not os.path.isdir(output_dir): os.makedirs(output_dir)
         # What we are handed here is:
         #   * self, a python object which holds all of the species, reactions,
@@ -195,12 +203,14 @@ class ChemicalNetwork(object):
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "templates"))
         
-        template_inst = env.get_template(solver_template)
         template_vars = dict(network = self, solver_name = solver_name)
-        solver_out = template_inst.render(**template_vars)
-        f = open(os.path.join(output_dir, "%s_solver.c" % solver_name), "w")
-        f.write(solver_out)
-        f.close()
+
+        self._write_template(solver_template + ".C", env, template_vars, output_dir)
+        self._write_template(solver_template + "_main.C", env, template_vars, output_dir)
+        self._write_template(solver_template + ".h", env, template_vars, output_dir)
+        self._write_template(solver_template + "_run.pyx", env, template_vars, output_dir)
+        self._write_template(solver_template + "_run.pyxbld", env, template_vars, output_dir)
+        self._write_template(solver_template + "_run.pyxdep", env, template_vars, output_dir)
 
         # Now we copy over anything else we might need.
         if ode_solver_source is not None:

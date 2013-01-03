@@ -83,8 +83,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
 {% endblock %} {# function_declarations #}
 
 {% block entry_point %}
-#ifndef DENGO_NOMAIN
-int main(int argc, char** argv)
+int {{solver_name}}_main(int argc, char** argv)
 {
     {{ solver_name }}_data *data;
 
@@ -180,7 +179,6 @@ int main(int argc, char** argv)
     H5Fclose(file_id);
     
 }
-#endif
 {% endblock %} {# entry_point #}
 
 {% block main_evolution %}
