@@ -19,7 +19,4 @@ typedef struct TableOfRates {
   RateTable *rates;
 } TableOfRates;
 
-typedef struct {
-  int *field_types;
-  double **field_pointer;
-}
+int {{solver_name}}_main(int argc, char **argv);

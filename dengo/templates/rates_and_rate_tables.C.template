@@ -178,6 +178,7 @@ int {{solver_name}}_main(int argc, char** argv)
     H5LTset_attribute_double(file_id, "/", "timestep", timestep, 1);
     H5Fclose(file_id);
     
+    return 0;
 }
 {% endblock %} {# entry_point #}
 
@@ -223,8 +224,8 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
 	    dt = min(dt * 1.1, dtf - ttot);
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
-	    char imfilename[30];
-	    sprintf(imfilename,"{{ solver_name  }}_intermediate_%06d.h5", siter);
+	    char imfilename[255];
+	    snprintf(imfilename, 255, "{{ solver_name  }}_intermediate_%06d.h5", siter);
     	    file_id = H5Fcreate(imfilename, H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
     	    hsize_t dimsarr[1];
     	    dimsarr[0] = dims;

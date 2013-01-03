@@ -174,13 +174,6 @@ class ChemicalNetwork(object):
             return ccode(function_eq)
         return ccode(eq)
 
-    def _write_template(self, template_name, env, template_vars, output_dir):
-        template_inst = env.get_template(template_name + ".template")
-        solver_out = template_inst.render(**template_vars)
-        ofn = os.path.join(output_dir, os.path.splitext(template_name)[0])
-        with open(ofn ,"w") as f:
-            f.write(solver_out)
-
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
@@ -205,12 +198,15 @@ class ChemicalNetwork(object):
         
         template_vars = dict(network = self, solver_name = solver_name)
 
-        self._write_template(solver_template + ".C", env, template_vars, output_dir)
-        self._write_template(solver_template + "_main.C", env, template_vars, output_dir)
-        self._write_template(solver_template + ".h", env, template_vars, output_dir)
-        self._write_template(solver_template + "_run.pyx", env, template_vars, output_dir)
-        self._write_template(solver_template + "_run.pyxbld", env, template_vars, output_dir)
-        self._write_template(solver_template + "_run.pyxdep", env, template_vars, output_dir)
+        for suffix in (".C", "_main.C", ".h", "_run.pyx", "_run.pyxbld",
+                       "_run.pyxdep", "_main.py"):
+            iname = "%s%s" % (solver_template, suffix)
+            oname = os.path.join(output_dir,
+                            "%s_solver%s" % (solver_name, suffix))
+            template_inst = env.get_template(iname + ".template")
+            solver_out = template_inst.render(**template_vars)
+            with open(oname ,"w") as f:
+                f.write(solver_out)
 
         # Now we copy over anything else we might need.
         if ode_solver_source is not None:
