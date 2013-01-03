@@ -12,82 +12,11 @@
 */
 {% endblock %}
 
-{% block includes %}
+#include "{{solver_name}}_solver.h"
 
-/* stdlib, hdf5, local includes */
+{{solver_name}}_data *setup_data(void) {
 
-#include "time.h"
-#include "sys/time.h"
-#include "stdlib.h"
-#include "math.h"
-#include "hdf5.h"
-#include "hdf5_hl.h"
-#include "stdio.h"
-
-#define MAX_NCELLS 1024
-#define max(A,B) ((A) > (B) ? (A) : (B))
-#define min(A,B) ((A) < (B) ? (A) : (B))
-
-typedef int(*rhs_f)(double *, double *, int, int, void *);
-typedef int(*jac_f)(double *, double *, int, int, void *);
-int BE_chem_solve(rhs_f f, jac_f J, double *u, double dt, double *rtol, 
-                  double *atol, int nstrip, int nchem, double *scaling, void *sdata);
-
-{% endblock %} {# includes #}
-
-{% block data_structs_for_rates %}
-
-typedef struct {{ solver_name }}_data_ {
-    /* All of the network bins will be the same width */
-    double dbin;
-    double idbin;
-    double bounds[2];
-    int nbins;
-
-    double Ts[MAX_NCELLS];
-    double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
-    double dT[MAX_NCELLS]; /* t1, t2, tdef */
-    double logTs[MAX_NCELLS];
-    double dTs_{{ network.energy_term.name }}[MAX_NCELLS];
-    /* Now we do all of our cooling and chemical tables */
-    {%- for name, rate in network.reactions | dictsort %}
-    double r_{{name}}[{{ network.T | length }}];
-    double rs_{{name}}[MAX_NCELLS];
-    double drs_{{name}}[MAX_NCELLS];
-    {% endfor %}
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double c_{{name}}_{{name2}}[{{ network.T | length }}];
-    double cs_{{name}}_{{name2}}[MAX_NCELLS];
-    double dcs_{{name}}_{{name2}}[MAX_NCELLS];
-    {% endfor %}
-    {% endfor %}
-    int bin_id[MAX_NCELLS];
-    int ncells;
-} {{ solver_name }}_data;
-
-void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
-void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
-double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
-            double *rtol, double *atol, int dims,
-            {{solver_name}}_data *data);
-{% endblock %} {# data_struct_for_rates #}
-
-{% block function_declarations %}
-
-int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
-        int nstrip, int nchem, void *sdata);
-int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
-                  int nchem, void *sdata);
-
-{% endblock %} {# function_declarations #}
-
-{% block entry_point %}
-int {{solver_name}}_main(int argc, char** argv)
-{
-    {{ solver_name }}_data *data;
-
-    data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
+    {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
     data->bounds[0] = {{ network.T_bounds[0] }};
     data->bounds[1] = {{ network.T_bounds[1] }};
@@ -100,6 +29,15 @@ int {{solver_name}}_main(int argc, char** argv)
 
     {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
+
+    return data;
+
+}
+
+{% block entry_point %}
+int {{solver_name}}_main(int argc, char** argv)
+{
+    {{ solver_name }}_data *data = {{solver_name}}_setup_data();
 
     /* Initial conditions */
 
@@ -221,7 +159,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
             fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
                      siter, dt, dtf);
             ttot += dt;
-	    dt = min(dt * 1.1, dtf - ttot);
+	    dt = MIN(dt * 1.1, dtf - ttot);
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
 	    char imfilename[255];
@@ -273,10 +211,8 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
 {% block read_tables %}
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 {
-    herr_t status;
     hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
-    hsize_t dims;
 
     {%- for name, rate in network.reactions | dictsort %}
     H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
@@ -288,10 +224,8 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
 
-    herr_t status;
     hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
-    hsize_t dims;
 
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
@@ -318,7 +252,6 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
     {% endif %}
-    double temperature;
     /* Calculate total density */
 
     {%- for species in network.required_species | sort %}
@@ -363,7 +296,6 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                     int nstrip)
 {
     int i, ri, bin_id;
-    static int ncalls = 0;
     double dd, bv, dy, lb, ub;
     double t1, t2, tdef;
     lb = log(data->bounds[0]);
