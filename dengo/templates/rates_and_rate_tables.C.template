@@ -14,7 +14,7 @@
 
 #include "{{solver_name}}_solver.h"
 
-{{solver_name}}_data *setup_data(void) {
+{{solver_name}}_data *{{solver_name}}_setup_data(void) {
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
