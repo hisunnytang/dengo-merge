@@ -67,5 +67,16 @@ def run_{{solver_name}}(ics, double tf):
 
     cdef {{solver_name}}_data *data = {{solver_name}}_setup_data()
 
-    cdef double dt = 0.0
-    dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
+    cdef double dt = -1.0
+    cdef double ttot
+    ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
+    rv = {}
+    {%- for s in network.required_species | sort %}
+    {{s.name}}_arr = rv["{{s.name}}"] = np.zeroes(N, "float64")
+    {%- endfor %}
+    for i in range(N):
+        {%- for s in network.required_species | sort %}
+        {{s.name}}_arr[i] = input[j] * {{s.weight}}
+        j += 1
+        {%- endfor %}
+    return rv
