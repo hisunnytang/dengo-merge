@@ -151,6 +151,7 @@ if generate_initial_conditions:
     # Write the initial conditions file
     create_initial_conditions(init_values, 'oxygen')
 
+    # This code runs Dengo once the ICs are generated.
     includepath = "/Users/devinsilvia/Research/code/yt-x86_64/include/"
     enzoincludepath = "/Users/devinsilvia/Research/code/enzo-dev_chemistry/src/enzo/"
     libpath = "/Users/devinsilvia/Research/code/yt-x86_64/lib/"
