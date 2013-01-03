@@ -1,0 +1,5 @@
+import pyximport
+pyximport.install()
+
+import {{solver_name}}_solver_run
+{{solver_name}}_solver_run.run_{{solver_name}}()

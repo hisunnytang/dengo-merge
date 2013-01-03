@@ -175,9 +175,10 @@ class ChemicalNetwork(object):
         return ccode(eq)
 
     def write_solver(self, solver_name,
-                     solver_template = "rates_and_rate_tables.c.template",
+                     solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
-                     output_dir = ".", init_values = None):
+                     output_dir = ".", init_values = None,
+                     main_name = "main"):
         if not os.path.isdir(output_dir): os.makedirs(output_dir)
         # What we are handed here is:
         #   * self, a python object which holds all of the species, reactions,
@@ -195,12 +196,17 @@ class ChemicalNetwork(object):
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "templates"))
         
-        template_inst = env.get_template(solver_template)
         template_vars = dict(network = self, solver_name = solver_name)
-        solver_out = template_inst.render(**template_vars)
-        f = open(os.path.join(output_dir, "%s_solver.c" % solver_name), "w")
-        f.write(solver_out)
-        f.close()
+
+        for suffix in (".C", "_main.C", ".h", "_run.pyx", "_run.pyxbld",
+                       "_run.pyxdep", "_main.py"):
+            iname = "%s%s" % (solver_template, suffix)
+            oname = os.path.join(output_dir,
+                            "%s_solver%s" % (solver_name, suffix))
+            template_inst = env.get_template(iname + ".template")
+            solver_out = template_inst.render(**template_vars)
+            with open(oname ,"w") as f:
+                f.write(solver_out)
 
         # Now we copy over anything else we might need.
         if ode_solver_source is not None:

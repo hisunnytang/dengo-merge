@@ -1,0 +1,5 @@
+#include "rates_and_rate_tables.h"
+
+int main(int argc, char **argv) {
+    {{solver_name}}_main(argv, argv);
+}
