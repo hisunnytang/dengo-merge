@@ -3,20 +3,76 @@
 The generalized rate data type holders.
 
 */
+{% block includes %}
 
-typedef struct RateTable {
-  int nbins;
-  /* Note that we could include a piece of data that points to the 
-     variable on which this rate depends; but we do not. */
-  double dbin;
-  double idbin;
-  double bounds[2];
-  double *values;
-} RateTable;
+/* stdlib, hdf5, local includes */
 
-typedef struct TableOfRates {
-  int nrates;
-  RateTable *rates;
-} TableOfRates;
+#include "time.h"
+#include "sys/time.h"
+#include "stdlib.h"
+#include "math.h"
+#include "hdf5.h"
+#include "hdf5_hl.h"
+#include "stdio.h"
+
+#define MAX_NCELLS 1024
+#define MAX(A,B) ((A) > (B) ? (A) : (B))
+#define MIN(A,B) ((A) < (B) ? (A) : (B))
+
+{% endblock %} {# includes #}
 
 int {{solver_name}}_main(int argc, char **argv);
+
+{% block data_structs_for_rates %}
+
+typedef struct {{ solver_name }}_data_ {
+    /* All of the network bins will be the same width */
+    double dbin;
+    double idbin;
+    double bounds[2];
+    int nbins;
+
+    double Ts[MAX_NCELLS];
+    double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
+    double dT[MAX_NCELLS]; /* t1, t2, tdef */
+    double logTs[MAX_NCELLS];
+    double dTs_{{ network.energy_term.name }}[MAX_NCELLS];
+    /* Now we do all of our cooling and chemical tables */
+    {%- for name, rate in network.reactions | dictsort %}
+    double r_{{name}}[{{ network.T | length }}];
+    double rs_{{name}}[MAX_NCELLS];
+    double drs_{{name}}[MAX_NCELLS];
+    {% endfor %}
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double c_{{name}}_{{name2}}[{{ network.T | length }}];
+    double cs_{{name}}_{{name2}}[MAX_NCELLS];
+    double dcs_{{name}}_{{name2}}[MAX_NCELLS];
+    {% endfor %}
+    {% endfor %}
+    int bin_id[MAX_NCELLS];
+    int ncells;
+} {{ solver_name }}_data;
+
+{{solver_name}}_data *{{solver_name}}_setup_data(void);
+void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
+double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
+            double *rtol, double *atol, int dims,
+            {{solver_name}}_data *data);
+{% endblock %} {# data_struct_for_rates #}
+
+typedef int(*rhs_f)(double *, double *, int, int, void *);
+typedef int(*jac_f)(double *, double *, int, int, void *);
+int BE_chem_solve(rhs_f f, jac_f J, double *u, double dt, double *rtol, 
+                  double *atol, int nstrip, int nchem, double *scaling, void *sdata);
+
+{% block function_declarations %}
+
+int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
+        int nstrip, int nchem, void *sdata);
+int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
+                  int nchem, void *sdata);
+
+{% endblock %} {# function_declarations #}
+

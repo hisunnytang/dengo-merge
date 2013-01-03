@@ -2,4 +2,4 @@ import pyximport
 pyximport.install()
 
 import {{solver_name}}_solver_run
-{{solver_name}}_solver_run.run_{{solver_name}}()
+{{solver_name}}_solver_run.main_run_{{solver_name}}()
