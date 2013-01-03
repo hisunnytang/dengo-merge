@@ -103,7 +103,6 @@ if generate_initial_conditions:
                 
                 # in case something is negative or super small:
                 init_values[s.name][init_values[s.name] < tiny] = tiny
-                print init_values[s.name]
                 
                 # # conservation...
                 # init_values[initial_state] -= init_values[s.name]
