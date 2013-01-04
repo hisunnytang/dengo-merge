@@ -43,8 +43,7 @@ class ChemicalNetwork(object):
         self.write_intermediate_solutions = False
 
     def add_reaction(self, reaction):
-        if isinstance(reaction, types.StringTypes):
-            reaction = reaction_registry[reaction]
+        reaction = reaction_registry.get(reaction, reaction)
         if reaction.name in self.reactions:
             raise RuntimeError
         self.reactions[reaction.name] = reaction
@@ -54,12 +53,14 @@ class ChemicalNetwork(object):
         for n, s in reaction.right_side:
             self.required_species.add(s)
         print "Adding reaction: %s" % reaction
+
     def add_energy_term(self):
         if self.energy_term is None:
             self.energy_term = species_registry["ge"]
             self.required_species.add(self.energy_term)
 
     def add_cooling(self, cooling_term):
+        cooling_term = cooling_registry.get(cooling_term, cooling_term)
         self.add_energy_term()
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError

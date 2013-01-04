@@ -14,11 +14,44 @@ X = 0.5
 primordial = ChemicalNetwork()
 primordial.add_energy_term()
 
-for ca in cooling_registry.values():
-    primordial.add_cooling(ca)
+primordial.add_cooling("brem")
+primordial.add_cooling("reHII")
+primordial.add_cooling("reHeIII")
+primordial.add_cooling("gloverabel08")
+primordial.add_cooling("ceHI")
+primordial.add_cooling("h2formation")
+primordial.add_cooling("reHeII2")
+primordial.add_cooling("reHeII1")
+primordial.add_cooling("ciHeIS")
+primordial.add_cooling("ceHeII")
+primordial.add_cooling("ciHI")
+primordial.add_cooling("ceHeI")
+primordial.add_cooling("gammah")
+primordial.add_cooling("ciHeI")
+primordial.add_cooling("ciHeII")
 
-for r in reaction_registry.values():
-    primordial.add_reaction(r)
+primordial.add_reaction("k01")
+primordial.add_reaction("k02")
+primordial.add_reaction("k03")
+primordial.add_reaction("k04")
+primordial.add_reaction("k05")
+primordial.add_reaction("k06")
+primordial.add_reaction("k07")
+primordial.add_reaction("k08")
+primordial.add_reaction("k09")
+primordial.add_reaction("k10")
+primordial.add_reaction("k11")
+primordial.add_reaction("k12")
+primordial.add_reaction("k13")
+primordial.add_reaction("k14")
+primordial.add_reaction("k15")
+primordial.add_reaction("k16")
+primordial.add_reaction("k17")
+primordial.add_reaction("k18")
+primordial.add_reaction("k19")
+primordial.add_reaction("k21")
+primordial.add_reaction("k22")
+primordial.add_reaction("k23")
 
 # This defines the temperature range for the rate tables
 primordial.init_temperature((1e0, 1e8))
@@ -55,8 +88,10 @@ init_values['ge'] = ((temperature * init_values['density'] * kboltz)
 primordial.write_solver("primordial", output_dir = ".")
 
 import pyximport
-pyximport.install(setup_args={"include_dirs":np.get_include()})
+pyximport.install(setup_args={"include_dirs":np.get_include()},
+                  reload_support=True, inplace=True)
 
 primordial_solver_run = pyximport.load_module("primordial_solver_run",
-                            "primordial_solver_run.pyx")
+                            "primordial_solver_run.pyx",
+                            build_inplace = True, pyxbuild_dir = "_dengo_temp")
 primordial_solver_run.run_primordial(init_values, 1e8)
