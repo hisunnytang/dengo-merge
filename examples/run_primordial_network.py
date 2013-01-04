@@ -8,9 +8,9 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
 NCELLS = 4
-density = 1e14
+density = 1e7
 temperature = np.logspace(2, 4, NCELLS)
-temperature[:] = 1e3
+temperature[:] = 2e3
 X = 0.5
 
 primordial = ChemicalNetwork()
@@ -58,6 +58,8 @@ primordial.add_reaction("k23")
 # This defines the temperature range for the rate tables
 primordial.init_temperature((1e0, 1e8))
 
+tiny = 1e-10
+
 init_array = np.ones(NCELLS) * density
 init_values = dict()
 init_values['HII']     = X * init_array
@@ -94,4 +96,24 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 primordial_solver_run = pyximport.load_module("primordial_solver_run",
                             "primordial_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-primordial_solver_run.run_primordial(init_values, 1e8)
+rv, rv_int = primordial_solver_run.run_primordial(init_values, 1e16)
+
+import pylab
+pylab.clf()
+
+mask = rv_int['successful']
+for name in sorted(rv_int):
+    if len(rv_int[name].shape) == 1:
+        rv_int[name] = rv_int[name][mask]
+    else:
+        rv_int[name] = rv_int[name][0, mask]
+    
+skip = ('successful', 'dt', 't', 'ge')
+for n, v in sorted(rv_int.items()):
+    if n in skip: continue
+    pylab.loglog(rv_int['t'], v, label = n)
+
+pylab.ylim(density * 1e-20, density * 10)
+pylab.xlabel("time [s]")
+pylab.legend(loc='best', fontsize='xx-small')
+pylab.savefig("plot.png")

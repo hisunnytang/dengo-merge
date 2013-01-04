@@ -34,6 +34,9 @@ cdef extern from "{{solver_name}}_solver.h":
         int bin_id[MAX_NCELLS]
         int ncells
 
+    ctypedef int(*rhs_f)(double *, double *, int, int, void *)
+    ctypedef int(*jac_f)(double *, double *, int, int, void *)
+
     int {{solver_name}}_main(int argc, char **argv)
     {{solver_name}}_data *{{solver_name}}_setup_data()
     void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
@@ -41,45 +44,126 @@ cdef extern from "{{solver_name}}_solver.h":
     double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
                 double *rtol, double *atol, int dims,
                 {{solver_name}}_data *data)
-
+    int BE_chem_solve(rhs_f f, jac_f J,
+		    double *u, double dt, double *rtol, 
+                    double *atol, int nstrip, int nchem, 
+		    double *scaling, void *sdata)
+    int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
+            int nstrip, int nchem, void *sdata)
+    int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
+                      int nchem, void *sdata)
 
 def main_run_{{solver_name}}():
     {{solver_name}}_main(0, NULL)
 
-def run_{{solver_name}}(ics, double tf):
+def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1):
     {%- for s in network.required_species | sort %}
     cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
     {%- endfor %}
+    cdef np.ndarray[np.uint8_t, ndim=1] result_int
+    cdef np.ndarray[np.float64_t, ndim=2] temp_int
+    cdef np.ndarray[np.float64_t, ndim=1] t_int
+    cdef np.ndarray[np.float64_t, ndim=1] dt_int
 
-    cdef int i, j, k
+    cdef int i, j, k, iter
     cdef int N = {{network.energy_term.name}}_arr.shape[0]
-    cdef double *input = <double *> alloca(N * NSPECIES * sizeof(double))
-    cdef double *atol = <double *> alloca(N * NSPECIES * sizeof(double))
-    cdef double *rtol = <double *> alloca(N * NSPECIES * sizeof(double))
+    cdef int NTOT = NSPECIES * N
+    cdef double *input = <double *> alloca(NTOT * sizeof(double))
+    cdef double *prev = <double *> alloca(NTOT * sizeof(double))
+    cdef double *atol = <double *> alloca(NTOT * sizeof(double))
+    cdef double *rtol = <double *> alloca(NTOT * sizeof(double))
+    cdef double *scale = <double *> alloca(NTOT * sizeof(double))
     cdef double v
-    
+
+    if intermediate == 1:
+        {%- for s in network.required_species | sort %}
+        {{s.name}}_int = np.zeros((N, niter), "float64")
+        {%- endfor %}
+        temp_int = np.zeros((N, niter), "float64")
+        result_int = np.zeros(niter, "uint8")
+        t_int = np.zeros(niter, "float64")
+        dt_int = np.zeros(niter, "float64")
+
     j = 0
     for i in range(N):
         {%- for s in network.required_species | sort %}
-        input[j] = {{s.name}}_arr[i] / {{s.weight}}
-        atol[j] = input[j] * 1e-11;
-        rtol[j] = 1e-11;
+        input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
+        atol[j] = input[j] * 1e-11
+        rtol[j] = 1e-11
+        scale[j] = 1.0
         j += 1
         {%- endfor %}
 
     cdef {{solver_name}}_data *data = {{solver_name}}_setup_data()
+    cdef rhs_f f = calculate_rhs_{{solver_name}}
+    cdef jac_f jf = calculate_jacobian_{{solver_name}}
 
-    cdef double dt = -1.0
-    cdef double ttot
-    ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
-    rv = {}
+    cdef double dt = tf / 1e5
+    cdef double ttot = 0.0
+    cdef int status
+    # Now we manually evolve
+    #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
+    for iter in range(niter):
+        status = BE_chem_solve(f, jf, input, dt, rtol, atol, N, NSPECIES, scale,
+                               <void *> data)
+        if intermediate == 1:
+            j = 0
+            for i in range(N):
+                {%- for s in network.required_species | sort %}
+                {{s.name}}_int[i, iter] = input[j]
+                j += 1
+                {%- endfor %}
+                temp_int[i, iter] = data.Ts[i]
+            if status == 0:
+                result_int[iter] = 1
+            elif status == 1:
+                result_int[iter] = 0
+            t_int[iter] = ttot
+            dt_int[iter] = dt
+        if status == 0:
+            if iter % 1000 == 0:
+                print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (
+                    iter, dt, ttot, tf)
+            copy_array(input, prev, NTOT)
+            ttot += dt
+            dt *= 1.1
+            if tf - ttot < dt:
+                dt = tf- ttot
+        elif status == 1:
+            dt /= 2.0
+            copy_array(prev, input, NTOT)
+            if dt < 1e-30 * tf:
+                print "dt too small (%0.3e / %0.3e) so breaking" % (dt, tf)
+                break
+            continue
+        if ttot >= tf: break
+
+    print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
+
+    rv, rv_t = {}, {}
     {%- for s in network.required_species | sort %}
     {{s.name}}_arr = rv["{{s.name}}"] = np.zeros(N, "float64")
     {%- endfor %}
+    if intermediate:
+        {%- for s in network.required_species | sort %}
+        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]
+        {%- endfor %}
+        rv_t["successful"] = result_int.astype("bool")
+        rv_t['T'] = temp_int
+        rv_t['t'] = t_int
+        rv_t['dt'] = dt_int
+
     j = 0
     for i in range(N):
         {%- for s in network.required_species | sort %}
         {{s.name}}_arr[i] = input[j] * {{s.weight}}
         j += 1
         {%- endfor %}
-    return rv
+    return rv, rv_t
+
+cdef copy_array(double *input, double *output, int N):
+    cdef int i
+    for i in range(N):
+        output[i] = input[i]
