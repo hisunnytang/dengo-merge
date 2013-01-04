@@ -34,10 +34,11 @@ init_values['H2I']     = init_array * tiny
 init_values['H2II']    = init_array * tiny
 init_values['de'] = init_array * 0.0
 
-mass_density = primordial.calculate_mass_density(init_values, ("HI",))
-init_values["HI"] = init_array.copy() - mass_density
+total_density = primordial.calculate_total_density(init_values, ("HI",))
+init_values["HI"] = init_array.copy() - total_density
+init_values = primordial.convert_to_mass_density(init_values)
 init_values['de'] = primordial.calculate_free_electrons(init_values)
-init_values['density'] = primordial.calculate_mass_density(init_values)
+init_values['density'] = primordial.calculate_total_density(init_values)
 number_density = primordial.calculate_number_density(init_values)
 
 # set up initial temperatures values used to define ge

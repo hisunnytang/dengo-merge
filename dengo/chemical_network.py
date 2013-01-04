@@ -174,6 +174,7 @@ class ChemicalNetwork(object):
             return ccode(function_eq)
         return ccode(eq)
 
+    # This function computes the total number density
     def calculate_number_density(self, values, skip = ()):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
@@ -184,6 +185,7 @@ class ChemicalNetwork(object):
             n += values[s.name] / s.weight
         return n
 
+    # This function counts up the total number of free electrons
     def calculate_free_electrons(self, values, skip = ()):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
@@ -194,6 +196,7 @@ class ChemicalNetwork(object):
             n += ( values[s.name] / s.weight ) * s.free_electrons
         return n
 
+    # This computes the total mass density from abundance fractions
     def calculate_mass_density(self, values, skip = ()):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
@@ -201,8 +204,28 @@ class ChemicalNetwork(object):
         skip = tuple(skip) + ("de", self.energy_term.name)
         for s in self.required_species:
             if s.name in skip: continue
-            n += values[s.name] * s.free_electrons
+            n += values[s.name] * s.weight
         return n
+
+    # This function sums the densities (mass or number depending on what
+    # is fed in) of non-electron species
+    def calculate_total_density(self, values, skip = ()):
+        # values should be a dict with all of the required species in it
+        # The values should be in *mass* density
+        n = np.zeros_like(values.values()[0])
+        skip = tuple(skip) + ("de", self.energy_term.name)
+        for s in self.required_species:
+            if s.name in skip: continue
+            n += values[s.name]
+        return n
+
+    # This function converts from fractional abundance to mass density
+    def convert_to_mass_density(self, values, skip = ()):
+        skip = tuple(skip) + ("de", self.energy_term.name)
+        for s in self.required_species:
+            if s.name in skip: continue
+            values[s.name] = values[s.name] * s.weight
+        return values
 
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
