@@ -132,8 +132,8 @@ int BE_chem_solve(rhs_f f, jac_f J,
       // check error in this cell (max norm)
       for (i=0; i<nchem; i++) {
 	if ( fabs(s[i]) > (atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]))) {
-      fprintf(stderr, "Unsolved[%d]: %d % 0.5g % 0.5g\n",
-         ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]));
+      /*fprintf(stderr, "Unsolved[%d]: %d % 0.5g % 0.5g\n",
+         ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]));*/
 	  unsolved = 1;
 	  break;
 	}
@@ -162,10 +162,10 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
   // final check, diagnostics output
   if (unsolved) {
-    printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
+    /*printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);*/
     return 1;
   } else {
-    printf("BE_chem_solve: solved with %i total iterations\n",isweep);
+    /*printf("BE_chem_solve: solved with %i total iterations\n",isweep);*/
     return 0;
   }
 

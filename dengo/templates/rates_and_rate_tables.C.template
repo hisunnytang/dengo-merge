@@ -160,9 +160,11 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
         if (rv == 0) {
 	    if (siter == 9999) break;
 	    siter++;
-            fprintf(stderr, "Successful Iteration[%d]: %0.16g / %0.16g\n",
-                     siter, dt, dtf);
-            ttot += dt;
+        if (siter % 1000 == 0) {
+            fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
+                     siter, dt, ttot, dtf);
+        }
+        ttot += dt;
 	    dt = DMIN(dt * 1.1, dtf - ttot);
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
