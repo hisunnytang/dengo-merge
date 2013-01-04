@@ -33,58 +33,84 @@ generate_initial_conditions = True
 
 if generate_initial_conditions:
     import numpy as np
-    NCELLS = 1
+    NCELLS = 32
     density = 1e7
-    init_array = np.ones(NCELLS) 
     X = 0.5
 
+    init_array = np.ones(NCELLS) 
     init_values = dict()
-    init_values['density'] = density * init_array
-    init_values['HI'] = init_array.copy() # use conservation to set this below
-    # populate initial fractional values for the other species
-    for s in sorted(primordial.required_species):
-        if s.name != 'ge' and s.name != 'HI':
-            if s.name == 'de':
-                continue
-            elif s.name == 'HII':
-                init_values[s.name] = X * init_array
-            else:
-                init_values[s.name] = tiny * init_array
-            init_values['HI'] -= init_values[s.name]
+    init_values['HII']     = X * init_array
+    init_values['HM']      = init_array * tiny
+    init_values['HeI']     = init_array * tiny
+    init_values['HeII']    = init_array * tiny
+    init_values['HeIII']   = init_array * tiny
+    init_values['H2I']     = init_array * tiny
+    init_values['H2II']    = init_array * tiny
     init_values['de'] = init_array * 0.0
-    for s in sorted(primordial.required_species):
-        if s.name in ('ge', 'de'): continue
-        init_values['de'] += init_values[s.name] * s.free_electrons
-        print "Adding %0.5e to electrons from %s" % (
-            (init_values[s.name] * s.free_electrons)[0], s.name)
-    print "Total de: %0.5e" % (init_values['de'][0])
 
-    # convert to masses to multiplying by the density factor and the species weight
-    for s in primordial.required_species:
-        if s.name == 'ge': continue
-        if s.name == 'de':
-            init_values[s.name] *= (density) # this is still just number density
-        else:
-            init_values[s.name] *= (density * s.weight)
+    total_density = primordial.calculate_total_density(init_values, ("HI",))
+    init_values["HI"] = init_array.copy() - total_density
+    init_values = primordial.convert_to_mass_density(init_values)
+    init_values['de'] = primordial.calculate_free_electrons(init_values)
+    init_values['density'] = primordial.calculate_total_density(init_values)
+    number_density = primordial.calculate_number_density(init_values)
 
-    #compute new total density and number density
-    density = 0.0
-    number_density = 0.0
-    for s in sorted(primordial.required_species):
-        if s.name == 'ge': continue
-        number_density += init_values[s.name][0]/s.weight
-        if s.name == 'de': continue
-        density += init_values[s.name][0]
-    
     # set up initial temperatures values used to define ge
     temperature = np.logspace(2, 4, NCELLS)
     temperature[:] = 1e3
     init_values['T'] = temperature
 
-    # calculate ge (very crudely)
-    gamma = 5.e0/3.e0
-    init_values['ge'] = ((temperature * density * kboltz)
+    # calculate ge (very crudely, no H2 help here)
+    gamma = 5.0/3.0
+    init_values['ge'] = ((temperature * init_values['density'] * kboltz)
                          / (number_density * mh * (gamma - 1)))
+
+    # init_values['density'] = density * init_array
+    # init_values['HI'] = init_array.copy() # use conservation to set this below
+    # # populate initial fractional values for the other species
+    # for s in sorted(primordial.required_species):
+    #     if s.name != 'ge' and s.name != 'HI':
+    #         if s.name == 'de':
+    #             continue
+    #         elif s.name == 'HII':
+    #             init_values[s.name] = X * init_array
+    #         else:
+    #             init_values[s.name] = tiny * init_array
+    #         init_values['HI'] -= init_values[s.name]
+    # init_values['de'] = init_array * 0.0
+    # for s in sorted(primordial.required_species):
+    #     if s.name in ('ge', 'de'): continue
+    #     init_values['de'] += init_values[s.name] * s.free_electrons
+    #     print "Adding %0.5e to electrons from %s" % (
+    #         (init_values[s.name] * s.free_electrons)[0], s.name)
+    # print "Total de: %0.5e" % (init_values['de'][0])
+
+    # # convert to masses to multiplying by the density factor and the species weight
+    # for s in primordial.required_species:
+    #     if s.name == 'ge': continue
+    #     if s.name == 'de':
+    #         init_values[s.name] *= (density) # this is still just number density
+    #     else:
+    #         init_values[s.name] *= (density * s.weight)
+
+    # #compute new total density and number density
+    # density = 0.0
+    # number_density = 0.0
+    # for s in sorted(primordial.required_species):
+    #     if s.name == 'ge': continue
+    #     number_density += init_values[s.name][0]/s.weight
+    #     if s.name == 'de': continue
+    #     density += init_values[s.name][0]
+    
+    # # set up initial temperatures values used to define ge
+    # temperature = np.logspace(2, 4, NCELLS)
+    # temperature[:] = 1e3
+    # init_values['T'] = temperature
+
+    # # calculate ge (very crudely)
+    # gamma = 5.e0/3.e0
+    # init_values['ge'] = ((temperature * density * kboltz)
+    #                      / (number_density * mh * (gamma - 1)))
     
     # Write the initial conditions file
 
