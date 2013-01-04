@@ -83,8 +83,8 @@ init_values['T'] = temperature
 
 # calculate ge (very crudely, no H2 help here)
 gamma = 5.0/3.0
-init_values['ge'] = ((temperature * init_values['density'] * kboltz)
-                     / (number_density * mh * (gamma - 1)))
+init_values['ge'] = ((temperature * number_density * kboltz)
+                     / (init_values['density'] * mh * (gamma - 1)))
 
 # Write the initial conditions file
 primordial.write_solver("primordial", output_dir = ".")
