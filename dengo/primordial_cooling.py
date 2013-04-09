@@ -40,7 +40,7 @@ def cool(eq):
         return vals
 
 # -- ceHeI --
-@cooling_action("ceHeI", "-ceHeI * HeII * de**2/4.0")
+@cooling_action("ceHeI", "-ceHeI * HeII * de**2")
 def cool(eq):
     @eq.table
     def ceHeI(state):
@@ -49,7 +49,7 @@ def cool(eq):
         return vals
 
 # -- ceHeIIa --
-@cooling_action("ceHeII", "-ceHeII * HeII * de/4.0")
+@cooling_action("ceHeII", "-ceHeII * HeII * de")
 def cool(eq):
     @eq.table
     def ceHeII(state):
@@ -60,7 +60,7 @@ def cool(eq):
 # Collisional ionizations
 
 # -- ciHeIS --
-@cooling_action("ciHeIS", "-ciHeIS*HeII*de**2/4.0")
+@cooling_action("ciHeIS", "-ciHeIS*HeII*de**2")
 def cool(eq):
     @eq.table
     def ciHeIS(state):
@@ -77,7 +77,7 @@ def cool(eq):
         return vals
 
 # -- ciHeI --
-@cooling_action("ciHeI", "-ciHeI*HeI*de/4.0")
+@cooling_action("ciHeI", "-ciHeI*HeI*de")
 def cool(eq):
     @eq.table
     def ciHeI(state):
@@ -85,7 +85,7 @@ def cool(eq):
         return vals
 
 # -- ciHeII --
-@cooling_action("ciHeII", "-ciHeII*HeII*de/4.0")
+@cooling_action("ciHeII", "-ciHeII*HeII*de")
 def cool(eq):
     @eq.table
     def ciHeII(state):
@@ -104,7 +104,7 @@ def cool(eq):
         return vals
 
 # -- reHeII1 --
-@cooling_action("reHeII1", "-reHeII1 * HeII * de/4.0")
+@cooling_action("reHeII1", "-reHeII1 * HeII * de")
 def cool(eq):
     @eq.table
     def reHeII1(state):
@@ -112,7 +112,7 @@ def cool(eq):
         return vals
 
 # -- reHeII2 --
-@cooling_action("reHeII2", "-reHeII2 * HeII * de/4.0")
+@cooling_action("reHeII2", "-reHeII2 * HeII * de")
 def cool(eq):
     @eq.table
     def reHeII2(state):
@@ -122,7 +122,7 @@ def cool(eq):
         return vals
 
 # -- reHeIII --
-@cooling_action("reHeIII", "-reHeIII * HeIII * de/4.0")
+@cooling_action("reHeIII", "-reHeIII * HeIII * de")
 def cool(eq):
     @eq.table
     def reHeIII(state):
@@ -131,7 +131,7 @@ def cool(eq):
         return vals
 
 # -- brema --
-@cooling_action("brem", "-brem*(HII * HeII/4.0 + HeIII * de)")
+@cooling_action("brem", "-brem * (HII + HeII + 4.0*HeIII) * de")
 def cool(eq):
     @eq.table
     def brem(state):
@@ -144,7 +144,7 @@ def cool(eq):
 # Glover and Abel 2008.  Note that this includes the unused Galli & Palla 1999
 # low density table.
 #@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)")
-@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl/galdl)")
+@cooling_action("gloverabel08", "-(H2I)*gphdl/(1.0+gphdl/galdl)")
 def cool(eq):
     @eq.table
     def gpldl(state):
