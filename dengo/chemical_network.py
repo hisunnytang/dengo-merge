@@ -68,7 +68,7 @@ class ChemicalNetwork(object):
         self.required_species.update(cooling_term.species)
     
     def init_temperature(self, T_bounds = (1, 1e8), n_bins=1024):
-        self.n_bins = 1024
+        self.n_bins = n_bins
         self.T = np.logspace(np.log(T_bounds[0]),
                              np.log(T_bounds[1]),
                              n_bins, base = np.e)
