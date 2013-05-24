@@ -57,10 +57,10 @@ def rxn(state):
                   - 1.856767039775261e-8*state.logtev**8
                   - 3.071135243196595e-9*state.logtev**9)
     _i1 = (state.tev < 0.8)
-    vals[_i2] = (1.54e-9*(1.+0.3/np.exp(8.099328789667/state.tev))
-                  / (np.exp(40.49664394833662/state.tev)*state.tev**1.5)
-                  + 3.92e-13/state.tev**0.6353) 
-    vals[_i1] = 3.92e-13/state.tev**0.6353
+    vals[_i2] = (1.54e-9*(1.+0.3/np.exp(8.099328789667/state.tev[_i2]))
+                  / (np.exp(40.49664394833662/state.tev[_i2])*state.tev[_i2]**1.5)
+                  + 3.92e-13/state.tev[_i2]**0.6353) 
+    vals[_i1] = 3.92e-13/state.tev[_i1]**0.6353
     return vals
 
 # -- k03 --
@@ -144,7 +144,7 @@ def rxn(state):
 def rxn(state):
     _i1 = (state.T > 6.7e3)
     vals = 1.85e-23*state.T**1.8
-    vals[_i1] = 5.81e-16*(state.T/56200)**(-0.6657*np.log10(state.T/56200))
+    vals[_i1] = 5.81e-16*(state.T[_i1]/56200)**(-0.6657*np.log10(state.T[_i1]/56200))
     return vals
 
 # -- k10 --
@@ -221,7 +221,7 @@ def rxn(state):
                   - 0.00002585009680264*state.logtev**7
                   + 2.4555011970392e-6*state.logtev**8
                   - 8.06838246118e-8*state.logtev**9) 
-    vals[_i2] = 2.56e-9*state.tev**1.78186
+    vals[_i2] = 2.56e-9*state.tev[_i2]**1.78186
     return vals
 
 # -- k16 --
@@ -236,7 +236,7 @@ def rxn(state):
     _i1 = (state.T < 1e4)
     _i2 = ~_i1
     vals = 1.0e-8*state.T**(-0.4)
-    vals[_i2] = 4.0e-4*state.T**(-1.4)*np.exp(-15100.0/state.T)
+    vals[_i2] = 4.0e-4*state.T[_i2]**(-1.4)*np.exp(-15100.0/state.T[_i2])
     return vals
 
 # -- k18 --
