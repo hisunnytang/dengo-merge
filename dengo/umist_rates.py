@@ -3,15 +3,14 @@
 import re
 import Rate
 
-def umist_rates(speciesOne, speciesTwo):
-	r1 = speciesOne.name
-	r2 = speciesTwo.name
+def umist_rates(species):
+	r1 = species.name
 	with open("RATE12.txt", "r") as f:
 		lines = f.readlines()
 		f.close()
 		for i,line in enumerate(lines):  
 			reaction = re.split(":?", line)
-			if (reaction[2]==r2 or reaction[3]==r2) and (reaction[2]==r1 or reaction[2]==r1): 
+			if (reaction[4]==r1 or reaction[5]==r1): 
 				print "The reactants chosen are %s and %s. The reaction type is %s" % (reaction[2], reaction[3], reaction[1])
 				temp = network.T
 				rate = Rate.get_rate(reaction, temp)[0]

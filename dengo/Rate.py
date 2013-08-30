@@ -12,6 +12,8 @@ def get_rate(reaction, temp):
     a = float(reaction[9])
     b = float(reaction[10])
     g = float(reaction[11])
+    T_lower = float(reaction[12])
+    T_upper = float(reaction[13])
     
     if (reactantA in species_registry) == False:
         rA = Species(speciesName, atomicNumber, atomicWeight, i)
@@ -59,4 +61,4 @@ def get_rate(reaction, temp):
         rate = a*(math.pow(t,b))*(math.exp(-g / temp)) # rate coefficient with units cm^3 / s
         units = "cm^3 / s"
         return rate, units
-    Reaction("%s+%s" % (rA.name, rB.name), rate, [(1, rA.name), (1, rB.name)], [(1, prodC), (1, prodD), (1, prodE), (1,prodF)]) 
+    Reaction("%s+%s" % (rA.name, rB.name), rate, [(1, rA.name), (1, rB.name)], [(1, pC.name), (1, pD.name), (1, pE.name), (1,pF.name)]) 
