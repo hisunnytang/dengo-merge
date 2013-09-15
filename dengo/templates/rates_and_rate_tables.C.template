@@ -75,8 +75,8 @@ int {{solver_name}}_main(int argc, char** argv)
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
     for (j = 0; j < dims; j++) {
         ics[j * N + i] = tics[j] / {{s.weight}}; /* Convert to number density */
-        atol[j * N + i] = tics[j] * 1e-11;
-        rtol[j * N + i] = 1e-11;
+        atol[j * N + i] = tics[j] * 1e-09;
+        rtol[j * N + i] = 1e-09;
         if(j==0) {
             fprintf(stderr, "{{s.name}}[0] = %0.3g, atol => % 0.16g\n",
                     tics[j], atol[j]);
@@ -87,7 +87,7 @@ int {{solver_name}}_main(int argc, char** argv)
 
     H5Fclose(file_id);
 
-    double dtf = 3.1557e16;
+    double dtf = 3.1557e13;
     double dt = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
@@ -135,7 +135,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
     int N = {{network.required_species | length}};
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
-    if (dt < 0) dt = dtf / 10000.0;
+    if (dt < 0) dt = dtf / 1e3;
     int niter = 0;
     int siter = 0;
     double ttot = 0;
@@ -158,7 +158,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
             }
         }
         if (rv == 0) {
-	    if (siter == 9999) break;
+	    if (siter == 49999) break;
 	    siter++;
         if (siter % 1000 == 0) {
             fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
@@ -308,12 +308,12 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
         if (data->bin_id[i] <= 0) {
-            data->bin_id[i] = 1;
+            data->bin_id[i] = 0;
         } else if (data->bin_id[i] >= data->nbins) {
-            data->bin_id[i] = data->nbins - 1;
+            data->bin_id[i] = data->nbins - 2;
         }
-        t1 = (lb + (bin_id - 1) * data->dbin);
-        t2 = (lb + (bin_id    ) * data->dbin);
+        t1 = (lb + (bin_id    ) * data->dbin);
+        t2 = (lb + (bin_id + 1) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
         data->dT[i] = (t2 - t1);
         /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",

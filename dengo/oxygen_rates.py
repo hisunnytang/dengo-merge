@@ -28,7 +28,7 @@ import docutils.utils.roman as roman
 # we may want to come up with a better solution here...
 atomicSymbol = 'O'
 atomicNumber = 8
-atomicWeight = 16
+atomicWeight = 15.9994
 nIons = atomicNumber + 1
 
 for i in range(nIons):
