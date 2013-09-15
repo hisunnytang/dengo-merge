@@ -1,0 +1,21 @@
+Metadata-Version: 1.1
+Name: dengo
+Version: 0.1
+Summary: A framework for creating chemical and radiative coolingreaction networks
+Home-page: http://bitbucket.org/MatthewTurk/dengo
+Author: Matthew J. Turk
+Author-email: matthewturk@gmail.com
+License: GPL-3
+Description: UNKNOWN
+Keywords: astronomy astrophysics chemistry
+Platform: UNKNOWN
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Operating System :: MacOS :: MacOS X
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: C
+Classifier: Programming Language :: Python
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Topic :: Scientific/Engineering :: Physics
