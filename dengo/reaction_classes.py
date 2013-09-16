@@ -356,7 +356,7 @@ def ion_cooling_rate(species):
             extrapup = logdataS[-1] + \
                 (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
                 / (logdataT[-1] - logdataT[-2])
-            vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+            vals[logT > logdataT[-1]] = extrapup[logT > logdataT[-1]]
 
             # convert back to linear
             vals = 10.0**vals
@@ -383,6 +383,77 @@ def ion_cooling_rate(species):
                                            "-%s_c * %s * de" %(species.name, species.name)) #equation
         ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
         new_rates.append("%s_c" % species.name)
+    return new_rates
+
+def ion_photoheating_rate(species, photo_background='HM12'):
+    if chu is None: raise ImportError
+    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    if "_" not in ion_name:
+        print "Name must be in 'Ion Species' format."
+        raise RuntimeError
+    element_name = ion_name.split("_")[0]
+    ion_state = int(ion_name.split("_")[1])
+    species_ph = species.name
+    de = species_registry['de']
+    new_rates = []
+
+    def photoheating_rate(network):
+        # Read in photoheating rates generated from Ben Oppenheimer's data
+        # (from: http://noneq.strw.leidenuniv.nl/)
+        # and do linear interpolation and then recompute
+        # the ends with either an extrapolation or falloff
+        # NOTE: these rates do the interpolation as a function fo redshift
+        f = h5py.File('dengo/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
+                                                                 photo_background))
+        
+        ### Intepolate values within table values ###
+        vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
+        
+        end_method = 0 # 0 = extrapolation, 1 = gaussian falloff
+
+        if end_method == 0:
+            ### Extrapolation in logspace ###
+            # convert to log space
+            vals = np.log10(vals)
+            logz = np.log10(network.z)
+            logdataz = np.log10(f['z'])
+            logdataS = np.log10(f['%s' %(ion_name)])
+
+            # extrapolate
+            extrapdown = logdataS[0] + \
+                (logz - logdataz[0]) * (logdataS[0] - logdataS[1]) \
+                / (logdataz[0] - logdataz[1])
+            vals[logz < logdataz[0]] = extrapdown[logz < logdataz[0]]
+            extrapup = logdataS[-1] + \
+                (logz - logdataz[-1]) * (logdataS[-1] - logdataS[-2]) \
+                / (logdataz[-1] - logdataz[-2])
+            vals[logz > logdataz[-1]] = extrapup[logz > logdataz[-1]]
+
+            # convert back to linear
+            vals = 10.0**vals
+                
+        if end_method == 1:
+            ### Gaussian falloff when values extend beyond table values ###
+            # rename some variables to symplify code
+            z = network.z
+            dataz = f['z']
+            dataS = f['%s' %(ion_name)]
+
+            # compute gaussian tails
+            gaussdown = dataS[0] * (tiny/dataS[0])**(((z - dataz[0])/(z[0] - dataz[0])))**2
+            vals[z < dataz[0]] = gaussdown[z < dataz[0]]
+            gaussup = dataS[-1] * (tiny/dataS[-1])**(((z - dataz[-1])/(z[-1] - dataz[-1])))**2
+            vals[z > dataz[-1]] = gaussup[z > dataz[-1]]
+
+        f.close()
+        return vals
+
+    if species_ph in species_registry:
+        species_ph = species_registry[species_ph]
+        ion_cooling_action = CoolingAction("%s_ph" % species.name, #name
+                                           "%s_ph * %s" %(species.name, species.name)) #equation
+        ion_cooling_action.tables["%s_ph" % species.name] = photoheating_rate
+        new_rates.append("%s_ph" % species.name)
     return new_rates
 
 class CVODEPrinter(sympy.printing.str.StrPrinter):

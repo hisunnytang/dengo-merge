@@ -21,7 +21,8 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import Species, ion_cooling_rate, species_registry
+from reaction_classes import Species, ion_cooling_rate, \
+                             ion_photoheating_rate, species_registry
 import docutils.utils.roman as roman
 
 # Note: the atomic/species properties have to be hard-coded for this
@@ -42,3 +43,5 @@ for i in range(nIons):
     else:
         s = species_registry[speciesName]
     ion_cooling_rate(s)
+    if ion_state != nIons:
+        ion_photoheating_rate(s, photo_background='HM12')

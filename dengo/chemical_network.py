@@ -77,6 +77,15 @@ class ChemicalNetwork(object):
         self.logtev = np.log(self.tev)
         self.T_bounds = T_bounds
 
+    def init_redshift(self, z_bounds = (0.0, 10.0), n_z_bins=100):
+        self.n_z_bins = n_z_bins
+        self.z = np.logspace(np.log(z_bounds[0] + 1.0),
+                             np.log(z_bounds[1] + 1.0),
+                             n_z_bins, base = np.e)
+        self.z -= 1.0
+        self.logz = np.log(self.z)
+        self.z_bounds = z_bounds
+
     def species_total(self, species):
         eq = sympy.sympify("0")
         for rn, rxn in sorted(self.reactions.items()):

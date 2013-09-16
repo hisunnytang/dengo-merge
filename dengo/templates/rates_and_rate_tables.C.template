@@ -18,11 +18,19 @@
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
+    /* Temperature-related pieces */
     data->bounds[0] = {{ network.T_bounds[0] }};
     data->bounds[1] = {{ network.T_bounds[1] }};
     data->nbins = {{ network.T | length }};
     data->dbin = (log(data->bounds[1]) - log(data->bounds[0])) / data->nbins;
     data->idbin = 1.0L / data->dbin;
+
+    /* Redshift-related pieces */
+    data->z_bounds[0] = {{ network.z_bounds[0] }};
+    data->z_bounds[1] = {{ network.z_bounds[1] }};
+    data->n_zbins = {{ network.z | length }};
+    data->d_zbin = (log(data->z_bounds[1]) - log(data->z_bounds[0])) / data->n_zbins;
+    data->id_zbin = 1.0L / data->d_zbin;
     
     {{ solver_name }}_read_rate_tables(data);
     fprintf(stderr, "Successfully read in rate tables.\n");
