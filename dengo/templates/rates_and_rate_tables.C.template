@@ -97,9 +97,10 @@ int {{solver_name}}_main(int argc, char** argv)
 
     double dtf = 3.1557e13;
     double dt = -1.0;
+    double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
-    ttot = dengo_evolve_{{solver_name}}(dtf, dt, input, rtol, atol, dims, data);
+    ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data);
 
     /* Write results to HDF5 file */
     file_id = H5Fcreate("{{ solver_name }}_solution.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -134,7 +135,7 @@ int {{solver_name}}_main(int argc, char** argv)
 
 {% block main_evolution %}
 
-double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
+double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *input,
             double *rtol, double *atol, int dims, {{solver_name}}_data *data) {
     int i, j;
     hid_t file_id;
@@ -144,6 +145,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
     if (dt < 0) dt = dtf / 1e3;
+    data->current_z = z;
     int niter = 0;
     int siter = 0;
     double ttot = 0;
@@ -309,9 +311,12 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
 void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                     int nstrip)
 {
-    int i, bin_id;
+    int i, bin_id, zbin_id;
     double lb, t1, t2;
+    double lbz, z1, z2;
+    int no_photoheat = 0;
     lb = log(data->bounds[0]);
+    lbz = log(data->z_bounds[0]);
     /*fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);*/
     for (i = 0; i < nstrip; i++) {
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
@@ -328,8 +333,17 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                 i, data->bin_id[i], data->dT[i], data->Ts[i],
                 data->logTs[i]);*/
     }
-
-    {%- for name, rate in network.reactions | dictsort %}
+    
+    if (data->z_bounds[0] < data->current-z < data->z_bounds[1]) {
+        zbin_id = (int) (data->id_zbin * (log(data->current_z) - lbz));
+        z1 = (lbz + (bin_id    ) * data->d_zbin);
+        z2 = (lbz + (bin_id + 1) * data->d_zbin);
+        data->zdef = (log(data->current_z) - z1)/(z2 - z1);
+        data->dz = (z2 - z1);
+    } else {
+        no_photoheat = 1;
+    }
+    {% for name, rate in network.reactions | dictsort %}
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
@@ -341,6 +355,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
+    {%- if 'ph' not in name %}
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
@@ -349,6 +364,20 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
 	data->dcs_{{name}}_{{name2}}[i] /= data->Ts[i];
     }
+    {%- else %}
+    for (i = 0; i < nstrip; i++) {
+        if (no_photoheat) {
+            data->cs_{{name}}_{{name2}}[i] = 0.0;
+            data->dcs_{{name}}_{{name2}}[i] = 0.0;
+        } else {
+            data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[zbin_id] +
+                data->zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
+            data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);;
+            data->dcs_{{name}}_{{name2}}[i] /= data->dz;
+            data->dcs_{{name}}_{{name2}}[i] /= data->current_z;
+        }
+    }
+    {%- endif -%}          
     {% endfor %}
     {% endfor %}
 
