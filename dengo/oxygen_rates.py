@@ -37,7 +37,7 @@ for i in range(nIons):
     # Check if the species already exists
     # in the species registry, if it does
     # we don't want to create it again
-    if (speciesName in species_registry) == False:
+    if speciesName not in species_registry:
         s = Species(speciesName, atomicNumber, atomicWeight, i)
     else:
         s = species_registry[speciesName]
@@ -46,7 +46,7 @@ for i in range(nIons):
         # we need to do this to make sure the 'ion_state + 1' species
         # exists when chianti_rate is called
         speciesNamePlusOne = "%s%s" % (atomicSymbol, roman.toRoman(ion_state+1))
-        if (speciesNamePlusOne in species_registry) == False:
+        if speciesNamePlusOne not in species_registry:
             splusone = Species(speciesNamePlusOne, atomicNumber, atomicWeight, i+1)
 
     chianti_rate(s)
