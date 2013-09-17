@@ -21,7 +21,8 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import Species, chianti_rate, species_registry
+from reaction_classes import Species, chianti_rate, \
+                             ion_photoionization_rate, species_registry
 import docutils.utils.roman as roman
 
 # Note: the atomic/species properties have to be hard-coded for this
@@ -50,3 +51,5 @@ for i in range(nIons):
             splusone = Species(speciesNamePlusOne, atomicNumber, atomicWeight, i+1)
 
     chianti_rate(s)
+    if ion_state != nIons:
+        ion_photoionization_rate(s, photo_background='HM12')

@@ -314,7 +314,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     int i, bin_id, zbin_id;
     double lb, t1, t2;
     double lbz, z1, z2;
-    int no_photoheat = 0;
+    int no_photo = 0;
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0]);
     /*fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);*/
@@ -341,9 +341,10 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         data->zdef = (log(data->current_z) - z1)/(z2 - z1);
         data->dz = (z2 - z1);
     } else {
-        no_photoheat = 1;
+        no_photo = 1;
     }
     {% for name, rate in network.reactions | dictsort %}
+    {%- if 'pi' not in name %}
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
@@ -352,6 +353,20 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         data->drs_{{name}}[i] /= data->dT[i];
 	data->drs_{{name}}[i] /= data->Ts[i];
     }
+    {% else %}
+    for (i = 0; i < nstrip; i++) {
+        if (no_photo) {
+            data->rs_{{name}}[i] = 0.0;
+            data->drs_{{name}}[i] = 0.0;
+        } else {
+            data->rs_{{name}}[i] = data->r_{{name}}[zbin_id] +
+                data->zdef * (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
+            data->drs_{{name}}[i] = (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
+            data->drs_{{name}}[i] /= data->dz;
+            data->drs_{{name}}[i] /= data->current_z;
+        }
+    }
+    {% endif -%}
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
@@ -366,7 +381,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     }
     {%- else %}
     for (i = 0; i < nstrip; i++) {
-        if (no_photoheat) {
+        if (no_photo) {
             data->cs_{{name}}_{{name2}}[i] = 0.0;
             data->dcs_{{name}}_{{name2}}[i] = 0.0;
         } else {
