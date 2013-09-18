@@ -277,15 +277,20 @@ def cool(eq):
 # Compton cooling (Peebles 1971)
 # -- comp --
 # FIX THIS
-#@cooling_action("compton", "-comp1*(T - comp2)*de + comp3")
+@cooling_action("compton", "-(comp1)*(T - (comp2))*de") # + comp3")
 def cool(eq):
     @eq.table
     def comp(state):
-        vals = 5.65e-26 + state.T*0.0
+        vals = 5.65e-36 + state.T*0.0
+        # for what it's worth, calculated with a bunch of precision:
+        # 5.6534549864193774e-36
         return vals
-    eq.temporary("comp1", "comp * (1.0 * redshift)**4")
-    eq.temporary("comp2", "2.73 * (1.0 + redshift)")
-    eq.temporary("comp3", "-comp_xray*(T - comp_temp) * de")
+
+    eq.temporary("z", "z")
+    eq.temporary("comp1", "comp * (1.0 + z)**4")
+    eq.temporary("comp2", "2.73 * (1.0 + z)")
+    eq.temporary("T", "T")
+    #eq.temporary("comp3", "-comp_xray*(T - comp_temp) * de")
 
 #  Photoelectric heating by UV-irradiated dust (Wolfire 1995)
 #  with epsilon=0.05, G_0=1.7 (rate in erg s^-1 cm^-3)
