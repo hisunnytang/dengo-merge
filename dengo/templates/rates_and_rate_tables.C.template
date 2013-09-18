@@ -139,7 +139,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             double *rtol, double *atol, int dims, {{solver_name}}_data *data) {
     int i, j;
     hid_t file_id;
-    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
+    /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
 
     int N = {{network.required_species | length}};
     rhs_f f = calculate_rhs_{{solver_name}};
@@ -151,8 +151,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     double ttot = 0;
     double *scale = (double *) alloca(dims * N * sizeof(double));
     double *prev = (double *) alloca(dims * N * sizeof(double));
-    for (i = 0; i < dims * N; i++) scale[i] = 1.0;
+    for (i = 0; i < dims * N; i++) scale[i] = input[i];
     for (i = 0; i < dims * N; i++) prev[i] = input[i];
+    double floor_value = 1e-25;
     while (ttot < dtf) {
         int rv = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, N, scale, (void *) data);
         /*
@@ -168,13 +169,13 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             }
         }
         if (rv == 0) {
-	    if (siter == 49999) break;
+	    if (siter == 50000) break;
 	    siter++;
-        if (siter % 1000 == 0) {
-            fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
-                     siter, dt, ttot, dtf);
-        }
-        ttot += dt;
+            if (siter % 10000 == 0) {
+                fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
+                        siter, dt, ttot, dtf);
+            }
+            ttot += dt;
 	    dt = DMIN(dt * 1.1, dtf - ttot);
 	    {% if network.write_intermediate_solutions %}
 	    /* Write intermediate  results to HDF5 file */
@@ -207,18 +208,23 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     	    H5Fclose(file_id);
 	    {% endif %}
 	    for (i = 0; i < dims * N; i++) prev[i] = input[i];
+            for (i = 0; i < dims * N; i++) {     
+                if (input[i] < floor_value) {
+                  input[i] = floor_value;
+                }
+            }
         } else {
             dt /= 2.0;
             for (i = 0; i < dims * N; i++) input[i] = prev[i];
-            if (dt == 0.0)  {
-                fprintf(stderr, "Dying!\n");
+            if (dt/dtf < 1e-15)  {
+                fprintf(stderr, "Dying! dt/dtf = %0.5g\n");
                 break;
             }
         }
         niter++;
     }
-    fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
-        ttot, dtf, dtf-ttot);
+    /* fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
+       ttot, dtf, dtf-ttot); */
 
     return ttot;
 }
@@ -425,17 +431,21 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {%- endfor %}
+    double z;
+    double T;
 
     double mh = 1.67e-24;
     double total, total_e, total_de, mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
         total = total_e = total_de = mdensity = 0.0;
+        T = data->Ts[i];
+        z = data->current_z;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
         if ({{species.name}} < 0.0) {
-          fprintf(stderr, "RNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
-            i, {{species.name}}, j);
+            /* fprintf(stderr, "RNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
+               i, {{species.name}}, j); */
             return 1;
           {{species.name}} = 1e-20;
         }
@@ -503,12 +513,16 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {%- endfor %}
+    double z;
+    double T;
 
     double mh = 1.67e-24;
     double total, mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
 	total = mdensity = 0.0;
+        T = data->Ts[i];
+        z = data->current_z;
     {%- for species in network.required_species | sort %}
 	    {{species.name}} = input[j];
         if ({{species.name}} < 0.0) {
