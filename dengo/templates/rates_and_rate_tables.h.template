@@ -48,6 +48,7 @@ typedef struct {{ solver_name }}_data_ {
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
     double dT[MAX_NCELLS]; /* t1, t2, tdef */
     double logTs[MAX_NCELLS];
+    double invTs[MAX_NCELLS];
     double dTs_{{ network.energy_term.name }}[MAX_NCELLS];
 
     /* Now we do all of our cooling and chemical tables */
@@ -84,14 +85,15 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
 double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *input, double *rtol,
-                                     double *atol, int dims,
+                                     double *atol, long long dims,
                                      {{solver_name}}_data *data);
 {% endblock %} {# data_struct_for_rates #}
 
 typedef int(*rhs_f)(double *, double *, int, int, void *);
 typedef int(*jac_f)(double *, double *, int, int, void *);
 int BE_chem_solve(rhs_f f, jac_f J, double *u, double dt, double *rtol, 
-                  double *atol, int nstrip, int nchem, double *scaling, void *sdata);
+                  double *atol, int nstrip, int nchem, double *scaling, void *sdata,
+                  double *, double *, double *, double *);
 
 {% block function_declarations %}
 
