@@ -348,7 +348,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     
     if ((data->current_z > data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
         zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
-        if (zbin_id <= 0 {
+        if (zbin_id <= 0) {
             zbin_id = 0;
         } else if (zbin_id >= data->n_zbins) {
             zbin_id = data->n_zbins - 1;
@@ -405,7 +405,6 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                 data->zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
             data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);;
             data->dcs_{{name}}_{{name2}}[i] /= data->dz;
-            data->dcs_{{name}}_{{name2}}[i] /= data->current_z;
         }
     }
     {%- endif -%}          
