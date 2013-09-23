@@ -4,7 +4,8 @@ from reaction_classes import Species, species_registry, Reaction
 #Check whether the species exists and if not, add to species registry
 def _ensure_species(sp):
     if sp not in species_registry:
-        sp = Species(sp,-1,-1,-1)
+        i = sp.count('+')-sp.count('-')
+        sp = Species(sp,-1,-1,i)
     else:
         sp = species_registry[sp]
     return sp
