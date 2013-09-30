@@ -3,8 +3,9 @@ from reaction_classes import Species, species_registry, Reaction
 
 #Check whether the species exists and if not, add to species registry
 def _ensure_species(sp):
+    sp = sp.replace("+", "p").replace("-", "m")
     if sp not in species_registry:
-        i = sp.count('+')-sp.count('-')
+        i = sp.count('p')-sp.count('m')
         sp = Species(sp,-1,-1,i)
     else:
         sp = species_registry[sp]
@@ -17,7 +18,6 @@ def get_rate(reaction, temp):
     pC = _ensure_species(reaction[4])
     pD = _ensure_species(reaction[5])
     pE = _ensure_species(reaction[6])
-    pF = _ensure_species(reaction[7])
     a = float(reaction[9])
     b = float(reaction[10])
     g = float(reaction[11])
@@ -26,6 +26,7 @@ def get_rate(reaction, temp):
     reactants = [(1, rA), (1, rB)]
     products = [(1, pC), (1, pD), (1, pE)]
     if reaction[7] != '':
+        pF = _ensure_species(reaction[7])
         products.append((1,pF))
     
     if np.all(T_lower <= temp) and np.all(temp <= T_upper):
