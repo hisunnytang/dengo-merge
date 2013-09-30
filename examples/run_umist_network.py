@@ -4,6 +4,7 @@ from dengo.chemical_network import \
     reaction_registry, \
     cooling_registry
 import dengo.umist_rates
+from dengo.get_rates import get_rates
 from dengo.chemistry_constants import tiny, kboltz, mh
 from dengo.known_species import *
 
@@ -16,11 +17,20 @@ X = 1e-3
 umist = ChemicalNetwork()
 umist.add_energy_term()
 
-for r in reaction_registry.values():
-        umist.add_reaction(s)
-
 # This defines the temperature range for the rate tables
-umist.init_temperature((1e0, 1e3))
+umist.init_temperature((1e1, 1e3))
+
+get_rates('CO', 28, -1, umist)
+get_rates('C', 12, -1, umist)
+get_rates('O', 16, -1, umist)
+get_rates('OH', 17, -1, umist)
+get_rates('H', 1, -1, umist)
+get_rates('H2', 2, -2, umist)
+get_rates('H2O', 18, -1, umist)
+get_rates('O2', 32, -1, umist)
+
+for r in reaction_registry.values():
+    umist.add_reaction(r)
 
 tiny = 1e-10
 
@@ -35,6 +45,10 @@ init_values['CO']    = init_array * X
 init_values['OH']   = init_array * X
 init_values['O2']    = init_array * X
 init_values['de']      = init_array * 0.0
+
+for species in umist.required_species:
+    if species.name not in init_values:
+        init_values[species.name] = init_array * 0.0
 
 total_density = umist.calculate_total_density(init_values, ("OI",))
 init_values["OI"] = init_array.copy() - total_density

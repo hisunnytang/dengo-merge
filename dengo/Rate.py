@@ -1,4 +1,4 @@
-import math
+import numpy as np
 from reaction_classes import Species, species_registry, Reaction
 
 #Check whether the species exists and if not, add to species registry
@@ -10,7 +10,7 @@ def _ensure_species(sp):
         sp = species_registry[sp]
     return sp
 
-def get_rate(reaction, temp, ):
+def get_rate(reaction, temp):
     type = reaction[1]
     rA = _ensure_species(reaction[2])
     rB = _ensure_species(reaction[3])
@@ -28,7 +28,7 @@ def get_rate(reaction, temp, ):
     if reaction[7] != '':
         products.append((1,pF))
     
-    if (temp >= T_lower and temp <= T_upper):
+    if np.all(T_lower <= temp) and np.all(temp <= T_upper):
         if type == 'CP':
             rate = a # rate coefficient with units 1/s
             units = "1/s"
@@ -38,8 +38,8 @@ def get_rate(reaction, temp, ):
             units = ''
             #return rate, units
         else:
-            t = float(temp) / float(300)
-            rate = a*(math.pow(t,b))*(math.exp(-g / temp)) # rate coefficient with units cm^3 / s
+            t = temp / float(300)
+            rate = a*(t**b)*(np.exp(-g / temp)) # rate coefficient with units cm^3 / s
             units = "cm^3 / s"
             #return rate, units
         return Reaction("%s+%s" % (rA.name, rB.name), rate, reactants, products) 

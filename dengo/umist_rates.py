@@ -13,9 +13,3 @@ def umist_rates(species, network):
 			if (reaction[2]==r1 or reaction[3]==r1 or reaction[4]==r1 or reaction[5]==r1): 
 				temp = network.T
 				Rate.get_rate(reaction, temp)
-		
-
-
-				
-
-           	
