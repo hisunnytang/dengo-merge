@@ -3,6 +3,8 @@ from reaction_classes import Species, species_registry, Reaction
 
 #Check whether the species exists and if not, add to species registry
 def _ensure_species(sp):
+    # "us" => "umist species"
+    sp = "us_" + sp
     sp = sp.replace("+", "p").replace("-", "m")
     if sp not in species_registry:
         i = sp.count('p')-sp.count('m')
