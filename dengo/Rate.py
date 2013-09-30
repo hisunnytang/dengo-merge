@@ -19,14 +19,18 @@ def get_rate(reaction, temp):
     rB = _ensure_species(reaction[3])
     pC = _ensure_species(reaction[4])
     pD = _ensure_species(reaction[5])
-    pE = _ensure_species(reaction[6])
     a = float(reaction[9])
     b = float(reaction[10])
     g = float(reaction[11])
     T_lower = int(reaction[12])
     T_upper = int(reaction[13])
     reactants = [(1, rA), (1, rB)]
-    products = [(1, pC), (1, pD), (1, pE)]
+    products = [(1, pC), (1, pD)]
+    
+    if reaction[6] != '':
+        pE = _ensure_species(reaction[6])
+        products.append((1,pE))
+    
     if reaction[7] != '':
         pF = _ensure_species(reaction[7])
         products.append((1,pF))

@@ -29,6 +29,7 @@ get_rates('H2', 2, -2, umist)
 get_rates('H2O', 18, -1, umist)
 get_rates('O2', 32, -1, umist)
 
+# Add an if statement - want to restrict the species to the 8 above (and their ions and electrons)
 for r in reaction_registry.values():
     umist.add_reaction(r)
 
