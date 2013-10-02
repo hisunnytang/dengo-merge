@@ -29,9 +29,16 @@ get_rates('H2', 2, -2, umist)
 get_rates('H2O', 18, -1, umist)
 get_rates('O2', 32, -1, umist)
 
+# Define small subset of species for restricted calculation
+sub = set(['us_CO', 'us_COm','us_em', 'us_C','us_Cm','us_Cp','us_Om','us_Op','us_O','us_OH','us_OHp','us_OHm','us_H','us_Hm','us_Hp','us_H2','us_H2p','us_H2m'])
+
 # Add an if statement - want to restrict the species to the 8 above (and their ions and electrons)
 for r in reaction_registry.values():
-    umist.add_reaction(r)
+    s = r.considered
+    if s.issubset(sub) == True:
+        print 'Found one!!!' 
+        umist.add_reaction(r)
+print 'Finished looking through reaction registry'
 
 tiny = 1e-10
 
