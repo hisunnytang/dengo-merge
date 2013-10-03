@@ -13,7 +13,7 @@ def _ensure_species(sp):
         sp = species_registry[sp]
     return sp
 
-def get_rate(reaction, temp):
+def get_rate(reaction, network):
     type = reaction[1]
     rA = _ensure_species(reaction[2])
     rB = _ensure_species(reaction[3])
@@ -27,6 +27,8 @@ def get_rate(reaction, temp):
     reactants = [(1, rA), (1, rB)]
     products = [(1, pC), (1, pD)]
     
+    temp = network.T
+    
     if reaction[6] != '':
         pE = _ensure_species(reaction[6])
         products.append((1,pE))
@@ -37,7 +39,7 @@ def get_rate(reaction, temp):
     
     if np.all(T_lower <= temp) and np.all(temp <= T_upper):
         if type == 'CP':
-            rate = a # rate coefficient with units 1/s
+            rate = lambda network: a # rate coefficient with units 1/s
             units = "1/s"
             #return rate, units
         elif type == 'CR':
@@ -45,8 +47,7 @@ def get_rate(reaction, temp):
             units = ''
             #return rate, units
         else:
-            t = temp / float(300)
-            rate = a*(t**b)*(np.exp(-g / temp)) # rate coefficient with units cm^3 / s
+            rate = lambda network: a*(network.T**b)*(np.exp(-g / network.T)) # rate coefficient with units cm^3 / s
             units = "cm^3 / s"
             #return rate, units
         return Reaction("%s+%s" % (rA.name, rB.name), rate, reactants, products) 

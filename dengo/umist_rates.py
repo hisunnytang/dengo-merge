@@ -11,5 +11,4 @@ def umist_rates(species, network):
 		for i,line in enumerate(lines):  
 			reaction = re.split(":?", line)
 			if (reaction[2]==r1 or reaction[3]==r1 or reaction[4]==r1 or reaction[5]==r1): 
-				temp = network.T
-				Rate.get_rate(reaction, temp)
+				Rate.get_rate(reaction, network)

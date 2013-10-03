@@ -38,7 +38,7 @@ for r in reaction_registry.values():
     if s.issubset(sub) == True:
         print 'Found one!!!' 
         umist.add_reaction(r)
-print 'Finished looking through reaction registry'
+print 'Finished looking through reaction registry.'
 
 tiny = 1e-10
 
@@ -52,7 +52,10 @@ init_values['H2']     = init_array * X
 init_values['CO']    = init_array * X
 init_values['OH']   = init_array * X
 init_values['O2']    = init_array * X
-init_values['de']      = init_array * 0.0
+init_values['em']      = init_array * 0.0
+
+print init_values
+print sorted(umist.reactions.values())
 
 for species in umist.required_species:
     if species.name not in init_values:
