@@ -4,7 +4,7 @@ from reaction_classes import Species, species_registry
 from umist_rates import umist_rates
 
 def get_rates(atomicSymbol, atomicWeight, atomicNumber, network):
-    speciesName = "%s" %(atomicSymbol)
+    speciesName = "us_%s" %(atomicSymbol)
     free_electrons = speciesName.count('+')-speciesName.count('-')
     if speciesName not in species_registry:
         s = Species(speciesName, atomicNumber, atomicWeight, free_electrons)

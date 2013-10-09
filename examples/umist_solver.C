@@ -84,6 +84,19 @@ int umist_main(int argc, char** argv)
     }
     i++;
     
+    fprintf(stderr, "Reading I.C. for /us_CO\n");
+    H5LTread_dataset_double(file_id, "/us_CO", tics);
+    for (j = 0; j < dims; j++) {
+        ics[j * N + i] = tics[j] / 28; /* Convert to number density */
+        atol[j * N + i] = tics[j] * 1e-09;
+        rtol[j * N + i] = 1e-09;
+        if(j==0) {
+            fprintf(stderr, "us_CO[0] = %0.3g, atol => % 0.16g\n",
+                    tics[j], atol[j]);
+        }
+    }
+    i++;
+    
     fprintf(stderr, "Reading I.C. for /us_Cm\n");
     H5LTread_dataset_double(file_id, "/us_Cm", tics);
     for (j = 0; j < dims; j++) {
@@ -92,19 +105,6 @@ int umist_main(int argc, char** argv)
         rtol[j * N + i] = 1e-09;
         if(j==0) {
             fprintf(stderr, "us_Cm[0] = %0.3g, atol => % 0.16g\n",
-                    tics[j], atol[j]);
-        }
-    }
-    i++;
-    
-    fprintf(stderr, "Reading I.C. for /us_CO\n");
-    H5LTread_dataset_double(file_id, "/us_CO", tics);
-    for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
-        atol[j * N + i] = tics[j] * 1e-09;
-        rtol[j * N + i] = 1e-09;
-        if(j==0) {
-            fprintf(stderr, "us_CO[0] = %0.3g, atol => % 0.16g\n",
                     tics[j], atol[j]);
         }
     }
@@ -315,20 +315,20 @@ int umist_main(int argc, char** argv)
     H5LTmake_dataset_double(file_id, "/ge", 1, dimsarr, ge);
     i++;
     
+    double us_CO[dims];
+    for (j = 0; j < dims; j++) {
+        us_CO[j] = input[j * N + i] * 28;
+    }
+    fprintf(stderr, "Writing solution for /us_CO\n");
+    H5LTmake_dataset_double(file_id, "/us_CO", 1, dimsarr, us_CO);
+    i++;
+    
     double us_Cm[dims];
     for (j = 0; j < dims; j++) {
         us_Cm[j] = input[j * N + i] * -1;
     }
     fprintf(stderr, "Writing solution for /us_Cm\n");
     H5LTmake_dataset_double(file_id, "/us_Cm", 1, dimsarr, us_Cm);
-    i++;
-    
-    double us_CO[dims];
-    for (j = 0; j < dims; j++) {
-        us_CO[j] = input[j * N + i] * -1;
-    }
-    fprintf(stderr, "Writing solution for /us_CO\n");
-    H5LTmake_dataset_double(file_id, "/us_CO", 1, dimsarr, us_CO);
     i++;
     
     double us_em[dims];
@@ -576,8 +576,8 @@ void umist_calculate_temperature(umist_data *data,
     
     /* Calculate total density */
     double ge;
-    double us_Cm;
     double us_CO;
+    double us_Cm;
     double us_em;
     double us_O;
     double us_C;
@@ -600,14 +600,14 @@ void umist_calculate_temperature(umist_data *data,
                 i, ge);*/
         j++;
     
-        us_Cm = input[j];
-        /*fprintf(stderr, "us_Cm[%d] = % 0.16g\n",
-                i, us_Cm);*/
-        j++;
-    
         us_CO = input[j];
         /*fprintf(stderr, "us_CO[%d] = % 0.16g\n",
                 i, us_CO);*/
+        j++;
+    
+        us_Cm = input[j];
+        /*fprintf(stderr, "us_Cm[%d] = % 0.16g\n",
+                i, us_Cm);*/
         j++;
     
         us_em = input[j];
@@ -680,7 +680,7 @@ void umist_calculate_temperature(umist_data *data,
                 i, us_OH);*/
         j++;
     
-        density = -us_C - us_CO - us_Cm - us_Cp - us_H - us_H2 - us_H2p - us_Hm - us_Hp - us_O - us_OH - us_OHm - us_OHp - us_Om - us_Op - us_em;
+        density = -us_C + 28*us_CO - us_Cm - us_Cp - us_H - us_H2 - us_H2p - us_Hm - us_Hp - us_O - us_OH - us_OHm - us_OHp - us_Om - us_Op - us_em;
         data->Ts[i] = density*ge*mh/(kb*(us_C/(gamma - 1.0) + us_CO/(gamma - 1.0) + us_Cm/(gamma - 1.0) + us_Cp/(gamma - 1.0) + us_H/(gamma - 1.0) + us_H2/(gamma - 1.0) + us_H2p/(gamma - 1.0) + us_Hm/(gamma - 1.0) + us_Hp/(gamma - 1.0) + us_O/(gamma - 1.0) + us_OH/(gamma - 1.0) + us_OHm/(gamma - 1.0) + us_OHp/(gamma - 1.0) + us_Om/(gamma - 1.0) + us_Op/(gamma - 1.0) + us_em/(gamma - 1.0)));
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
@@ -977,8 +977,8 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
     double *us_Om_plus_us_Hp = data->rs_us_Om_plus_us_Hp;
     double *us_Om_plus_us_Op = data->rs_us_Om_plus_us_Op;
     double ge;
-    double us_Cm;
     double us_CO;
+    double us_Cm;
     double us_em;
     double us_O;
     double us_C;
@@ -1009,6 +1009,20 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         
         j++;
     
+        us_CO = input[j];
+        if (us_CO < 0.0) {
+          fprintf(stderr, "RNegative[%d][us_CO] = % 0.16g [%d]\n",
+            i, us_CO, j);
+            return 1;
+          us_CO = 1e-20;
+        }
+        
+        
+          total+=us_CO * 28;
+        
+        
+        j++;
+    
         us_Cm = input[j];
         if (us_Cm < 0.0) {
           fprintf(stderr, "RNegative[%d][us_Cm] = % 0.16g [%d]\n",
@@ -1019,20 +1033,6 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         
         
           total+=us_Cm * -1;
-        
-        
-        j++;
-    
-        us_CO = input[j];
-        if (us_CO < 0.0) {
-          fprintf(stderr, "RNegative[%d][us_CO] = % 0.16g [%d]\n",
-            i, us_CO, j);
-            return 1;
-          us_CO = 1e-20;
-        }
-        
-        
-          total+=us_CO * -1;
         
         
         j++;
@@ -1247,6 +1247,20 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         j++;
     
         // 
+        // Species: us_CO
+        // 
+        rhs[j] = us_C_plus_us_Om[i]*us_C*us_Om + us_Cm_plus_us_O[i]*us_Cm*us_O;
+        
+            /* Already in number density, not mass density */
+            total += rhs[j] * 28;
+            total_e += us_CO * 0;
+        
+        
+            total_de += rhs[j] * 0;
+        
+        j++;
+    
+        // 
         // Species: us_Cm
         // 
         rhs[j] = -us_Cm_plus_us_Cp[i]*us_Cm*us_Cp - us_Cm_plus_us_Hp[i]*us_Cm*us_Hp - us_Cm_plus_us_O[i]*us_Cm*us_O - us_Cm_plus_us_Op[i]*us_Cm*us_Op;
@@ -1257,20 +1271,6 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         
         
             total_de += rhs[j] * -1;
-        
-        j++;
-    
-        // 
-        // Species: us_CO
-        // 
-        rhs[j] = us_C_plus_us_Om[i]*us_C*us_Om + us_Cm_plus_us_O[i]*us_Cm*us_O;
-        
-            /* Already in number density, not mass density */
-            total += rhs[j] * -1;
-            total_e += us_CO * 0;
-        
-        
-            total_de += rhs[j] * 0;
         
         j++;
     
@@ -1538,8 +1538,8 @@ int calculate_jacobian_umist(double *input, double *Joutput,
     double *us_Om_plus_us_Op = data->rs_us_Om_plus_us_Op;
     double *rus_Om_plus_us_Op = data->drs_us_Om_plus_us_Op;
     double ge;
-    double us_Cm;
     double us_CO;
+    double us_Cm;
     double us_em;
     double us_O;
     double us_C;
@@ -1571,6 +1571,21 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	
         j++;
     
+	    us_CO = input[j];
+        if (us_CO < 0.0) {
+          fprintf(stderr, "JNegative[%d][us_CO] = % 0.16g [%d]\n",
+            i, us_CO, j);
+          /*us_CO = 0.0;*/
+          us_CO = 1e-20;
+          return 1;
+        }
+	
+        
+          total+=us_CO * 28;
+        
+	
+        j++;
+    
 	    us_Cm = input[j];
         if (us_Cm < 0.0) {
           fprintf(stderr, "JNegative[%d][us_Cm] = % 0.16g [%d]\n",
@@ -1582,21 +1597,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	
         
           total+=us_Cm * -1;
-        
-	
-        j++;
-    
-	    us_CO = input[j];
-        if (us_CO < 0.0) {
-          fprintf(stderr, "JNegative[%d][us_CO] = % 0.16g [%d]\n",
-            i, us_CO, j);
-          /*us_CO = 0.0;*/
-          us_CO = 1e-20;
-          return 1;
-        }
-	
-        
-          total+=us_CO * -1;
         
 	
         j++;
@@ -1826,15 +1826,15 @@ int calculate_jacobian_umist(double *input, double *Joutput,
             Joutput[j] *= Tge[i];
             
             j++;
-            // us_Cm by ge
-            Joutput[j] = -rus_Cm_plus_us_Cp[i]*us_Cm*us_Cp - rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp - rus_Cm_plus_us_O[i]*us_Cm*us_O - rus_Cm_plus_us_Op[i]*us_Cm*us_Op;
+            // us_CO by ge
+            Joutput[j] = rus_C_plus_us_Om[i]*us_C*us_Om + rus_Cm_plus_us_O[i]*us_Cm*us_O;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
-            // us_CO by ge
-            Joutput[j] = rus_C_plus_us_Om[i]*us_C*us_Om + rus_Cm_plus_us_O[i]*us_Cm*us_O;
+            // us_Cm by ge
+            Joutput[j] = -rus_Cm_plus_us_Cp[i]*us_Cm*us_Cp - rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp - rus_Cm_plus_us_O[i]*us_Cm*us_O - rus_Cm_plus_us_Op[i]*us_Cm*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
@@ -1940,97 +1940,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
             j++;
     
         // 
-        // Species: us_Cm
-        //
-            // ge by us_Cm
-            Joutput[j] = 0;
-	    
-	    Joutput[j] /= mdensity;
-	    
-	    
-            j++;
-            // us_Cm by us_Cm
-            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp - us_Cm_plus_us_Hp[i]*us_Hp - us_Cm_plus_us_O[i]*us_O - us_Cm_plus_us_Op[i]*us_Op;
-	    
-	    
-            j++;
-            // us_CO by us_Cm
-            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
-	    
-	    
-            j++;
-            // us_em by us_Cm
-            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
-	    
-	    
-            j++;
-            // us_O by us_Cm
-            Joutput[j] = -us_Cm_plus_us_O[i]*us_O + us_Cm_plus_us_Op[i]*us_Op;
-	    
-	    
-            j++;
-            // us_C by us_Cm
-            Joutput[j] = 2*us_Cm_plus_us_Cp[i]*us_Cp + us_Cm_plus_us_Hp[i]*us_Hp + us_Cm_plus_us_Op[i]*us_Op;
-	    
-	    
-            j++;
-            // us_Om by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_OHm by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_Hm by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_Cp by us_Cm
-            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp;
-	    
-	    
-            j++;
-            // us_H2 by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_H2p by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_H by us_Cm
-            Joutput[j] = us_Cm_plus_us_Hp[i]*us_Hp;
-	    
-	    
-            j++;
-            // us_Hp by us_Cm
-            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Hp;
-	    
-	    
-            j++;
-            // us_Op by us_Cm
-            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Op;
-	    
-	    
-            j++;
-            // us_OHp by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_OH by us_Cm
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-    
-        // 
         // Species: us_CO
         //
             // ge by us_CO
@@ -2040,12 +1949,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_CO
+            // us_CO by us_CO
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_CO
+            // us_Cm by us_CO
             Joutput[j] = 0;
 	    
 	    
@@ -2122,6 +2031,97 @@ int calculate_jacobian_umist(double *input, double *Joutput,
             j++;
     
         // 
+        // Species: us_Cm
+        //
+            // ge by us_Cm
+            Joutput[j] = 0;
+	    
+	    Joutput[j] /= mdensity;
+	    
+	    
+            j++;
+            // us_CO by us_Cm
+            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
+	    
+	    
+            j++;
+            // us_Cm by us_Cm
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp - us_Cm_plus_us_Hp[i]*us_Hp - us_Cm_plus_us_O[i]*us_O - us_Cm_plus_us_Op[i]*us_Op;
+	    
+	    
+            j++;
+            // us_em by us_Cm
+            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
+	    
+	    
+            j++;
+            // us_O by us_Cm
+            Joutput[j] = -us_Cm_plus_us_O[i]*us_O + us_Cm_plus_us_Op[i]*us_Op;
+	    
+	    
+            j++;
+            // us_C by us_Cm
+            Joutput[j] = 2*us_Cm_plus_us_Cp[i]*us_Cp + us_Cm_plus_us_Hp[i]*us_Hp + us_Cm_plus_us_Op[i]*us_Op;
+	    
+	    
+            j++;
+            // us_Om by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_OHm by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_Hm by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_Cp by us_Cm
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp;
+	    
+	    
+            j++;
+            // us_H2 by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_H2p by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_H by us_Cm
+            Joutput[j] = us_Cm_plus_us_Hp[i]*us_Hp;
+	    
+	    
+            j++;
+            // us_Hp by us_Cm
+            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Hp;
+	    
+	    
+            j++;
+            // us_Op by us_Cm
+            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Op;
+	    
+	    
+            j++;
+            // us_OHp by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+            // us_OH by us_Cm
+            Joutput[j] = 0;
+	    
+	    
+            j++;
+    
+        // 
         // Species: us_em
         //
             // ge by us_em
@@ -2131,12 +2131,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_em
+            // us_CO by us_em
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_em
+            // us_Cm by us_em
             Joutput[j] = 0;
 	    
 	    
@@ -2222,13 +2222,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_O
-            Joutput[j] = -us_Cm_plus_us_O[i]*us_Cm;
+            // us_CO by us_O
+            Joutput[j] = us_Cm_plus_us_O[i]*us_Cm;
 	    
 	    
             j++;
-            // us_CO by us_O
-            Joutput[j] = us_Cm_plus_us_O[i]*us_Cm;
+            // us_Cm by us_O
+            Joutput[j] = -us_Cm_plus_us_O[i]*us_Cm;
 	    
 	    
             j++;
@@ -2313,13 +2313,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_C
-            Joutput[j] = 0;
+            // us_CO by us_C
+            Joutput[j] = us_C_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
-            // us_CO by us_C
-            Joutput[j] = us_C_plus_us_Om[i]*us_Om;
+            // us_Cm by us_C
+            Joutput[j] = 0;
 	    
 	    
             j++;
@@ -2404,13 +2404,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_Om
-            Joutput[j] = 0;
+            // us_CO by us_Om
+            Joutput[j] = us_C_plus_us_Om[i]*us_C;
 	    
 	    
             j++;
-            // us_CO by us_Om
-            Joutput[j] = us_C_plus_us_Om[i]*us_C;
+            // us_Cm by us_Om
+            Joutput[j] = 0;
 	    
 	    
             j++;
@@ -2495,12 +2495,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_OHm
+            // us_CO by us_OHm
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_OHm
+            // us_Cm by us_OHm
             Joutput[j] = 0;
 	    
 	    
@@ -2586,12 +2586,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_Hm
+            // us_CO by us_Hm
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_Hm
+            // us_Cm by us_Hm
             Joutput[j] = 0;
 	    
 	    
@@ -2677,13 +2677,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_Cp
-            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cm;
+            // us_CO by us_Cp
+            Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_Cp
-            Joutput[j] = 0;
+            // us_Cm by us_Cp
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cm;
 	    
 	    
             j++;
@@ -2768,12 +2768,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_H2
+            // us_CO by us_H2
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_H2
+            // us_Cm by us_H2
             Joutput[j] = 0;
 	    
 	    
@@ -2859,12 +2859,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_H2p
+            // us_CO by us_H2p
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_H2p
+            // us_Cm by us_H2p
             Joutput[j] = 0;
 	    
 	    
@@ -2950,12 +2950,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_H
+            // us_CO by us_H
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_H
+            // us_Cm by us_H
             Joutput[j] = 0;
 	    
 	    
@@ -3041,13 +3041,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_Hp
-            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Cm;
+            // us_CO by us_Hp
+            Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_Hp
-            Joutput[j] = 0;
+            // us_Cm by us_Hp
+            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Cm;
 	    
 	    
             j++;
@@ -3132,13 +3132,13 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_Op
-            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Cm;
+            // us_CO by us_Op
+            Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_Op
-            Joutput[j] = 0;
+            // us_Cm by us_Op
+            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Cm;
 	    
 	    
             j++;
@@ -3223,12 +3223,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_OHp
+            // us_CO by us_OHp
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_OHp
+            // us_Cm by us_OHp
             Joutput[j] = 0;
 	    
 	    
@@ -3314,12 +3314,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // us_Cm by us_OH
+            // us_CO by us_OH
             Joutput[j] = 0;
 	    
 	    
             j++;
-            // us_CO by us_OH
+            // us_Cm by us_OH
             Joutput[j] = 0;
 	    
 	    

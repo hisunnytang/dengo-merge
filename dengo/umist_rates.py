@@ -5,6 +5,8 @@ import Rate
 
 def umist_rates(species, network):
 	r1 = species.name
+	if r1.startswith("us_"):
+	    r1 = r1[3:]
 	with open("RATE12.txt", "r") as f:
 		lines = f.readlines()
 		f.close()

@@ -117,12 +117,12 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] ge_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Cm_arr = ics["us_Cm"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Cm_int
     cdef np.ndarray[np.float64_t, ndim=1] us_CO_arr = ics["us_CO"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] us_CO_int
+    cdef np.ndarray[np.float64_t, ndim=1] us_Cm_arr = ics["us_Cm"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] us_Cm_int
     cdef np.ndarray[np.float64_t, ndim=1] us_em_arr = ics["us_em"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] us_em_int
@@ -182,8 +182,8 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
 
     if intermediate == 1:
         ge_int = np.zeros((N, niter), "float64")
-        us_Cm_int = np.zeros((N, niter), "float64")
         us_CO_int = np.zeros((N, niter), "float64")
+        us_Cm_int = np.zeros((N, niter), "float64")
         us_em_int = np.zeros((N, niter), "float64")
         us_O_int = np.zeros((N, niter), "float64")
         us_C_int = np.zeros((N, niter), "float64")
@@ -210,12 +210,12 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Cm_arr[i] / -1
+        input[j] = prev[j] = us_CO_arr[i] / 28
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_CO_arr[i] / -1
+        input[j] = prev[j] = us_Cm_arr[i] / -1
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
@@ -308,9 +308,9 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
             for i in range(N):
                 ge_int[i, iter] = input[j]
                 j += 1
-                us_Cm_int[i, iter] = input[j]
-                j += 1
                 us_CO_int[i, iter] = input[j]
+                j += 1
+                us_Cm_int[i, iter] = input[j]
                 j += 1
                 us_em_int[i, iter] = input[j]
                 j += 1
@@ -369,8 +369,8 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
 
     rv, rv_t = {}, {}
     ge_arr = rv["ge"] = np.zeros(N, "float64")
-    us_Cm_arr = rv["us_Cm"] = np.zeros(N, "float64")
     us_CO_arr = rv["us_CO"] = np.zeros(N, "float64")
+    us_Cm_arr = rv["us_Cm"] = np.zeros(N, "float64")
     us_em_arr = rv["us_em"] = np.zeros(N, "float64")
     us_O_arr = rv["us_O"] = np.zeros(N, "float64")
     us_C_arr = rv["us_C"] = np.zeros(N, "float64")
@@ -387,8 +387,8 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     us_OH_arr = rv["us_OH"] = np.zeros(N, "float64")
     if intermediate:
         rv_t["ge"] = ge_int[:niter]
-        rv_t["us_Cm"] = us_Cm_int[:niter]
         rv_t["us_CO"] = us_CO_int[:niter]
+        rv_t["us_Cm"] = us_Cm_int[:niter]
         rv_t["us_em"] = us_em_int[:niter]
         rv_t["us_O"] = us_O_int[:niter]
         rv_t["us_C"] = us_C_int[:niter]
@@ -412,9 +412,9 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     for i in range(N):
         ge_arr[i] = input[j] * 1.0
         j += 1
-        us_Cm_arr[i] = input[j] * -1
+        us_CO_arr[i] = input[j] * 28
         j += 1
-        us_CO_arr[i] = input[j] * -1
+        us_Cm_arr[i] = input[j] * -1
         j += 1
         us_em_arr[i] = input[j] * -1
         j += 1

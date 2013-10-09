@@ -216,6 +216,8 @@ class ChemicalNetwork(object):
         n = np.zeros_like(values.values()[0])
         skip = tuple(skip) + ("de", self.energy_term.name)
         for s in self.required_species:
+            print s
+            print n
             if s.name in skip: continue
             n += values[s.name]
         return n
