@@ -50,7 +50,7 @@ def get_rate(reaction, network):
             rate = lambda network: a*(network.T**b)*(np.exp(-g / network.T)) # rate coefficient with units cm^3 / s
             units = "cm^3 / s"
             #return rate, units
-        return Reaction("%s+%s" % (rA.name, rB.name), rate, reactants, products) 
+        return Reaction("%s_plus_%s" % (rA.name, rB.name), rate, reactants, products) 
     else:
         rate = 0
         units = ''

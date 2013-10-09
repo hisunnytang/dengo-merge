@@ -526,29 +526,29 @@ void umist_read_rate_tables(umist_data *data)
 {
     hid_t file_id = H5Fopen("umist_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
-    H5LTread_dataset_double(file_id, "/us_C+us_Om", data->r_us_C+us_Om);
-    H5LTread_dataset_double(file_id, "/us_Cm+us_Cp", data->r_us_Cm+us_Cp);
-    H5LTread_dataset_double(file_id, "/us_Cm+us_Hp", data->r_us_Cm+us_Hp);
-    H5LTread_dataset_double(file_id, "/us_Cm+us_O", data->r_us_Cm+us_O);
-    H5LTread_dataset_double(file_id, "/us_Cm+us_Op", data->r_us_Cm+us_Op);
-    H5LTread_dataset_double(file_id, "/us_H+us_H2p", data->r_us_H+us_H2p);
-    H5LTread_dataset_double(file_id, "/us_H+us_Om", data->r_us_H+us_Om);
-    H5LTread_dataset_double(file_id, "/us_H+us_Op", data->r_us_H+us_Op);
-    H5LTread_dataset_double(file_id, "/us_H2+us_Op", data->r_us_H2+us_Op);
-    H5LTread_dataset_double(file_id, "/us_H2p+us_O", data->r_us_H2p+us_O);
-    H5LTread_dataset_double(file_id, "/us_H2p+us_OH", data->r_us_H2p+us_OH);
-    H5LTread_dataset_double(file_id, "/us_Hm+us_Cp", data->r_us_Hm+us_Cp);
-    H5LTread_dataset_double(file_id, "/us_Hm+us_Hp", data->r_us_Hm+us_Hp);
-    H5LTread_dataset_double(file_id, "/us_Hm+us_O", data->r_us_Hm+us_O);
-    H5LTread_dataset_double(file_id, "/us_Hm+us_Op", data->r_us_Hm+us_Op);
-    H5LTread_dataset_double(file_id, "/us_Hp+us_O", data->r_us_Hp+us_O);
-    H5LTread_dataset_double(file_id, "/us_Hp+us_OH", data->r_us_Hp+us_OH);
-    H5LTread_dataset_double(file_id, "/us_OHm+us_Cp", data->r_us_OHm+us_Cp);
-    H5LTread_dataset_double(file_id, "/us_OHm+us_Hp", data->r_us_OHm+us_Hp);
-    H5LTread_dataset_double(file_id, "/us_OHm+us_Op", data->r_us_OHm+us_Op);
-    H5LTread_dataset_double(file_id, "/us_Om+us_Cp", data->r_us_Om+us_Cp);
-    H5LTread_dataset_double(file_id, "/us_Om+us_Hp", data->r_us_Om+us_Hp);
-    H5LTread_dataset_double(file_id, "/us_Om+us_Op", data->r_us_Om+us_Op);
+    H5LTread_dataset_double(file_id, "/us_C_plus_us_Om", data->r_us_C_plus_us_Om);
+    H5LTread_dataset_double(file_id, "/us_Cm_plus_us_Cp", data->r_us_Cm_plus_us_Cp);
+    H5LTread_dataset_double(file_id, "/us_Cm_plus_us_Hp", data->r_us_Cm_plus_us_Hp);
+    H5LTread_dataset_double(file_id, "/us_Cm_plus_us_O", data->r_us_Cm_plus_us_O);
+    H5LTread_dataset_double(file_id, "/us_Cm_plus_us_Op", data->r_us_Cm_plus_us_Op);
+    H5LTread_dataset_double(file_id, "/us_H2_plus_us_Op", data->r_us_H2_plus_us_Op);
+    H5LTread_dataset_double(file_id, "/us_H2p_plus_us_O", data->r_us_H2p_plus_us_O);
+    H5LTread_dataset_double(file_id, "/us_H2p_plus_us_OH", data->r_us_H2p_plus_us_OH);
+    H5LTread_dataset_double(file_id, "/us_H_plus_us_H2p", data->r_us_H_plus_us_H2p);
+    H5LTread_dataset_double(file_id, "/us_H_plus_us_Om", data->r_us_H_plus_us_Om);
+    H5LTread_dataset_double(file_id, "/us_H_plus_us_Op", data->r_us_H_plus_us_Op);
+    H5LTread_dataset_double(file_id, "/us_Hm_plus_us_Cp", data->r_us_Hm_plus_us_Cp);
+    H5LTread_dataset_double(file_id, "/us_Hm_plus_us_Hp", data->r_us_Hm_plus_us_Hp);
+    H5LTread_dataset_double(file_id, "/us_Hm_plus_us_O", data->r_us_Hm_plus_us_O);
+    H5LTread_dataset_double(file_id, "/us_Hm_plus_us_Op", data->r_us_Hm_plus_us_Op);
+    H5LTread_dataset_double(file_id, "/us_Hp_plus_us_O", data->r_us_Hp_plus_us_O);
+    H5LTread_dataset_double(file_id, "/us_Hp_plus_us_OH", data->r_us_Hp_plus_us_OH);
+    H5LTread_dataset_double(file_id, "/us_OHm_plus_us_Cp", data->r_us_OHm_plus_us_Cp);
+    H5LTread_dataset_double(file_id, "/us_OHm_plus_us_Hp", data->r_us_OHm_plus_us_Hp);
+    H5LTread_dataset_double(file_id, "/us_OHm_plus_us_Op", data->r_us_OHm_plus_us_Op);
+    H5LTread_dataset_double(file_id, "/us_Om_plus_us_Cp", data->r_us_Om_plus_us_Cp);
+    H5LTread_dataset_double(file_id, "/us_Om_plus_us_Hp", data->r_us_Om_plus_us_Hp);
+    H5LTread_dataset_double(file_id, "/us_Om_plus_us_Op", data->r_us_Om_plus_us_Op);
 
     H5Fclose(file_id);
 }
@@ -730,209 +730,209 @@ void umist_interpolate_rates(umist_data *data,
     }
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_C+us_Om[i] = data->r_us_C+us_Om[bin_id] +
-            data->Tdef[i] * (data->r_us_C+us_Om[bin_id+1] - data->r_us_C+us_Om[bin_id]);
-        data->drs_us_C+us_Om[i] = (data->r_us_C+us_Om[bin_id+1] - data->r_us_C+us_Om[bin_id]);
-        data->drs_us_C+us_Om[i] /= data->dT[i];
-	data->drs_us_C+us_Om[i] /= data->Ts[i];
+        data->rs_us_C_plus_us_Om[i] = data->r_us_C_plus_us_Om[bin_id] +
+            data->Tdef[i] * (data->r_us_C_plus_us_Om[bin_id+1] - data->r_us_C_plus_us_Om[bin_id]);
+        data->drs_us_C_plus_us_Om[i] = (data->r_us_C_plus_us_Om[bin_id+1] - data->r_us_C_plus_us_Om[bin_id]);
+        data->drs_us_C_plus_us_Om[i] /= data->dT[i];
+	data->drs_us_C_plus_us_Om[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Cm+us_Cp[i] = data->r_us_Cm+us_Cp[bin_id] +
-            data->Tdef[i] * (data->r_us_Cm+us_Cp[bin_id+1] - data->r_us_Cm+us_Cp[bin_id]);
-        data->drs_us_Cm+us_Cp[i] = (data->r_us_Cm+us_Cp[bin_id+1] - data->r_us_Cm+us_Cp[bin_id]);
-        data->drs_us_Cm+us_Cp[i] /= data->dT[i];
-	data->drs_us_Cm+us_Cp[i] /= data->Ts[i];
+        data->rs_us_Cm_plus_us_Cp[i] = data->r_us_Cm_plus_us_Cp[bin_id] +
+            data->Tdef[i] * (data->r_us_Cm_plus_us_Cp[bin_id+1] - data->r_us_Cm_plus_us_Cp[bin_id]);
+        data->drs_us_Cm_plus_us_Cp[i] = (data->r_us_Cm_plus_us_Cp[bin_id+1] - data->r_us_Cm_plus_us_Cp[bin_id]);
+        data->drs_us_Cm_plus_us_Cp[i] /= data->dT[i];
+	data->drs_us_Cm_plus_us_Cp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Cm+us_Hp[i] = data->r_us_Cm+us_Hp[bin_id] +
-            data->Tdef[i] * (data->r_us_Cm+us_Hp[bin_id+1] - data->r_us_Cm+us_Hp[bin_id]);
-        data->drs_us_Cm+us_Hp[i] = (data->r_us_Cm+us_Hp[bin_id+1] - data->r_us_Cm+us_Hp[bin_id]);
-        data->drs_us_Cm+us_Hp[i] /= data->dT[i];
-	data->drs_us_Cm+us_Hp[i] /= data->Ts[i];
+        data->rs_us_Cm_plus_us_Hp[i] = data->r_us_Cm_plus_us_Hp[bin_id] +
+            data->Tdef[i] * (data->r_us_Cm_plus_us_Hp[bin_id+1] - data->r_us_Cm_plus_us_Hp[bin_id]);
+        data->drs_us_Cm_plus_us_Hp[i] = (data->r_us_Cm_plus_us_Hp[bin_id+1] - data->r_us_Cm_plus_us_Hp[bin_id]);
+        data->drs_us_Cm_plus_us_Hp[i] /= data->dT[i];
+	data->drs_us_Cm_plus_us_Hp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Cm+us_O[i] = data->r_us_Cm+us_O[bin_id] +
-            data->Tdef[i] * (data->r_us_Cm+us_O[bin_id+1] - data->r_us_Cm+us_O[bin_id]);
-        data->drs_us_Cm+us_O[i] = (data->r_us_Cm+us_O[bin_id+1] - data->r_us_Cm+us_O[bin_id]);
-        data->drs_us_Cm+us_O[i] /= data->dT[i];
-	data->drs_us_Cm+us_O[i] /= data->Ts[i];
+        data->rs_us_Cm_plus_us_O[i] = data->r_us_Cm_plus_us_O[bin_id] +
+            data->Tdef[i] * (data->r_us_Cm_plus_us_O[bin_id+1] - data->r_us_Cm_plus_us_O[bin_id]);
+        data->drs_us_Cm_plus_us_O[i] = (data->r_us_Cm_plus_us_O[bin_id+1] - data->r_us_Cm_plus_us_O[bin_id]);
+        data->drs_us_Cm_plus_us_O[i] /= data->dT[i];
+	data->drs_us_Cm_plus_us_O[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Cm+us_Op[i] = data->r_us_Cm+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_Cm+us_Op[bin_id+1] - data->r_us_Cm+us_Op[bin_id]);
-        data->drs_us_Cm+us_Op[i] = (data->r_us_Cm+us_Op[bin_id+1] - data->r_us_Cm+us_Op[bin_id]);
-        data->drs_us_Cm+us_Op[i] /= data->dT[i];
-	data->drs_us_Cm+us_Op[i] /= data->Ts[i];
+        data->rs_us_Cm_plus_us_Op[i] = data->r_us_Cm_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_Cm_plus_us_Op[bin_id+1] - data->r_us_Cm_plus_us_Op[bin_id]);
+        data->drs_us_Cm_plus_us_Op[i] = (data->r_us_Cm_plus_us_Op[bin_id+1] - data->r_us_Cm_plus_us_Op[bin_id]);
+        data->drs_us_Cm_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_Cm_plus_us_Op[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H+us_H2p[i] = data->r_us_H+us_H2p[bin_id] +
-            data->Tdef[i] * (data->r_us_H+us_H2p[bin_id+1] - data->r_us_H+us_H2p[bin_id]);
-        data->drs_us_H+us_H2p[i] = (data->r_us_H+us_H2p[bin_id+1] - data->r_us_H+us_H2p[bin_id]);
-        data->drs_us_H+us_H2p[i] /= data->dT[i];
-	data->drs_us_H+us_H2p[i] /= data->Ts[i];
+        data->rs_us_H2_plus_us_Op[i] = data->r_us_H2_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_H2_plus_us_Op[bin_id+1] - data->r_us_H2_plus_us_Op[bin_id]);
+        data->drs_us_H2_plus_us_Op[i] = (data->r_us_H2_plus_us_Op[bin_id+1] - data->r_us_H2_plus_us_Op[bin_id]);
+        data->drs_us_H2_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_H2_plus_us_Op[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H+us_Om[i] = data->r_us_H+us_Om[bin_id] +
-            data->Tdef[i] * (data->r_us_H+us_Om[bin_id+1] - data->r_us_H+us_Om[bin_id]);
-        data->drs_us_H+us_Om[i] = (data->r_us_H+us_Om[bin_id+1] - data->r_us_H+us_Om[bin_id]);
-        data->drs_us_H+us_Om[i] /= data->dT[i];
-	data->drs_us_H+us_Om[i] /= data->Ts[i];
+        data->rs_us_H2p_plus_us_O[i] = data->r_us_H2p_plus_us_O[bin_id] +
+            data->Tdef[i] * (data->r_us_H2p_plus_us_O[bin_id+1] - data->r_us_H2p_plus_us_O[bin_id]);
+        data->drs_us_H2p_plus_us_O[i] = (data->r_us_H2p_plus_us_O[bin_id+1] - data->r_us_H2p_plus_us_O[bin_id]);
+        data->drs_us_H2p_plus_us_O[i] /= data->dT[i];
+	data->drs_us_H2p_plus_us_O[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H+us_Op[i] = data->r_us_H+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_H+us_Op[bin_id+1] - data->r_us_H+us_Op[bin_id]);
-        data->drs_us_H+us_Op[i] = (data->r_us_H+us_Op[bin_id+1] - data->r_us_H+us_Op[bin_id]);
-        data->drs_us_H+us_Op[i] /= data->dT[i];
-	data->drs_us_H+us_Op[i] /= data->Ts[i];
+        data->rs_us_H2p_plus_us_OH[i] = data->r_us_H2p_plus_us_OH[bin_id] +
+            data->Tdef[i] * (data->r_us_H2p_plus_us_OH[bin_id+1] - data->r_us_H2p_plus_us_OH[bin_id]);
+        data->drs_us_H2p_plus_us_OH[i] = (data->r_us_H2p_plus_us_OH[bin_id+1] - data->r_us_H2p_plus_us_OH[bin_id]);
+        data->drs_us_H2p_plus_us_OH[i] /= data->dT[i];
+	data->drs_us_H2p_plus_us_OH[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H2+us_Op[i] = data->r_us_H2+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_H2+us_Op[bin_id+1] - data->r_us_H2+us_Op[bin_id]);
-        data->drs_us_H2+us_Op[i] = (data->r_us_H2+us_Op[bin_id+1] - data->r_us_H2+us_Op[bin_id]);
-        data->drs_us_H2+us_Op[i] /= data->dT[i];
-	data->drs_us_H2+us_Op[i] /= data->Ts[i];
+        data->rs_us_H_plus_us_H2p[i] = data->r_us_H_plus_us_H2p[bin_id] +
+            data->Tdef[i] * (data->r_us_H_plus_us_H2p[bin_id+1] - data->r_us_H_plus_us_H2p[bin_id]);
+        data->drs_us_H_plus_us_H2p[i] = (data->r_us_H_plus_us_H2p[bin_id+1] - data->r_us_H_plus_us_H2p[bin_id]);
+        data->drs_us_H_plus_us_H2p[i] /= data->dT[i];
+	data->drs_us_H_plus_us_H2p[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H2p+us_O[i] = data->r_us_H2p+us_O[bin_id] +
-            data->Tdef[i] * (data->r_us_H2p+us_O[bin_id+1] - data->r_us_H2p+us_O[bin_id]);
-        data->drs_us_H2p+us_O[i] = (data->r_us_H2p+us_O[bin_id+1] - data->r_us_H2p+us_O[bin_id]);
-        data->drs_us_H2p+us_O[i] /= data->dT[i];
-	data->drs_us_H2p+us_O[i] /= data->Ts[i];
+        data->rs_us_H_plus_us_Om[i] = data->r_us_H_plus_us_Om[bin_id] +
+            data->Tdef[i] * (data->r_us_H_plus_us_Om[bin_id+1] - data->r_us_H_plus_us_Om[bin_id]);
+        data->drs_us_H_plus_us_Om[i] = (data->r_us_H_plus_us_Om[bin_id+1] - data->r_us_H_plus_us_Om[bin_id]);
+        data->drs_us_H_plus_us_Om[i] /= data->dT[i];
+	data->drs_us_H_plus_us_Om[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_H2p+us_OH[i] = data->r_us_H2p+us_OH[bin_id] +
-            data->Tdef[i] * (data->r_us_H2p+us_OH[bin_id+1] - data->r_us_H2p+us_OH[bin_id]);
-        data->drs_us_H2p+us_OH[i] = (data->r_us_H2p+us_OH[bin_id+1] - data->r_us_H2p+us_OH[bin_id]);
-        data->drs_us_H2p+us_OH[i] /= data->dT[i];
-	data->drs_us_H2p+us_OH[i] /= data->Ts[i];
+        data->rs_us_H_plus_us_Op[i] = data->r_us_H_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_H_plus_us_Op[bin_id+1] - data->r_us_H_plus_us_Op[bin_id]);
+        data->drs_us_H_plus_us_Op[i] = (data->r_us_H_plus_us_Op[bin_id+1] - data->r_us_H_plus_us_Op[bin_id]);
+        data->drs_us_H_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_H_plus_us_Op[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hm+us_Cp[i] = data->r_us_Hm+us_Cp[bin_id] +
-            data->Tdef[i] * (data->r_us_Hm+us_Cp[bin_id+1] - data->r_us_Hm+us_Cp[bin_id]);
-        data->drs_us_Hm+us_Cp[i] = (data->r_us_Hm+us_Cp[bin_id+1] - data->r_us_Hm+us_Cp[bin_id]);
-        data->drs_us_Hm+us_Cp[i] /= data->dT[i];
-	data->drs_us_Hm+us_Cp[i] /= data->Ts[i];
+        data->rs_us_Hm_plus_us_Cp[i] = data->r_us_Hm_plus_us_Cp[bin_id] +
+            data->Tdef[i] * (data->r_us_Hm_plus_us_Cp[bin_id+1] - data->r_us_Hm_plus_us_Cp[bin_id]);
+        data->drs_us_Hm_plus_us_Cp[i] = (data->r_us_Hm_plus_us_Cp[bin_id+1] - data->r_us_Hm_plus_us_Cp[bin_id]);
+        data->drs_us_Hm_plus_us_Cp[i] /= data->dT[i];
+	data->drs_us_Hm_plus_us_Cp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hm+us_Hp[i] = data->r_us_Hm+us_Hp[bin_id] +
-            data->Tdef[i] * (data->r_us_Hm+us_Hp[bin_id+1] - data->r_us_Hm+us_Hp[bin_id]);
-        data->drs_us_Hm+us_Hp[i] = (data->r_us_Hm+us_Hp[bin_id+1] - data->r_us_Hm+us_Hp[bin_id]);
-        data->drs_us_Hm+us_Hp[i] /= data->dT[i];
-	data->drs_us_Hm+us_Hp[i] /= data->Ts[i];
+        data->rs_us_Hm_plus_us_Hp[i] = data->r_us_Hm_plus_us_Hp[bin_id] +
+            data->Tdef[i] * (data->r_us_Hm_plus_us_Hp[bin_id+1] - data->r_us_Hm_plus_us_Hp[bin_id]);
+        data->drs_us_Hm_plus_us_Hp[i] = (data->r_us_Hm_plus_us_Hp[bin_id+1] - data->r_us_Hm_plus_us_Hp[bin_id]);
+        data->drs_us_Hm_plus_us_Hp[i] /= data->dT[i];
+	data->drs_us_Hm_plus_us_Hp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hm+us_O[i] = data->r_us_Hm+us_O[bin_id] +
-            data->Tdef[i] * (data->r_us_Hm+us_O[bin_id+1] - data->r_us_Hm+us_O[bin_id]);
-        data->drs_us_Hm+us_O[i] = (data->r_us_Hm+us_O[bin_id+1] - data->r_us_Hm+us_O[bin_id]);
-        data->drs_us_Hm+us_O[i] /= data->dT[i];
-	data->drs_us_Hm+us_O[i] /= data->Ts[i];
+        data->rs_us_Hm_plus_us_O[i] = data->r_us_Hm_plus_us_O[bin_id] +
+            data->Tdef[i] * (data->r_us_Hm_plus_us_O[bin_id+1] - data->r_us_Hm_plus_us_O[bin_id]);
+        data->drs_us_Hm_plus_us_O[i] = (data->r_us_Hm_plus_us_O[bin_id+1] - data->r_us_Hm_plus_us_O[bin_id]);
+        data->drs_us_Hm_plus_us_O[i] /= data->dT[i];
+	data->drs_us_Hm_plus_us_O[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hm+us_Op[i] = data->r_us_Hm+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_Hm+us_Op[bin_id+1] - data->r_us_Hm+us_Op[bin_id]);
-        data->drs_us_Hm+us_Op[i] = (data->r_us_Hm+us_Op[bin_id+1] - data->r_us_Hm+us_Op[bin_id]);
-        data->drs_us_Hm+us_Op[i] /= data->dT[i];
-	data->drs_us_Hm+us_Op[i] /= data->Ts[i];
+        data->rs_us_Hm_plus_us_Op[i] = data->r_us_Hm_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_Hm_plus_us_Op[bin_id+1] - data->r_us_Hm_plus_us_Op[bin_id]);
+        data->drs_us_Hm_plus_us_Op[i] = (data->r_us_Hm_plus_us_Op[bin_id+1] - data->r_us_Hm_plus_us_Op[bin_id]);
+        data->drs_us_Hm_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_Hm_plus_us_Op[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hp+us_O[i] = data->r_us_Hp+us_O[bin_id] +
-            data->Tdef[i] * (data->r_us_Hp+us_O[bin_id+1] - data->r_us_Hp+us_O[bin_id]);
-        data->drs_us_Hp+us_O[i] = (data->r_us_Hp+us_O[bin_id+1] - data->r_us_Hp+us_O[bin_id]);
-        data->drs_us_Hp+us_O[i] /= data->dT[i];
-	data->drs_us_Hp+us_O[i] /= data->Ts[i];
+        data->rs_us_Hp_plus_us_O[i] = data->r_us_Hp_plus_us_O[bin_id] +
+            data->Tdef[i] * (data->r_us_Hp_plus_us_O[bin_id+1] - data->r_us_Hp_plus_us_O[bin_id]);
+        data->drs_us_Hp_plus_us_O[i] = (data->r_us_Hp_plus_us_O[bin_id+1] - data->r_us_Hp_plus_us_O[bin_id]);
+        data->drs_us_Hp_plus_us_O[i] /= data->dT[i];
+	data->drs_us_Hp_plus_us_O[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Hp+us_OH[i] = data->r_us_Hp+us_OH[bin_id] +
-            data->Tdef[i] * (data->r_us_Hp+us_OH[bin_id+1] - data->r_us_Hp+us_OH[bin_id]);
-        data->drs_us_Hp+us_OH[i] = (data->r_us_Hp+us_OH[bin_id+1] - data->r_us_Hp+us_OH[bin_id]);
-        data->drs_us_Hp+us_OH[i] /= data->dT[i];
-	data->drs_us_Hp+us_OH[i] /= data->Ts[i];
+        data->rs_us_Hp_plus_us_OH[i] = data->r_us_Hp_plus_us_OH[bin_id] +
+            data->Tdef[i] * (data->r_us_Hp_plus_us_OH[bin_id+1] - data->r_us_Hp_plus_us_OH[bin_id]);
+        data->drs_us_Hp_plus_us_OH[i] = (data->r_us_Hp_plus_us_OH[bin_id+1] - data->r_us_Hp_plus_us_OH[bin_id]);
+        data->drs_us_Hp_plus_us_OH[i] /= data->dT[i];
+	data->drs_us_Hp_plus_us_OH[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_OHm+us_Cp[i] = data->r_us_OHm+us_Cp[bin_id] +
-            data->Tdef[i] * (data->r_us_OHm+us_Cp[bin_id+1] - data->r_us_OHm+us_Cp[bin_id]);
-        data->drs_us_OHm+us_Cp[i] = (data->r_us_OHm+us_Cp[bin_id+1] - data->r_us_OHm+us_Cp[bin_id]);
-        data->drs_us_OHm+us_Cp[i] /= data->dT[i];
-	data->drs_us_OHm+us_Cp[i] /= data->Ts[i];
+        data->rs_us_OHm_plus_us_Cp[i] = data->r_us_OHm_plus_us_Cp[bin_id] +
+            data->Tdef[i] * (data->r_us_OHm_plus_us_Cp[bin_id+1] - data->r_us_OHm_plus_us_Cp[bin_id]);
+        data->drs_us_OHm_plus_us_Cp[i] = (data->r_us_OHm_plus_us_Cp[bin_id+1] - data->r_us_OHm_plus_us_Cp[bin_id]);
+        data->drs_us_OHm_plus_us_Cp[i] /= data->dT[i];
+	data->drs_us_OHm_plus_us_Cp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_OHm+us_Hp[i] = data->r_us_OHm+us_Hp[bin_id] +
-            data->Tdef[i] * (data->r_us_OHm+us_Hp[bin_id+1] - data->r_us_OHm+us_Hp[bin_id]);
-        data->drs_us_OHm+us_Hp[i] = (data->r_us_OHm+us_Hp[bin_id+1] - data->r_us_OHm+us_Hp[bin_id]);
-        data->drs_us_OHm+us_Hp[i] /= data->dT[i];
-	data->drs_us_OHm+us_Hp[i] /= data->Ts[i];
+        data->rs_us_OHm_plus_us_Hp[i] = data->r_us_OHm_plus_us_Hp[bin_id] +
+            data->Tdef[i] * (data->r_us_OHm_plus_us_Hp[bin_id+1] - data->r_us_OHm_plus_us_Hp[bin_id]);
+        data->drs_us_OHm_plus_us_Hp[i] = (data->r_us_OHm_plus_us_Hp[bin_id+1] - data->r_us_OHm_plus_us_Hp[bin_id]);
+        data->drs_us_OHm_plus_us_Hp[i] /= data->dT[i];
+	data->drs_us_OHm_plus_us_Hp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_OHm+us_Op[i] = data->r_us_OHm+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_OHm+us_Op[bin_id+1] - data->r_us_OHm+us_Op[bin_id]);
-        data->drs_us_OHm+us_Op[i] = (data->r_us_OHm+us_Op[bin_id+1] - data->r_us_OHm+us_Op[bin_id]);
-        data->drs_us_OHm+us_Op[i] /= data->dT[i];
-	data->drs_us_OHm+us_Op[i] /= data->Ts[i];
+        data->rs_us_OHm_plus_us_Op[i] = data->r_us_OHm_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_OHm_plus_us_Op[bin_id+1] - data->r_us_OHm_plus_us_Op[bin_id]);
+        data->drs_us_OHm_plus_us_Op[i] = (data->r_us_OHm_plus_us_Op[bin_id+1] - data->r_us_OHm_plus_us_Op[bin_id]);
+        data->drs_us_OHm_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_OHm_plus_us_Op[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Om+us_Cp[i] = data->r_us_Om+us_Cp[bin_id] +
-            data->Tdef[i] * (data->r_us_Om+us_Cp[bin_id+1] - data->r_us_Om+us_Cp[bin_id]);
-        data->drs_us_Om+us_Cp[i] = (data->r_us_Om+us_Cp[bin_id+1] - data->r_us_Om+us_Cp[bin_id]);
-        data->drs_us_Om+us_Cp[i] /= data->dT[i];
-	data->drs_us_Om+us_Cp[i] /= data->Ts[i];
+        data->rs_us_Om_plus_us_Cp[i] = data->r_us_Om_plus_us_Cp[bin_id] +
+            data->Tdef[i] * (data->r_us_Om_plus_us_Cp[bin_id+1] - data->r_us_Om_plus_us_Cp[bin_id]);
+        data->drs_us_Om_plus_us_Cp[i] = (data->r_us_Om_plus_us_Cp[bin_id+1] - data->r_us_Om_plus_us_Cp[bin_id]);
+        data->drs_us_Om_plus_us_Cp[i] /= data->dT[i];
+	data->drs_us_Om_plus_us_Cp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Om+us_Hp[i] = data->r_us_Om+us_Hp[bin_id] +
-            data->Tdef[i] * (data->r_us_Om+us_Hp[bin_id+1] - data->r_us_Om+us_Hp[bin_id]);
-        data->drs_us_Om+us_Hp[i] = (data->r_us_Om+us_Hp[bin_id+1] - data->r_us_Om+us_Hp[bin_id]);
-        data->drs_us_Om+us_Hp[i] /= data->dT[i];
-	data->drs_us_Om+us_Hp[i] /= data->Ts[i];
+        data->rs_us_Om_plus_us_Hp[i] = data->r_us_Om_plus_us_Hp[bin_id] +
+            data->Tdef[i] * (data->r_us_Om_plus_us_Hp[bin_id+1] - data->r_us_Om_plus_us_Hp[bin_id]);
+        data->drs_us_Om_plus_us_Hp[i] = (data->r_us_Om_plus_us_Hp[bin_id+1] - data->r_us_Om_plus_us_Hp[bin_id]);
+        data->drs_us_Om_plus_us_Hp[i] /= data->dT[i];
+	data->drs_us_Om_plus_us_Hp[i] /= data->Ts[i];
     }
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
-        data->rs_us_Om+us_Op[i] = data->r_us_Om+us_Op[bin_id] +
-            data->Tdef[i] * (data->r_us_Om+us_Op[bin_id+1] - data->r_us_Om+us_Op[bin_id]);
-        data->drs_us_Om+us_Op[i] = (data->r_us_Om+us_Op[bin_id+1] - data->r_us_Om+us_Op[bin_id]);
-        data->drs_us_Om+us_Op[i] /= data->dT[i];
-	data->drs_us_Om+us_Op[i] /= data->Ts[i];
+        data->rs_us_Om_plus_us_Op[i] = data->r_us_Om_plus_us_Op[bin_id] +
+            data->Tdef[i] * (data->r_us_Om_plus_us_Op[bin_id+1] - data->r_us_Om_plus_us_Op[bin_id]);
+        data->drs_us_Om_plus_us_Op[i] = (data->r_us_Om_plus_us_Op[bin_id+1] - data->r_us_Om_plus_us_Op[bin_id]);
+        data->drs_us_Om_plus_us_Op[i] /= data->dT[i];
+	data->drs_us_Om_plus_us_Op[i] /= data->Ts[i];
     }
     
 
@@ -953,29 +953,29 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
     umist_interpolate_rates(data, nstrip);
 
     /* Now we set up some temporaries */
-    double *us_C+us_Om = data->rs_us_C+us_Om;
-    double *us_Cm+us_Cp = data->rs_us_Cm+us_Cp;
-    double *us_Cm+us_Hp = data->rs_us_Cm+us_Hp;
-    double *us_Cm+us_O = data->rs_us_Cm+us_O;
-    double *us_Cm+us_Op = data->rs_us_Cm+us_Op;
-    double *us_H+us_H2p = data->rs_us_H+us_H2p;
-    double *us_H+us_Om = data->rs_us_H+us_Om;
-    double *us_H+us_Op = data->rs_us_H+us_Op;
-    double *us_H2+us_Op = data->rs_us_H2+us_Op;
-    double *us_H2p+us_O = data->rs_us_H2p+us_O;
-    double *us_H2p+us_OH = data->rs_us_H2p+us_OH;
-    double *us_Hm+us_Cp = data->rs_us_Hm+us_Cp;
-    double *us_Hm+us_Hp = data->rs_us_Hm+us_Hp;
-    double *us_Hm+us_O = data->rs_us_Hm+us_O;
-    double *us_Hm+us_Op = data->rs_us_Hm+us_Op;
-    double *us_Hp+us_O = data->rs_us_Hp+us_O;
-    double *us_Hp+us_OH = data->rs_us_Hp+us_OH;
-    double *us_OHm+us_Cp = data->rs_us_OHm+us_Cp;
-    double *us_OHm+us_Hp = data->rs_us_OHm+us_Hp;
-    double *us_OHm+us_Op = data->rs_us_OHm+us_Op;
-    double *us_Om+us_Cp = data->rs_us_Om+us_Cp;
-    double *us_Om+us_Hp = data->rs_us_Om+us_Hp;
-    double *us_Om+us_Op = data->rs_us_Om+us_Op;
+    double *us_C_plus_us_Om = data->rs_us_C_plus_us_Om;
+    double *us_Cm_plus_us_Cp = data->rs_us_Cm_plus_us_Cp;
+    double *us_Cm_plus_us_Hp = data->rs_us_Cm_plus_us_Hp;
+    double *us_Cm_plus_us_O = data->rs_us_Cm_plus_us_O;
+    double *us_Cm_plus_us_Op = data->rs_us_Cm_plus_us_Op;
+    double *us_H2_plus_us_Op = data->rs_us_H2_plus_us_Op;
+    double *us_H2p_plus_us_O = data->rs_us_H2p_plus_us_O;
+    double *us_H2p_plus_us_OH = data->rs_us_H2p_plus_us_OH;
+    double *us_H_plus_us_H2p = data->rs_us_H_plus_us_H2p;
+    double *us_H_plus_us_Om = data->rs_us_H_plus_us_Om;
+    double *us_H_plus_us_Op = data->rs_us_H_plus_us_Op;
+    double *us_Hm_plus_us_Cp = data->rs_us_Hm_plus_us_Cp;
+    double *us_Hm_plus_us_Hp = data->rs_us_Hm_plus_us_Hp;
+    double *us_Hm_plus_us_O = data->rs_us_Hm_plus_us_O;
+    double *us_Hm_plus_us_Op = data->rs_us_Hm_plus_us_Op;
+    double *us_Hp_plus_us_O = data->rs_us_Hp_plus_us_O;
+    double *us_Hp_plus_us_OH = data->rs_us_Hp_plus_us_OH;
+    double *us_OHm_plus_us_Cp = data->rs_us_OHm_plus_us_Cp;
+    double *us_OHm_plus_us_Hp = data->rs_us_OHm_plus_us_Hp;
+    double *us_OHm_plus_us_Op = data->rs_us_OHm_plus_us_Op;
+    double *us_Om_plus_us_Cp = data->rs_us_Om_plus_us_Cp;
+    double *us_Om_plus_us_Hp = data->rs_us_Om_plus_us_Hp;
+    double *us_Om_plus_us_Op = data->rs_us_Om_plus_us_Op;
     double ge;
     double us_Cm;
     double us_CO;
@@ -1249,7 +1249,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Cm
         // 
-        rhs[j] = -us_Cm+us_Cp[i]*us_Cm*us_Cp - us_Cm+us_Hp[i]*us_Cm*us_Hp - us_Cm+us_O[i]*us_Cm*us_O - us_Cm+us_Op[i]*us_Cm*us_Op;
+        rhs[j] = -us_Cm_plus_us_Cp[i]*us_Cm*us_Cp - us_Cm_plus_us_Hp[i]*us_Cm*us_Hp - us_Cm_plus_us_O[i]*us_Cm*us_O - us_Cm_plus_us_Op[i]*us_Cm*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1263,7 +1263,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_CO
         // 
-        rhs[j] = us_C+us_Om[i]*us_C*us_Om + us_Cm+us_O[i]*us_Cm*us_O;
+        rhs[j] = us_C_plus_us_Om[i]*us_C*us_Om + us_Cm_plus_us_O[i]*us_Cm*us_O;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1277,7 +1277,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_em
         // 
-        rhs[j] = us_C+us_Om[i]*us_C*us_Om + us_Cm+us_O[i]*us_Cm*us_O + us_H+us_Om[i]*us_H*us_Om + us_Hm+us_O[i]*us_Hm*us_O;
+        rhs[j] = us_C_plus_us_Om[i]*us_C*us_Om + us_Cm_plus_us_O[i]*us_Cm*us_O + us_H_plus_us_Om[i]*us_H*us_Om + us_Hm_plus_us_O[i]*us_Hm*us_O;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1291,7 +1291,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_O
         // 
-        rhs[j] = -us_Cm+us_O[i]*us_Cm*us_O + us_Cm+us_Op[i]*us_Cm*us_Op + us_H+us_Op[i]*us_H*us_Op - us_H2p+us_O[i]*us_H2p*us_O - us_Hm+us_O[i]*us_Hm*us_O + us_Hm+us_Op[i]*us_Hm*us_Op - us_Hp+us_O[i]*us_Hp*us_O + us_OHm+us_Op[i]*us_OHm*us_Op + us_Om+us_Cp[i]*us_Cp*us_Om + us_Om+us_Hp[i]*us_Hp*us_Om + 2*us_Om+us_Op[i]*us_Om*us_Op;
+        rhs[j] = -us_Cm_plus_us_O[i]*us_Cm*us_O + us_Cm_plus_us_Op[i]*us_Cm*us_Op - us_H2p_plus_us_O[i]*us_H2p*us_O + us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_O[i]*us_Hm*us_O + us_Hm_plus_us_Op[i]*us_Hm*us_Op - us_Hp_plus_us_O[i]*us_Hp*us_O + us_OHm_plus_us_Op[i]*us_OHm*us_Op + us_Om_plus_us_Cp[i]*us_Cp*us_Om + us_Om_plus_us_Hp[i]*us_Hp*us_Om + 2*us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1305,7 +1305,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_C
         // 
-        rhs[j] = -us_C+us_Om[i]*us_C*us_Om + 2*us_Cm+us_Cp[i]*us_Cm*us_Cp + us_Cm+us_Hp[i]*us_Cm*us_Hp + us_Cm+us_Op[i]*us_Cm*us_Op + us_Hm+us_Cp[i]*us_Cp*us_Hm + us_OHm+us_Cp[i]*us_Cp*us_OHm + us_Om+us_Cp[i]*us_Cp*us_Om;
+        rhs[j] = -us_C_plus_us_Om[i]*us_C*us_Om + 2*us_Cm_plus_us_Cp[i]*us_Cm*us_Cp + us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_Cm_plus_us_Op[i]*us_Cm*us_Op + us_Hm_plus_us_Cp[i]*us_Cp*us_Hm + us_OHm_plus_us_Cp[i]*us_Cp*us_OHm + us_Om_plus_us_Cp[i]*us_Cp*us_Om;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1319,7 +1319,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Om
         // 
-        rhs[j] = -us_C+us_Om[i]*us_C*us_Om - us_H+us_Om[i]*us_H*us_Om - us_Om+us_Cp[i]*us_Cp*us_Om - us_Om+us_Hp[i]*us_Hp*us_Om - us_Om+us_Op[i]*us_Om*us_Op;
+        rhs[j] = -us_C_plus_us_Om[i]*us_C*us_Om - us_H_plus_us_Om[i]*us_H*us_Om - us_Om_plus_us_Cp[i]*us_Cp*us_Om - us_Om_plus_us_Hp[i]*us_Hp*us_Om - us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1333,7 +1333,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_OHm
         // 
-        rhs[j] = -us_OHm+us_Cp[i]*us_Cp*us_OHm - us_OHm+us_Hp[i]*us_Hp*us_OHm - us_OHm+us_Op[i]*us_OHm*us_Op;
+        rhs[j] = -us_OHm_plus_us_Cp[i]*us_Cp*us_OHm - us_OHm_plus_us_Hp[i]*us_Hp*us_OHm - us_OHm_plus_us_Op[i]*us_OHm*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1347,7 +1347,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Hm
         // 
-        rhs[j] = -us_Hm+us_Cp[i]*us_Cp*us_Hm - us_Hm+us_Hp[i]*us_Hm*us_Hp - us_Hm+us_O[i]*us_Hm*us_O - us_Hm+us_Op[i]*us_Hm*us_Op;
+        rhs[j] = -us_Hm_plus_us_Cp[i]*us_Cp*us_Hm - us_Hm_plus_us_Hp[i]*us_Hm*us_Hp - us_Hm_plus_us_O[i]*us_Hm*us_O - us_Hm_plus_us_Op[i]*us_Hm*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1361,7 +1361,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Cp
         // 
-        rhs[j] = -us_Cm+us_Cp[i]*us_Cm*us_Cp - us_Hm+us_Cp[i]*us_Cp*us_Hm - us_OHm+us_Cp[i]*us_Cp*us_OHm - us_Om+us_Cp[i]*us_Cp*us_Om;
+        rhs[j] = -us_Cm_plus_us_Cp[i]*us_Cm*us_Cp - us_Hm_plus_us_Cp[i]*us_Cp*us_Hm - us_OHm_plus_us_Cp[i]*us_Cp*us_OHm - us_Om_plus_us_Cp[i]*us_Cp*us_Om;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1375,7 +1375,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_H2
         // 
-        rhs[j] = us_H+us_H2p[i]*us_H*us_H2p - us_H2+us_Op[i]*us_H2*us_Op + us_H2p+us_OH[i]*us_H2p*us_OH;
+        rhs[j] = -us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H_plus_us_H2p[i]*us_H*us_H2p;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1389,7 +1389,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_H2p
         // 
-        rhs[j] = -us_H+us_H2p[i]*us_H*us_H2p - us_H2p+us_OH[i]*us_H2p*us_OH - us_H2p+us_O[i]*us_H2p*us_O;
+        rhs[j] = -us_H2p_plus_us_OH[i]*us_H2p*us_OH - us_H2p_plus_us_O[i]*us_H2p*us_O - us_H_plus_us_H2p[i]*us_H*us_H2p;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1403,7 +1403,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_H
         // 
-        rhs[j] = us_Cm+us_Hp[i]*us_Cm*us_Hp - us_H+us_H2p[i]*us_H*us_H2p - us_H+us_Om[i]*us_H*us_Om - us_H+us_Op[i]*us_H*us_Op + us_H2+us_Op[i]*us_H2*us_Op + us_H2p+us_O[i]*us_H2p*us_O + us_Hm+us_Cp[i]*us_Cp*us_Hm + 2*us_Hm+us_Hp[i]*us_Hm*us_Hp + us_Hm+us_Op[i]*us_Hm*us_Op + us_Hp+us_OH[i]*us_Hp*us_OH + us_Hp+us_O[i]*us_Hp*us_O + us_OHm+us_Hp[i]*us_Hp*us_OHm + us_Om+us_Hp[i]*us_Hp*us_Om;
+        rhs[j] = us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_O[i]*us_H2p*us_O - us_H_plus_us_H2p[i]*us_H*us_H2p - us_H_plus_us_Om[i]*us_H*us_Om - us_H_plus_us_Op[i]*us_H*us_Op + us_Hm_plus_us_Cp[i]*us_Cp*us_Hm + 2*us_Hm_plus_us_Hp[i]*us_Hm*us_Hp + us_Hm_plus_us_Op[i]*us_Hm*us_Op + us_Hp_plus_us_OH[i]*us_Hp*us_OH + us_Hp_plus_us_O[i]*us_Hp*us_O + us_OHm_plus_us_Hp[i]*us_Hp*us_OHm + us_Om_plus_us_Hp[i]*us_Hp*us_Om;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1417,7 +1417,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Hp
         // 
-        rhs[j] = -us_Cm+us_Hp[i]*us_Cm*us_Hp + us_H+us_H2p[i]*us_H*us_H2p + us_H+us_Op[i]*us_H*us_Op - us_Hm+us_Hp[i]*us_Hm*us_Hp - us_Hp+us_OH[i]*us_Hp*us_OH - us_Hp+us_O[i]*us_Hp*us_O - us_OHm+us_Hp[i]*us_Hp*us_OHm - us_Om+us_Hp[i]*us_Hp*us_Om;
+        rhs[j] = -us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_H_plus_us_H2p[i]*us_H*us_H2p + us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_Hp[i]*us_Hm*us_Hp - us_Hp_plus_us_OH[i]*us_Hp*us_OH - us_Hp_plus_us_O[i]*us_Hp*us_O - us_OHm_plus_us_Hp[i]*us_Hp*us_OHm - us_Om_plus_us_Hp[i]*us_Hp*us_Om;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1431,7 +1431,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_Op
         // 
-        rhs[j] = -us_Cm+us_Op[i]*us_Cm*us_Op - us_H+us_Op[i]*us_H*us_Op - us_H2+us_Op[i]*us_H2*us_Op - us_Hm+us_Op[i]*us_Hm*us_Op + us_Hp+us_O[i]*us_Hp*us_O - us_OHm+us_Op[i]*us_OHm*us_Op - us_Om+us_Op[i]*us_Om*us_Op;
+        rhs[j] = -us_Cm_plus_us_Op[i]*us_Cm*us_Op - us_H2_plus_us_Op[i]*us_H2*us_Op - us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_Op[i]*us_Hm*us_Op + us_Hp_plus_us_O[i]*us_Hp*us_O - us_OHm_plus_us_Op[i]*us_OHm*us_Op - us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1445,7 +1445,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_OHp
         // 
-        rhs[j] = us_H2+us_Op[i]*us_H2*us_Op + us_H2p+us_OH[i]*us_H2p*us_OH + us_H2p+us_O[i]*us_H2p*us_O + us_Hp+us_OH[i]*us_Hp*us_OH;
+        rhs[j] = us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H2p_plus_us_O[i]*us_H2p*us_O + us_Hp_plus_us_OH[i]*us_Hp*us_OH;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1459,7 +1459,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // 
         // Species: us_OH
         // 
-        rhs[j] = us_H+us_Om[i]*us_H*us_Om - us_H2p+us_OH[i]*us_H2p*us_OH + us_Hm+us_O[i]*us_Hm*us_O - us_Hp+us_OH[i]*us_Hp*us_OH + us_OHm+us_Cp[i]*us_Cp*us_OHm + us_OHm+us_Hp[i]*us_Hp*us_OHm + us_OHm+us_Op[i]*us_OHm*us_Op;
+        rhs[j] = -us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H_plus_us_Om[i]*us_H*us_Om + us_Hm_plus_us_O[i]*us_Hm*us_O - us_Hp_plus_us_OH[i]*us_Hp*us_OH + us_OHm_plus_us_Cp[i]*us_Cp*us_OHm + us_OHm_plus_us_Hp[i]*us_Hp*us_OHm + us_OHm_plus_us_Op[i]*us_OHm*us_Op;
         
             /* Already in number density, not mass density */
             total += rhs[j] * -1;
@@ -1491,52 +1491,52 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 
     /* Now we set up some temporaries */
     double *Tge = data->dTs_ge;
-    double *us_C+us_Om = data->rs_us_C+us_Om;
-    double *rus_C+us_Om = data->drs_us_C+us_Om;
-    double *us_Cm+us_Cp = data->rs_us_Cm+us_Cp;
-    double *rus_Cm+us_Cp = data->drs_us_Cm+us_Cp;
-    double *us_Cm+us_Hp = data->rs_us_Cm+us_Hp;
-    double *rus_Cm+us_Hp = data->drs_us_Cm+us_Hp;
-    double *us_Cm+us_O = data->rs_us_Cm+us_O;
-    double *rus_Cm+us_O = data->drs_us_Cm+us_O;
-    double *us_Cm+us_Op = data->rs_us_Cm+us_Op;
-    double *rus_Cm+us_Op = data->drs_us_Cm+us_Op;
-    double *us_H+us_H2p = data->rs_us_H+us_H2p;
-    double *rus_H+us_H2p = data->drs_us_H+us_H2p;
-    double *us_H+us_Om = data->rs_us_H+us_Om;
-    double *rus_H+us_Om = data->drs_us_H+us_Om;
-    double *us_H+us_Op = data->rs_us_H+us_Op;
-    double *rus_H+us_Op = data->drs_us_H+us_Op;
-    double *us_H2+us_Op = data->rs_us_H2+us_Op;
-    double *rus_H2+us_Op = data->drs_us_H2+us_Op;
-    double *us_H2p+us_O = data->rs_us_H2p+us_O;
-    double *rus_H2p+us_O = data->drs_us_H2p+us_O;
-    double *us_H2p+us_OH = data->rs_us_H2p+us_OH;
-    double *rus_H2p+us_OH = data->drs_us_H2p+us_OH;
-    double *us_Hm+us_Cp = data->rs_us_Hm+us_Cp;
-    double *rus_Hm+us_Cp = data->drs_us_Hm+us_Cp;
-    double *us_Hm+us_Hp = data->rs_us_Hm+us_Hp;
-    double *rus_Hm+us_Hp = data->drs_us_Hm+us_Hp;
-    double *us_Hm+us_O = data->rs_us_Hm+us_O;
-    double *rus_Hm+us_O = data->drs_us_Hm+us_O;
-    double *us_Hm+us_Op = data->rs_us_Hm+us_Op;
-    double *rus_Hm+us_Op = data->drs_us_Hm+us_Op;
-    double *us_Hp+us_O = data->rs_us_Hp+us_O;
-    double *rus_Hp+us_O = data->drs_us_Hp+us_O;
-    double *us_Hp+us_OH = data->rs_us_Hp+us_OH;
-    double *rus_Hp+us_OH = data->drs_us_Hp+us_OH;
-    double *us_OHm+us_Cp = data->rs_us_OHm+us_Cp;
-    double *rus_OHm+us_Cp = data->drs_us_OHm+us_Cp;
-    double *us_OHm+us_Hp = data->rs_us_OHm+us_Hp;
-    double *rus_OHm+us_Hp = data->drs_us_OHm+us_Hp;
-    double *us_OHm+us_Op = data->rs_us_OHm+us_Op;
-    double *rus_OHm+us_Op = data->drs_us_OHm+us_Op;
-    double *us_Om+us_Cp = data->rs_us_Om+us_Cp;
-    double *rus_Om+us_Cp = data->drs_us_Om+us_Cp;
-    double *us_Om+us_Hp = data->rs_us_Om+us_Hp;
-    double *rus_Om+us_Hp = data->drs_us_Om+us_Hp;
-    double *us_Om+us_Op = data->rs_us_Om+us_Op;
-    double *rus_Om+us_Op = data->drs_us_Om+us_Op;
+    double *us_C_plus_us_Om = data->rs_us_C_plus_us_Om;
+    double *rus_C_plus_us_Om = data->drs_us_C_plus_us_Om;
+    double *us_Cm_plus_us_Cp = data->rs_us_Cm_plus_us_Cp;
+    double *rus_Cm_plus_us_Cp = data->drs_us_Cm_plus_us_Cp;
+    double *us_Cm_plus_us_Hp = data->rs_us_Cm_plus_us_Hp;
+    double *rus_Cm_plus_us_Hp = data->drs_us_Cm_plus_us_Hp;
+    double *us_Cm_plus_us_O = data->rs_us_Cm_plus_us_O;
+    double *rus_Cm_plus_us_O = data->drs_us_Cm_plus_us_O;
+    double *us_Cm_plus_us_Op = data->rs_us_Cm_plus_us_Op;
+    double *rus_Cm_plus_us_Op = data->drs_us_Cm_plus_us_Op;
+    double *us_H2_plus_us_Op = data->rs_us_H2_plus_us_Op;
+    double *rus_H2_plus_us_Op = data->drs_us_H2_plus_us_Op;
+    double *us_H2p_plus_us_O = data->rs_us_H2p_plus_us_O;
+    double *rus_H2p_plus_us_O = data->drs_us_H2p_plus_us_O;
+    double *us_H2p_plus_us_OH = data->rs_us_H2p_plus_us_OH;
+    double *rus_H2p_plus_us_OH = data->drs_us_H2p_plus_us_OH;
+    double *us_H_plus_us_H2p = data->rs_us_H_plus_us_H2p;
+    double *rus_H_plus_us_H2p = data->drs_us_H_plus_us_H2p;
+    double *us_H_plus_us_Om = data->rs_us_H_plus_us_Om;
+    double *rus_H_plus_us_Om = data->drs_us_H_plus_us_Om;
+    double *us_H_plus_us_Op = data->rs_us_H_plus_us_Op;
+    double *rus_H_plus_us_Op = data->drs_us_H_plus_us_Op;
+    double *us_Hm_plus_us_Cp = data->rs_us_Hm_plus_us_Cp;
+    double *rus_Hm_plus_us_Cp = data->drs_us_Hm_plus_us_Cp;
+    double *us_Hm_plus_us_Hp = data->rs_us_Hm_plus_us_Hp;
+    double *rus_Hm_plus_us_Hp = data->drs_us_Hm_plus_us_Hp;
+    double *us_Hm_plus_us_O = data->rs_us_Hm_plus_us_O;
+    double *rus_Hm_plus_us_O = data->drs_us_Hm_plus_us_O;
+    double *us_Hm_plus_us_Op = data->rs_us_Hm_plus_us_Op;
+    double *rus_Hm_plus_us_Op = data->drs_us_Hm_plus_us_Op;
+    double *us_Hp_plus_us_O = data->rs_us_Hp_plus_us_O;
+    double *rus_Hp_plus_us_O = data->drs_us_Hp_plus_us_O;
+    double *us_Hp_plus_us_OH = data->rs_us_Hp_plus_us_OH;
+    double *rus_Hp_plus_us_OH = data->drs_us_Hp_plus_us_OH;
+    double *us_OHm_plus_us_Cp = data->rs_us_OHm_plus_us_Cp;
+    double *rus_OHm_plus_us_Cp = data->drs_us_OHm_plus_us_Cp;
+    double *us_OHm_plus_us_Hp = data->rs_us_OHm_plus_us_Hp;
+    double *rus_OHm_plus_us_Hp = data->drs_us_OHm_plus_us_Hp;
+    double *us_OHm_plus_us_Op = data->rs_us_OHm_plus_us_Op;
+    double *rus_OHm_plus_us_Op = data->drs_us_OHm_plus_us_Op;
+    double *us_Om_plus_us_Cp = data->rs_us_Om_plus_us_Cp;
+    double *rus_Om_plus_us_Cp = data->drs_us_Om_plus_us_Cp;
+    double *us_Om_plus_us_Hp = data->rs_us_Om_plus_us_Hp;
+    double *rus_Om_plus_us_Hp = data->drs_us_Om_plus_us_Hp;
+    double *us_Om_plus_us_Op = data->rs_us_Om_plus_us_Op;
+    double *rus_Om_plus_us_Op = data->drs_us_Om_plus_us_Op;
     double ge;
     double us_Cm;
     double us_CO;
@@ -1827,112 +1827,112 @@ int calculate_jacobian_umist(double *input, double *Joutput,
             
             j++;
             // us_Cm by ge
-            Joutput[j] = -rus_Cm+us_Cp[i]*us_Cm*us_Cp - rus_Cm+us_Hp[i]*us_Cm*us_Hp - rus_Cm+us_O[i]*us_Cm*us_O - rus_Cm+us_Op[i]*us_Cm*us_Op;
+            Joutput[j] = -rus_Cm_plus_us_Cp[i]*us_Cm*us_Cp - rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp - rus_Cm_plus_us_O[i]*us_Cm*us_O - rus_Cm_plus_us_Op[i]*us_Cm*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_CO by ge
-            Joutput[j] = rus_C+us_Om[i]*us_C*us_Om + rus_Cm+us_O[i]*us_Cm*us_O;
+            Joutput[j] = rus_C_plus_us_Om[i]*us_C*us_Om + rus_Cm_plus_us_O[i]*us_Cm*us_O;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_em by ge
-            Joutput[j] = rus_C+us_Om[i]*us_C*us_Om + rus_Cm+us_O[i]*us_Cm*us_O + rus_H+us_Om[i]*us_H*us_Om + rus_Hm+us_O[i]*us_Hm*us_O;
+            Joutput[j] = rus_C_plus_us_Om[i]*us_C*us_Om + rus_Cm_plus_us_O[i]*us_Cm*us_O + rus_H_plus_us_Om[i]*us_H*us_Om + rus_Hm_plus_us_O[i]*us_Hm*us_O;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_O by ge
-            Joutput[j] = -rus_Cm+us_O[i]*us_Cm*us_O + rus_Cm+us_Op[i]*us_Cm*us_Op + rus_H+us_Op[i]*us_H*us_Op - rus_H2p+us_O[i]*us_H2p*us_O - rus_Hm+us_O[i]*us_Hm*us_O + rus_Hm+us_Op[i]*us_Hm*us_Op - rus_Hp+us_O[i]*us_Hp*us_O + rus_OHm+us_Op[i]*us_OHm*us_Op + rus_Om+us_Cp[i]*us_Cp*us_Om + rus_Om+us_Hp[i]*us_Hp*us_Om + 2*rus_Om+us_Op[i]*us_Om*us_Op;
+            Joutput[j] = -rus_Cm_plus_us_O[i]*us_Cm*us_O + rus_Cm_plus_us_Op[i]*us_Cm*us_Op - rus_H2p_plus_us_O[i]*us_H2p*us_O + rus_H_plus_us_Op[i]*us_H*us_Op - rus_Hm_plus_us_O[i]*us_Hm*us_O + rus_Hm_plus_us_Op[i]*us_Hm*us_Op - rus_Hp_plus_us_O[i]*us_Hp*us_O + rus_OHm_plus_us_Op[i]*us_OHm*us_Op + rus_Om_plus_us_Cp[i]*us_Cp*us_Om + rus_Om_plus_us_Hp[i]*us_Hp*us_Om + 2*rus_Om_plus_us_Op[i]*us_Om*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_C by ge
-            Joutput[j] = -rus_C+us_Om[i]*us_C*us_Om + 2*rus_Cm+us_Cp[i]*us_Cm*us_Cp + rus_Cm+us_Hp[i]*us_Cm*us_Hp + rus_Cm+us_Op[i]*us_Cm*us_Op + rus_Hm+us_Cp[i]*us_Cp*us_Hm + rus_OHm+us_Cp[i]*us_Cp*us_OHm + rus_Om+us_Cp[i]*us_Cp*us_Om;
+            Joutput[j] = -rus_C_plus_us_Om[i]*us_C*us_Om + 2*rus_Cm_plus_us_Cp[i]*us_Cm*us_Cp + rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp + rus_Cm_plus_us_Op[i]*us_Cm*us_Op + rus_Hm_plus_us_Cp[i]*us_Cp*us_Hm + rus_OHm_plus_us_Cp[i]*us_Cp*us_OHm + rus_Om_plus_us_Cp[i]*us_Cp*us_Om;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_Om by ge
-            Joutput[j] = -rus_C+us_Om[i]*us_C*us_Om - rus_H+us_Om[i]*us_H*us_Om - rus_Om+us_Cp[i]*us_Cp*us_Om - rus_Om+us_Hp[i]*us_Hp*us_Om - rus_Om+us_Op[i]*us_Om*us_Op;
+            Joutput[j] = -rus_C_plus_us_Om[i]*us_C*us_Om - rus_H_plus_us_Om[i]*us_H*us_Om - rus_Om_plus_us_Cp[i]*us_Cp*us_Om - rus_Om_plus_us_Hp[i]*us_Hp*us_Om - rus_Om_plus_us_Op[i]*us_Om*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_OHm by ge
-            Joutput[j] = -rus_OHm+us_Cp[i]*us_Cp*us_OHm - rus_OHm+us_Hp[i]*us_Hp*us_OHm - rus_OHm+us_Op[i]*us_OHm*us_Op;
+            Joutput[j] = -rus_OHm_plus_us_Cp[i]*us_Cp*us_OHm - rus_OHm_plus_us_Hp[i]*us_Hp*us_OHm - rus_OHm_plus_us_Op[i]*us_OHm*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_Hm by ge
-            Joutput[j] = -rus_Hm+us_Cp[i]*us_Cp*us_Hm - rus_Hm+us_Hp[i]*us_Hm*us_Hp - rus_Hm+us_O[i]*us_Hm*us_O - rus_Hm+us_Op[i]*us_Hm*us_Op;
+            Joutput[j] = -rus_Hm_plus_us_Cp[i]*us_Cp*us_Hm - rus_Hm_plus_us_Hp[i]*us_Hm*us_Hp - rus_Hm_plus_us_O[i]*us_Hm*us_O - rus_Hm_plus_us_Op[i]*us_Hm*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_Cp by ge
-            Joutput[j] = -rus_Cm+us_Cp[i]*us_Cm*us_Cp - rus_Hm+us_Cp[i]*us_Cp*us_Hm - rus_OHm+us_Cp[i]*us_Cp*us_OHm - rus_Om+us_Cp[i]*us_Cp*us_Om;
+            Joutput[j] = -rus_Cm_plus_us_Cp[i]*us_Cm*us_Cp - rus_Hm_plus_us_Cp[i]*us_Cp*us_Hm - rus_OHm_plus_us_Cp[i]*us_Cp*us_OHm - rus_Om_plus_us_Cp[i]*us_Cp*us_Om;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_H2 by ge
-            Joutput[j] = rus_H+us_H2p[i]*us_H*us_H2p - rus_H2+us_Op[i]*us_H2*us_Op + rus_H2p+us_OH[i]*us_H2p*us_OH;
+            Joutput[j] = -rus_H2_plus_us_Op[i]*us_H2*us_Op + rus_H2p_plus_us_OH[i]*us_H2p*us_OH + rus_H_plus_us_H2p[i]*us_H*us_H2p;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_H2p by ge
-            Joutput[j] = -rus_H+us_H2p[i]*us_H*us_H2p - rus_H2p+us_OH[i]*us_H2p*us_OH - rus_H2p+us_O[i]*us_H2p*us_O;
+            Joutput[j] = -rus_H2p_plus_us_OH[i]*us_H2p*us_OH - rus_H2p_plus_us_O[i]*us_H2p*us_O - rus_H_plus_us_H2p[i]*us_H*us_H2p;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_H by ge
-            Joutput[j] = rus_Cm+us_Hp[i]*us_Cm*us_Hp - rus_H+us_H2p[i]*us_H*us_H2p - rus_H+us_Om[i]*us_H*us_Om - rus_H+us_Op[i]*us_H*us_Op + rus_H2+us_Op[i]*us_H2*us_Op + rus_H2p+us_O[i]*us_H2p*us_O + rus_Hm+us_Cp[i]*us_Cp*us_Hm + 2*rus_Hm+us_Hp[i]*us_Hm*us_Hp + rus_Hm+us_Op[i]*us_Hm*us_Op + rus_Hp+us_OH[i]*us_Hp*us_OH + rus_Hp+us_O[i]*us_Hp*us_O + rus_OHm+us_Hp[i]*us_Hp*us_OHm + rus_Om+us_Hp[i]*us_Hp*us_Om;
+            Joutput[j] = rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp + rus_H2_plus_us_Op[i]*us_H2*us_Op + rus_H2p_plus_us_O[i]*us_H2p*us_O - rus_H_plus_us_H2p[i]*us_H*us_H2p - rus_H_plus_us_Om[i]*us_H*us_Om - rus_H_plus_us_Op[i]*us_H*us_Op + rus_Hm_plus_us_Cp[i]*us_Cp*us_Hm + 2*rus_Hm_plus_us_Hp[i]*us_Hm*us_Hp + rus_Hm_plus_us_Op[i]*us_Hm*us_Op + rus_Hp_plus_us_OH[i]*us_Hp*us_OH + rus_Hp_plus_us_O[i]*us_Hp*us_O + rus_OHm_plus_us_Hp[i]*us_Hp*us_OHm + rus_Om_plus_us_Hp[i]*us_Hp*us_Om;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_Hp by ge
-            Joutput[j] = -rus_Cm+us_Hp[i]*us_Cm*us_Hp + rus_H+us_H2p[i]*us_H*us_H2p + rus_H+us_Op[i]*us_H*us_Op - rus_Hm+us_Hp[i]*us_Hm*us_Hp - rus_Hp+us_OH[i]*us_Hp*us_OH - rus_Hp+us_O[i]*us_Hp*us_O - rus_OHm+us_Hp[i]*us_Hp*us_OHm - rus_Om+us_Hp[i]*us_Hp*us_Om;
+            Joutput[j] = -rus_Cm_plus_us_Hp[i]*us_Cm*us_Hp + rus_H_plus_us_H2p[i]*us_H*us_H2p + rus_H_plus_us_Op[i]*us_H*us_Op - rus_Hm_plus_us_Hp[i]*us_Hm*us_Hp - rus_Hp_plus_us_OH[i]*us_Hp*us_OH - rus_Hp_plus_us_O[i]*us_Hp*us_O - rus_OHm_plus_us_Hp[i]*us_Hp*us_OHm - rus_Om_plus_us_Hp[i]*us_Hp*us_Om;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_Op by ge
-            Joutput[j] = -rus_Cm+us_Op[i]*us_Cm*us_Op - rus_H+us_Op[i]*us_H*us_Op - rus_H2+us_Op[i]*us_H2*us_Op - rus_Hm+us_Op[i]*us_Hm*us_Op + rus_Hp+us_O[i]*us_Hp*us_O - rus_OHm+us_Op[i]*us_OHm*us_Op - rus_Om+us_Op[i]*us_Om*us_Op;
+            Joutput[j] = -rus_Cm_plus_us_Op[i]*us_Cm*us_Op - rus_H2_plus_us_Op[i]*us_H2*us_Op - rus_H_plus_us_Op[i]*us_H*us_Op - rus_Hm_plus_us_Op[i]*us_Hm*us_Op + rus_Hp_plus_us_O[i]*us_Hp*us_O - rus_OHm_plus_us_Op[i]*us_OHm*us_Op - rus_Om_plus_us_Op[i]*us_Om*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_OHp by ge
-            Joutput[j] = rus_H2+us_Op[i]*us_H2*us_Op + rus_H2p+us_OH[i]*us_H2p*us_OH + rus_H2p+us_O[i]*us_H2p*us_O + rus_Hp+us_OH[i]*us_Hp*us_OH;
+            Joutput[j] = rus_H2_plus_us_Op[i]*us_H2*us_Op + rus_H2p_plus_us_OH[i]*us_H2p*us_OH + rus_H2p_plus_us_O[i]*us_H2p*us_O + rus_Hp_plus_us_OH[i]*us_Hp*us_OH;
 	    
 	    
             Joutput[j] *= Tge[i];
             
             j++;
             // us_OH by ge
-            Joutput[j] = rus_H+us_Om[i]*us_H*us_Om - rus_H2p+us_OH[i]*us_H2p*us_OH + rus_Hm+us_O[i]*us_Hm*us_O - rus_Hp+us_OH[i]*us_Hp*us_OH + rus_OHm+us_Cp[i]*us_Cp*us_OHm + rus_OHm+us_Hp[i]*us_Hp*us_OHm + rus_OHm+us_Op[i]*us_OHm*us_Op;
+            Joutput[j] = -rus_H2p_plus_us_OH[i]*us_H2p*us_OH + rus_H_plus_us_Om[i]*us_H*us_Om + rus_Hm_plus_us_O[i]*us_Hm*us_O - rus_Hp_plus_us_OH[i]*us_Hp*us_OH + rus_OHm_plus_us_Cp[i]*us_Cp*us_OHm + rus_OHm_plus_us_Hp[i]*us_Hp*us_OHm + rus_OHm_plus_us_Op[i]*us_OHm*us_Op;
 	    
 	    
             Joutput[j] *= Tge[i];
@@ -1950,27 +1950,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cm by us_Cm
-            Joutput[j] = -us_Cm+us_Cp[i]*us_Cp - us_Cm+us_Hp[i]*us_Hp - us_Cm+us_O[i]*us_O - us_Cm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp - us_Cm_plus_us_Hp[i]*us_Hp - us_Cm_plus_us_O[i]*us_O - us_Cm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_CO by us_Cm
-            Joutput[j] = us_Cm+us_O[i]*us_O;
+            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
 	    
 	    
             j++;
             // us_em by us_Cm
-            Joutput[j] = us_Cm+us_O[i]*us_O;
+            Joutput[j] = us_Cm_plus_us_O[i]*us_O;
 	    
 	    
             j++;
             // us_O by us_Cm
-            Joutput[j] = -us_Cm+us_O[i]*us_O + us_Cm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Cm_plus_us_O[i]*us_O + us_Cm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_C by us_Cm
-            Joutput[j] = 2*us_Cm+us_Cp[i]*us_Cp + us_Cm+us_Hp[i]*us_Hp + us_Cm+us_Op[i]*us_Op;
+            Joutput[j] = 2*us_Cm_plus_us_Cp[i]*us_Cp + us_Cm_plus_us_Hp[i]*us_Hp + us_Cm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -1990,7 +1990,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cp by us_Cm
-            Joutput[j] = -us_Cm+us_Cp[i]*us_Cp;
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2005,17 +2005,17 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Cm
-            Joutput[j] = us_Cm+us_Hp[i]*us_Hp;
+            Joutput[j] = us_Cm_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Hp by us_Cm
-            Joutput[j] = -us_Cm+us_Hp[i]*us_Hp;
+            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Op by us_Cm
-            Joutput[j] = -us_Cm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2223,22 +2223,22 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cm by us_O
-            Joutput[j] = -us_Cm+us_O[i]*us_Cm;
+            Joutput[j] = -us_Cm_plus_us_O[i]*us_Cm;
 	    
 	    
             j++;
             // us_CO by us_O
-            Joutput[j] = us_Cm+us_O[i]*us_Cm;
+            Joutput[j] = us_Cm_plus_us_O[i]*us_Cm;
 	    
 	    
             j++;
             // us_em by us_O
-            Joutput[j] = us_Cm+us_O[i]*us_Cm + us_Hm+us_O[i]*us_Hm;
+            Joutput[j] = us_Cm_plus_us_O[i]*us_Cm + us_Hm_plus_us_O[i]*us_Hm;
 	    
 	    
             j++;
             // us_O by us_O
-            Joutput[j] = -us_Cm+us_O[i]*us_Cm - us_H2p+us_O[i]*us_H2p - us_Hm+us_O[i]*us_Hm - us_Hp+us_O[i]*us_Hp;
+            Joutput[j] = -us_Cm_plus_us_O[i]*us_Cm - us_H2p_plus_us_O[i]*us_H2p - us_Hm_plus_us_O[i]*us_Hm - us_Hp_plus_us_O[i]*us_Hp;
 	    
 	    
             j++;
@@ -2258,7 +2258,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Hm by us_O
-            Joutput[j] = -us_Hm+us_O[i]*us_Hm;
+            Joutput[j] = -us_Hm_plus_us_O[i]*us_Hm;
 	    
 	    
             j++;
@@ -2273,32 +2273,32 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2p by us_O
-            Joutput[j] = -us_H2p+us_O[i]*us_H2p;
+            Joutput[j] = -us_H2p_plus_us_O[i]*us_H2p;
 	    
 	    
             j++;
             // us_H by us_O
-            Joutput[j] = us_H2p+us_O[i]*us_H2p + us_Hp+us_O[i]*us_Hp;
+            Joutput[j] = us_H2p_plus_us_O[i]*us_H2p + us_Hp_plus_us_O[i]*us_Hp;
 	    
 	    
             j++;
             // us_Hp by us_O
-            Joutput[j] = -us_Hp+us_O[i]*us_Hp;
+            Joutput[j] = -us_Hp_plus_us_O[i]*us_Hp;
 	    
 	    
             j++;
             // us_Op by us_O
-            Joutput[j] = us_Hp+us_O[i]*us_Hp;
+            Joutput[j] = us_Hp_plus_us_O[i]*us_Hp;
 	    
 	    
             j++;
             // us_OHp by us_O
-            Joutput[j] = us_H2p+us_O[i]*us_H2p;
+            Joutput[j] = us_H2p_plus_us_O[i]*us_H2p;
 	    
 	    
             j++;
             // us_OH by us_O
-            Joutput[j] = us_Hm+us_O[i]*us_Hm;
+            Joutput[j] = us_Hm_plus_us_O[i]*us_Hm;
 	    
 	    
             j++;
@@ -2319,12 +2319,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_CO by us_C
-            Joutput[j] = us_C+us_Om[i]*us_Om;
+            Joutput[j] = us_C_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
             // us_em by us_C
-            Joutput[j] = us_C+us_Om[i]*us_Om;
+            Joutput[j] = us_C_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
@@ -2334,12 +2334,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_C by us_C
-            Joutput[j] = -us_C+us_Om[i]*us_Om;
+            Joutput[j] = -us_C_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
             // us_Om by us_C
-            Joutput[j] = -us_C+us_Om[i]*us_Om;
+            Joutput[j] = -us_C_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
@@ -2410,27 +2410,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_CO by us_Om
-            Joutput[j] = us_C+us_Om[i]*us_C;
+            Joutput[j] = us_C_plus_us_Om[i]*us_C;
 	    
 	    
             j++;
             // us_em by us_Om
-            Joutput[j] = us_C+us_Om[i]*us_C + us_H+us_Om[i]*us_H;
+            Joutput[j] = us_C_plus_us_Om[i]*us_C + us_H_plus_us_Om[i]*us_H;
 	    
 	    
             j++;
             // us_O by us_Om
-            Joutput[j] = us_Om+us_Cp[i]*us_Cp + us_Om+us_Hp[i]*us_Hp + 2*us_Om+us_Op[i]*us_Op;
+            Joutput[j] = us_Om_plus_us_Cp[i]*us_Cp + us_Om_plus_us_Hp[i]*us_Hp + 2*us_Om_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_C by us_Om
-            Joutput[j] = -us_C+us_Om[i]*us_C + us_Om+us_Cp[i]*us_Cp;
+            Joutput[j] = -us_C_plus_us_Om[i]*us_C + us_Om_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
             // us_Om by us_Om
-            Joutput[j] = -us_C+us_Om[i]*us_C - us_H+us_Om[i]*us_H - us_Om+us_Cp[i]*us_Cp - us_Om+us_Hp[i]*us_Hp - us_Om+us_Op[i]*us_Op;
+            Joutput[j] = -us_C_plus_us_Om[i]*us_C - us_H_plus_us_Om[i]*us_H - us_Om_plus_us_Cp[i]*us_Cp - us_Om_plus_us_Hp[i]*us_Hp - us_Om_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2445,7 +2445,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cp by us_Om
-            Joutput[j] = -us_Om+us_Cp[i]*us_Cp;
+            Joutput[j] = -us_Om_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2460,17 +2460,17 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Om
-            Joutput[j] = -us_H+us_Om[i]*us_H + us_Om+us_Hp[i]*us_Hp;
+            Joutput[j] = -us_H_plus_us_Om[i]*us_H + us_Om_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Hp by us_Om
-            Joutput[j] = -us_Om+us_Hp[i]*us_Hp;
+            Joutput[j] = -us_Om_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Op by us_Om
-            Joutput[j] = -us_Om+us_Op[i]*us_Op;
+            Joutput[j] = -us_Om_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2480,7 +2480,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OH by us_Om
-            Joutput[j] = us_H+us_Om[i]*us_H;
+            Joutput[j] = us_H_plus_us_Om[i]*us_H;
 	    
 	    
             j++;
@@ -2511,12 +2511,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_O by us_OHm
-            Joutput[j] = us_OHm+us_Op[i]*us_Op;
+            Joutput[j] = us_OHm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_C by us_OHm
-            Joutput[j] = us_OHm+us_Cp[i]*us_Cp;
+            Joutput[j] = us_OHm_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2526,7 +2526,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OHm by us_OHm
-            Joutput[j] = -us_OHm+us_Cp[i]*us_Cp - us_OHm+us_Hp[i]*us_Hp - us_OHm+us_Op[i]*us_Op;
+            Joutput[j] = -us_OHm_plus_us_Cp[i]*us_Cp - us_OHm_plus_us_Hp[i]*us_Hp - us_OHm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2536,7 +2536,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cp by us_OHm
-            Joutput[j] = -us_OHm+us_Cp[i]*us_Cp;
+            Joutput[j] = -us_OHm_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2551,17 +2551,17 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_OHm
-            Joutput[j] = us_OHm+us_Hp[i]*us_Hp;
+            Joutput[j] = us_OHm_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Hp by us_OHm
-            Joutput[j] = -us_OHm+us_Hp[i]*us_Hp;
+            Joutput[j] = -us_OHm_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Op by us_OHm
-            Joutput[j] = -us_OHm+us_Op[i]*us_Op;
+            Joutput[j] = -us_OHm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2571,7 +2571,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OH by us_OHm
-            Joutput[j] = us_OHm+us_Cp[i]*us_Cp + us_OHm+us_Hp[i]*us_Hp + us_OHm+us_Op[i]*us_Op;
+            Joutput[j] = us_OHm_plus_us_Cp[i]*us_Cp + us_OHm_plus_us_Hp[i]*us_Hp + us_OHm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2597,17 +2597,17 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_em by us_Hm
-            Joutput[j] = us_Hm+us_O[i]*us_O;
+            Joutput[j] = us_Hm_plus_us_O[i]*us_O;
 	    
 	    
             j++;
             // us_O by us_Hm
-            Joutput[j] = -us_Hm+us_O[i]*us_O + us_Hm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Hm_plus_us_O[i]*us_O + us_Hm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_C by us_Hm
-            Joutput[j] = us_Hm+us_Cp[i]*us_Cp;
+            Joutput[j] = us_Hm_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2622,12 +2622,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Hm by us_Hm
-            Joutput[j] = -us_Hm+us_Cp[i]*us_Cp - us_Hm+us_Hp[i]*us_Hp - us_Hm+us_O[i]*us_O - us_Hm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Hm_plus_us_Cp[i]*us_Cp - us_Hm_plus_us_Hp[i]*us_Hp - us_Hm_plus_us_O[i]*us_O - us_Hm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_Cp by us_Hm
-            Joutput[j] = -us_Hm+us_Cp[i]*us_Cp;
+            Joutput[j] = -us_Hm_plus_us_Cp[i]*us_Cp;
 	    
 	    
             j++;
@@ -2642,17 +2642,17 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Hm
-            Joutput[j] = us_Hm+us_Cp[i]*us_Cp + 2*us_Hm+us_Hp[i]*us_Hp + us_Hm+us_Op[i]*us_Op;
+            Joutput[j] = us_Hm_plus_us_Cp[i]*us_Cp + 2*us_Hm_plus_us_Hp[i]*us_Hp + us_Hm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_Hp by us_Hm
-            Joutput[j] = -us_Hm+us_Hp[i]*us_Hp;
+            Joutput[j] = -us_Hm_plus_us_Hp[i]*us_Hp;
 	    
 	    
             j++;
             // us_Op by us_Hm
-            Joutput[j] = -us_Hm+us_Op[i]*us_Op;
+            Joutput[j] = -us_Hm_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2662,7 +2662,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OH by us_Hm
-            Joutput[j] = us_Hm+us_O[i]*us_O;
+            Joutput[j] = us_Hm_plus_us_O[i]*us_O;
 	    
 	    
             j++;
@@ -2678,7 +2678,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cm by us_Cp
-            Joutput[j] = -us_Cm+us_Cp[i]*us_Cm;
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cm;
 	    
 	    
             j++;
@@ -2693,32 +2693,32 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_O by us_Cp
-            Joutput[j] = us_Om+us_Cp[i]*us_Om;
+            Joutput[j] = us_Om_plus_us_Cp[i]*us_Om;
 	    
 	    
             j++;
             // us_C by us_Cp
-            Joutput[j] = 2*us_Cm+us_Cp[i]*us_Cm + us_Hm+us_Cp[i]*us_Hm + us_OHm+us_Cp[i]*us_OHm + us_Om+us_Cp[i]*us_Om;
+            Joutput[j] = 2*us_Cm_plus_us_Cp[i]*us_Cm + us_Hm_plus_us_Cp[i]*us_Hm + us_OHm_plus_us_Cp[i]*us_OHm + us_Om_plus_us_Cp[i]*us_Om;
 	    
 	    
             j++;
             // us_Om by us_Cp
-            Joutput[j] = -us_Om+us_Cp[i]*us_Om;
+            Joutput[j] = -us_Om_plus_us_Cp[i]*us_Om;
 	    
 	    
             j++;
             // us_OHm by us_Cp
-            Joutput[j] = -us_OHm+us_Cp[i]*us_OHm;
+            Joutput[j] = -us_OHm_plus_us_Cp[i]*us_OHm;
 	    
 	    
             j++;
             // us_Hm by us_Cp
-            Joutput[j] = -us_Hm+us_Cp[i]*us_Hm;
+            Joutput[j] = -us_Hm_plus_us_Cp[i]*us_Hm;
 	    
 	    
             j++;
             // us_Cp by us_Cp
-            Joutput[j] = -us_Cm+us_Cp[i]*us_Cm - us_Hm+us_Cp[i]*us_Hm - us_OHm+us_Cp[i]*us_OHm - us_Om+us_Cp[i]*us_Om;
+            Joutput[j] = -us_Cm_plus_us_Cp[i]*us_Cm - us_Hm_plus_us_Cp[i]*us_Hm - us_OHm_plus_us_Cp[i]*us_OHm - us_Om_plus_us_Cp[i]*us_Om;
 	    
 	    
             j++;
@@ -2733,7 +2733,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Cp
-            Joutput[j] = us_Hm+us_Cp[i]*us_Hm;
+            Joutput[j] = us_Hm_plus_us_Cp[i]*us_Hm;
 	    
 	    
             j++;
@@ -2753,7 +2753,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OH by us_Cp
-            Joutput[j] = us_OHm+us_Cp[i]*us_OHm;
+            Joutput[j] = us_OHm_plus_us_Cp[i]*us_OHm;
 	    
 	    
             j++;
@@ -2814,7 +2814,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2 by us_H2
-            Joutput[j] = -us_H2+us_Op[i]*us_Op;
+            Joutput[j] = -us_H2_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2824,7 +2824,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_H2
-            Joutput[j] = us_H2+us_Op[i]*us_Op;
+            Joutput[j] = us_H2_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2834,12 +2834,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Op by us_H2
-            Joutput[j] = -us_H2+us_Op[i]*us_Op;
+            Joutput[j] = -us_H2_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_OHp by us_H2
-            Joutput[j] = us_H2+us_Op[i]*us_Op;
+            Joutput[j] = us_H2_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2875,7 +2875,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_O by us_H2p
-            Joutput[j] = -us_H2p+us_O[i]*us_O;
+            Joutput[j] = -us_H2p_plus_us_O[i]*us_O;
 	    
 	    
             j++;
@@ -2905,22 +2905,22 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2 by us_H2p
-            Joutput[j] = us_H+us_H2p[i]*us_H + us_H2p+us_OH[i]*us_OH;
+            Joutput[j] = us_H2p_plus_us_OH[i]*us_OH + us_H_plus_us_H2p[i]*us_H;
 	    
 	    
             j++;
             // us_H2p by us_H2p
-            Joutput[j] = -us_H+us_H2p[i]*us_H - us_H2p+us_OH[i]*us_OH - us_H2p+us_O[i]*us_O;
+            Joutput[j] = -us_H2p_plus_us_OH[i]*us_OH - us_H2p_plus_us_O[i]*us_O - us_H_plus_us_H2p[i]*us_H;
 	    
 	    
             j++;
             // us_H by us_H2p
-            Joutput[j] = -us_H+us_H2p[i]*us_H + us_H2p+us_O[i]*us_O;
+            Joutput[j] = us_H2p_plus_us_O[i]*us_O - us_H_plus_us_H2p[i]*us_H;
 	    
 	    
             j++;
             // us_Hp by us_H2p
-            Joutput[j] = us_H+us_H2p[i]*us_H;
+            Joutput[j] = us_H_plus_us_H2p[i]*us_H;
 	    
 	    
             j++;
@@ -2930,12 +2930,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OHp by us_H2p
-            Joutput[j] = us_H2p+us_OH[i]*us_OH + us_H2p+us_O[i]*us_O;
+            Joutput[j] = us_H2p_plus_us_OH[i]*us_OH + us_H2p_plus_us_O[i]*us_O;
 	    
 	    
             j++;
             // us_OH by us_H2p
-            Joutput[j] = -us_H2p+us_OH[i]*us_OH;
+            Joutput[j] = -us_H2p_plus_us_OH[i]*us_OH;
 	    
 	    
             j++;
@@ -2961,12 +2961,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_em by us_H
-            Joutput[j] = us_H+us_Om[i]*us_Om;
+            Joutput[j] = us_H_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
             // us_O by us_H
-            Joutput[j] = us_H+us_Op[i]*us_Op;
+            Joutput[j] = us_H_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -2976,7 +2976,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Om by us_H
-            Joutput[j] = -us_H+us_Om[i]*us_Om;
+            Joutput[j] = -us_H_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
@@ -2996,27 +2996,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2 by us_H
-            Joutput[j] = us_H+us_H2p[i]*us_H2p;
+            Joutput[j] = us_H_plus_us_H2p[i]*us_H2p;
 	    
 	    
             j++;
             // us_H2p by us_H
-            Joutput[j] = -us_H+us_H2p[i]*us_H2p;
+            Joutput[j] = -us_H_plus_us_H2p[i]*us_H2p;
 	    
 	    
             j++;
             // us_H by us_H
-            Joutput[j] = -us_H+us_H2p[i]*us_H2p - us_H+us_Om[i]*us_Om - us_H+us_Op[i]*us_Op;
+            Joutput[j] = -us_H_plus_us_H2p[i]*us_H2p - us_H_plus_us_Om[i]*us_Om - us_H_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_Hp by us_H
-            Joutput[j] = us_H+us_H2p[i]*us_H2p + us_H+us_Op[i]*us_Op;
+            Joutput[j] = us_H_plus_us_H2p[i]*us_H2p + us_H_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
             // us_Op by us_H
-            Joutput[j] = -us_H+us_Op[i]*us_Op;
+            Joutput[j] = -us_H_plus_us_Op[i]*us_Op;
 	    
 	    
             j++;
@@ -3026,7 +3026,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OH by us_H
-            Joutput[j] = us_H+us_Om[i]*us_Om;
+            Joutput[j] = us_H_plus_us_Om[i]*us_Om;
 	    
 	    
             j++;
@@ -3042,7 +3042,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cm by us_Hp
-            Joutput[j] = -us_Cm+us_Hp[i]*us_Cm;
+            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Cm;
 	    
 	    
             j++;
@@ -3057,27 +3057,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_O by us_Hp
-            Joutput[j] = -us_Hp+us_O[i]*us_O + us_Om+us_Hp[i]*us_Om;
+            Joutput[j] = -us_Hp_plus_us_O[i]*us_O + us_Om_plus_us_Hp[i]*us_Om;
 	    
 	    
             j++;
             // us_C by us_Hp
-            Joutput[j] = us_Cm+us_Hp[i]*us_Cm;
+            Joutput[j] = us_Cm_plus_us_Hp[i]*us_Cm;
 	    
 	    
             j++;
             // us_Om by us_Hp
-            Joutput[j] = -us_Om+us_Hp[i]*us_Om;
+            Joutput[j] = -us_Om_plus_us_Hp[i]*us_Om;
 	    
 	    
             j++;
             // us_OHm by us_Hp
-            Joutput[j] = -us_OHm+us_Hp[i]*us_OHm;
+            Joutput[j] = -us_OHm_plus_us_Hp[i]*us_OHm;
 	    
 	    
             j++;
             // us_Hm by us_Hp
-            Joutput[j] = -us_Hm+us_Hp[i]*us_Hm;
+            Joutput[j] = -us_Hm_plus_us_Hp[i]*us_Hm;
 	    
 	    
             j++;
@@ -3097,27 +3097,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Hp
-            Joutput[j] = us_Cm+us_Hp[i]*us_Cm + 2*us_Hm+us_Hp[i]*us_Hm + us_Hp+us_OH[i]*us_OH + us_Hp+us_O[i]*us_O + us_OHm+us_Hp[i]*us_OHm + us_Om+us_Hp[i]*us_Om;
+            Joutput[j] = us_Cm_plus_us_Hp[i]*us_Cm + 2*us_Hm_plus_us_Hp[i]*us_Hm + us_Hp_plus_us_OH[i]*us_OH + us_Hp_plus_us_O[i]*us_O + us_OHm_plus_us_Hp[i]*us_OHm + us_Om_plus_us_Hp[i]*us_Om;
 	    
 	    
             j++;
             // us_Hp by us_Hp
-            Joutput[j] = -us_Cm+us_Hp[i]*us_Cm - us_Hm+us_Hp[i]*us_Hm - us_Hp+us_OH[i]*us_OH - us_Hp+us_O[i]*us_O - us_OHm+us_Hp[i]*us_OHm - us_Om+us_Hp[i]*us_Om;
+            Joutput[j] = -us_Cm_plus_us_Hp[i]*us_Cm - us_Hm_plus_us_Hp[i]*us_Hm - us_Hp_plus_us_OH[i]*us_OH - us_Hp_plus_us_O[i]*us_O - us_OHm_plus_us_Hp[i]*us_OHm - us_Om_plus_us_Hp[i]*us_Om;
 	    
 	    
             j++;
             // us_Op by us_Hp
-            Joutput[j] = us_Hp+us_O[i]*us_O;
+            Joutput[j] = us_Hp_plus_us_O[i]*us_O;
 	    
 	    
             j++;
             // us_OHp by us_Hp
-            Joutput[j] = us_Hp+us_OH[i]*us_OH;
+            Joutput[j] = us_Hp_plus_us_OH[i]*us_OH;
 	    
 	    
             j++;
             // us_OH by us_Hp
-            Joutput[j] = -us_Hp+us_OH[i]*us_OH + us_OHm+us_Hp[i]*us_OHm;
+            Joutput[j] = -us_Hp_plus_us_OH[i]*us_OH + us_OHm_plus_us_Hp[i]*us_OHm;
 	    
 	    
             j++;
@@ -3133,7 +3133,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_Cm by us_Op
-            Joutput[j] = -us_Cm+us_Op[i]*us_Cm;
+            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Cm;
 	    
 	    
             j++;
@@ -3148,27 +3148,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_O by us_Op
-            Joutput[j] = us_Cm+us_Op[i]*us_Cm + us_H+us_Op[i]*us_H + us_Hm+us_Op[i]*us_Hm + us_OHm+us_Op[i]*us_OHm + 2*us_Om+us_Op[i]*us_Om;
+            Joutput[j] = us_Cm_plus_us_Op[i]*us_Cm + us_H_plus_us_Op[i]*us_H + us_Hm_plus_us_Op[i]*us_Hm + us_OHm_plus_us_Op[i]*us_OHm + 2*us_Om_plus_us_Op[i]*us_Om;
 	    
 	    
             j++;
             // us_C by us_Op
-            Joutput[j] = us_Cm+us_Op[i]*us_Cm;
+            Joutput[j] = us_Cm_plus_us_Op[i]*us_Cm;
 	    
 	    
             j++;
             // us_Om by us_Op
-            Joutput[j] = -us_Om+us_Op[i]*us_Om;
+            Joutput[j] = -us_Om_plus_us_Op[i]*us_Om;
 	    
 	    
             j++;
             // us_OHm by us_Op
-            Joutput[j] = -us_OHm+us_Op[i]*us_OHm;
+            Joutput[j] = -us_OHm_plus_us_Op[i]*us_OHm;
 	    
 	    
             j++;
             // us_Hm by us_Op
-            Joutput[j] = -us_Hm+us_Op[i]*us_Hm;
+            Joutput[j] = -us_Hm_plus_us_Op[i]*us_Hm;
 	    
 	    
             j++;
@@ -3178,7 +3178,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2 by us_Op
-            Joutput[j] = -us_H2+us_Op[i]*us_H2;
+            Joutput[j] = -us_H2_plus_us_Op[i]*us_H2;
 	    
 	    
             j++;
@@ -3188,27 +3188,27 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H by us_Op
-            Joutput[j] = -us_H+us_Op[i]*us_H + us_H2+us_Op[i]*us_H2 + us_Hm+us_Op[i]*us_Hm;
+            Joutput[j] = us_H2_plus_us_Op[i]*us_H2 - us_H_plus_us_Op[i]*us_H + us_Hm_plus_us_Op[i]*us_Hm;
 	    
 	    
             j++;
             // us_Hp by us_Op
-            Joutput[j] = us_H+us_Op[i]*us_H;
+            Joutput[j] = us_H_plus_us_Op[i]*us_H;
 	    
 	    
             j++;
             // us_Op by us_Op
-            Joutput[j] = -us_Cm+us_Op[i]*us_Cm - us_H+us_Op[i]*us_H - us_H2+us_Op[i]*us_H2 - us_Hm+us_Op[i]*us_Hm - us_OHm+us_Op[i]*us_OHm - us_Om+us_Op[i]*us_Om;
+            Joutput[j] = -us_Cm_plus_us_Op[i]*us_Cm - us_H2_plus_us_Op[i]*us_H2 - us_H_plus_us_Op[i]*us_H - us_Hm_plus_us_Op[i]*us_Hm - us_OHm_plus_us_Op[i]*us_OHm - us_Om_plus_us_Op[i]*us_Om;
 	    
 	    
             j++;
             // us_OHp by us_Op
-            Joutput[j] = us_H2+us_Op[i]*us_H2;
+            Joutput[j] = us_H2_plus_us_Op[i]*us_H2;
 	    
 	    
             j++;
             // us_OH by us_Op
-            Joutput[j] = us_OHm+us_Op[i]*us_OHm;
+            Joutput[j] = us_OHm_plus_us_Op[i]*us_OHm;
 	    
 	    
             j++;
@@ -3360,22 +3360,22 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_H2 by us_OH
-            Joutput[j] = us_H2p+us_OH[i]*us_H2p;
+            Joutput[j] = us_H2p_plus_us_OH[i]*us_H2p;
 	    
 	    
             j++;
             // us_H2p by us_OH
-            Joutput[j] = -us_H2p+us_OH[i]*us_H2p;
+            Joutput[j] = -us_H2p_plus_us_OH[i]*us_H2p;
 	    
 	    
             j++;
             // us_H by us_OH
-            Joutput[j] = us_Hp+us_OH[i]*us_Hp;
+            Joutput[j] = us_Hp_plus_us_OH[i]*us_Hp;
 	    
 	    
             j++;
             // us_Hp by us_OH
-            Joutput[j] = -us_Hp+us_OH[i]*us_Hp;
+            Joutput[j] = -us_Hp_plus_us_OH[i]*us_Hp;
 	    
 	    
             j++;
@@ -3385,12 +3385,12 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
             j++;
             // us_OHp by us_OH
-            Joutput[j] = us_H2p+us_OH[i]*us_H2p + us_Hp+us_OH[i]*us_Hp;
+            Joutput[j] = us_H2p_plus_us_OH[i]*us_H2p + us_Hp_plus_us_OH[i]*us_Hp;
 	    
 	    
             j++;
             // us_OH by us_OH
-            Joutput[j] = -us_H2p+us_OH[i]*us_H2p - us_Hp+us_OH[i]*us_Hp;
+            Joutput[j] = -us_H2p_plus_us_OH[i]*us_H2p - us_Hp_plus_us_OH[i]*us_Hp;
 	    
 	    
             j++;
