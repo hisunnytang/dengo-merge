@@ -145,7 +145,8 @@ reaction = Reaction.create_reaction
 def chianti_rate(species):
     if ch is None: raise ImportError
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
     if "_" not in ion_name:
         print "Name must be in ChiantiPy format."
         raise RuntimeError
@@ -186,7 +187,8 @@ def chianti_rate(species):
 
 def ion_photoionization_rate(species, photo_background='HM12'):
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
     if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError
@@ -202,8 +204,8 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('dengo/%s_ion_by_ion_photoionization_%s.h5' %(element_name,
-                                                                 photo_background))
+        f = h5py.File('input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+                      %(element_name, photo_background))
         
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
@@ -389,7 +391,8 @@ cooling_action = CoolingAction.create_cooling_action
 
 def ion_cooling_rate(species):
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
     if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError
@@ -403,7 +406,8 @@ def ion_cooling_rate(species):
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
-        f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
+        f = h5py.File('input/cooling/%s_ion_by_ion_cooling.h5'
+                      %(element_name))
         data = f['Table']
         
         ### Intepolate values within table values ###
@@ -458,7 +462,8 @@ def ion_cooling_rate(species):
 
 def ion_photoheating_rate(species, photo_background='HM12'):
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
     if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError
@@ -474,7 +479,7 @@ def ion_photoheating_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('dengo/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
+        f = h5py.File('input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
                                                                  photo_background))
         
         ### Intepolate values within table values ###
