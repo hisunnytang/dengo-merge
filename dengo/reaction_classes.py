@@ -406,9 +406,8 @@ def ion_cooling_rate(species):
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
-        f = h5py.File('input/cooling/%s_ion_by_ion_cooling.h5'
-                      %(element_name))
-        data = f['Table']
+        data = h5py.File('input/cooling/%s_ion_by_ion_cooling.h5'
+                         %(element_name))
         
         ### Intepolate values within table values ###
         vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
@@ -449,7 +448,7 @@ def ion_cooling_rate(species):
             gaussup = dataS[-1] * (tiny/dataS[-1])**(((T - dataT[-1])/(T[-1] - dataT[-1])))**2
             vals[T > dataT[-1]] = gaussup[T > dataT[-1]]
 
-        f.close()
+        data.close()
         return vals
 
     if species_c in species_registry:
