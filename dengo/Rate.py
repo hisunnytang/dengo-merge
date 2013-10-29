@@ -1,44 +1,51 @@
-import math
+import numpy as np
 from reaction_classes import Species, species_registry, Reaction
 
 #Check whether the species exists and if not, add to species registry
 def _ensure_species(sp):
+    # "us" => "umist species"
+    sp = "us_" + sp
+    sp = sp.replace("+", "p").replace("-", "m")
     if sp not in species_registry:
-        sp = Species(sp,-1,-1,-1)
+        i = sp.count('p')-sp.count('m')
+        sp = Species(sp,-1,-1,i)
     else:
-        sp = speces_registry[sp]
+        sp = species_registry[sp]
     return sp
 
 def get_rate(reaction, temp):
     type = reaction[1]
-    reactantA = _ensure_species(reaction[2])
-    reactantB = _ensure_species(reaction[3])
-    prodC = _ensure_species(reaction[4])
-    prodD = _ensure_species(reaction[5])
-    prodE = _ensure_species(reaction[6])
-    prodF = _ensure_species(reaction[7])
+    rA = _ensure_species(reaction[2])
+    rB = _ensure_species(reaction[3])
+    pC = _ensure_species(reaction[4])
+    pD = _ensure_species(reaction[5])
+    pE = _ensure_species(reaction[6])
     a = float(reaction[9])
     b = float(reaction[10])
     g = float(reaction[11])
     T_lower = int(reaction[12])
     T_upper = int(reaction[13])
+    reactants = [(1, rA), (1, rB)]
+    products = [(1, pC), (1, pD), (1, pE)]
+    if reaction[7] != '':
+        pF = _ensure_species(reaction[7])
+        products.append((1,pF))
     
-    if (temp >= T_lower and temp <= T_upper):
-        
+    if np.all(T_lower <= temp) and np.all(temp <= T_upper):
         if type == 'CP':
             rate = a # rate coefficient with units 1/s
             units = "1/s"
-            return rate, units
+            #return rate, units
         elif type == 'CR':
             rate = 0.0
             units = ''
-            return rate, units
+            #return rate, units
         else:
-            t = float(temp) / float(300)
-            rate = a*(math.pow(t,b))*(math.exp(-g / temp)) # rate coefficient with units cm^3 / s
+            t = temp / float(300)
+            rate = a*(t**b)*(np.exp(-g / temp)) # rate coefficient with units cm^3 / s
             units = "cm^3 / s"
-            return rate, units
-        return Reaction("%s+%s" % (rA.name, rB.name), rate, [(1, rA.name), (1, rB.name)], [(1, pC.name), (1, pD.name), (1, pE.name), (1,pF.name)]) 
+            #return rate, units
+        return Reaction("%s+%s" % (rA.name, rB.name), rate, reactants, products) 
     else:
         rate = 0
         units = ''
