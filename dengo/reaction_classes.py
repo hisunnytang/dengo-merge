@@ -39,6 +39,18 @@ reaction_registry = {}
 cooling_registry = {}
 species_registry = {}
 
+def ensure_reaction(r):
+    if isinstance(r, Reaction): return r
+    return reaction_registry[r]
+
+def ensure_cooling(c):
+    if isinstance(c, CoolingAction): return c
+    return cooling_registry[c]
+
+def ensure_species(s):
+    if isinstance(s, Species): return s
+    return species_registry[s]
+
 count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
 
