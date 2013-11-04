@@ -16,7 +16,7 @@ X = 1e-3
 ion_by_ion = ChemicalNetwork(write_intermediate = True)
 ion_by_ion.add_species("de")
 
-for atom in ["O", "C", "Si", "Mg", "Na", "Ne"]:
+for atom in ["O", "C", "Si", "Mg", "N", "S", "He", "Ne"]:
     s, c, r = setup_ionization(atom)
     ion_by_ion.add_collection(s, c, r)
     #ion_by_ion.add_collection(s, [], r)
