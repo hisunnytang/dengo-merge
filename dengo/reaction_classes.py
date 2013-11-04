@@ -266,6 +266,9 @@ class Species(object):
         self.symbol = sympy.Symbol("%s" % name)
         species_registry[name] = self
 
+    def __repr__(self):
+        return "Species: %s" % (self.name)
+
 class ChemicalSpecies(Species):
     def __init__(self, name, weight, free_electrons = 0.0,
                  pretty_name = None):
@@ -276,13 +279,13 @@ class ChemicalSpecies(Species):
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
 
-    def __repr__(self):
-        return "Species: %s" % (self.name)
-
 class AtomicSpecies(ChemicalSpecies):
     def __init__(self, atom_name, free_electrons):
         num, weight, pn = periodic_table_by_name[atom_name]
-        name = "%s_%i" % (atom_name, free_electrons + 1)
+        if free_electrons < 0:
+            name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
+        else:
+            name = "%s_%i" % (atom_name, free_electrons + 1)
         pretty_name = "%s with %s free electrons" % (
             pn, free_electrons)
         super(AtomicSpecies, self).__init__(name, weight,
@@ -290,7 +293,11 @@ class AtomicSpecies(ChemicalSpecies):
 
 class MolecularSpecies(ChemicalSpecies):
     def __init__(self, molecule_name, weight, free_electrons):
-        pass
+        name = "%s_%i" % (molecule_name, free_electrons + 1)
+        pretty_name = "%s with %s free electrons" % (
+            name, free_electrons)
+        super(MolecularSpecies, self).__init__(name, weight,
+            free_electrons, pretty_name)
 
 class CoolingAction(object):
     _eq = None

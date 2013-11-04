@@ -23,13 +23,3 @@ License:
 
 from reaction_classes import Species
 
-HI = Species("HI", 1.0, 1.00794, 0.0)
-HII = Species("HII", 1.0, 1.00794, 1.0)
-HeI = Species("HeI", 2.0, 4.002602, 0.0)
-HeII = Species("HeII", 2.0, 4.002602, 1.0)
-HeIII = Species("HeIII", 2.0, 4.002602, 2.0)
-de = Species("de", 1.0, 1.0, 0.0)
-HM = Species("HM", 1.0, 1.00794, -1.0)
-H2I = Species("H2I", 1.0, 2.01588, 0.0)
-H2II = Species("H2II", 1.0, 2.01588, 1.0)
-ge = Species("ge", 1.0, 1.0, 0.0)
