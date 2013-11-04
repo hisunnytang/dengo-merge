@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+from libc.stdlib cimport malloc, free
 
 cdef extern from "alloca.h":
     void *alloca(int)
@@ -47,7 +48,9 @@ cdef extern from "{{solver_name}}_solver.h":
     int BE_chem_solve(rhs_f f, jac_f J,
 		    double *u, double dt, double *rtol, 
                     double *atol, int nstrip, int nchem, 
-		    double *scaling, void *sdata)
+		    double *scaling, void *sdata, double *u0, double *s,
+            double *gu, double *Ju
+           )
     int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
             int nstrip, int nchem, void *sdata)
     int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
@@ -103,11 +106,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
     cdef double dt = tf / 1e5
     cdef double ttot = 0.0
     cdef int status
+    # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
+    cdef double *u0 = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
+    cdef double *gu = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *Ju = <double *> malloc(sizeof(double) * N * N * NSPECIES)
     for iter in range(niter):
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, N, NSPECIES, scale,
-                               <void *> data)
+                               <void *> data, u0, s, gu, Ju)
         if intermediate == 1:
             j = 0
             for i in range(N):
@@ -139,6 +147,10 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
                 break
             continue
         if ttot >= tf: break
+    free(u0)
+    free(s)
+    free(gu)
+    free(Ju)
 
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
