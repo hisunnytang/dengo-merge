@@ -32,6 +32,8 @@ import jinja2
 import h5py
 from sympy.printing import ccode
 
+ge = Species("ge", 0.0, "Gas Energy")
+
 class ChemicalNetwork(object):
 
     energy_term = None

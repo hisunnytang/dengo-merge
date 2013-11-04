@@ -259,18 +259,19 @@ def ion_photoionization_rate(species, photo_background='HM12'):
     return new_rates
 
 class Species(object):
-    pass
+    def __init__(self, name, weight, pretty_name = None):
+        self.pretty_name = pretty_name or name
+        self.weight = weight
+        self.name = name
+        self.symbol = sympy.Symbol("%s" % name)
+        species_registry[name] = self
 
 class ChemicalSpecies(Species):
     def __init__(self, name, weight, free_electrons = 0.0,
                  pretty_name = None):
-        self.name = name
         self.weight = weight
         self.free_electrons = free_electrons
-        if pretty_name is None: pretty_name = name
-        self.pretty_name = pretty_name
-        self.symbol = sympy.Symbol("%s" % name)
-        species_registry[name] = self
+        super(ChemicalSpecies, self).__init__(name, weight, pretty_name)
 
     def number_density(self, quantities):
         return quantities[self.name]/self.weight
