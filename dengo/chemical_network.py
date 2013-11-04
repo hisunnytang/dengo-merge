@@ -47,7 +47,7 @@ class ChemicalNetwork(object):
         self.required_species.add(self.energy_term)
 
     def add_species(self, species):
-        sp = species_registry[species]
+        sp = species_registry.get(species, species)
         self.required_species.add(sp)
 
     def add_reaction(self, reaction, auto_add = True):
