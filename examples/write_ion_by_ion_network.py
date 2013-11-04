@@ -13,7 +13,7 @@ temperature = np.logspace(4, 6.7, NCELLS)
 temperature[:] = 5e6
 X = 1e-3
 
-ion_by_ion = ChemicalNetwork()
+ion_by_ion = ChemicalNetwork(write_intermediate = True)
 
 s, c, r = setup_ionization("O")
 

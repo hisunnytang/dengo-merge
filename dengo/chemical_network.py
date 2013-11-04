@@ -32,7 +32,7 @@ import jinja2
 import h5py
 from sympy.printing import ccode
 
-ge = Species("ge", 0.0, "Gas Energy")
+ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name = "Electrons")
 
 class ChemicalNetwork(object):
