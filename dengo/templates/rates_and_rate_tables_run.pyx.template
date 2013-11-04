@@ -1,5 +1,6 @@
 cimport numpy as np
 import numpy as np
+import time
 from libc.stdlib cimport malloc, free
 
 cdef extern from "alloca.h":
@@ -57,7 +58,10 @@ cdef extern from "{{solver_name}}_solver.h":
                       int nchem, void *sdata)
 
 def main_run_{{solver_name}}():
+    t1 = time.time()
     {{solver_name}}_main(0, NULL)
+    t2 = time.time()
+    print "Total elapsed time: %0.3e" % (t2-t1)
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1):
     {%- for s in network.required_species | sort %}
