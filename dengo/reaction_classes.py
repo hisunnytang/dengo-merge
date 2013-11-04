@@ -27,6 +27,9 @@ import types
 import sympy
 import h5py
 import docutils.utils.roman as roman
+from .periodic_table import \
+    periodic_table_by_name, \
+    periodic_table_by_number
 
 try:
     import chianti.core as ch
@@ -63,13 +66,6 @@ class ReactionCoefficient(sympy.Symbol):
 
     energy = None
 
-    @property
-    def free_symbols(self):
-        if self.energy is not None:
-            return set([self, self.energy])
-        else:
-            return set([sefl])
-
 class Reaction(object):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
@@ -81,16 +77,9 @@ class Reaction(object):
         self.considered = set( (s.name for n, s in left_side + right_side) )
         reaction_registry[name] = self # Register myself
 
-    updated = False
-    def update(self, e):
-        if self.updated: return
-        self.coeff_sym.energy = e
-        self.updated = True
-
     def __contains__(self, c):
-        if isinstance(c, types.StringTypes):
-            return c in self.down_species + self.up_species
-        return c in (s for n, s in self.left_side + self.right_side)
+        c = ensure_species(c)
+        return c in self.considered
 
     @property
     def down_species(self):
@@ -270,18 +259,17 @@ def ion_photoionization_rate(species, photo_background='HM12'):
     return new_rates
 
 class Species(object):
-    def __init__(self, name, number, weight, free_electrons = 0.0, equilibrium = False,
-                 computed = False):
+    pass
+
+class ChemicalSpecies(Species):
+    def __init__(self, name, weight, free_electrons = 0.0,
+                 pretty_name = None):
         self.name = name
-        self.number = number
         self.weight = weight
         self.free_electrons = free_electrons
-        self.equilibrium = equilibrium
-        self.computed = computed
-        #self.symbol = sympy.IndexedBase(name, (count_m,))
+        if pretty_name is None: pretty_name = name
+        self.pretty_name = pretty_name
         self.symbol = sympy.Symbol("%s" % name)
-        if equilibrium and computed: raise RuntimeError
-        if equilibrium: raise RuntimeError
         species_registry[name] = self
 
     def number_density(self, quantities):
@@ -289,6 +277,19 @@ class Species(object):
 
     def __repr__(self):
         return "Species: %s" % (self.name)
+
+class AtomicSpecies(ChemicalSpecies):
+    def __init__(self, atom_name, free_electrons):
+        num, weight, pn = periodic_table_by_name[atom_name]
+        name = "%s_%i" % (atom_name, free_electrons + 1)
+        pretty_name = "%s with %s free electrons" % (
+            pn, free_electrons)
+        super(AtomicSpecies, self).__init__(name, weight,
+            free_electrons, pretty_name)
+
+class MolecularSpecies(ChemicalSpecies):
+    def __init__(self, molecule_name, weight, free_electrons):
+        pass
 
 class CoolingAction(object):
     _eq = None

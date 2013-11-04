@@ -36,37 +36,50 @@ class ChemicalNetwork(object):
 
     energy_term = None
 
-    def __init__(self):
+    def __init__(self, write_intermediate = False):
         self.reactions = {}
         self.cooling_actions = {}
         self.required_species = set([])
-        self.write_intermediate_solutions = False
+        self.write_intermediate_solutions = write_intermediate
+        self.energy_term = species_registry["ge"]
+        self.required_species.add(self.energy_term)
 
-    def add_reaction(self, reaction):
+    def add_species(self, species):
+        sp = species_registry[species]
+        self.required_species.add(sp)
+
+    def add_reaction(self, reaction, auto_add = True):
         reaction = reaction_registry.get(reaction, reaction)
         if reaction.name in self.reactions:
             raise RuntimeError
+        if auto_add:
+            for n, s in reaction.left_side:
+                self.required_species.add(s)
+            for n, s in reaction.right_side:
+                self.required_species.add(s)
+        else:
+          for n, s in reaction.left_side:
+                if s not in self.required_species:
+                    raise RuntimeError
+          for n, s in reaction.right_side:
+                if s not in self.required_species:
+                    raise RuntimeError
         self.reactions[reaction.name] = reaction
-        
-        for n, s in reaction.left_side:
-            self.required_species.add(s)
-        for n, s in reaction.right_side:
-            self.required_species.add(s)
+        reaction.coeff_sym.energy = self.energy_term
         print "Adding reaction: %s" % reaction
 
-    def add_energy_term(self):
-        if self.energy_term is None:
-            self.energy_term = species_registry["ge"]
-            self.required_species.add(self.energy_term)
-
-    def add_cooling(self, cooling_term):
+    def add_cooling(self, cooling_term, auto_add = True):
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
-        self.add_energy_term()
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError
+        if auto_add:
+            self.required_species.update(cooling_term.species)
+        else:
+            for s in cooling_term.species:
+                if s not in self.required_species:
+                    raise RuntimeError
         self.cooling_actions[cooling_term.name] = cooling_term
-        self.required_species.update(cooling_term.species)
-    
+
     def init_temperature(self, T_bounds = (1, 1e8), n_bins=1024):
         self.n_bins = n_bins
         self.T = np.logspace(np.log(T_bounds[0]),
@@ -89,7 +102,6 @@ class ChemicalNetwork(object):
     def species_total(self, species):
         eq = sympy.sympify("0")
         for rn, rxn in sorted(self.reactions.items()):
-            rxn.update(self.energy_term.symbol)
             eq += rxn.species_equation(species)
         return eq
 

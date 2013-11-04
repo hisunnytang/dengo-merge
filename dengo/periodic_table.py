@@ -21,15 +21,20 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import Species
+import csv, os
 
-HI = Species("HI", 1.0, 1.00794, 0.0)
-HII = Species("HII", 1.0, 1.00794, 1.0)
-HeI = Species("HeI", 2.0, 4.002602, 0.0)
-HeII = Species("HeII", 2.0, 4.002602, 1.0)
-HeIII = Species("HeIII", 2.0, 4.002602, 2.0)
-de = Species("de", 1.0, 1.0, 0.0)
-HM = Species("HM", 1.0, 1.00794, -1.0)
-H2I = Species("H2I", 1.0, 2.01588, 0.0)
-H2II = Species("H2II", 1.0, 2.01588, 1.0)
-ge = Species("ge", 1.0, 1.0, 0.0)
+periodic_table_by_name = {}
+periodic_table_by_number = {}
+
+fn = os.path.join(os.path.dirname(__file__),
+                  "periodictabledump.csv")
+
+with open(fn, "r") as csvfile:
+    pt_reader = csv.reader(csvfile)
+    for row in pt_reader:
+        num = int(row[0])
+        weight = float(row[1])
+        full_name = row[2]
+        symbol = row[3]
+        periodic_table_by_name[symbol] = (num, weight, full_name)
+        periodic_table_by_number[num] = (weight, symbol, full_name)
