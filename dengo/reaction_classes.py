@@ -278,60 +278,6 @@ class Species(object):
     def __repr__(self):
         return "Species: %s" % (self.name)
 
-class Constraint(object):
-    pass
-
-class ChargeConservation(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        quantities["de"] = (quantities["HII"]
-            + quantities["HeII"] / 4.0
-            + quantities["HeIII"] / 2.0
-            + quantities["H2II"] / 2.0
-            - quantities["HM"])
-        return
-        quantities["de"] = 0.0
-        for q in quantities.species_list:
-            quantities["de"] += q.free_electrons * q.number_density(quantities)
-
-class Floor(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        for s in quantities.species_list:
-            quantities[s.name] = max(quantities[s.name], 1e-30)
-
-class ChemicalHeating(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        # Get the total mass
-        rho = sum(quantities[i] for i in
-                ["HI","HII","HM","H2I","H2II","HeI","HeII","HeIII"])
-        dH2 = (up_derivatives["H2I"] - down_derivatives["H2I"])*dt
-        quantities["T"] += dH2 * 51998.0/rho
-
-constraints = [ChemicalHeating(), ChargeConservation(), Floor()]
-
-class QuantitiesTable(object):
-    def __init__(self, species_list, initial_values = None):
-        self._names = {}
-        for i,s in enumerate(species_list):
-            self._names[s.name] = i
-        self.species_list = species_list
-        self.values = np.zeros(len(species_list), dtype='float64')
-        if initial_values is not None:
-            for s, v in initial_values.items():
-                self.values[self._names[s]] = v
-
-    def __getitem__(self, name):
-        return self.values[self._names[name]]
-
-    def __setitem__(self, name, value):
-        self.values[self._names[name]] = value
-
-    def __iter__(self):
-        for i, s in enumerate(self.species_list):
-            yield self.values[self._names[s.name]]
-
-    def get_by_name(self, name):
-        return self.species_list[self._names[name]]
-
 class CoolingAction(object):
     _eq = None
     def __init__(self, name, equation):
@@ -530,41 +476,4 @@ def ion_photoheating_rate(species, photo_background='HM12'):
         ion_cooling_action.tables["%s_ph" % species.name] = photoheating_rate
         new_rates.append("%s_ph" % species.name)
     return new_rates
-
-class CVODEPrinter(sympy.printing.str.StrPrinter):
-    def __init__(self, template_vars, *args, **kwargs):
-        sympy.printing.str.StrPrinter.__init__(self, *args, **kwargs)
-        self.template_vars = template_vars
-
-    def _print_Symbol(self, symbol):
-        s = str(symbol)
-        if s in species_symbols:
-            vname = self.template_vars["species_varnames"][s]
-            return "%s" % vname
-        elif s in cooling_rates_table:
-            cid = self.template_vars["cooling_rate_ids"][s]
-            vname = "data->cooling_storage[%s][cell]" % cid
-            return "%s" % vname
-        elif s in known_variables:
-            return s
-        elif s in user_data_symbols:
-            return "data->%s" % s
-        elif s in user_data_cell_vars:
-            return "data->%s[cell]" % s
-        else:
-            raise RuntimeError
-
-    def _print_Derivative(self, expr):
-        # Using the sympy printing docs as a hint here!
-        rate = str(expr.args[0].func)
-        if rate not in cooling_rates_table:
-            raise RuntimeError
-        cid = self.template_vars["cooling_rate_ids"][rate]
-        vname = "cooling_slopes[%s]" % cid
-        return "%s" % vname
-
-    def _print_Pow(self, expr):
-        PREC = sympy.printing.precedence.precedence(expr)
-        return 'pow(%s,%s)'%(self.parenthesize(expr.base, PREC),
-                             self.parenthesize(expr.exp, PREC))
 

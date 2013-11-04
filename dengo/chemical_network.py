@@ -139,13 +139,6 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
-    def print_number_density(self):
-        eq = sympy.sympify("0")
-        for s in sorted(self.required_species):
-            if s.name != 'ge' and s.name != 'de': 
-                eq += s.symbol
-        return ccode(eq)
-
     def print_mass_density(self):
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
