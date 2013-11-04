@@ -28,7 +28,8 @@ from reaction_classes import \
     AtomicSpecies, \
     ChemicalSpecies, \
     MolecularSpecies, \
-    registry_setup
+    registry_setup, \
+    species_registry
 
 @registry_setup
 def setup_primordial():
@@ -37,10 +38,10 @@ def setup_primordial():
     HeI = AtomicSpecies("He", 0.0)
     HeII = AtomicSpecies("He", 1.0)
     HeIII = AtomicSpecies("He", 2.0)
-    de = ChemicalSpecies("de", 1.0, pretty_name = "Electrons")
     HM = AtomicSpecies("H", -1.0)
     H2I = MolecularSpecies("H2", 2.0, 0.0)
     H2II = MolecularSpecies("H2", 2.0, 1.0)
+    de = species_registry['de']
 
     # -- k01 --
     @reaction('k01', [   (1,HI),   (1,de)], [  (1,HII),   (2,de)])

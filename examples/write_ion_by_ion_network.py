@@ -2,8 +2,8 @@ from dengo.chemical_network import \
     ChemicalNetwork, \
     reaction_registry, \
     cooling_registry
-import dengo.primordial_rates, dengo.primordial_cooling
-import dengo.ion_by_ion
+from dengo.primordial_rates import setup_primordial
+from dengo.ion_by_ion import setup_ionization
 from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
 
@@ -14,36 +14,14 @@ temperature[:] = 5e6
 X = 1e-3
 
 ion_by_ion = ChemicalNetwork()
-ion_by_ion.add_energy_term()
 
-for ca in cooling_registry.values():
-   if ca.name.startswith("O"):
-      ion_by_ion.add_cooling(ca)
+s, c, r = setup_ionization("O")
 
-ion_by_ion.add_cooling("brem")
-ion_by_ion.add_cooling("reHII")
-ion_by_ion.add_cooling("reHeIII")
-ion_by_ion.add_cooling("ceHI")
-ion_by_ion.add_cooling("reHeII2")
-ion_by_ion.add_cooling("reHeII1")
-ion_by_ion.add_cooling("ciHeIS")
-ion_by_ion.add_cooling("ceHeII")
-ion_by_ion.add_cooling("ciHI")
-ion_by_ion.add_cooling("ceHeI")
-ion_by_ion.add_cooling("ciHeI")
-ion_by_ion.add_cooling("ciHeII")
-ion_by_ion.add_cooling("compton")
+ion_by_ion.add_species("de")
+ion_by_ion.add_collection(s, c, r)
 
-for r in reaction_registry.values():
-    if r.name.startswith("O"): 
-        ion_by_ion.add_reaction(r)
-
-ion_by_ion.add_reaction("k01")
-ion_by_ion.add_reaction("k02")
-ion_by_ion.add_reaction("k03")
-ion_by_ion.add_reaction("k04")
-ion_by_ion.add_reaction("k05")
-ion_by_ion.add_reaction("k06")
+s, c, r = setup_primordial()
+ion_by_ion.add_collection(s, c, r)
 
 # This defines the temperature range for the rate tables
 ion_by_ion.init_temperature((1e0, 1e12))

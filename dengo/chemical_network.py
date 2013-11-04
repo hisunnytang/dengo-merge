@@ -23,7 +23,7 @@ License:
 import numpy as np
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
-    count_m, index_i, species_registry, Species
+    count_m, index_i, species_registry, Species, ChemicalSpecies
 import types
 import sympy
 import pkgutil
@@ -33,6 +33,7 @@ import h5py
 from sympy.printing import ccode
 
 ge = Species("ge", 0.0, "Gas Energy")
+de = ChemicalSpecies("de", 1.0, pretty_name = "Electrons")
 
 class ChemicalNetwork(object):
 
@@ -45,6 +46,14 @@ class ChemicalNetwork(object):
         self.write_intermediate_solutions = write_intermediate
         self.energy_term = species_registry["ge"]
         self.required_species.add(self.energy_term)
+
+    def add_collection(self, species_names, cooling_names, reaction_names):
+        for s in species_names:
+            self.add_species(s)
+        for c in cooling_names:
+            self.add_cooling(c, False)
+        for r in reaction_names:
+            self.add_reaction(r, False)
 
     def add_species(self, species):
         sp = species_registry.get(species, species)
@@ -79,6 +88,7 @@ class ChemicalNetwork(object):
         else:
             for s in cooling_term.species:
                 if s not in self.required_species:
+                    print "SPECIES NOT FOUND", s
                     raise RuntimeError
         self.cooling_actions[cooling_term.name] = cooling_term
 
