@@ -444,10 +444,10 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     double T;
 
     double mh = 1.67e-24;
-    double total, total_e, total_de, mdensity;
+    double mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-        total = total_e = total_de = mdensity = 0.0;
+        mdensity = 0.0;
         T = data->Ts[i];
         z = data->current_z;
     {%- for species in network.required_species | sort %}
@@ -458,33 +458,21 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
             return 1;
           {{species.name}} = 1e-20;
         }
-        {%if species.name != "ge" %}
-        {%if species.name != "de" %}
-          total+={{species.name}} * {{species.weight}};
-        {%endif%}
+        {%if species.name != "ge" and species.name != "de" %}
+          mdensity += {{species.name}} * {{species.weight}};
         {%endif%}
         j++;
     {% endfor %}
-        mdensity = total * mh;
-        total = 0.0;
+        mdensity *= mh;
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         // 
         // Species: {{species.name}}
         // 
         {{ network.print_ccode(species, assign_to = "rhs[j]") }}
-        {% if species.name != "ge" and species.name != "de" %}
-            /* Already in number density, not mass density */
-            total += rhs[j] * {{species.weight}};
-            total_e += {{species.name}} * {{species.free_electrons}};
-        {% elif species.name == "ge" %}
-	    rhs[j] /= mdensity;
+        {% if species.name == "ge" %}
+	        rhs[j] /= mdensity;
         {% endif %}
-        {% if species.name == "de" %}
-            total_de += -rhs[j];
-        {% elif species.name != "ge" %}
-            total_de += rhs[j] * {{species.free_electrons}};
-        {%endif %}
         j++;
     {% endfor %}
     }  
@@ -502,10 +490,6 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     {{solver_name}}_data *data = ({{solver_name}}_data*)sdata;
 
     int i, j;
-    {{solver_name}}_calculate_temperature(data, input, nstrip, nchem);
-
-    {{solver_name}}_interpolate_rates(data, nstrip);
-
     /* Now we set up some temporaries */
     double *T{{ network.energy_term.name }} = data->dTs_{{ network.energy_term.name }};
     {%- for name, rate in network.reactions | dictsort %}
@@ -526,13 +510,13 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     double T;
 
     double mh = 1.67e-24;
-    double total, mdensity;
+    double mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-	total = mdensity = 0.0;
+        mdensity = 0.0;
         T = data->Ts[i];
         z = data->current_z;
-    {%- for species in network.required_species | sort %}
+        {%- for species in network.required_species | sort %}
 	    {{species.name}} = input[j];
         if ({{species.name}} < 0.0) {
           fprintf(stderr, "JNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
@@ -541,17 +525,15 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
           {{species.name}} = 1e-20;
           return 1;
         }
-	{%if species.name != "ge" %}
-        {%if species.name != "de" %}
-          total+={{species.name}} * {{species.weight}};
-        {%endif%}
-	{%endif%}
+	    {%if species.name != "ge" and species.name != "de" %}
+          mdensity += {{species.name}} * {{species.weight}};
+	    {%endif%}
         j++;
-    {% endfor %}
-        mdensity = total * mh;
+        {% endfor %}
+        mdensity *= mh;
         
         j = i * nchem * nchem;
-    {%- for s1 in network.required_species | sort %}
+        {%- for s1 in network.required_species | sort %}
         // 
         // Species: {{s1.name }}
         // 
