@@ -21,86 +21,64 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import Species, chianti_rate, \
+from reaction_classes import AtomicSpecies, chianti_rate, \
                              ion_cooling_rate, \
                              ion_photoionization_rate, \
                              ion_photoheating_rate, \
                              species_registry
+from .periodic_table import \
+    periodic_table_by_name, \
+    periodic_table_by_number
 import docutils.utils.roman as roman
 
 
-def ion_by_ion_rates(atomicSymbol, atomicNumber,
-                     atomicWeight, photo_background=None):
-    nIons = atomicNumber + 1
+def ion_by_ion_rates(atom_name, photo_background = None, cooling = True):
+    
+    num, weight, pn = periodic_table_by_name[atom_name]
 
-    for i in range(nIons):
+    ions = {}
+    for i in range(num + 1):
         ion_state = i + 1
-        speciesName = "%s%s" %(atomicSymbol, roman.toRoman(ion_state))
-        # Check if the species already exists
-        # in the species registry, if it does
-        # we don't want to create it again
-        if speciesName not in species_registry:
-            s = Species(speciesName, atomicNumber, atomicWeight, i)
-        else:
-            s = species_registry[speciesName]
+        ions[i] = AtomicSpecies(atom_name, i)
 
-        if ion_state != nIons:
-            # we need to do this to make sure the 'ion_state + 1' species
-            # exists when chianti_rate is called
-            speciesNamePlusOne = "%s%s" % (atomicSymbol,
-                                           roman.toRoman(ion_state+1))
-            if speciesNamePlusOne not in species_registry:
-                splusone = Species(speciesNamePlusOne, atomicNumber,
-                                   atomicWeight, i+1)
+    for i in range(num + 1):
+        sm1 = ions.get(i-1, None)
+        s   = ions[i]
+        sp1 = ions.get(i+1, None)
+        chianti_rate(atom_name, sm1, s, sp1)
+        if cooling: ion_cooling_rate(s, atom_name)
 
-        chianti_rate(s)
-        if ion_state != nIons:
-            if photo_background != None:
-                ion_photoionization_rate(s, photo_background='HM12')
-
-def ion_by_ion_cooling(atomicSymbol, atomicNumber,
-                       atomicWeight, photo_background=None):
-    nIons = atomicNumber + 1
-
-    for i in range(nIons):
-        ion_state = i + 1
-        speciesName = "%s%s" %(atomicSymbol, roman.toRoman(ion_state))
-        # Check if the species already exists
-        # in the species registry, if it does
-        # we don't want to create it again
-        if (speciesName in species_registry) == False:
-            s = Species(speciesName, atomicNumber, atomicWeight, i)
-        else:
-            s = species_registry[speciesName]
-        ion_cooling_rate(s)
-        if ion_state != nIons:
-            if photo_background != None:
-                ion_photoheating_rate(s, photo_background='HM12')
+        if ion_state != num + 1 and photo_background is not None:
+            ion_photoionization_rate(s,
+                photo_background=photo_background)
+            if cooling:
+                ion_photoheating_rate(s,
+                    photo_background=photo_background)
 
 # Generate all the ion-by-ion rates
 # Note: all the ones that that "None" for the background
 # don't yet have the appropriate tables to allow for
 # photo-terms
-ion_by_ion_rates('H', 1, 1.00794, photo_background='HM12')
-ion_by_ion_rates('He', 2, 4.002602, photo_background='HM12')
-ion_by_ion_rates('C', 6, 12.0107, photo_background=None)
-ion_by_ion_rates('N', 7, 14.0067, photo_background=None)
-ion_by_ion_rates('O', 8, 15.9994, photo_background='HM12')
-ion_by_ion_rates('Ne', 10, 20.1797, photo_background=None)
-ion_by_ion_rates('Mg', 12, 24.3050, photo_background=None)
-ion_by_ion_rates('Si', 14, 28.0855, photo_background=None)
-ion_by_ion_rates('S', 16, 32.065, photo_background=None)
+#ion_by_ion_rates('H', photo_background='HM12')
+#ion_by_ion_rates('He', photo_background='HM12')
+#ion_by_ion_rates('C', photo_background=None)
+#ion_by_ion_rates('N', photo_background=None)
+#ion_by_ion_rates('O', photo_background='HM12')
+#ion_by_ion_rates('Ne', photo_background=None)
+#ion_by_ion_rates('Mg', photo_background=None)
+#ion_by_ion_rates('Si', photo_background=None)
+#ion_by_ion_rates('S', photo_background=None)
 
 # Generate all the ion-by-ion cooling rates
 # Note: all the ones that that "None" for the background
 # don't yet have the appropriate tables to allow for
 # photo-terms
-ion_by_ion_cooling('H', 1, 1.00794, photo_background='HM12')
-ion_by_ion_cooling('He', 2, 4.002602, photo_background='HM12')
-ion_by_ion_cooling('C', 6, 12.0107, photo_background=None)
-ion_by_ion_cooling('N', 7, 14.0067, photo_background=None)
-ion_by_ion_cooling('O', 8, 15.9994, photo_background='HM12')
-ion_by_ion_cooling('Ne', 10, 20.1797, photo_background=None)
-ion_by_ion_cooling('Mg', 12, 24.3050, photo_background=None)
-ion_by_ion_cooling('Si', 14, 28.0855, photo_background=None)
-ion_by_ion_cooling('S', 16, 32.065, photo_background=None)
+#ion_by_ion_cooling('H', 1, 1.00794, photo_background='HM12')
+#ion_by_ion_cooling('He', 2, 4.002602, photo_background='HM12')
+#ion_by_ion_cooling('C', 6, 12.0107, photo_background=None)
+#ion_by_ion_cooling('N', 7, 14.0067, photo_background=None)
+#ion_by_ion_cooling('O', 8, 15.9994, photo_background='HM12')
+#ion_by_ion_cooling('Ne', 10, 20.1797, photo_background=None)
+#ion_by_ion_cooling('Mg', 12, 24.3050, photo_background=None)
+#ion_by_ion_cooling('Si', 14, 28.0855, photo_background=None)
+#ion_by_ion_cooling('S', 16, 32.065, photo_background=None)

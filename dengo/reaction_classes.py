@@ -143,21 +143,12 @@ class Reaction(object):
         return eq
 
 reaction = Reaction.create_reaction
-def chianti_rate(species):
+def chianti_rate(atom_name, sm1, s, sp1):
     if ch is None: raise ImportError
-    if chu is None: raise ImportError
-    ion_name = chu.zion2name(np.int(species.number),
-                             np.int(species.free_electrons + 1))
+    ion_name = s.name.lower()
     if "_" not in ion_name:
         print "Name must be in ChiantiPy format."
         raise RuntimeError
-    element_name = ion_name.split("_")[0]
-    ion_state = int(ion_name.split("_")[1])
-    species_i = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state + 1))
-    if ion_state != 1:
-        species_r = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state - 1))
-    else:
-        species_r = None
     de = species_registry['de']
     new_rates = []
     
@@ -166,24 +157,22 @@ def chianti_rate(species):
         ion.ionizRate()
         vals = ion.IonizRate['rate']
         return vals
-    if species_i in species_registry:
-        species_i = species_registry[species_i]
-        Reaction("%s_i" % species.name, ion_rate,
-                 [(1, species), (1, de)], # left side
-                 [(1, species_i), (2, de)]) # right side
-        new_rates.append("%s_i" % species.name)
+    if sp1 is not None:
+        Reaction("%s_i" % s.name, ion_rate,
+                 [(1, s), (1, de)], # left side
+                 [(1, sp1), (2, de)]) # right side
+        new_rates.append("%s_i" % s.name)
 
     def rec_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.recombRate()
         vals = ion.RecombRate['rate']
         return vals
-    if species_r in species_registry:
-        species_r = species_registry[species_r]
-        Reaction("%s_r" % species.name, rec_rate,
-                 [(1, species), (1, de)], # left side
-                 [(1, species_r), ]) # right side
-        new_rates.append("%s_r" % species.name)
+    if sm1 is not None:
+        Reaction("%s_r" % s.name, rec_rate,
+                 [(1, s), (1, de)], # left side
+                 [(1, sm1), ]) # right side
+        new_rates.append("%s_r" % s.name)
     return new_rates
 
 def ion_photoionization_rate(species, photo_background='HM12'):
@@ -281,6 +270,7 @@ class ChemicalSpecies(Species):
 
 class AtomicSpecies(ChemicalSpecies):
     def __init__(self, atom_name, free_electrons):
+        
         num, weight, pn = periodic_table_by_name[atom_name]
         if free_electrons < 0:
             name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
@@ -356,16 +346,10 @@ class CoolingAction(object):
 
 cooling_action = CoolingAction.create_cooling_action
 
-def ion_cooling_rate(species):
-    if chu is None: raise ImportError
-    ion_name = chu.zion2name(np.int(species.number),
-                             np.int(species.free_electrons + 1))
-    if "_" not in ion_name:
-        print "Name must be in 'Ion Species' format."
-        raise RuntimeError
-    element_name = ion_name.split("_")[0]
-    ion_state = int(ion_name.split("_")[1])
+def ion_cooling_rate(species, atom_name):
+    
     species_c = species.name
+    ion_name = species.name.lower()
     de = species_registry['de']
     new_rates = []
 
@@ -373,8 +357,10 @@ def ion_cooling_rate(species):
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
-        data = h5py.File('input/cooling/%s_ion_by_ion_cooling.h5'
-                         %(element_name))
+        fn = os.path.join(os.path.dirname(__file__),
+                'input', 'cooling',
+                '%s_ion_by_ion_cooling.h5' % atom_name.lower())
+        data = h5py.File(fn, 'r')
         
         ### Intepolate values within table values ###
         vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
@@ -418,12 +404,10 @@ def ion_cooling_rate(species):
         data.close()
         return vals
 
-    if species_c in species_registry:
-        species_c = species_registry[species_c]
-        ion_cooling_action = CoolingAction("%s_c" % species.name, #name
-                                           "-%s_c * %s * de" %(species.name, species.name)) #equation
-        ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
-        new_rates.append("%s_c" % species.name)
+    ion_cooling_action = CoolingAction("%s_c" % species.name, #name
+             "-%s_c * %s * de" %(species.name, species.name)) #equation
+    ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
+    new_rates.append("%s_c" % species.name)
     return new_rates
 
 def ion_photoheating_rate(species, photo_background='HM12'):

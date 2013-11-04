@@ -60,10 +60,10 @@ class ChemicalNetwork(object):
             for n, s in reaction.right_side:
                 self.required_species.add(s)
         else:
-          for n, s in reaction.left_side:
+            for n, s in reaction.left_side:
                 if s not in self.required_species:
                     raise RuntimeError
-          for n, s in reaction.right_side:
+            for n, s in reaction.right_side:
                 if s not in self.required_species:
                     raise RuntimeError
         self.reactions[reaction.name] = reaction
