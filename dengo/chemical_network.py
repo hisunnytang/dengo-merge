@@ -23,7 +23,7 @@ License:
 import numpy as np
 from chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
-    count_m, index_i, species_registry
+    count_m, index_i, species_registry, Species
 import types
 import sympy
 import pkgutil
