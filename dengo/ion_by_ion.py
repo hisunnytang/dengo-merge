@@ -25,15 +25,13 @@ from reaction_classes import AtomicSpecies, chianti_rate, \
                              ion_cooling_rate, \
                              ion_photoionization_rate, \
                              ion_photoheating_rate, \
-                             species_registry
+                             registry_setup
 from .periodic_table import \
     periodic_table_by_name, \
     periodic_table_by_number
-import docutils.utils.roman as roman
 
-
-def ion_by_ion_rates(atom_name, photo_background = None, cooling = True):
-    
+@registry_setup
+def setup_ionization(atom_name, photo_background = None, cooling = True):
     num, weight, pn = periodic_table_by_name[atom_name]
 
     ions = {}
@@ -54,6 +52,7 @@ def ion_by_ion_rates(atom_name, photo_background = None, cooling = True):
             if cooling:
                 ion_photoheating_rate(s,
                     photo_background=photo_background)
+
 
 # Generate all the ion-by-ion rates
 # Note: all the ones that that "None" for the background

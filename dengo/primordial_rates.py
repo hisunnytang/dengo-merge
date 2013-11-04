@@ -27,8 +27,10 @@ from reaction_classes import \
     reaction, \
     AtomicSpecies, \
     ChemicalSpecies, \
-    MolecularSpecies
+    MolecularSpecies, \
+    registry_setup
 
+@registry_setup
 def setup_primordial():
     HI = AtomicSpecies("H", 0.0)
     HII = AtomicSpecies("H", 1.0)

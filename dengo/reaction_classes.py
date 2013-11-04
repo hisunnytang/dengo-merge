@@ -42,6 +42,21 @@ reaction_registry = {}
 cooling_registry = {}
 species_registry = {}
 
+def registry_setup(func):
+    def _wfunc(*args, **kwargs):
+        old_names = [set(d.keys()) for d in (species_registry,
+                                             cooling_registry,
+                                             reaction_registry)]
+        func(*args, **kwargs)
+        nn = []
+        for on, r in zip(old_names, (species_registry,
+                                     cooling_registry,
+                                     reaction_registry)):
+            nn.append(set(r.keys()).difference(on))
+        return nn
+    return _wfunc
+
+
 def ensure_reaction(r):
     if isinstance(r, Reaction): return r
     return reaction_registry[r]
