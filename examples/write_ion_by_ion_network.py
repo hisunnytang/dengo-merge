@@ -14,11 +14,12 @@ temperature[:] = 5e6
 X = 1e-3
 
 ion_by_ion = ChemicalNetwork(write_intermediate = True)
-
-s, c, r = setup_ionization("O")
-
 ion_by_ion.add_species("de")
-ion_by_ion.add_collection(s, c, r)
+
+for atom in ["O", "C", "Si", "Mg", "Na", "Ne"]:
+    s, c, r = setup_ionization(atom)
+    ion_by_ion.add_collection(s, c, r)
+    #ion_by_ion.add_collection(s, [], r)
 
 #s, c, r = setup_primordial()
 #ion_by_ion.add_collection(s, c, r)
@@ -43,18 +44,11 @@ init_values['T'] = temperature
 start_neutral = True
 
 if start_neutral:
-    init_values['O_2']     = X * init_array
-    init_values['O_3']    = init_array * X
-    init_values['O_4']     = init_array * X
-    init_values['O_5']      = init_array * X
-    init_values['O_6']     = init_array * X
-    init_values['O_7']    = init_array * X
-    init_values['O_8']   = init_array * X
-    init_values['O_9']    = init_array * X
-    init_values['de']      = init_array * 0.0
-
-    total_density = ion_by_ion.calculate_total_density(init_values, ("O_1",))
-    init_values["O_1"] = init_array.copy() - total_density
+    for s in ion_by_ion.required_species:
+        if getattr(s, 'free_electrons', -1) == 0:
+            init_values[s.name] = init_array * density
+        init_values[s.name] = X * init_array
+    init_values['de'][:] = 0.0
     init_values = ion_by_ion.convert_to_mass_density(init_values)
 else:
     # start CIE
