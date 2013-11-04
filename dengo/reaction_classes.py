@@ -24,6 +24,7 @@ License:
 import numpy as np
 from chemistry_constants import tevk, tiny, mh
 import types
+import os
 import sympy
 import h5py
 import docutils.utils.roman as roman
@@ -373,7 +374,7 @@ def ion_cooling_rate(species, atom_name):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         fn = os.path.join(os.path.dirname(__file__),
-                'input', 'cooling',
+                '..', 'input', 'cooling',
                 '%s_ion_by_ion_cooling.h5' % atom_name.lower())
         data = h5py.File(fn, 'r')
         

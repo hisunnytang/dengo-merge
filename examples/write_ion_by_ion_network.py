@@ -20,8 +20,8 @@ s, c, r = setup_ionization("O")
 ion_by_ion.add_species("de")
 ion_by_ion.add_collection(s, c, r)
 
-s, c, r = setup_primordial()
-ion_by_ion.add_collection(s, c, r)
+#s, c, r = setup_primordial()
+#ion_by_ion.add_collection(s, c, r)
 
 # This defines the temperature range for the rate tables
 ion_by_ion.init_temperature((1e0, 1e12))
@@ -40,21 +40,21 @@ init_values = dict()
 # set up initial temperatures values used to define ge
 init_values['T'] = temperature
 
-start_neutral = False
+start_neutral = True
 
 if start_neutral:
-    init_values['OII']     = X * init_array
-    init_values['OIII']    = init_array * X
-    init_values['OIV']     = init_array * X
-    init_values['OV']      = init_array * X
-    init_values['OVI']     = init_array * X
-    init_values['OVII']    = init_array * X
-    init_values['OVIII']   = init_array * X
-    init_values['OIX']    = init_array * X
+    init_values['O_2']     = X * init_array
+    init_values['O_3']    = init_array * X
+    init_values['O_4']     = init_array * X
+    init_values['O_5']      = init_array * X
+    init_values['O_6']     = init_array * X
+    init_values['O_7']    = init_array * X
+    init_values['O_8']   = init_array * X
+    init_values['O_9']    = init_array * X
     init_values['de']      = init_array * 0.0
 
-    total_density = ion_by_ion.calculate_total_density(init_values, ("OI",))
-    init_values["OI"] = init_array.copy() - total_density
+    total_density = ion_by_ion.calculate_total_density(init_values, ("O_1",))
+    init_values["O_1"] = init_array.copy() - total_density
     init_values = ion_by_ion.convert_to_mass_density(init_values)
 else:
     # start CIE
@@ -66,7 +66,7 @@ else:
                 if s.name == 'de':
                     continue
                 else:
-                    print s.name, s.number, s.free_electrons + 1
+                    print s.name, s.free_electrons + 1
                     ion_name = chu.zion2name(np.int(s.number),
                                              np.int(s.free_electrons + 1))
                     ion = ch.ion(ion_name, temperature=init_values['T'])
