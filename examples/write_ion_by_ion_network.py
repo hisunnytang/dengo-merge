@@ -13,10 +13,11 @@ temperature = np.logspace(4, 6.7, NCELLS)
 temperature[:] = 5e6
 X = 1e-3
 
-ion_by_ion = ChemicalNetwork(write_intermediate = True)
+ion_by_ion = ChemicalNetwork(write_intermediate = True,
+                             stop_time = 3.1557e15)
 ion_by_ion.add_species("de")
 
-for atom in ["O", "C", "Si", "Mg", "N", "S", "He", "Ne"]:
+for atom in ["O", "C", "Si", "Mg", "N", "S", "He", "Ne", "H"]:
     s, c, r = setup_ionization(atom)
     ion_by_ion.add_collection(s, c, r)
     #ion_by_ion.add_collection(s, [], r)

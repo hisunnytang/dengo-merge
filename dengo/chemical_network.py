@@ -39,13 +39,14 @@ class ChemicalNetwork(object):
 
     energy_term = None
 
-    def __init__(self, write_intermediate = False):
+    def __init__(self, write_intermediate = False, stop_time = 3.1557e13):
         self.reactions = {}
         self.cooling_actions = {}
         self.required_species = set([])
         self.write_intermediate_solutions = write_intermediate
         self.energy_term = species_registry["ge"]
         self.required_species.add(self.energy_term)
+        self.stop_time = stop_time
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:

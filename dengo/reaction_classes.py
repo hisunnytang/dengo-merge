@@ -291,7 +291,7 @@ class AtomicSpecies(ChemicalSpecies):
         if free_electrons < 0:
             name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
         else:
-            name = "%s_%i" % (atom_name, free_electrons + 1)
+            name = "%s_%01i" % (atom_name, free_electrons + 1)
         pretty_name = "%s with %s free electrons" % (
             pn, free_electrons)
         super(AtomicSpecies, self).__init__(name, weight,
