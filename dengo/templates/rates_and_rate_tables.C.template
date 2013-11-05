@@ -43,10 +43,10 @@
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
         NumberOfFields[0] = {{network.required_species | length}};
-        DengoFieldNames[0] = new char*[{{ network.required_species | length }}];
+        FieldNames[0] = new char*[{{ network.required_species | length }}];
         i = 0;
         {% for s in network.required_species | sort %}
-        DengoFieldNames[0][i++] = strdup("{{s}}");
+        FieldNames[0][i++] = strdup("{{s}}");
         {% endfor %}
     }
     return data;

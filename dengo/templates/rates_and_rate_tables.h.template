@@ -14,6 +14,7 @@ The generalized rate data type holders.
 #include "hdf5.h"
 #include "hdf5_hl.h"
 #include "stdio.h"
+#include "string.h"
 
 #define MAX_NCELLS 1
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
@@ -43,11 +44,6 @@ typedef struct {{ solver_name }}_data_ {
     double current_z;
     double zdef;
     double dz;
-
-    /* For storing and passing around
-       field information */
-    int NDengoFields;
-    char *DengoFieldNames[];
 
     double Ts[MAX_NCELLS];
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
