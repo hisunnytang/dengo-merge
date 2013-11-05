@@ -259,7 +259,10 @@ class ChemicalNetwork(object):
                      solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
                      output_dir = ".", init_values = None,
-                     main_name = "main"):
+                     main_name = "main",
+                     input_is_number = True):
+        self.input_is_number = input_is_number
+
         if not os.path.isdir(output_dir): os.makedirs(output_dir)
         # What we are handed here is:
         #   * self, a python object which holds all of the species, reactions,

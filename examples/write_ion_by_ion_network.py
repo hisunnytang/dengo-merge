@@ -90,4 +90,5 @@ init_values['ge'] = ((temperature * number_density * kboltz)
 
     # Write the initial conditions file
 ion_by_ion.write_solver("ion_by_ion", output_dir = ".",
-                    init_values=init_values)
+                        init_values=init_values,
+                        input_is_number=False)

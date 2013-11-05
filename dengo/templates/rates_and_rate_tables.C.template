@@ -93,7 +93,10 @@ int {{solver_name}}_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /{{ s.name }}\n");
     H5LTread_dataset_double(file_id, "/{{ s.name }}", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / {{s.weight}}; /* Convert to number density */
+        ics[j * N + i] = tics[j]; 
+        {%-  if not network.input_is_number %}
+        ics[j * N + i] /= {{s.weight}}; /* Convert to number density */
+        {%- endif %}
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -121,7 +124,10 @@ int {{solver_name}}_main(int argc, char** argv)
     {% for s in network.required_species | sort %}
     double {{ s.name }}[dims];
     for (j = 0; j < dims; j++) {
-        {{ s.name }}[j] = input[j * N + i] * {{ s.weight }};
+        {{ s.name }}[j] = input[j * N + i]; 
+        {%-  if not network.input_is_number %}
+        ics[j * N + i] *= {{s.weight}}; /* Convert to mass density */
+        {%- endif %}
     }
     fprintf(stderr, "Writing solution for /{{ s.name }}\n");
     H5LTmake_dataset_double(file_id, "/{{ s.name }}", 1, dimsarr, {{ s.name }});
@@ -300,6 +306,9 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
+        {%-  if not network.input_is_number %}
+        {{species.name}} /= {{species.weight}}; /* Convert to number density */
+        {%- endif %}
         /*fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
                 i, {{species.name}});*/
         j++;
@@ -463,6 +472,9 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         z = data->current_z;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
+        {%-  if not network.input_is_number %}
+        {{species.name}} /= {{species.weight}}; /* Convert to number density */
+        {%- endif %}
         if ({{species.name}} < 0.0) {
             /* fprintf(stderr, "RNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
                i, {{species.name}}, j); */
@@ -529,6 +541,9 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         z = data->current_z;
         {%- for species in network.required_species | sort %}
 	    {{species.name}} = input[j];
+            {%-  if not network.input_is_number %}
+            {{species.name}} /= {{species.weight}}; /* Convert to number density */
+            {%- endif %}
         if ({{species.name}} < 0.0) {
           fprintf(stderr, "JNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
             i, {{species.name}}, j);
