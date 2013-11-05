@@ -85,7 +85,7 @@ typedef struct {{ solver_name }}_data_ {
     int ncells;
 } {{ solver_name }}_data;
 
-{{solver_name}}_data *{{solver_name}}_setup_data(void);
+{{solver_name}}_data *{{solver_name}}_setup_data(int *, char***);
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
 double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
