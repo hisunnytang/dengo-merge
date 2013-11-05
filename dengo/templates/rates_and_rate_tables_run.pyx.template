@@ -40,7 +40,8 @@ cdef extern from "{{solver_name}}_solver.h":
     ctypedef int(*jac_f)(double *, double *, int, int, void *)
 
     int {{solver_name}}_main(int argc, char **argv)
-    {{solver_name}}_data *{{solver_name}}_setup_data()
+    {{solver_name}}_data *{{solver_name}}_setup_data(int *NumberOfFields,
+            char ***FieldNames)
     void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
     void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
     double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
@@ -103,7 +104,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
         j += 1
         {%- endfor %}
 
-    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data()
+    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
     cdef rhs_f f = calculate_rhs_{{solver_name}}
     cdef jac_f jf = calculate_jacobian_{{solver_name}}
 

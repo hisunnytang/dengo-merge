@@ -14,7 +14,10 @@
 
 #include "{{solver_name}}_solver.h"
 
-{{solver_name}}_data *{{solver_name}}_setup_data(void) {
+{{solver_name}}_data *{{solver_name}}_setup_data(
+    int *NumberOfFields, char ***FieldNames)
+{
+    int i;
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
 
@@ -38,9 +41,14 @@
     {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
 
-    data->NDengoFields = {{ len(network.species_list()) }};
-    data->DengoFieldNames = new char[{{ len(network.species_list()) }}][512];
-
+    if (FieldNames != NULL && NumberOfFields != NULL) {
+        NumberOfFields[0] = {{network.required_species | length}};
+        DengoFieldNames[0] = new char*[{{ network.required_species | length }}];
+        i = 0;
+        {% for s in network.required_species | sort %}
+        DengoFieldNames[0][i++] = strdup("{{s}}");
+        {% endfor %}
+    }
     return data;
 
 }
@@ -48,7 +56,7 @@
 {% block entry_point %}
 int {{solver_name}}_main(int argc, char** argv)
 {
-    {{ solver_name }}_data *data = {{solver_name}}_setup_data();
+    {{ solver_name }}_data *data = {{solver_name}}_setup_data(NULL, NULL);
 
     /* Initial conditions */
 
