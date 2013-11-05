@@ -38,6 +38,9 @@
     {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
 
+    data->NDengoFields = {{ len(network.species_list()) }};
+    data->DengoFieldNames = new char[{{ len(network.species_list()) }}][512];
+
     return data;
 
 }
@@ -144,7 +147,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int N = {{network.required_species | length}};
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
-    if (dt < 0) dt = dtf / 1e3;
+    if (dt < 0) dt = dtf / 1e5;
     data->current_z = z;
     int niter = 0;
     int siter = 0;

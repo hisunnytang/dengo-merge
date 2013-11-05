@@ -39,10 +39,15 @@ typedef struct {{ solver_name }}_data_ {
     int n_zbins;
 
     /* For storing and passing around
-    redshift information */
+       redshift information */
     double current_z;
     double zdef;
     double dz;
+
+    /* For storing and passing around
+       field information */
+    int NDengoFields;
+    char *DengoFieldNames[];
 
     double Ts[MAX_NCELLS];
     double Tdef[MAX_NCELLS]; /* t1, t2, tdef */
