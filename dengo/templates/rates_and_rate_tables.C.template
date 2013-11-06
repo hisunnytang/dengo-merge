@@ -263,8 +263,8 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
       j = i * N;
       {%- for species in network.required_species | sort %}
         {%if species.name != "ge" %}
-          input[j] /= {{species.weight}} * 1.67e-24;
-          atol[j] /= {{species.weight}} * 1.67e-24;
+          input[j] *= {{species.weight}} * 1.67e-24;
+          atol[j] *= {{species.weight}} * 1.67e-24;
         {%endif%}
         j++;
       {%endfor%}
