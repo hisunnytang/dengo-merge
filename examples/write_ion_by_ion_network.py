@@ -13,7 +13,7 @@ temperature = np.logspace(4, 6.7, NCELLS)
 temperature[:] = 5e6
 X = 1e-3
 
-ion_by_ion = ChemicalNetwork(write_intermediate = True,
+ion_by_ion = ChemicalNetwork(write_intermediate = False,
                              stop_time = 3.1557e13)
 ion_by_ion.add_species("de")
 

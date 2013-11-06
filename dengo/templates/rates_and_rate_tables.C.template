@@ -328,9 +328,6 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
-        {%-  if not network.input_is_number %}
-        {{species.name}} /= {{species.weight}}; /* Convert to number density */
-        {%- endif %}
         /*fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
                 i, {{species.name}});*/
         j++;
