@@ -154,6 +154,18 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
 
     int N = {{network.required_species | length}};
 
+    
+    {%-  if not network.input_is_number %}
+    for (i = 0; i<dims; i++) {
+      j = i * N;
+      {%- for species in network.required_species | sort %}
+        {%if species.name != "ge" and species.name != "de" %}
+          input[j] /= {{species.weight}};
+        {%endif%}
+        j++;
+      {%endfor%}
+    }
+    {%- endif %}
     ensure_electron_consistency(input, dims, N);
 
     rhs_f f = calculate_rhs_{{solver_name}};
@@ -245,6 +257,17 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     /* fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
        ttot, dtf, dtf-ttot); */
 
+    {%-  if not network.input_is_number %}
+    for (i = 0; i<dims; i++) {
+      j = i * N;
+      {%- for species in network.required_species | sort %}
+        {%if species.name != "ge" and species.name != "de" %}
+          input[j] *= {{species.weight}};
+        {%endif%}
+        j++;
+      {%endfor%}
+    }
+    {%- endif %}
     return ttot;
 }
 {% endblock %} {# main_evolution #}
@@ -472,9 +495,6 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         {%if species.name != "ge" and species.name != "de" %}
         mdensity += {{species.name}};
         {%endif%}
-        {%-  if not network.input_is_number %}
-        {{species.name}} /= {{species.weight}}; /* Convert to number density */
-        {%- endif %}
         if ({{species.name}} < 0.0) {
             /* fprintf(stderr, "RNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
                i, {{species.name}}, j); */
@@ -541,9 +561,6 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         {%if species.name != "ge" and species.name != "de" %}
         mdensity += {{species.name}};
 	{%endif%}
-        {%-  if not network.input_is_number %}
-        {{species.name}} /= {{species.weight}}; /* Convert to number density */
-        {%- endif %}
         if ({{species.name}} < 0.0) {
             fprintf(stderr, "JNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
                     i, {{species.name}}, j);
@@ -596,9 +613,6 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
-        {%-  if not network.input_is_number %}
-        {{species.name}} /= {{species.weight}}; /* Convert to number density */
-        {%- endif %}
         {%if species.name != "ge" and species.name != "de" %}
         total_e += {{species.name}} * {{species.free_electrons}};
         {%-endif%}
