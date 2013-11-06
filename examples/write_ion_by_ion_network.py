@@ -8,7 +8,7 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
 
 NCELLS = 1
-density = 1e-3
+density = 1e-3 * 1.67e-24
 temperature = np.logspace(4, 6.7, NCELLS)
 temperature[:] = 5e6
 X = 1e-3
@@ -18,7 +18,7 @@ ion_by_ion = ChemicalNetwork(write_intermediate = True,
 ion_by_ion.add_species("de")
 
 #for atom in ["O", "C", "Si", "Mg", "N", "S", "He", "Ne", "H"]:
-for atom in ["H", "O"]:
+for atom in ["H", "O", "He"]:
     s, c, r = setup_ionization(atom)
     ion_by_ion.add_collection(s, c, r)
     #ion_by_ion.add_collection(s, [], r)
@@ -51,7 +51,7 @@ if start_neutral:
             init_values[s.name] = init_array.copy()
         else:
             init_values[s.name] = X * init_array
-    init_values['de'][:] = 0.0
+    init_values['de'][:] = 1e-30
     init_values = ion_by_ion.convert_to_mass_density(init_values)
 else:
     # start CIE

@@ -46,7 +46,7 @@
         FieldNames[0] = new char*[{{ network.required_species | length }}];
         i = 0;
         {% for s in network.required_species | sort %}
-        FieldNames[0][i++] = strdup("{{s}}");
+        FieldNames[0][i++] = strdup("{{s.name}}");
         {% endfor %}
     }
     return data;
@@ -155,12 +155,13 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int N = {{network.required_species | length}};
 
     
-    {%-  if not network.input_is_number %}
+    {%- if not network.input_is_number %}
     for (i = 0; i<dims; i++) {
       j = i * N;
       {%- for species in network.required_species | sort %}
-        {%if species.name != "ge" and species.name != "de" %}
-          input[j] /= {{species.weight}};
+        {%if species.name != "ge" %}
+          input[j] /= {{species.weight}} * 1.67e-24;
+          atol[j] /= {{species.weight}} * 1.67e-24;
         {%endif%}
         j++;
       {%endfor%}
@@ -261,8 +262,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     for (i = 0; i<dims; i++) {
       j = i * N;
       {%- for species in network.required_species | sort %}
-        {%if species.name != "ge" and species.name != "de" %}
-          input[j] *= {{species.weight}};
+        {%if species.name != "ge" %}
+          input[j] /= {{species.weight}} * 1.67e-24;
+          atol[j] /= {{species.weight}} * 1.67e-24;
         {%endif%}
         j++;
       {%endfor%}
@@ -617,13 +619,11 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
         total_e += {{species.name}} * {{species.free_electrons}};
         {%-endif%}
         {%if species.name == "de"-%}
-        fprintf(stderr, "Original electron density: %0.5g\n", de);
         e_indx = j;
         {%endif%}
         j++;
     {% endfor %}
         input[e_indx] = total_e;
-        fprintf(stderr, "New electron density: %0.5g, %0.5g\n", total_e, input[e_indx]);
     }  
 }
 
