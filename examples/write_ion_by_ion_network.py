@@ -14,11 +14,11 @@ temperature[:] = 5e6
 X = 1e-3
 
 ion_by_ion = ChemicalNetwork(write_intermediate = True,
-                             stop_time = 3.1557e15)
+                             stop_time = 3.1557e13)
 ion_by_ion.add_species("de")
 
 #for atom in ["O", "C", "Si", "Mg", "N", "S", "He", "Ne", "H"]:
-for atom in ["O", "C"]:
+for atom in ["H", "O"]:
     s, c, r = setup_ionization(atom)
     ion_by_ion.add_collection(s, c, r)
     #ion_by_ion.add_collection(s, [], r)
@@ -48,8 +48,9 @@ start_neutral = True
 if start_neutral:
     for s in ion_by_ion.required_species:
         if getattr(s, 'free_electrons', -1) == 0:
-            init_values[s.name] = init_array * density
-        init_values[s.name] = X * init_array
+            init_values[s.name] = init_array.copy()
+        else:
+            init_values[s.name] = X * init_array
     init_values['de'][:] = 0.0
     init_values = ion_by_ion.convert_to_mass_density(init_values)
 else:

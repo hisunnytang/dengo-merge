@@ -165,9 +165,10 @@ class ChemicalNetwork(object):
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
     def print_mass_density(self):
+        # Note: this assumes things are number density at this point
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if s.name not in ('ge', 'de'): 
+            if s.name not in ('ge', 'de'):
                 eq += s.symbol * s.weight
         return ccode(eq)
 
@@ -260,7 +261,7 @@ class ChemicalNetwork(object):
                      ode_solver_source = "BE_chem_solve.C",
                      output_dir = ".", init_values = None,
                      main_name = "main",
-                     input_is_number = True):
+                     input_is_number = False):
         self.input_is_number = input_is_number
 
         if not os.path.isdir(output_dir): os.makedirs(output_dir)

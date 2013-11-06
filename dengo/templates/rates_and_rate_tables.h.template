@@ -102,6 +102,7 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         int nstrip, int nchem, void *sdata);
 int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
                   int nchem, void *sdata);
+void ensure_electron_consistency(double *input, int nstrip, int nchem);
 
 {% endblock %} {# function_declarations #}
 
