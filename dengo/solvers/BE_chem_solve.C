@@ -69,9 +69,9 @@ typedef int(*jac_f)(double *, double *, int, int, void *);
 
 // function prototypes
 int BE_Resid_Fun(rhs_f, double *u, double *u0, double *gu, double dt, 
-		 int nstrip, int nchem, double *scaling, void *sdata);
+                 int nstrip, int nchem, double *scaling, double *inv_scaling, void *sdata);
 int BE_Resid_Jac(jac_f, double *u, double *Ju, double dt, 
-		 int nstrip, int nchem, double *scaling, void *sdata);
+                 int nstrip, int nchem, double *scaling, double *inv_scaling, void *sdata);
 int Gauss_Elim(double *A, double *x, double *b, int n);
 
 
@@ -79,40 +79,72 @@ int Gauss_Elim(double *A, double *x, double *b, int n);
 int BE_chem_solve(rhs_f f, jac_f J,
 		  double *u, double dt, double *rtol, 
                   double *atol, int nstrip, int nchem, 
-		  double *scaling, void *sdata) {
+		  double *scaling, void *sdata,
+          double *u0, double *s, double *gu, double *Ju) {
 
   // local variables
   int i, j, ix, isweep, ier, ONE=1, ioff;
-  int sweeps=50;
+  int sweeps=10;
   double lam=1.0;
   int unsolved;
+  int found_nan;
 
+  //create an array to store 1/scaling
+  double *inv_scaling = new double[nchem*nstrip];
+  for (i=0; i<nstrip*nchem; i++)  inv_scaling[i] = 1.0 / scaling[i];
+
+  ///*
   // rescale input to normalized variables
-  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= inv_scaling[i];
+  // also rescale the absolute tolerances
+  for (i=0; i<nstrip*nchem; i++)  atol[i] *= inv_scaling[i];
+  //*/
+
+  //fprintf(stderr, "nchem = %d, nstrip = %d\n", nchem, nstrip);
 
   // create/initialize temporary arrays
-  double *u0 = new double[nchem*nstrip];        // initial state
-  double *s  = new double[nchem];               // Newton update (each cell)
-  double *gu = new double[nchem*nstrip];        // nonlinear residual
-  double *Ju = new double[nchem*nchem*nstrip];  // Jacobian 
+  //double *u0 = new double[nchem*nstrip];        // initial state
+  //double *s  = new double[nchem];               // Newton update (each cell)
+  //double *gu = new double[nchem*nstrip];        // nonlinear residual
+  //double *Ju = new double[nchem*nchem*nstrip];  // Jacobian
   
-  for (i=0; i<nstrip*nchem; i++)        u0[i] = u[i];
+  for (i=0; i<nstrip*nchem; i++) {
+    u0[i] = u[i];
+    //fprintf(stderr, "u[i]: %0.6g (for %d)\n", u[i], i);
+  }
+  for (i=0; i<nchem; i++)                s[i] = 0.0;
   for (i=0; i<nstrip*nchem; i++)        gu[i] = 0.0;
   for (i=0; i<nstrip*nchem*nchem; i++)  Ju[i] = 0.0;
 
   // perform Newton iterations
+  //found_nan = 0;
   for (isweep=0; isweep<sweeps; isweep++) {
 
     // compute nonlinear residual and Jacobian
-    if (BE_Resid_Fun(f, u, u0, gu, dt, nstrip, nchem, scaling, sdata) != 0) {
+    if (BE_Resid_Fun(f, u, u0, gu, dt, nstrip, nchem, scaling, inv_scaling, sdata) != 0) {
+      ///*
       // rescale back to input variables
       for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
-      /*ENZO_FAIL("Error in BE_Resid_Fun");*/ return 1;
+      // also rescale the absolute tolerances back
+      for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
+      //*/
+
+      //fprintf(stderr, "Error in BE_Resid_Fun \n");
+      delete[] inv_scaling;
+      return 1;
     }
-    if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, scaling, sdata) != 0) {
+   
+    if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, scaling, inv_scaling, sdata) != 0) {
+      ///*
       // rescale back to input variables
       for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
-      /*ENZO_FAIL("Error in BE_Resid_Jac");*/ return 1;
+      // also rescale the absolute tolerances back
+      for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
+      //*/
+
+      //fprintf(stderr, "Error in BE_Resid_Jac \n");
+      delete[] inv_scaling;
+      return 1;
     }
 
     // Newton update for each cell in strip, accumulate convergence check
@@ -122,8 +154,20 @@ int BE_chem_solve(rhs_f f, jac_f J,
       ioff = ix*nchem;
 
       // solve for Newton update
-      if (Gauss_Elim(&(Ju[ix*nchem*nchem]), s, &(gu[ioff]), nchem) != 0)
-    return 1;
+      if (Gauss_Elim(&(Ju[ix*nchem*nchem]), s, &(gu[ioff]), nchem) != 0) {
+          //unsolved = 1;
+          ///*
+          // rescale back to input variables
+          for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+          // also rescale the absolute tolerances back
+          for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
+          //*/
+          fprintf(stderr, "There was an unsolved case in Gauss_Elim! \n");
+          
+          delete[] inv_scaling;
+          return 1;
+          //break;
+      }
 	/*ENZO_FAIL("Error in Gauss_Elim");*/
 
       // update solution in this cell
@@ -131,20 +175,36 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
       // check error in this cell (max norm)
       for (i=0; i<nchem; i++) {
-	if ( fabs(s[i]) > (atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]))) {
-      /*fprintf(stderr, "Unsolved[%d]: %d % 0.5g % 0.5g\n",
-         ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]));*/
-	  unsolved = 1;
-	  break;
-	}
-	if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
-	  printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i)\n",isweep,ix,i);
-	  // rescale back to input variables
-	  for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
-	  return 1;
-	}
+          if ( fabs(s[i]) > (atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]))) {
+              if (dt < 1.0) {
+	              fprintf(stderr, "dt %0.5g, Sweep %d, Unsolved[%d]: nchem: %d change: % 0.8g sum tol: % 0.5g atol: % 0.5g rtol: % 0.5g value: % 0.5g\n",
+		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
+              }
+              unsolved = 1;
+              break;
+          }
+          if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
+            printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i); dt = %0.5g, atol = %0.5g\n",
+                   isweep,ix,i, dt, atol[ioff+i]);
+	    ///*
+	    // rescale back to input variables
+	    for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+            // also rescale the absolute tolerances back
+            for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
+	    //*/
+            
+            delete[] inv_scaling;
+            return 1;
+            //found_nan = 1;
+            //unsolved = 1;
+            //break;
+          }
       } // i loop
+
     } // ix loop
+
+    // check if we ended up with a NaN, which certainly won't solve the next time around
+    //if (found_nan) break;
 
     // check for convergence
     if (!unsolved)  break;
@@ -152,17 +212,22 @@ int BE_chem_solve(rhs_f f, jac_f J,
   } // end newton iterations
 
   // free temporary arrays
-  delete[] u0;
-  delete[] s;
-  delete[] gu;
-  delete[] Ju;
+  //delete[] u0;
+  //delete[] s;
+  //delete[] gu;
+  //delete[] Ju;
+  delete[] inv_scaling;
 
+  ///*
   // rescale back to input variables
   for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+  // also rescale the absolute tolerances back
+  for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
+  //*/
 
   // final check, diagnostics output
   if (unsolved) {
-    /*printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);*/
+    //printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
     return 1;
   } else {
     /*printf("BE_chem_solve: solved with %i total iterations\n",isweep);*/
@@ -175,24 +240,28 @@ int BE_chem_solve(rhs_f f, jac_f J,
 // nonlinear residual calculation function, forms nonlinear residual defined 
 // by backwards Euler discretization, using user-provided RHS function f.
 int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt, 
-		 int nstrip, int nchem, double *scaling, void *sdata) 
+                 int nstrip, int nchem, double *scaling, double*inv_scaling, void *sdata) 
 {
   // local variables
   int i;
 
+  ///*
   // rescale back to input variables
   for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+  //*/
 
   // call user-supplied RHS function at current guess
   if (f(u, gu, nstrip, nchem, sdata) != 0)
     /*ENZO_FAIL("Error in user-supplied ODE RHS function f(u)");*/
     return 1;
 
+  ///*
   // rescale u to scaled variables
-  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= inv_scaling[i];
 
   // rescale rhs to normalized variables variables
-  for (i=0; i<nstrip*nchem; i++)  gu[i] /= scaling[i];
+  for (i=0; i<nstrip*nchem; i++)  gu[i] *= inv_scaling[i];
+  //*/
 
   // update RHS function to additionally include remaining terms for residual,
   //   g(u) = u - u0 - dt*f(u)
@@ -205,33 +274,37 @@ int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt,
 // nonlinear residual Jacobian function, forms Jacobian defined by backwards
 //  Euler discretization, using user-provided Jacobian function J.
 int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt, 
-		 int nstrip, int nchem, double *scaling, void *sdata)
+		 int nstrip, int nchem, double *scaling, double*inv_scaling, void *sdata)
 {
   // local variables
   int ix, ivar, jvar, i;
 
+  ///*
   // rescale back to input variables
   for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
+  //*/
 
   // call user-supplied Jacobian function at current guess
   if (J(u, Ju, nstrip, nchem, sdata) != 0)
     /*ENZO_FAIL("Error in user-supplied ODE Jacobian function J(u)");*/
     return 1;
 
+  ///*
   // rescale u to scaled variables
-  for (i=0; i<nstrip*nchem; i++)  u[i] /= scaling[i];
+  for (i=0; i<nstrip*nchem; i++)  u[i] *= inv_scaling[i];
 
   // rescale Jacobian rows to use normalization
   for (ix=0; ix<nstrip; ix++)
     for (jvar=0; jvar<nchem; jvar++) 
       for (ivar=0; ivar<nchem; ivar++) 
-	Ju[(ix*nchem+jvar)*nchem+ivar] /= scaling[ix*nchem+ivar];
+	Ju[(ix*nchem+jvar)*nchem+ivar] *= inv_scaling[ix*nchem+ivar];
 
   // rescale Jacobian columns to account for normalization
   for (ix=0; ix<nstrip; ix++)
     for (ivar=0; ivar<nchem; ivar++) 
       for (jvar=0; jvar<nchem; jvar++) 
 	Ju[(ix*nchem+jvar)*nchem+ivar] *= scaling[ix*nchem+jvar];
+  //*/
 
   // update Jacobian to additionally include remaining terms,
   //   J = I - dt*Jf(u)
@@ -277,8 +350,8 @@ int Gauss_Elim(double *A, double *x, double *b, int n)
     x[p] = dtmp;
 
     // check for singular matrix
-    if (fabs(A[idx(k,k,n)]) < 1.e-14*fabs(A[0]))
-      fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate\n");
+    //if (fabs(A[idx(k,k,n)]) < 1.e-14*fabs(A[0]))
+      //fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate\n");
     
     // elimination of submatrix (column-major ordering)
     for (i=k+1; i<n; i++) 
@@ -291,8 +364,8 @@ int Gauss_Elim(double *A, double *x, double *b, int n)
   } // k loop
   
   // check for singular matrix in last row
-  if (fabs(A[idx(n-1,n-1,n)]) < 1.e-14*fabs(A[0]))
-    fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate\n");
+  //if (fabs(A[idx(n-1,n-1,n)]) < 1.e-14*fabs(A[0]))
+    //fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate (in last row)\n");
   
   // backwards substitution stage:
   for (i=n-1; i>=0; i--) {

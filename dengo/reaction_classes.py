@@ -24,9 +24,13 @@ License:
 import numpy as np
 from chemistry_constants import tevk, tiny, mh
 import types
+import os
 import sympy
 import h5py
 import docutils.utils.roman as roman
+from .periodic_table import \
+    periodic_table_by_name, \
+    periodic_table_by_number
 
 try:
     import chianti.core as ch
@@ -38,6 +42,33 @@ except (ImportError, KeyError):
 reaction_registry = {}
 cooling_registry = {}
 species_registry = {}
+
+def registry_setup(func):
+    def _wfunc(*args, **kwargs):
+        old_names = [set(d.keys()) for d in (species_registry,
+                                             cooling_registry,
+                                             reaction_registry)]
+        func(*args, **kwargs)
+        nn = []
+        for on, r in zip(old_names, (species_registry,
+                                     cooling_registry,
+                                     reaction_registry)):
+            nn.append(set(r.keys()).difference(on))
+        return nn
+    return _wfunc
+
+
+def ensure_reaction(r):
+    if isinstance(r, Reaction): return r
+    return reaction_registry[r]
+
+def ensure_cooling(c):
+    if isinstance(c, CoolingAction): return c
+    return cooling_registry[c]
+
+def ensure_species(s):
+    if isinstance(s, Species): return s
+    return species_registry[s]
 
 count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
@@ -51,13 +82,6 @@ class ReactionCoefficient(sympy.Symbol):
 
     energy = None
 
-    @property
-    def free_symbols(self):
-        if self.energy is not None:
-            return set([self, self.energy])
-        else:
-            return set([sefl])
-
 class Reaction(object):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
@@ -69,16 +93,9 @@ class Reaction(object):
         self.considered = set( (s.name for n, s in left_side + right_side) )
         reaction_registry[name] = self # Register myself
 
-    updated = False
-    def update(self, e):
-        if self.updated: return
-        self.coeff_sym.energy = e
-        self.updated = True
-
     def __contains__(self, c):
-        if isinstance(c, types.StringTypes):
-            return c in self.down_species + self.up_species
-        return c in (s for n, s in self.left_side + self.right_side)
+        c = ensure_species(c)
+        return c in self.considered
 
     @property
     def down_species(self):
@@ -142,20 +159,12 @@ class Reaction(object):
         return eq
 
 reaction = Reaction.create_reaction
-def chianti_rate(species):
+def chianti_rate(atom_name, sm1, s, sp1):
     if ch is None: raise ImportError
-    if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
+    ion_name = s.name.lower()
     if "_" not in ion_name:
         print "Name must be in ChiantiPy format."
         raise RuntimeError
-    element_name = ion_name.split("_")[0]
-    ion_state = int(ion_name.split("_")[1])
-    species_i = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state + 1))
-    if ion_state != 1:
-        species_r = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state - 1))
-    else:
-        species_r = None
     de = species_registry['de']
     new_rates = []
     
@@ -164,100 +173,137 @@ def chianti_rate(species):
         ion.ionizRate()
         vals = ion.IonizRate['rate']
         return vals
-    if species_i in species_registry:
-        species_i = species_registry[species_i]
-        Reaction("%s_i" % species.name, ion_rate,
-                 [(1, species), (1, de)], # left side
-                 [(1, species_i), (2, de)]) # right side
-        new_rates.append("%s_i" % species.name)
+    if sp1 is not None:
+        Reaction("%s_i" % s.name, ion_rate,
+                 [(1, s), (1, de)], # left side
+                 [(1, sp1), (2, de)]) # right side
+        new_rates.append("%s_i" % s.name)
 
     def rec_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.recombRate()
         vals = ion.RecombRate['rate']
         return vals
-    if species_r in species_registry:
-        species_r = species_registry[species_r]
-        Reaction("%s_r" % species.name, rec_rate,
-                 [(1, species), (1, de)], # left side
-                 [(1, species_r), ]) # right side
-        new_rates.append("%s_r" % species.name)
+    if sm1 is not None:
+        Reaction("%s_r" % s.name, rec_rate,
+                 [(1, s), (1, de)], # left side
+                 [(1, sm1), ]) # right side
+        new_rates.append("%s_r" % s.name)
+    return new_rates
+
+def ion_photoionization_rate(species, photo_background='HM12'):
+    if chu is None: raise ImportError
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
+    if "_" not in ion_name:
+        print "Name must be in 'Ion Species' format."
+        raise RuntimeError
+    element_name = ion_name.split("_")[0]
+    ion_state = int(ion_name.split("_")[1])
+    species_pi = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state + 1))
+    de = species_registry['de']
+    new_rates = []
+
+    def photoionization_rate(network):
+        # Read in photoheating rates generated from Ben Oppenheimer's data
+        # (from: http://noneq.strw.leidenuniv.nl/)
+        # and do linear interpolation and then recompute
+        # the ends with either an extrapolation or falloff
+        # NOTE: these rates do the interpolation as a function fo redshift
+        f = h5py.File('input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+                      %(element_name, photo_background))
+        
+        ### Intepolate values within table values ###
+        vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
+        
+        end_method = 0 # 0 = extrapolation, 1 = gaussian falloff
+
+        if end_method == 0:
+            ### Extrapolation in logspace ###
+            # convert to log space
+            vals = np.log10(vals)
+            logz = np.log10(network.z)
+            logdataz = np.log10(f['z'])
+            logdataS = np.log10(f['%s' %(ion_name)])
+
+            # extrapolate
+            extrapdown = logdataS[0] + \
+                (logz - logdataz[0]) * (logdataS[0] - logdataS[1]) \
+                / (logdataz[0] - logdataz[1])
+            vals[logz < logdataz[0]] = extrapdown[logz < logdataz[0]]
+            extrapup = logdataS[-1] + \
+                (logz - logdataz[-1]) * (logdataS[-1] - logdataS[-2]) \
+                / (logdataz[-1] - logdataz[-2])
+            vals[logz > logdataz[-1]] = extrapup[logz > logdataz[-1]]
+
+            # convert back to linear
+            vals = 10.0**vals
+                
+        if end_method == 1:
+            ### Gaussian falloff when values extend beyond table values ###
+            # rename some variables to symplify code
+            z = network.z
+            dataz = f['z']
+            dataS = f['%s' %(ion_name)]
+
+            # compute gaussian tails
+            gaussdown = dataS[0] * (tiny/dataS[0])**(((z - dataz[0])/(z[0] - dataz[0])))**2
+            vals[z < dataz[0]] = gaussdown[z < dataz[0]]
+            gaussup = dataS[-1] * (tiny/dataS[-1])**(((z - dataz[-1])/(z[-1] - dataz[-1])))**2
+            vals[z > dataz[-1]] = gaussup[z > dataz[-1]]
+
+        f.close()
+        return vals
+
+    if species_pi in species_registry:
+        species_pi = species_registry[species_pi]
+        Reaction("%s_pi" % species.name, photoionization_rate,
+                 [(1, species), ], # left side
+                 [(1, species_pi), (1, de)]) # right side
+        new_rates.append("%s_pi" % species.name)
     return new_rates
 
 class Species(object):
-    def __init__(self, name, number, weight, free_electrons = 0.0, equilibrium = False,
-                 computed = False):
-        self.name = name
-        self.number = number
+    def __init__(self, name, weight, pretty_name = None):
+        self.pretty_name = pretty_name or name
         self.weight = weight
-        self.free_electrons = free_electrons
-        self.equilibrium = equilibrium
-        self.computed = computed
-        #self.symbol = sympy.IndexedBase(name, (count_m,))
+        self.name = name
         self.symbol = sympy.Symbol("%s" % name)
-        if equilibrium and computed: raise RuntimeError
-        if equilibrium: raise RuntimeError
         species_registry[name] = self
-
-    def number_density(self, quantities):
-        return quantities[self.name]/self.weight
 
     def __repr__(self):
         return "Species: %s" % (self.name)
 
-class Constraint(object):
-    pass
+class ChemicalSpecies(Species):
+    def __init__(self, name, weight, free_electrons = 0.0,
+                 pretty_name = None):
+        self.weight = weight
+        self.free_electrons = free_electrons
+        super(ChemicalSpecies, self).__init__(name, weight, pretty_name)
 
-class ChargeConservation(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        quantities["de"] = (quantities["HII"]
-            + quantities["HeII"] / 4.0
-            + quantities["HeIII"] / 2.0
-            + quantities["H2II"] / 2.0
-            - quantities["HM"])
-        return
-        quantities["de"] = 0.0
-        for q in quantities.species_list:
-            quantities["de"] += q.free_electrons * q.number_density(quantities)
+    def number_density(self, quantities):
+        return quantities[self.name]/self.weight
 
-class Floor(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        for s in quantities.species_list:
-            quantities[s.name] = max(quantities[s.name], 1e-30)
+class AtomicSpecies(ChemicalSpecies):
+    def __init__(self, atom_name, free_electrons):
+        
+        num, weight, pn = periodic_table_by_name[atom_name]
+        if free_electrons < 0:
+            name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
+        else:
+            name = "%s_%01i" % (atom_name, free_electrons + 1)
+        pretty_name = "%s with %s free electrons" % (
+            pn, free_electrons)
+        super(AtomicSpecies, self).__init__(name, weight,
+            free_electrons, pretty_name)
 
-class ChemicalHeating(Constraint):
-    def __call__(self, quantities, up_derivatives, down_derivatives, dt):
-        # Get the total mass
-        rho = sum(quantities[i] for i in
-                ["HI","HII","HM","H2I","H2II","HeI","HeII","HeIII"])
-        dH2 = (up_derivatives["H2I"] - down_derivatives["H2I"])*dt
-        quantities["T"] += dH2 * 51998.0/rho
-
-constraints = [ChemicalHeating(), ChargeConservation(), Floor()]
-
-class QuantitiesTable(object):
-    def __init__(self, species_list, initial_values = None):
-        self._names = {}
-        for i,s in enumerate(species_list):
-            self._names[s.name] = i
-        self.species_list = species_list
-        self.values = np.zeros(len(species_list), dtype='float64')
-        if initial_values is not None:
-            for s, v in initial_values.items():
-                self.values[self._names[s]] = v
-
-    def __getitem__(self, name):
-        return self.values[self._names[name]]
-
-    def __setitem__(self, name, value):
-        self.values[self._names[name]] = value
-
-    def __iter__(self):
-        for i, s in enumerate(self.species_list):
-            yield self.values[self._names[s.name]]
-
-    def get_by_name(self, name):
-        return self.species_list[self._names[name]]
+class MolecularSpecies(ChemicalSpecies):
+    def __init__(self, molecule_name, weight, free_electrons):
+        name = "%s_%i" % (molecule_name, free_electrons + 1)
+        pretty_name = "%s with %s free electrons" % (
+            name, free_electrons)
+        super(MolecularSpecies, self).__init__(name, weight,
+            free_electrons, pretty_name)
 
 class CoolingAction(object):
     _eq = None
@@ -316,15 +362,10 @@ class CoolingAction(object):
 
 cooling_action = CoolingAction.create_cooling_action
 
-def ion_cooling_rate(species):
-    if chu is None: raise ImportError
-    ion_name = chu.zion2name(species.number, species.free_electrons + 1)
-    if "_" not in ion_name:
-        print "Name must be in 'Ion Species' format."
-        raise RuntimeError
-    element_name = ion_name.split("_")[0]
-    ion_state = int(ion_name.split("_")[1])
+def ion_cooling_rate(species, atom_name):
+    
     species_c = species.name
+    ion_name = species.name.lower()
     de = species_registry['de']
     new_rates = []
 
@@ -332,8 +373,10 @@ def ion_cooling_rate(species):
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
-        f = h5py.File('dengo/%s_ion_by_ion_cooling.h5' %(element_name))
-        data = f['Table']
+        fn = os.path.join(os.path.dirname(__file__),
+                '..', 'input', 'cooling',
+                '%s_ion_by_ion_cooling.h5' % atom_name.lower())
+        data = h5py.File(fn, 'r')
         
         ### Intepolate values within table values ###
         vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
@@ -356,7 +399,7 @@ def ion_cooling_rate(species):
             extrapup = logdataS[-1] + \
                 (logT - logdataT[-1]) * (logdataS[-1] - logdataS[-2]) \
                 / (logdataT[-1] - logdataT[-2])
-            vals[logT > logdataT[-1]] = extrapdown[logT > logdataT[-1]]
+            vals[logT > logdataT[-1]] = extrapup[logT > logdataT[-1]]
 
             # convert back to linear
             vals = 10.0**vals
@@ -374,51 +417,84 @@ def ion_cooling_rate(species):
             gaussup = dataS[-1] * (tiny/dataS[-1])**(((T - dataT[-1])/(T[-1] - dataT[-1])))**2
             vals[T > dataT[-1]] = gaussup[T > dataT[-1]]
 
+        data.close()
+        return vals
+
+    ion_cooling_action = CoolingAction("%s_c" % species.name, #name
+             "-%s_c * %s * de" %(species.name, species.name)) #equation
+    ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
+    new_rates.append("%s_c" % species.name)
+    return new_rates
+
+def ion_photoheating_rate(species, photo_background='HM12'):
+    if chu is None: raise ImportError
+    ion_name = chu.zion2name(np.int(species.number),
+                             np.int(species.free_electrons + 1))
+    if "_" not in ion_name:
+        print "Name must be in 'Ion Species' format."
+        raise RuntimeError
+    element_name = ion_name.split("_")[0]
+    ion_state = int(ion_name.split("_")[1])
+    species_ph = species.name
+    de = species_registry['de']
+    new_rates = []
+
+    def photoheating_rate(network):
+        # Read in photoheating rates generated from Ben Oppenheimer's data
+        # (from: http://noneq.strw.leidenuniv.nl/)
+        # and do linear interpolation and then recompute
+        # the ends with either an extrapolation or falloff
+        # NOTE: these rates do the interpolation as a function fo redshift
+        f = h5py.File('input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
+                                                                 photo_background))
+        
+        ### Intepolate values within table values ###
+        vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
+        
+        end_method = 0 # 0 = extrapolation, 1 = gaussian falloff
+
+        if end_method == 0:
+            ### Extrapolation in logspace ###
+            # convert to log space
+            vals = np.log10(vals)
+            logz = np.log10(network.z)
+            logdataz = np.log10(f['z'])
+            logdataS = np.log10(f['%s' %(ion_name)])
+
+            # extrapolate
+            extrapdown = logdataS[0] + \
+                (logz - logdataz[0]) * (logdataS[0] - logdataS[1]) \
+                / (logdataz[0] - logdataz[1])
+            vals[logz < logdataz[0]] = extrapdown[logz < logdataz[0]]
+            extrapup = logdataS[-1] + \
+                (logz - logdataz[-1]) * (logdataS[-1] - logdataS[-2]) \
+                / (logdataz[-1] - logdataz[-2])
+            vals[logz > logdataz[-1]] = extrapup[logz > logdataz[-1]]
+
+            # convert back to linear
+            vals = 10.0**vals
+                
+        if end_method == 1:
+            ### Gaussian falloff when values extend beyond table values ###
+            # rename some variables to symplify code
+            z = network.z
+            dataz = f['z']
+            dataS = f['%s' %(ion_name)]
+
+            # compute gaussian tails
+            gaussdown = dataS[0] * (tiny/dataS[0])**(((z - dataz[0])/(z[0] - dataz[0])))**2
+            vals[z < dataz[0]] = gaussdown[z < dataz[0]]
+            gaussup = dataS[-1] * (tiny/dataS[-1])**(((z - dataz[-1])/(z[-1] - dataz[-1])))**2
+            vals[z > dataz[-1]] = gaussup[z > dataz[-1]]
+
         f.close()
         return vals
 
-    if species_c in species_registry:
-        species_c = species_registry[species_c]
-        ion_cooling_action = CoolingAction("%s_c" % species.name, #name
-                                           "-%s_c * %s * de" %(species.name, species.name)) #equation
-        ion_cooling_action.tables["%s_c" % species.name] = cooling_rate
-        new_rates.append("%s_c" % species.name)
+    if species_ph in species_registry:
+        species_ph = species_registry[species_ph]
+        ion_cooling_action = CoolingAction("%s_ph" % species.name, #name
+                                           "%s_ph * %s" %(species.name, species.name)) #equation
+        ion_cooling_action.tables["%s_ph" % species.name] = photoheating_rate
+        new_rates.append("%s_ph" % species.name)
     return new_rates
-
-class CVODEPrinter(sympy.printing.str.StrPrinter):
-    def __init__(self, template_vars, *args, **kwargs):
-        sympy.printing.str.StrPrinter.__init__(self, *args, **kwargs)
-        self.template_vars = template_vars
-
-    def _print_Symbol(self, symbol):
-        s = str(symbol)
-        if s in species_symbols:
-            vname = self.template_vars["species_varnames"][s]
-            return "%s" % vname
-        elif s in cooling_rates_table:
-            cid = self.template_vars["cooling_rate_ids"][s]
-            vname = "data->cooling_storage[%s][cell]" % cid
-            return "%s" % vname
-        elif s in known_variables:
-            return s
-        elif s in user_data_symbols:
-            return "data->%s" % s
-        elif s in user_data_cell_vars:
-            return "data->%s[cell]" % s
-        else:
-            raise RuntimeError
-
-    def _print_Derivative(self, expr):
-        # Using the sympy printing docs as a hint here!
-        rate = str(expr.args[0].func)
-        if rate not in cooling_rates_table:
-            raise RuntimeError
-        cid = self.template_vars["cooling_rate_ids"][rate]
-        vname = "cooling_slopes[%s]" % cid
-        return "%s" % vname
-
-    def _print_Pow(self, expr):
-        PREC = sympy.printing.precedence.precedence(expr)
-        return 'pow(%s,%s)'%(self.parenthesize(expr.base, PREC),
-                             self.parenthesize(expr.exp, PREC))
 

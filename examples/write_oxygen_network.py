@@ -13,7 +13,7 @@ temperature = np.logspace(4, 6.7, NCELLS)
 temperature[:] = 5e6
 X = 1e-3
 
-oxygen = ChemicalNetwork()
+oxygen = ChemicalNetwork(write_intermediate = True)
 oxygen.add_energy_term()
 
 for ca in cooling_registry.values():
@@ -28,7 +28,6 @@ for s in reaction_registry.values():
 oxygen.init_temperature((1e0, 1e8))
 
 # Want intermediate output?
-oxygen.write_intermediate_solutions = True
 
 tiny = 1e-10
 

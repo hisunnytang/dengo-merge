@@ -1,5 +1,7 @@
 cimport numpy as np
 import numpy as np
+import time
+from libc.stdlib cimport malloc, free
 
 cdef extern from "alloca.h":
     void *alloca(int)
@@ -38,7 +40,8 @@ cdef extern from "{{solver_name}}_solver.h":
     ctypedef int(*jac_f)(double *, double *, int, int, void *)
 
     int {{solver_name}}_main(int argc, char **argv)
-    {{solver_name}}_data *{{solver_name}}_setup_data()
+    {{solver_name}}_data *{{solver_name}}_setup_data(int *NumberOfFields,
+            char ***FieldNames)
     void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
     void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
     double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
@@ -47,14 +50,19 @@ cdef extern from "{{solver_name}}_solver.h":
     int BE_chem_solve(rhs_f f, jac_f J,
 		    double *u, double dt, double *rtol, 
                     double *atol, int nstrip, int nchem, 
-		    double *scaling, void *sdata)
+		    double *scaling, void *sdata, double *u0, double *s,
+            double *gu, double *Ju
+           )
     int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
             int nstrip, int nchem, void *sdata)
     int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
                       int nchem, void *sdata)
 
 def main_run_{{solver_name}}():
+    t1 = time.time()
     {{solver_name}}_main(0, NULL)
+    t2 = time.time()
+    print "Total elapsed time: %0.3e" % (t2-t1)
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1):
     {%- for s in network.required_species | sort %}
@@ -96,18 +104,23 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
         j += 1
         {%- endfor %}
 
-    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data()
+    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
     cdef rhs_f f = calculate_rhs_{{solver_name}}
     cdef jac_f jf = calculate_jacobian_{{solver_name}}
 
     cdef double dt = tf / 1e5
     cdef double ttot = 0.0
     cdef int status
+    # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, N, data)
+    cdef double *u0 = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
+    cdef double *gu = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *Ju = <double *> malloc(sizeof(double) * N * N * NSPECIES)
     for iter in range(niter):
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, N, NSPECIES, scale,
-                               <void *> data)
+                               <void *> data, u0, s, gu, Ju)
         if intermediate == 1:
             j = 0
             for i in range(N):
@@ -139,6 +152,10 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
                 break
             continue
         if ttot >= tf: break
+    free(u0)
+    free(s)
+    free(gu)
+    free(Ju)
 
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
