@@ -63,7 +63,7 @@ init_values['us_OHm']   = init_array * X
 init_values['us_OHp']   = init_array * X
 
 init_values['us_O2']    = init_array * X
-init_values['us_em']      = init_array * 0.0
+init_values['de']      = init_array * 0.0
 
 print init_values
 #print sorted(umist.reactions.values())
@@ -74,7 +74,7 @@ for species in umist.required_species:
 
 total_density = umist.calculate_total_density(init_values)
 init_values = umist.convert_to_mass_density(init_values)
-init_values['us_em'] = umist.calculate_free_electrons(init_values)
+init_values['de'] = umist.calculate_free_electrons(init_values)
 init_values['density'] = umist.calculate_total_density(init_values)
 number_density = umist.calculate_number_density(init_values)
 
