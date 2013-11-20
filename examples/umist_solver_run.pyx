@@ -215,77 +215,77 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Cm_arr[i] / -1
+        input[j] = prev[j] = us_Cm_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_em_arr[i] / -1
+        input[j] = prev[j] = us_em_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_O_arr[i] / -1
+        input[j] = prev[j] = us_O_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_C_arr[i] / -1
+        input[j] = prev[j] = us_C_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Om_arr[i] / -1
+        input[j] = prev[j] = us_Om_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_OHm_arr[i] / -1
+        input[j] = prev[j] = us_OHm_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Hm_arr[i] / -1
+        input[j] = prev[j] = us_Hm_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Cp_arr[i] / -1
+        input[j] = prev[j] = us_Cp_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_H2_arr[i] / -1
+        input[j] = prev[j] = us_H2_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_H2p_arr[i] / -1
+        input[j] = prev[j] = us_H2p_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_H_arr[i] / -1
+        input[j] = prev[j] = us_H_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Hp_arr[i] / -1
+        input[j] = prev[j] = us_Hp_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_Op_arr[i] / -1
+        input[j] = prev[j] = us_Op_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_OHp_arr[i] / -1
+        input[j] = prev[j] = us_OHp_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_OH_arr[i] / -1
+        input[j] = prev[j] = us_OH_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
@@ -414,35 +414,35 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
         j += 1
         us_CO_arr[i] = input[j] * 28
         j += 1
-        us_Cm_arr[i] = input[j] * -1
+        us_Cm_arr[i] = input[j] * 1.0
         j += 1
-        us_em_arr[i] = input[j] * -1
+        us_em_arr[i] = input[j] * 1.0
         j += 1
-        us_O_arr[i] = input[j] * -1
+        us_O_arr[i] = input[j] * 1.0
         j += 1
-        us_C_arr[i] = input[j] * -1
+        us_C_arr[i] = input[j] * 1.0
         j += 1
-        us_Om_arr[i] = input[j] * -1
+        us_Om_arr[i] = input[j] * 1.0
         j += 1
-        us_OHm_arr[i] = input[j] * -1
+        us_OHm_arr[i] = input[j] * 1.0
         j += 1
-        us_Hm_arr[i] = input[j] * -1
+        us_Hm_arr[i] = input[j] * 1.0
         j += 1
-        us_Cp_arr[i] = input[j] * -1
+        us_Cp_arr[i] = input[j] * 1.0
         j += 1
-        us_H2_arr[i] = input[j] * -1
+        us_H2_arr[i] = input[j] * 1.0
         j += 1
-        us_H2p_arr[i] = input[j] * -1
+        us_H2p_arr[i] = input[j] * 1.0
         j += 1
-        us_H_arr[i] = input[j] * -1
+        us_H_arr[i] = input[j] * 1.0
         j += 1
-        us_Hp_arr[i] = input[j] * -1
+        us_Hp_arr[i] = input[j] * 1.0
         j += 1
-        us_Op_arr[i] = input[j] * -1
+        us_Op_arr[i] = input[j] * 1.0
         j += 1
-        us_OHp_arr[i] = input[j] * -1
+        us_OHp_arr[i] = input[j] * 1.0
         j += 1
-        us_OH_arr[i] = input[j] * -1
+        us_OH_arr[i] = input[j] * 1.0
         j += 1
     return rv, rv_t
 

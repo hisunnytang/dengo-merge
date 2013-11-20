@@ -11,7 +11,7 @@ from dengo.known_species import *
 NCELLS = 4
 density = 1.0
 temperature = np.logspace(1, 3, NCELLS)
-temperature[:] = 1e7
+temperature[:] = 1e2
 X = 1e-3
 
 umist = ChemicalNetwork()
@@ -20,19 +20,33 @@ umist.add_energy_term()
 # This defines the temperature range for the rate tables
 umist.init_temperature((1e1, 1e3))
 
-get_rates('CO', 28, -1, umist)
-get_rates('C', 12, -1, umist)
-get_rates('O', 16, -1, umist)
-get_rates('OH', 17, -1, umist)
-get_rates('H', 1, -1, umist)
-get_rates('H2', 2, -2, umist)
-get_rates('H2O', 18, -1, umist)
-get_rates('O2', 32, -1, umist)
+# Get UMIST rates for a bunch of species for an example network
+
+get_rates('CO', 1, 28, umist)
+get_rates('C', 1, 12, umist)
+get_rates('O', 1, 16, umist)
+get_rates('OH', 1, 17, umist)
+get_rates('H', 1, 1, umist)
+get_rates('H2', 1, 2, umist)
+get_rates('H2O', 1, 18, umist)
+get_rates('O2', 1, 32, umist)
+
+
+# Add ionic species by hand, since we need correct atomic weights
+
+us_COm = MolecularSpecies('us_COm',1., 28, -1)
+us_COp = Species('us_COp',1., 28, 1)
+us_Cm = Species('us_Cm',1., 12, -1)
+us_Cp = Species('us_Cp',1., 12, 1)
+us_OHm = Species('us_OHm',1., 17, 1)
+us_OHp = Species('us_OHp',1., 17, 1)
+us_Om = Species('us_Om',1., 16, 1)
+us_Op = Species('us_Op',1., 16, 1)
 
 # Define small subset of species for restricted calculation
-sub = set(['us_CO', 'us_COm','us_em', 'us_C','us_Cm','us_Cp','us_Om','us_Op','us_O','us_OH','us_OHp','us_OHm','us_H','us_Hm','us_Hp','us_H2','us_H2p','us_H2m'])
+sub = set(['us_em','us_CO', 'us_COm','us_em', 'us_C','us_Cm','us_Cp','us_Om','us_Op','us_O','us_OH','us_OHp','us_OHm','us_H','us_Hm','us_Hp','us_H2','us_H2p','us_H2m'])
 
-# Restrict the species to the 8 above (and their ions and electrons)
+# Restrict the species to the 8 above and their ions
 for r in reaction_registry.values():
     s = r.considered
     if s.issubset(sub) == True:
@@ -44,16 +58,25 @@ tiny = 1e-10
 init_array = np.ones(NCELLS) * density
 init_values = dict()
 init_values['us_O']     = X * init_array
+init_values['us_Om']     = X * init_array
+init_values['us_Op']     = X * init_array
 init_values['us_C']    = init_array * X
+init_values['us_Cp']    = init_array * X
+init_values['us_Cm']    = init_array * X
 init_values['us_H']     = init_array * X
 init_values['us_H2O']      = init_array * X
 init_values['us_H2']     = init_array * X
 init_values['us_CO']    = init_array * X
+init_values['us_COp']    = init_array * X
+init_values['us_COm']    = init_array * X
 init_values['us_OH']   = init_array * X
+init_values['us_OHm']   = init_array * X
+init_values['us_OHp']   = init_array * X
+
 init_values['us_O2']    = init_array * X
 init_values['us_em']      = init_array * 0.0
 
-#print init_values
+print init_values
 #print sorted(umist.reactions.values())
 
 for species in umist.required_species:
@@ -66,13 +89,18 @@ init_values['us_em'] = umist.calculate_free_electrons(init_values)
 init_values['density'] = umist.calculate_total_density(init_values)
 number_density = umist.calculate_number_density(init_values)
 
+
+
 # set up initial temperatures values used to define ge
 init_values['T'] = temperature
+
 
 # calculate ge (very crudely, no H2 help here)
 gamma = 5.0/3.0
 init_values['ge'] = ((temperature * number_density * kboltz)
                      / (init_values['density'] * mh * (gamma - 1)))
+
+#import pdb; pdb.set_trace()
 
 # Write the initial conditions file
 umist.write_solver("umist", output_dir = ".")

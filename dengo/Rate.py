@@ -8,7 +8,7 @@ def _ensure_species(sp):
     sp = sp.replace("+", "p").replace("-", "m")
     if sp not in species_registry:
         i = sp.count('p')-sp.count('m')
-        sp = Species(sp,-1,-1,i)
+        sp = Species(sp,1.,1.,i)
     else:
         sp = species_registry[sp]
     return sp

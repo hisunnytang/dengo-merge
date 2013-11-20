@@ -100,7 +100,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Cm\n");
     H5LTread_dataset_double(file_id, "/us_Cm", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -113,7 +113,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_em\n");
     H5LTread_dataset_double(file_id, "/us_em", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -126,7 +126,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_O\n");
     H5LTread_dataset_double(file_id, "/us_O", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -139,7 +139,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_C\n");
     H5LTread_dataset_double(file_id, "/us_C", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -152,7 +152,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Om\n");
     H5LTread_dataset_double(file_id, "/us_Om", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -165,7 +165,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_OHm\n");
     H5LTread_dataset_double(file_id, "/us_OHm", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -178,7 +178,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Hm\n");
     H5LTread_dataset_double(file_id, "/us_Hm", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -191,7 +191,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Cp\n");
     H5LTread_dataset_double(file_id, "/us_Cp", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -204,7 +204,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_H2\n");
     H5LTread_dataset_double(file_id, "/us_H2", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -217,7 +217,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_H2p\n");
     H5LTread_dataset_double(file_id, "/us_H2p", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -230,7 +230,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_H\n");
     H5LTread_dataset_double(file_id, "/us_H", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -243,7 +243,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Hp\n");
     H5LTread_dataset_double(file_id, "/us_Hp", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -256,7 +256,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_Op\n");
     H5LTread_dataset_double(file_id, "/us_Op", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -269,7 +269,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_OHp\n");
     H5LTread_dataset_double(file_id, "/us_OHp", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -282,7 +282,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "Reading I.C. for /us_OH\n");
     H5LTread_dataset_double(file_id, "/us_OH", tics);
     for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j] / -1; /* Convert to number density */
+        ics[j * N + i] = tics[j] / 1.0; /* Convert to number density */
         atol[j * N + i] = tics[j] * 1e-09;
         rtol[j * N + i] = 1e-09;
         if(j==0) {
@@ -325,7 +325,7 @@ int umist_main(int argc, char** argv)
     
     double us_Cm[dims];
     for (j = 0; j < dims; j++) {
-        us_Cm[j] = input[j * N + i] * -1;
+        us_Cm[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Cm\n");
     H5LTmake_dataset_double(file_id, "/us_Cm", 1, dimsarr, us_Cm);
@@ -333,7 +333,7 @@ int umist_main(int argc, char** argv)
     
     double us_em[dims];
     for (j = 0; j < dims; j++) {
-        us_em[j] = input[j * N + i] * -1;
+        us_em[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_em\n");
     H5LTmake_dataset_double(file_id, "/us_em", 1, dimsarr, us_em);
@@ -341,7 +341,7 @@ int umist_main(int argc, char** argv)
     
     double us_O[dims];
     for (j = 0; j < dims; j++) {
-        us_O[j] = input[j * N + i] * -1;
+        us_O[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_O\n");
     H5LTmake_dataset_double(file_id, "/us_O", 1, dimsarr, us_O);
@@ -349,7 +349,7 @@ int umist_main(int argc, char** argv)
     
     double us_C[dims];
     for (j = 0; j < dims; j++) {
-        us_C[j] = input[j * N + i] * -1;
+        us_C[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_C\n");
     H5LTmake_dataset_double(file_id, "/us_C", 1, dimsarr, us_C);
@@ -357,7 +357,7 @@ int umist_main(int argc, char** argv)
     
     double us_Om[dims];
     for (j = 0; j < dims; j++) {
-        us_Om[j] = input[j * N + i] * -1;
+        us_Om[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Om\n");
     H5LTmake_dataset_double(file_id, "/us_Om", 1, dimsarr, us_Om);
@@ -365,7 +365,7 @@ int umist_main(int argc, char** argv)
     
     double us_OHm[dims];
     for (j = 0; j < dims; j++) {
-        us_OHm[j] = input[j * N + i] * -1;
+        us_OHm[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_OHm\n");
     H5LTmake_dataset_double(file_id, "/us_OHm", 1, dimsarr, us_OHm);
@@ -373,7 +373,7 @@ int umist_main(int argc, char** argv)
     
     double us_Hm[dims];
     for (j = 0; j < dims; j++) {
-        us_Hm[j] = input[j * N + i] * -1;
+        us_Hm[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Hm\n");
     H5LTmake_dataset_double(file_id, "/us_Hm", 1, dimsarr, us_Hm);
@@ -381,7 +381,7 @@ int umist_main(int argc, char** argv)
     
     double us_Cp[dims];
     for (j = 0; j < dims; j++) {
-        us_Cp[j] = input[j * N + i] * -1;
+        us_Cp[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Cp\n");
     H5LTmake_dataset_double(file_id, "/us_Cp", 1, dimsarr, us_Cp);
@@ -389,7 +389,7 @@ int umist_main(int argc, char** argv)
     
     double us_H2[dims];
     for (j = 0; j < dims; j++) {
-        us_H2[j] = input[j * N + i] * -1;
+        us_H2[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_H2\n");
     H5LTmake_dataset_double(file_id, "/us_H2", 1, dimsarr, us_H2);
@@ -397,7 +397,7 @@ int umist_main(int argc, char** argv)
     
     double us_H2p[dims];
     for (j = 0; j < dims; j++) {
-        us_H2p[j] = input[j * N + i] * -1;
+        us_H2p[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_H2p\n");
     H5LTmake_dataset_double(file_id, "/us_H2p", 1, dimsarr, us_H2p);
@@ -405,7 +405,7 @@ int umist_main(int argc, char** argv)
     
     double us_H[dims];
     for (j = 0; j < dims; j++) {
-        us_H[j] = input[j * N + i] * -1;
+        us_H[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_H\n");
     H5LTmake_dataset_double(file_id, "/us_H", 1, dimsarr, us_H);
@@ -413,7 +413,7 @@ int umist_main(int argc, char** argv)
     
     double us_Hp[dims];
     for (j = 0; j < dims; j++) {
-        us_Hp[j] = input[j * N + i] * -1;
+        us_Hp[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Hp\n");
     H5LTmake_dataset_double(file_id, "/us_Hp", 1, dimsarr, us_Hp);
@@ -421,7 +421,7 @@ int umist_main(int argc, char** argv)
     
     double us_Op[dims];
     for (j = 0; j < dims; j++) {
-        us_Op[j] = input[j * N + i] * -1;
+        us_Op[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_Op\n");
     H5LTmake_dataset_double(file_id, "/us_Op", 1, dimsarr, us_Op);
@@ -429,7 +429,7 @@ int umist_main(int argc, char** argv)
     
     double us_OHp[dims];
     for (j = 0; j < dims; j++) {
-        us_OHp[j] = input[j * N + i] * -1;
+        us_OHp[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_OHp\n");
     H5LTmake_dataset_double(file_id, "/us_OHp", 1, dimsarr, us_OHp);
@@ -437,7 +437,7 @@ int umist_main(int argc, char** argv)
     
     double us_OH[dims];
     for (j = 0; j < dims; j++) {
-        us_OH[j] = input[j * N + i] * -1;
+        us_OH[j] = input[j * N + i] * 1.0;
     }
     fprintf(stderr, "Writing solution for /us_OH\n");
     H5LTmake_dataset_double(file_id, "/us_OH", 1, dimsarr, us_OH);
@@ -680,7 +680,7 @@ void umist_calculate_temperature(umist_data *data,
                 i, us_OH);*/
         j++;
     
-        density = -us_C + 28*us_CO - us_Cm - us_Cp - us_H - us_H2 - us_H2p - us_Hm - us_Hp - us_O - us_OH - us_OHm - us_OHp - us_Om - us_Op - us_em;
+        density = 1.0*us_C + 28*us_CO + 1.0*us_Cm + 1.0*us_Cp + 1.0*us_H + 1.0*us_H2 + 1.0*us_H2p + 1.0*us_Hm + 1.0*us_Hp + 1.0*us_O + 1.0*us_OH + 1.0*us_OHm + 1.0*us_OHp + 1.0*us_Om + 1.0*us_Op + 1.0*us_em;
         data->Ts[i] = density*ge*mh/(kb*(us_C/(gamma - 1.0) + us_CO/(gamma - 1.0) + us_Cm/(gamma - 1.0) + us_Cp/(gamma - 1.0) + us_H/(gamma - 1.0) + us_H2/(gamma - 1.0) + us_H2p/(gamma - 1.0) + us_Hm/(gamma - 1.0) + us_Hp/(gamma - 1.0) + us_O/(gamma - 1.0) + us_OH/(gamma - 1.0) + us_OHm/(gamma - 1.0) + us_OHp/(gamma - 1.0) + us_Om/(gamma - 1.0) + us_Op/(gamma - 1.0) + us_em/(gamma - 1.0)));
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
@@ -1032,7 +1032,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Cm * -1;
+          total+=us_Cm * 1.0;
         
         
         j++;
@@ -1046,7 +1046,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_em * -1;
+          total+=us_em * 1.0;
         
         
         j++;
@@ -1060,7 +1060,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_O * -1;
+          total+=us_O * 1.0;
         
         
         j++;
@@ -1074,7 +1074,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_C * -1;
+          total+=us_C * 1.0;
         
         
         j++;
@@ -1088,7 +1088,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Om * -1;
+          total+=us_Om * 1.0;
         
         
         j++;
@@ -1102,7 +1102,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_OHm * -1;
+          total+=us_OHm * 1.0;
         
         
         j++;
@@ -1116,7 +1116,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Hm * -1;
+          total+=us_Hm * 1.0;
         
         
         j++;
@@ -1130,7 +1130,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Cp * -1;
+          total+=us_Cp * 1.0;
         
         
         j++;
@@ -1144,7 +1144,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_H2 * -1;
+          total+=us_H2 * 1.0;
         
         
         j++;
@@ -1158,7 +1158,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_H2p * -1;
+          total+=us_H2p * 1.0;
         
         
         j++;
@@ -1172,7 +1172,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_H * -1;
+          total+=us_H * 1.0;
         
         
         j++;
@@ -1186,7 +1186,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Hp * -1;
+          total+=us_Hp * 1.0;
         
         
         j++;
@@ -1200,7 +1200,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_Op * -1;
+          total+=us_Op * 1.0;
         
         
         j++;
@@ -1214,7 +1214,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_OHp * -1;
+          total+=us_OHp * 1.0;
         
         
         j++;
@@ -1228,7 +1228,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         
         
-          total+=us_OH * -1;
+          total+=us_OH * 1.0;
         
         
         j++;
@@ -1266,7 +1266,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Cm_plus_us_Cp[i]*us_Cm*us_Cp - us_Cm_plus_us_Hp[i]*us_Cm*us_Hp - us_Cm_plus_us_O[i]*us_Cm*us_O - us_Cm_plus_us_Op[i]*us_Cm*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Cm * -1;
         
         
@@ -1280,7 +1280,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = us_C_plus_us_Om[i]*us_C*us_Om + us_Cm_plus_us_O[i]*us_Cm*us_O + us_H_plus_us_Om[i]*us_H*us_Om + us_Hm_plus_us_O[i]*us_Hm*us_O;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_em * -1;
         
         
@@ -1294,7 +1294,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Cm_plus_us_O[i]*us_Cm*us_O + us_Cm_plus_us_Op[i]*us_Cm*us_Op - us_H2p_plus_us_O[i]*us_H2p*us_O + us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_O[i]*us_Hm*us_O + us_Hm_plus_us_Op[i]*us_Hm*us_Op - us_Hp_plus_us_O[i]*us_Hp*us_O + us_OHm_plus_us_Op[i]*us_OHm*us_Op + us_Om_plus_us_Cp[i]*us_Cp*us_Om + us_Om_plus_us_Hp[i]*us_Hp*us_Om + 2*us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_O * 0;
         
         
@@ -1308,7 +1308,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_C_plus_us_Om[i]*us_C*us_Om + 2*us_Cm_plus_us_Cp[i]*us_Cm*us_Cp + us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_Cm_plus_us_Op[i]*us_Cm*us_Op + us_Hm_plus_us_Cp[i]*us_Cp*us_Hm + us_OHm_plus_us_Cp[i]*us_Cp*us_OHm + us_Om_plus_us_Cp[i]*us_Cp*us_Om;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_C * 0;
         
         
@@ -1322,7 +1322,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_C_plus_us_Om[i]*us_C*us_Om - us_H_plus_us_Om[i]*us_H*us_Om - us_Om_plus_us_Cp[i]*us_Cp*us_Om - us_Om_plus_us_Hp[i]*us_Hp*us_Om - us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Om * -1;
         
         
@@ -1336,7 +1336,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_OHm_plus_us_Cp[i]*us_Cp*us_OHm - us_OHm_plus_us_Hp[i]*us_Hp*us_OHm - us_OHm_plus_us_Op[i]*us_OHm*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_OHm * -1;
         
         
@@ -1350,7 +1350,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Hm_plus_us_Cp[i]*us_Cp*us_Hm - us_Hm_plus_us_Hp[i]*us_Hm*us_Hp - us_Hm_plus_us_O[i]*us_Hm*us_O - us_Hm_plus_us_Op[i]*us_Hm*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Hm * -1;
         
         
@@ -1364,7 +1364,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Cm_plus_us_Cp[i]*us_Cm*us_Cp - us_Hm_plus_us_Cp[i]*us_Cp*us_Hm - us_OHm_plus_us_Cp[i]*us_Cp*us_OHm - us_Om_plus_us_Cp[i]*us_Cp*us_Om;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Cp * 1;
         
         
@@ -1378,7 +1378,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H_plus_us_H2p[i]*us_H*us_H2p;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_H2 * 0;
         
         
@@ -1392,7 +1392,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_H2p_plus_us_OH[i]*us_H2p*us_OH - us_H2p_plus_us_O[i]*us_H2p*us_O - us_H_plus_us_H2p[i]*us_H*us_H2p;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_H2p * 1;
         
         
@@ -1406,7 +1406,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_O[i]*us_H2p*us_O - us_H_plus_us_H2p[i]*us_H*us_H2p - us_H_plus_us_Om[i]*us_H*us_Om - us_H_plus_us_Op[i]*us_H*us_Op + us_Hm_plus_us_Cp[i]*us_Cp*us_Hm + 2*us_Hm_plus_us_Hp[i]*us_Hm*us_Hp + us_Hm_plus_us_Op[i]*us_Hm*us_Op + us_Hp_plus_us_OH[i]*us_Hp*us_OH + us_Hp_plus_us_O[i]*us_Hp*us_O + us_OHm_plus_us_Hp[i]*us_Hp*us_OHm + us_Om_plus_us_Hp[i]*us_Hp*us_Om;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_H * 0;
         
         
@@ -1420,7 +1420,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Cm_plus_us_Hp[i]*us_Cm*us_Hp + us_H_plus_us_H2p[i]*us_H*us_H2p + us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_Hp[i]*us_Hm*us_Hp - us_Hp_plus_us_OH[i]*us_Hp*us_OH - us_Hp_plus_us_O[i]*us_Hp*us_O - us_OHm_plus_us_Hp[i]*us_Hp*us_OHm - us_Om_plus_us_Hp[i]*us_Hp*us_Om;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Hp * 1;
         
         
@@ -1434,7 +1434,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_Cm_plus_us_Op[i]*us_Cm*us_Op - us_H2_plus_us_Op[i]*us_H2*us_Op - us_H_plus_us_Op[i]*us_H*us_Op - us_Hm_plus_us_Op[i]*us_Hm*us_Op + us_Hp_plus_us_O[i]*us_Hp*us_O - us_OHm_plus_us_Op[i]*us_OHm*us_Op - us_Om_plus_us_Op[i]*us_Om*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_Op * 1;
         
         
@@ -1448,7 +1448,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = us_H2_plus_us_Op[i]*us_H2*us_Op + us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H2p_plus_us_O[i]*us_H2p*us_O + us_Hp_plus_us_OH[i]*us_Hp*us_OH;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_OHp * 1;
         
         
@@ -1462,7 +1462,7 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         rhs[j] = -us_H2p_plus_us_OH[i]*us_H2p*us_OH + us_H_plus_us_Om[i]*us_H*us_Om + us_Hm_plus_us_O[i]*us_Hm*us_O - us_Hp_plus_us_OH[i]*us_Hp*us_OH + us_OHm_plus_us_Cp[i]*us_Cp*us_OHm + us_OHm_plus_us_Hp[i]*us_Hp*us_OHm + us_OHm_plus_us_Op[i]*us_OHm*us_Op;
         
             /* Already in number density, not mass density */
-            total += rhs[j] * -1;
+            total += rhs[j] * 1.0;
             total_e += us_OH * 0;
         
         
@@ -1596,7 +1596,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Cm * -1;
+          total+=us_Cm * 1.0;
         
 	
         j++;
@@ -1611,7 +1611,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_em * -1;
+          total+=us_em * 1.0;
         
 	
         j++;
@@ -1626,7 +1626,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_O * -1;
+          total+=us_O * 1.0;
         
 	
         j++;
@@ -1641,7 +1641,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_C * -1;
+          total+=us_C * 1.0;
         
 	
         j++;
@@ -1656,7 +1656,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Om * -1;
+          total+=us_Om * 1.0;
         
 	
         j++;
@@ -1671,7 +1671,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_OHm * -1;
+          total+=us_OHm * 1.0;
         
 	
         j++;
@@ -1686,7 +1686,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Hm * -1;
+          total+=us_Hm * 1.0;
         
 	
         j++;
@@ -1701,7 +1701,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Cp * -1;
+          total+=us_Cp * 1.0;
         
 	
         j++;
@@ -1716,7 +1716,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_H2 * -1;
+          total+=us_H2 * 1.0;
         
 	
         j++;
@@ -1731,7 +1731,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_H2p * -1;
+          total+=us_H2p * 1.0;
         
 	
         j++;
@@ -1746,7 +1746,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_H * -1;
+          total+=us_H * 1.0;
         
 	
         j++;
@@ -1761,7 +1761,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Hp * -1;
+          total+=us_Hp * 1.0;
         
 	
         j++;
@@ -1776,7 +1776,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_Op * -1;
+          total+=us_Op * 1.0;
         
 	
         j++;
@@ -1791,7 +1791,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_OHp * -1;
+          total+=us_OHp * 1.0;
         
 	
         j++;
@@ -1806,7 +1806,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
 	
         
-          total+=us_OH * -1;
+          total+=us_OH * 1.0;
         
 	
         j++;
