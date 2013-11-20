@@ -4,9 +4,8 @@ from dengo.chemical_network import \
     reaction_registry, \
     cooling_registry
 import dengo.umist_rates
-from dengo.get_rates import get_rates
+from dengo.get_rates import setup_umist_species, setup_umist_reactions
 from dengo.chemistry_constants import tiny, kboltz, mh
-from dengo.known_species import *
 
 NCELLS = 4
 density = 1.0
@@ -15,43 +14,33 @@ temperature[:] = 1e2
 X = 1e-3
 
 umist = ChemicalNetwork()
-umist.add_energy_term()
 
 # This defines the temperature range for the rate tables
 umist.init_temperature((1e1, 1e3))
 
 # Get UMIST rates for a bunch of species for an example network
 
-get_rates('CO', 1, 28, umist)
-get_rates('C', 1, 12, umist)
-get_rates('O', 1, 16, umist)
-get_rates('OH', 1, 17, umist)
-get_rates('H', 1, 1, umist)
-get_rates('H2', 1, 2, umist)
-get_rates('H2O', 1, 18, umist)
-get_rates('O2', 1, 32, umist)
+desired_species = [
+    ("CO", 28),
+    ("C", 12),
+    ("O", 16),
+    ("OH", 17),
+    ("H", 1),
+    ("H2", 2),
+    ("H2O", 18),
+    ("O2", 32),
+]
 
+added_species = set([])
 
+for name, weight in desired_species:
+    s, c, r = setup_umist_species(name, weight)
+    added_species.update(s)
+    umist.add_collection(s, c, r)
 # Add ionic species by hand, since we need correct atomic weights
 
-us_COm = MolecularSpecies('us_COm',1., 28, -1)
-us_COp = Species('us_COp',1., 28, 1)
-us_Cm = Species('us_Cm',1., 12, -1)
-us_Cp = Species('us_Cp',1., 12, 1)
-us_OHm = Species('us_OHm',1., 17, 1)
-us_OHp = Species('us_OHp',1., 17, 1)
-us_Om = Species('us_Om',1., 16, 1)
-us_Op = Species('us_Op',1., 16, 1)
-
-# Define small subset of species for restricted calculation
-sub = set(['us_em','us_CO', 'us_COm','us_em', 'us_C','us_Cm','us_Cp','us_Om','us_Op','us_O','us_OH','us_OHp','us_OHm','us_H','us_Hm','us_Hp','us_H2','us_H2p','us_H2m'])
-
-# Restrict the species to the 8 above and their ions
-for r in reaction_registry.values():
-    s = r.considered
-    if s.issubset(sub) == True:
-        umist.add_reaction(r)
-print 'Finished looking through reaction registry.'
+s, c, r = setup_umist_reactions(added_species)
+umist.add_collection(s, c, r)
 
 tiny = 1e-10
 

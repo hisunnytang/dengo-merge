@@ -47,6 +47,7 @@ class ChemicalNetwork(object):
         self.energy_term = species_registry["ge"]
         self.required_species.add(self.energy_term)
         self.stop_time = stop_time
+        self.z_bounds = (0.0, 0.0)
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
