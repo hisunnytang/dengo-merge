@@ -16,7 +16,8 @@ from umist_rates import umist_rates
 def _get_species(sn):
     species_name = "us_%s" % (sn)
     free_electrons = species_name.count('+')-species_name.count('-')
-    return species_registry["us_%s_%s" % (sn, free_electrons + 1)]
+    return species_registry["us_%s_%s" % (
+      sn.replace("-","").replace("+",""), free_electrons + 1)]
 
 def _create_reaction(rline):
     rtype = rline[1]
@@ -64,6 +65,7 @@ def setup_umist_species(species_symbol, atomic_weight):
     
     species_name = "us_%s" % (species_symbol)
     free_electrons = species_name.count('+')-species_name.count('-')
+    species_name = species_name.replace("-", "").replace("+", "")
     my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons,
                               species_symbol)
     

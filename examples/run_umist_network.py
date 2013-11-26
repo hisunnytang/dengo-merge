@@ -14,17 +14,17 @@ temperature[:] = 1e2
 X = 1e-3
 
 umist = ChemicalNetwork()
-umist.skip_weight += ("us_e_1",)
+umist.skip_weight += ("us_e_0",)
 
 # This defines the temperature range for the rate tables
-umist.init_temperature((1e1, 1e3))
+umist.init_temperature((1e0, 1e3))
 
 # Get UMIST rates for a bunch of species for an example network
 
 desired_species = [
     ("H", 1),
     ("H2", 2),
-    ("e", 1)
+    ("e-", 1)
 ]
 added_species = set([])
 
@@ -44,7 +44,7 @@ init_array = np.ones(NCELLS) * density
 init_values = dict()
 init_values['us_H_1']     = init_array * X
 init_values['us_H2_1']     = init_array * X
-init_values['de']      = init_array * 0.0
+init_values['us_e_0']      = init_array * 0.0
 
 print init_values
 #print sorted(umist.reactions.values())
@@ -55,7 +55,7 @@ for species in umist.required_species:
 
 total_density = umist.calculate_total_density(init_values)
 init_values = umist.convert_to_mass_density(init_values)
-init_values['de'] = umist.calculate_free_electrons(init_values)
+init_values['us_e_0'] = umist.calculate_free_electrons(init_values)
 init_values['density'] = umist.calculate_total_density(init_values)
 number_density = umist.calculate_number_density(init_values)
 
@@ -69,6 +69,7 @@ init_values['T'] = temperature
 gamma = 5.0/3.0
 init_values['ge'] = ((temperature * number_density * kboltz)
                      / (init_values['density'] * mh * (gamma - 1)))
+import pdb; pdb.set_trace()
 
 #import pdb; pdb.set_trace()
 
@@ -83,7 +84,6 @@ umist_solver_run = pyximport.load_module("umist_solver_run",
                             "umist_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
 rv, rv_int = umist_solver_run.run_umist(init_values, 1e16)
-
 import pylab
 pylab.clf()
 

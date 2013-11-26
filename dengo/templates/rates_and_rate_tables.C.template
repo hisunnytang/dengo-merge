@@ -491,7 +491,8 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         z = data->current_z;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" %}
+        {%if species.name != "ge" and species.name != "de" 
+             and species.name != "us_e_0" %}
         mdensity += {{species.name}};
         {%endif%}
         if ({{species.name}} < 0.0) {
@@ -557,7 +558,8 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         z = data->current_z;
         {%- for species in network.required_species | sort %}
 	{{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" %}
+        {%if species.name != "ge" and species.name != "de" 
+             and species.name != "us_e_0" %}
         mdensity += {{species.name}};
 	{%endif%}
         if ({{species.name}} < 0.0) {
@@ -612,10 +614,11 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
         j = i * nchem;
     {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" %}
+        {%if species.name != "ge" and species.name != "de" 
+             and species.name != "us_e_0" %}
         total_e += {{species.name}} * {{species.free_electrons}};
         {%-endif%}
-        {%if species.name == "de"-%}
+        {%if species.name == "de" or species.name == "us_e_0" -%}
         e_indx = j;
         {%endif%}
         j++;
