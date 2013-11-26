@@ -282,6 +282,8 @@ class ChemicalSpecies(Species):
         super(ChemicalSpecies, self).__init__(name, weight, pretty_name)
 
     def number_density(self, quantities):
+        if self.weight == 0:
+            return quantities[self.name]
         return quantities[self.name]/self.weight
 
 class AtomicSpecies(ChemicalSpecies):
@@ -298,10 +300,12 @@ class AtomicSpecies(ChemicalSpecies):
             free_electrons, pretty_name)
 
 class MolecularSpecies(ChemicalSpecies):
-    def __init__(self, molecule_name, weight, free_electrons):
+    def __init__(self, molecule_name, weight, free_electrons,
+                 original_name = None):
         name = "%s_%i" % (molecule_name, free_electrons + 1)
         pretty_name = "%s with %s free electrons" % (
             name, free_electrons)
+        self.original_name = original_name or molecule_name
         super(MolecularSpecies, self).__init__(name, weight,
             free_electrons, pretty_name)
 

@@ -62,18 +62,16 @@ def _create_reaction(rline):
 @registry_setup
 def setup_umist_species(species_symbol, atomic_weight):
     
-    if species_symbol == "e-":
-        my_sym = MolecularSpecies("e",0, 1)
-    
-    else:
-        species_name = "us_%s" % (species_symbol)
-        free_electrons = species_name.count('+')-species_name.count('-')
-        my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons)
+    species_name = "us_%s" % (species_symbol)
+    free_electrons = species_name.count('+')-species_name.count('-')
+    my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons,
+                              species_symbol)
     
 
 @registry_setup
 def setup_umist_reactions(allowed_species):
-    umist_names = set([s[3:].rsplit("_", 1)[0] for s in allowed_species])
+    umist_names = set(species_registry[s].original_name
+                      for s in allowed_species)
     #umist_names.add("PHOTON")
     for line in open("RATE12.txt", "r"):
         rline = re.split(":?", line)

@@ -14,6 +14,7 @@ temperature[:] = 1e2
 X = 1e-3
 
 umist = ChemicalNetwork()
+umist.skip_weight += ("us_e_1",)
 
 # This defines the temperature range for the rate tables
 umist.init_temperature((1e1, 1e3))
@@ -23,12 +24,13 @@ umist.init_temperature((1e1, 1e3))
 desired_species = [
     ("H", 1),
     ("H2", 2),
-    #("e-", 0)
+    ("e", 1)
 ]
 added_species = set([])
 
 for name, weight in desired_species:
     s, c, r = setup_umist_species(name, weight)
+    print "ADDED", s
     added_species.update(s)
     umist.add_collection(s, c, r)
 # Add ionic species by hand, since we need correct atomic weights
