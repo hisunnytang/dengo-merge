@@ -21,16 +21,10 @@ umist.init_temperature((1e1, 1e3))
 # Get UMIST rates for a bunch of species for an example network
 
 desired_species = [
-    ("CO", 28),
-    ("C", 12),
-    ("O", 16),
-    ("OH", 17),
     ("H", 1),
     ("H2", 2),
-    ("H2O", 18),
-    ("O2", 32),
+    ("e-", 0)
 ]
-
 added_species = set([])
 
 for name, weight in desired_species:
@@ -46,23 +40,8 @@ tiny = 1e-10
 
 init_array = np.ones(NCELLS) * density
 init_values = dict()
-init_values['us_O']     = X * init_array
-init_values['us_Om']     = X * init_array
-init_values['us_Op']     = X * init_array
-init_values['us_C']    = init_array * X
-init_values['us_Cp']    = init_array * X
-init_values['us_Cm']    = init_array * X
-init_values['us_H']     = init_array * X
-init_values['us_H2O']      = init_array * X
-init_values['us_H2']     = init_array * X
-init_values['us_CO']    = init_array * X
-init_values['us_COp']    = init_array * X
-init_values['us_COm']    = init_array * X
-init_values['us_OH']   = init_array * X
-init_values['us_OHm']   = init_array * X
-init_values['us_OHp']   = init_array * X
-
-init_values['us_O2']    = init_array * X
+init_values['us_H_1']     = init_array * X
+init_values['us_H2_1']     = init_array * X
 init_values['de']      = init_array * 0.0
 
 print init_values

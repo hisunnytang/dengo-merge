@@ -61,9 +61,15 @@ def _create_reaction(rline):
 
 @registry_setup
 def setup_umist_species(species_symbol, atomic_weight):
-    species_name = "us_%s" % (species_symbol)
-    free_electrons = species_name.count('+')-species_name.count('-')
-    my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons)
+    
+    if species_symbol == "e-":
+        my_sym = MolecularSpecies("de",0, 1)
+    
+    else:
+        species_name = "us_%s" % (species_symbol)
+        free_electrons = species_name.count('+')-species_name.count('-')
+        my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons)
+    
 
 @registry_setup
 def setup_umist_reactions(allowed_species):

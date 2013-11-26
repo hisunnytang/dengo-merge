@@ -1,10 +1,12 @@
 cimport numpy as np
 import numpy as np
+import time
+from libc.stdlib cimport malloc, free
 
 cdef extern from "alloca.h":
     void *alloca(int)
 
-DEF NSPECIES = 17
+DEF NSPECIES = 4
 DEF MAX_NCELLS = 1024
 
 cdef extern from "umist_solver.h":
@@ -19,75 +21,12 @@ cdef extern from "umist_solver.h":
         double dT[MAX_NCELLS]
         double logTs[MAX_NCELLS]
         double dTs_ge[MAX_NCELLS]
-        double r_us_C_plus_us_Om[1024]
-        double rs_us_C_plus_us_Om[MAX_NCELLS]
-        double drs_us_C_plus_us_Om[MAX_NCELLS]
-        double r_us_Cm_plus_us_Cp[1024]
-        double rs_us_Cm_plus_us_Cp[MAX_NCELLS]
-        double drs_us_Cm_plus_us_Cp[MAX_NCELLS]
-        double r_us_Cm_plus_us_Hp[1024]
-        double rs_us_Cm_plus_us_Hp[MAX_NCELLS]
-        double drs_us_Cm_plus_us_Hp[MAX_NCELLS]
-        double r_us_Cm_plus_us_O[1024]
-        double rs_us_Cm_plus_us_O[MAX_NCELLS]
-        double drs_us_Cm_plus_us_O[MAX_NCELLS]
-        double r_us_Cm_plus_us_Op[1024]
-        double rs_us_Cm_plus_us_Op[MAX_NCELLS]
-        double drs_us_Cm_plus_us_Op[MAX_NCELLS]
-        double r_us_H2_plus_us_Op[1024]
-        double rs_us_H2_plus_us_Op[MAX_NCELLS]
-        double drs_us_H2_plus_us_Op[MAX_NCELLS]
-        double r_us_H2p_plus_us_O[1024]
-        double rs_us_H2p_plus_us_O[MAX_NCELLS]
-        double drs_us_H2p_plus_us_O[MAX_NCELLS]
-        double r_us_H2p_plus_us_OH[1024]
-        double rs_us_H2p_plus_us_OH[MAX_NCELLS]
-        double drs_us_H2p_plus_us_OH[MAX_NCELLS]
-        double r_us_H_plus_us_H2p[1024]
-        double rs_us_H_plus_us_H2p[MAX_NCELLS]
-        double drs_us_H_plus_us_H2p[MAX_NCELLS]
-        double r_us_H_plus_us_Om[1024]
-        double rs_us_H_plus_us_Om[MAX_NCELLS]
-        double drs_us_H_plus_us_Om[MAX_NCELLS]
-        double r_us_H_plus_us_Op[1024]
-        double rs_us_H_plus_us_Op[MAX_NCELLS]
-        double drs_us_H_plus_us_Op[MAX_NCELLS]
-        double r_us_Hm_plus_us_Cp[1024]
-        double rs_us_Hm_plus_us_Cp[MAX_NCELLS]
-        double drs_us_Hm_plus_us_Cp[MAX_NCELLS]
-        double r_us_Hm_plus_us_Hp[1024]
-        double rs_us_Hm_plus_us_Hp[MAX_NCELLS]
-        double drs_us_Hm_plus_us_Hp[MAX_NCELLS]
-        double r_us_Hm_plus_us_O[1024]
-        double rs_us_Hm_plus_us_O[MAX_NCELLS]
-        double drs_us_Hm_plus_us_O[MAX_NCELLS]
-        double r_us_Hm_plus_us_Op[1024]
-        double rs_us_Hm_plus_us_Op[MAX_NCELLS]
-        double drs_us_Hm_plus_us_Op[MAX_NCELLS]
-        double r_us_Hp_plus_us_O[1024]
-        double rs_us_Hp_plus_us_O[MAX_NCELLS]
-        double drs_us_Hp_plus_us_O[MAX_NCELLS]
-        double r_us_Hp_plus_us_OH[1024]
-        double rs_us_Hp_plus_us_OH[MAX_NCELLS]
-        double drs_us_Hp_plus_us_OH[MAX_NCELLS]
-        double r_us_OHm_plus_us_Cp[1024]
-        double rs_us_OHm_plus_us_Cp[MAX_NCELLS]
-        double drs_us_OHm_plus_us_Cp[MAX_NCELLS]
-        double r_us_OHm_plus_us_Hp[1024]
-        double rs_us_OHm_plus_us_Hp[MAX_NCELLS]
-        double drs_us_OHm_plus_us_Hp[MAX_NCELLS]
-        double r_us_OHm_plus_us_Op[1024]
-        double rs_us_OHm_plus_us_Op[MAX_NCELLS]
-        double drs_us_OHm_plus_us_Op[MAX_NCELLS]
-        double r_us_Om_plus_us_Cp[1024]
-        double rs_us_Om_plus_us_Cp[MAX_NCELLS]
-        double drs_us_Om_plus_us_Cp[MAX_NCELLS]
-        double r_us_Om_plus_us_Hp[1024]
-        double rs_us_Om_plus_us_Hp[MAX_NCELLS]
-        double drs_us_Om_plus_us_Hp[MAX_NCELLS]
-        double r_us_Om_plus_us_Op[1024]
-        double rs_us_Om_plus_us_Op[MAX_NCELLS]
-        double drs_us_Om_plus_us_Op[MAX_NCELLS]
+        double r_us_H2_1_plus_us_H2_1[1024]
+        double rs_us_H2_1_plus_us_H2_1[MAX_NCELLS]
+        double drs_us_H2_1_plus_us_H2_1[MAX_NCELLS]
+        double r_us_H_1_plus_us_H2_1[1024]
+        double rs_us_H_1_plus_us_H2_1[MAX_NCELLS]
+        double drs_us_H_1_plus_us_H2_1[MAX_NCELLS]
         int bin_id[MAX_NCELLS]
         int ncells
 
@@ -95,7 +34,8 @@ cdef extern from "umist_solver.h":
     ctypedef int(*jac_f)(double *, double *, int, int, void *)
 
     int umist_main(int argc, char **argv)
-    umist_data *umist_setup_data()
+    umist_data *umist_setup_data(int *NumberOfFields,
+            char ***FieldNames)
     void umist_read_rate_tables(umist_data*)
     void umist_read_cooling_tables(umist_data*)
     double dengo_evolve_umist (double dtf, double &dt, double *input,
@@ -104,67 +44,33 @@ cdef extern from "umist_solver.h":
     int BE_chem_solve(rhs_f f, jac_f J,
 		    double *u, double dt, double *rtol, 
                     double *atol, int nstrip, int nchem, 
-		    double *scaling, void *sdata)
+		    double *scaling, void *sdata, double *u0, double *s,
+            double *gu, double *Ju
+           )
     int calculate_jacobian_umist(double *input, double *Joutput,
             int nstrip, int nchem, void *sdata)
     int calculate_rhs_umist(double *input, double *rhs, int nstrip,
                       int nchem, void *sdata)
 
 def main_run_umist():
+    t1 = time.time()
     umist_main(0, NULL)
+    t2 = time.time()
+    print "Total elapsed time: %0.3e" % (t2-t1)
 
 def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
+    cdef np.ndarray[np.float64_t, ndim=1] us_H_1_arr = ics["us_H_1"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] us_H_1_int
+    cdef np.ndarray[np.float64_t, ndim=1] us_H2_1_arr = ics["us_H2_1"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] us_H2_1_int
+    cdef np.ndarray[np.float64_t, ndim=1] de_2_arr = ics["de_2"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] de_2_int
     cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] ge_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_CO_arr = ics["us_CO"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_CO_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Cm_arr = ics["us_Cm"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Cm_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_em_arr = ics["us_em"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_em_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_O_arr = ics["us_O"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_O_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_C_arr = ics["us_C"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_C_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Om_arr = ics["us_Om"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Om_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_OHm_arr = ics["us_OHm"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_OHm_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Hm_arr = ics["us_Hm"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Hm_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Cp_arr = ics["us_Cp"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Cp_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_H2_arr = ics["us_H2"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_H2_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_H2p_arr = ics["us_H2p"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_H2p_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_H_arr = ics["us_H"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_H_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Hp_arr = ics["us_Hp"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Hp_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_Op_arr = ics["us_Op"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_Op_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_OHp_arr = ics["us_OHp"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_OHp_int
-    cdef np.ndarray[np.float64_t, ndim=1] us_OH_arr = ics["us_OH"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] us_OH_int
     cdef np.ndarray[np.uint8_t, ndim=1] result_int
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
@@ -181,23 +87,10 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     cdef double v
 
     if intermediate == 1:
+        us_H_1_int = np.zeros((N, niter), "float64")
+        us_H2_1_int = np.zeros((N, niter), "float64")
+        de_2_int = np.zeros((N, niter), "float64")
         ge_int = np.zeros((N, niter), "float64")
-        us_CO_int = np.zeros((N, niter), "float64")
-        us_Cm_int = np.zeros((N, niter), "float64")
-        us_em_int = np.zeros((N, niter), "float64")
-        us_O_int = np.zeros((N, niter), "float64")
-        us_C_int = np.zeros((N, niter), "float64")
-        us_Om_int = np.zeros((N, niter), "float64")
-        us_OHm_int = np.zeros((N, niter), "float64")
-        us_Hm_int = np.zeros((N, niter), "float64")
-        us_Cp_int = np.zeros((N, niter), "float64")
-        us_H2_int = np.zeros((N, niter), "float64")
-        us_H2p_int = np.zeros((N, niter), "float64")
-        us_H_int = np.zeros((N, niter), "float64")
-        us_Hp_int = np.zeros((N, niter), "float64")
-        us_Op_int = np.zeros((N, niter), "float64")
-        us_OHp_int = np.zeros((N, niter), "float64")
-        us_OH_int = np.zeros((N, niter), "float64")
         temp_int = np.zeros((N, niter), "float64")
         result_int = np.zeros(niter, "uint8")
         t_int = np.zeros(niter, "float64")
@@ -205,140 +98,54 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
 
     j = 0
     for i in range(N):
+        input[j] = prev[j] = us_H_1_arr[i] / 1
+        atol[j] = input[j] * 1e-11
+        rtol[j] = 1e-11
+        scale[j] = 1.0
+        j += 1
+        input[j] = prev[j] = us_H2_1_arr[i] / 2
+        atol[j] = input[j] * 1e-11
+        rtol[j] = 1e-11
+        scale[j] = 1.0
+        j += 1
+        input[j] = prev[j] = de_2_arr[i] / 0
+        atol[j] = input[j] * 1e-11
+        rtol[j] = 1e-11
+        scale[j] = 1.0
+        j += 1
         input[j] = prev[j] = ge_arr[i] / 1.0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
         j += 1
-        input[j] = prev[j] = us_CO_arr[i] / 28
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Cm_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_em_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_O_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_C_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Om_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_OHm_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Hm_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Cp_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_H2_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_H2p_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_H_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Hp_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_Op_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_OHp_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = us_OH_arr[i] / 1.0
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
 
-    cdef umist_data *data = umist_setup_data()
+    cdef umist_data *data = umist_setup_data(NULL, NULL)
     cdef rhs_f f = calculate_rhs_umist
     cdef jac_f jf = calculate_jacobian_umist
 
     cdef double dt = tf / 1e5
     cdef double ttot = 0.0
     cdef int status
+    # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_umist(tf, dt, input, rtol, atol, N, data)
+    cdef double *u0 = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
+    cdef double *gu = <double *> malloc(sizeof(double) * N * NSPECIES)
+    cdef double *Ju = <double *> malloc(sizeof(double) * N * N * NSPECIES)
     for iter in range(niter):
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, N, NSPECIES, scale,
-                               <void *> data)
+                               <void *> data, u0, s, gu, Ju)
         if intermediate == 1:
             j = 0
             for i in range(N):
+                us_H_1_int[i, iter] = input[j]
+                j += 1
+                us_H2_1_int[i, iter] = input[j]
+                j += 1
+                de_2_int[i, iter] = input[j]
+                j += 1
                 ge_int[i, iter] = input[j]
-                j += 1
-                us_CO_int[i, iter] = input[j]
-                j += 1
-                us_Cm_int[i, iter] = input[j]
-                j += 1
-                us_em_int[i, iter] = input[j]
-                j += 1
-                us_O_int[i, iter] = input[j]
-                j += 1
-                us_C_int[i, iter] = input[j]
-                j += 1
-                us_Om_int[i, iter] = input[j]
-                j += 1
-                us_OHm_int[i, iter] = input[j]
-                j += 1
-                us_Hm_int[i, iter] = input[j]
-                j += 1
-                us_Cp_int[i, iter] = input[j]
-                j += 1
-                us_H2_int[i, iter] = input[j]
-                j += 1
-                us_H2p_int[i, iter] = input[j]
-                j += 1
-                us_H_int[i, iter] = input[j]
-                j += 1
-                us_Hp_int[i, iter] = input[j]
-                j += 1
-                us_Op_int[i, iter] = input[j]
-                j += 1
-                us_OHp_int[i, iter] = input[j]
-                j += 1
-                us_OH_int[i, iter] = input[j]
                 j += 1
                 temp_int[i, iter] = data.Ts[i]
             if status == 0:
@@ -364,45 +171,23 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
                 break
             continue
         if ttot >= tf: break
+    free(u0)
+    free(s)
+    free(gu)
+    free(Ju)
 
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}
+    us_H_1_arr = rv["us_H_1"] = np.zeros(N, "float64")
+    us_H2_1_arr = rv["us_H2_1"] = np.zeros(N, "float64")
+    de_2_arr = rv["de_2"] = np.zeros(N, "float64")
     ge_arr = rv["ge"] = np.zeros(N, "float64")
-    us_CO_arr = rv["us_CO"] = np.zeros(N, "float64")
-    us_Cm_arr = rv["us_Cm"] = np.zeros(N, "float64")
-    us_em_arr = rv["us_em"] = np.zeros(N, "float64")
-    us_O_arr = rv["us_O"] = np.zeros(N, "float64")
-    us_C_arr = rv["us_C"] = np.zeros(N, "float64")
-    us_Om_arr = rv["us_Om"] = np.zeros(N, "float64")
-    us_OHm_arr = rv["us_OHm"] = np.zeros(N, "float64")
-    us_Hm_arr = rv["us_Hm"] = np.zeros(N, "float64")
-    us_Cp_arr = rv["us_Cp"] = np.zeros(N, "float64")
-    us_H2_arr = rv["us_H2"] = np.zeros(N, "float64")
-    us_H2p_arr = rv["us_H2p"] = np.zeros(N, "float64")
-    us_H_arr = rv["us_H"] = np.zeros(N, "float64")
-    us_Hp_arr = rv["us_Hp"] = np.zeros(N, "float64")
-    us_Op_arr = rv["us_Op"] = np.zeros(N, "float64")
-    us_OHp_arr = rv["us_OHp"] = np.zeros(N, "float64")
-    us_OH_arr = rv["us_OH"] = np.zeros(N, "float64")
     if intermediate:
+        rv_t["us_H_1"] = us_H_1_int[:niter]
+        rv_t["us_H2_1"] = us_H2_1_int[:niter]
+        rv_t["de_2"] = de_2_int[:niter]
         rv_t["ge"] = ge_int[:niter]
-        rv_t["us_CO"] = us_CO_int[:niter]
-        rv_t["us_Cm"] = us_Cm_int[:niter]
-        rv_t["us_em"] = us_em_int[:niter]
-        rv_t["us_O"] = us_O_int[:niter]
-        rv_t["us_C"] = us_C_int[:niter]
-        rv_t["us_Om"] = us_Om_int[:niter]
-        rv_t["us_OHm"] = us_OHm_int[:niter]
-        rv_t["us_Hm"] = us_Hm_int[:niter]
-        rv_t["us_Cp"] = us_Cp_int[:niter]
-        rv_t["us_H2"] = us_H2_int[:niter]
-        rv_t["us_H2p"] = us_H2p_int[:niter]
-        rv_t["us_H"] = us_H_int[:niter]
-        rv_t["us_Hp"] = us_Hp_int[:niter]
-        rv_t["us_Op"] = us_Op_int[:niter]
-        rv_t["us_OHp"] = us_OHp_int[:niter]
-        rv_t["us_OH"] = us_OH_int[:niter]
         rv_t["successful"] = result_int.astype("bool")
         rv_t['T'] = temp_int
         rv_t['t'] = t_int
@@ -410,39 +195,13 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
 
     j = 0
     for i in range(N):
+        us_H_1_arr[i] = input[j] * 1
+        j += 1
+        us_H2_1_arr[i] = input[j] * 2
+        j += 1
+        de_2_arr[i] = input[j] * 0
+        j += 1
         ge_arr[i] = input[j] * 1.0
-        j += 1
-        us_CO_arr[i] = input[j] * 28
-        j += 1
-        us_Cm_arr[i] = input[j] * 1.0
-        j += 1
-        us_em_arr[i] = input[j] * 1.0
-        j += 1
-        us_O_arr[i] = input[j] * 1.0
-        j += 1
-        us_C_arr[i] = input[j] * 1.0
-        j += 1
-        us_Om_arr[i] = input[j] * 1.0
-        j += 1
-        us_OHm_arr[i] = input[j] * 1.0
-        j += 1
-        us_Hm_arr[i] = input[j] * 1.0
-        j += 1
-        us_Cp_arr[i] = input[j] * 1.0
-        j += 1
-        us_H2_arr[i] = input[j] * 1.0
-        j += 1
-        us_H2p_arr[i] = input[j] * 1.0
-        j += 1
-        us_H_arr[i] = input[j] * 1.0
-        j += 1
-        us_Hp_arr[i] = input[j] * 1.0
-        j += 1
-        us_Op_arr[i] = input[j] * 1.0
-        j += 1
-        us_OHp_arr[i] = input[j] * 1.0
-        j += 1
-        us_OH_arr[i] = input[j] * 1.0
         j += 1
     return rv, rv_t
 
