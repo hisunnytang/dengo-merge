@@ -23,7 +23,7 @@ umist.init_temperature((1e1, 1e3))
 desired_species = [
     ("H", 1),
     ("H2", 2),
-    ("e-", 0)
+    #("e-", 0)
 ]
 added_species = set([])
 

@@ -63,7 +63,7 @@ def _create_reaction(rline):
 def setup_umist_species(species_symbol, atomic_weight):
     
     if species_symbol == "e-":
-        my_sym = MolecularSpecies("de",0, 1)
+        my_sym = MolecularSpecies("e",0, 1)
     
     else:
         species_name = "us_%s" % (species_symbol)

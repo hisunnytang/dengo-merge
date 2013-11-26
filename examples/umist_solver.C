@@ -42,15 +42,13 @@ umist_data *umist_setup_data(
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
-        NumberOfFields[0] = 4;
-        FieldNames[0] = new char*[4];
+        NumberOfFields[0] = 3;
+        FieldNames[0] = new char*[3];
         i = 0;
         
         FieldNames[0][i++] = strdup("us_H_1");
         
         FieldNames[0][i++] = strdup("us_H2_1");
-        
-        FieldNames[0][i++] = strdup("de_2");
         
         FieldNames[0][i++] = strdup("ge");
         
@@ -84,7 +82,7 @@ int umist_main(int argc, char** argv)
     fprintf(stderr, "  ncells = % 3i\n", (int) dims);
     data->ncells = dims;
 
-    int N = 4;
+    int N = 3;
 
     double *atol, *rtol;
     atol = (double *) alloca(N * dims * sizeof(double));
@@ -117,19 +115,6 @@ int umist_main(int argc, char** argv)
         rtol[j * N + i] = 1e-09;
         if(j==0) {
             fprintf(stderr, "us_H2_1[0] = %0.3g, atol => % 0.16g\n",
-                    tics[j], atol[j]);
-        }
-    }
-    i++;
-    
-    fprintf(stderr, "Reading I.C. for /de_2\n");
-    H5LTread_dataset_double(file_id, "/de_2", tics);
-    for (j = 0; j < dims; j++) {
-        ics[j * N + i] = tics[j]; 
-        atol[j * N + i] = tics[j] * 1e-09;
-        rtol[j * N + i] = 1e-09;
-        if(j==0) {
-            fprintf(stderr, "de_2[0] = %0.3g, atol => % 0.16g\n",
                     tics[j], atol[j]);
         }
     }
@@ -180,14 +165,6 @@ int umist_main(int argc, char** argv)
     H5LTmake_dataset_double(file_id, "/us_H2_1", 1, dimsarr, us_H2_1);
     i++;
     
-    double de_2[dims];
-    for (j = 0; j < dims; j++) {
-        de_2[j] = input[j * N + i]; 
-    }
-    fprintf(stderr, "Writing solution for /de_2\n");
-    H5LTmake_dataset_double(file_id, "/de_2", 1, dimsarr, de_2);
-    i++;
-    
     double ge[dims];
     for (j = 0; j < dims; j++) {
         ge[j] = input[j * N + i]; 
@@ -221,7 +198,7 @@ double dengo_evolve_umist (double dtf, double &dt, double z, double *input,
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
 
-    int N = 4;
+    int N = 3;
     for (i = 0; i<dims; i++) {
       j = i * N;
         
@@ -233,12 +210,6 @@ double dengo_evolve_umist (double dtf, double &dt, double z, double *input,
         
           input[j] /= 2 * 1.67e-24;
           atol[j] /= 2 * 1.67e-24;
-        
-        j++;
-      
-        
-          input[j] /= 0 * 1.67e-24;
-          atol[j] /= 0 * 1.67e-24;
         
         j++;
       
@@ -322,12 +293,6 @@ double dengo_evolve_umist (double dtf, double &dt, double z, double *input,
         j++;
       
         
-          input[j] *= 0 * 1.67e-24;
-          atol[j] *= 0 * 1.67e-24;
-        
-        j++;
-      
-        
         j++;
       
     }
@@ -370,7 +335,6 @@ void umist_calculate_temperature(umist_data *data,
     /* Calculate total density */
     double us_H_1;
     double us_H2_1;
-    double de_2;
     double ge;
 
     for (i = 0; i<nstrip; i++) {
@@ -385,18 +349,13 @@ void umist_calculate_temperature(umist_data *data,
                 i, us_H2_1);*/
         j++;
     
-        de_2 = input[j];
-        /*fprintf(stderr, "de_2[%d] = % 0.16g\n",
-                i, de_2);*/
-        j++;
-    
         ge = input[j];
         /*fprintf(stderr, "ge[%d] = % 0.16g\n",
                 i, ge);*/
         j++;
     
         density = 2*us_H2_1 + us_H_1;
-        data->Ts[i] = density*ge*mh/(kb*(de_2/(gamma - 1.0) + us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
+        data->Ts[i] = density*ge*mh/(kb*(us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
         } else if (data->Ts[i] > data->bounds[1]) {
@@ -405,7 +364,7 @@ void umist_calculate_temperature(umist_data *data,
         data->logTs[i] = log(data->Ts[i]);
         data->invTs[i] = 1.0 / data->Ts[i];
 	data->dTs_ge[i] = 
-        density*mh/(kb*(de_2/(gamma - 1.0) + us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
+        density*mh/(kb*(us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
         /*fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
                 i, data->Ts[i], density);*/
     }
@@ -503,7 +462,6 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
     double *us_H_1_plus_us_H2_1 = data->rs_us_H_1_plus_us_H2_1;
     double us_H_1;
     double us_H2_1;
-    double de_2;
     double ge;
     double z;
     double T;
@@ -539,18 +497,6 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         }
         j++;
     
-        de_2 = input[j];
-        
-        mdensity += de_2;
-        
-        if (de_2 < 0.0) {
-            /* fprintf(stderr, "RNegative[%d][de_2] = % 0.16g [%d]\n",
-               i, de_2, j); */
-            return 1;
-          de_2 = 1e-20;
-        }
-        j++;
-    
         ge = input[j];
         
         if (ge < 0.0) {
@@ -574,13 +520,6 @@ int calculate_rhs_umist(double *input, double *rhs, int nstrip,
         // Species: us_H2_1
         // 
         rhs[j] = -us_H2_1_plus_us_H2_1[i]*pow(us_H2_1, 2) - us_H_1_plus_us_H2_1[i]*us_H2_1*us_H_1;
-        
-        j++;
-    
-        // 
-        // Species: de_2
-        // 
-        rhs[j] = 0;
         
         j++;
     
@@ -616,7 +555,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
     double *rus_H_1_plus_us_H2_1 = data->drs_us_H_1_plus_us_H2_1;
     double us_H_1;
     double us_H2_1;
-    double de_2;
     double ge;
     double z;
     double T;
@@ -654,19 +592,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
         }
         j++;
         
-	de_2 = input[j];
-        
-        mdensity += de_2;
-	
-        if (de_2 < 0.0) {
-            fprintf(stderr, "JNegative[%d][de_2] = % 0.16g [%d]\n",
-                    i, de_2, j);
-            /*de_2 = 0.0;*/
-            de_2 = 1e-20;
-            return 1;
-        }
-        j++;
-        
 	ge = input[j];
         
         if (ge < 0.0) {
@@ -694,11 +619,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // de_2 by us_H_1
-            Joutput[j] = 0;
-	    
-	    
-            j++;
             // ge by us_H_1
             Joutput[j] = 0;
 	    
@@ -720,38 +640,7 @@ int calculate_jacobian_umist(double *input, double *Joutput,
 	    
 	    
             j++;
-            // de_2 by us_H2_1
-            Joutput[j] = 0;
-	    
-	    
-            j++;
             // ge by us_H2_1
-            Joutput[j] = 0;
-	    
-	    Joutput[j] /= mdensity;
-	    
-	    
-            j++;
-    
-        // 
-        // Species: de_2
-        //
-            // us_H_1 by de_2
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // us_H2_1 by de_2
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // de_2 by de_2
-            Joutput[j] = 0;
-	    
-	    
-            j++;
-            // ge by de_2
             Joutput[j] = 0;
 	    
 	    Joutput[j] /= mdensity;
@@ -770,13 +659,6 @@ int calculate_jacobian_umist(double *input, double *Joutput,
             
             j++;
             // us_H2_1 by ge
-            Joutput[j] = 0;
-	    
-	    
-            Joutput[j] *= Tge[i];
-            
-            j++;
-            // de_2 by ge
             Joutput[j] = 0;
 	    
 	    
@@ -809,7 +691,6 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
     /* Now we set up some temporaries */
     double us_H_1;
     double us_H2_1;
-    double de_2;
     double ge;
     double total_e = 0.0;
     int e_indx;
@@ -825,12 +706,6 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
         us_H2_1 = input[j];
         
         total_e += us_H2_1 * 0;
-        
-        j++;
-    
-        de_2 = input[j];
-        
-        total_e += de_2 * 1;
         
         j++;
     
@@ -857,7 +732,6 @@ void temperature_from_mass_density(double *input, int nstrip,
     
     double us_H_1;
     double us_H2_1;
-    double de_2;
     double ge;
 
     for (i = 0; i<nstrip; i++) {
@@ -878,14 +752,6 @@ void temperature_from_mass_density(double *input, int nstrip,
                 i, us_H2_1);*/
         j++;
     
-        de_2 = input[j];
-        
-        de_2 /= 0 * mh;
-        
-        /*fprintf(stderr, "de_2[%d] = % 0.16g\n",
-                i, de_2);*/
-        j++;
-    
         ge = input[j];
         
         /*fprintf(stderr, "ge[%d] = % 0.16g\n",
@@ -893,7 +759,7 @@ void temperature_from_mass_density(double *input, int nstrip,
         j++;
     
         density = 2*us_H2_1 + us_H_1;
-        strip_temperature[i] = density*ge*mh/(kb*(de_2/(gamma - 1.0) + us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
+        strip_temperature[i] = density*ge*mh/(kb*(us_H2_1/(gamma - 1.0) + us_H_1/(gamma - 1.0)));
         if (strip_temperature[i] < 1.0)
             strip_temperature[i] = 1.0;
     }

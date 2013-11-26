@@ -6,7 +6,7 @@ from libc.stdlib cimport malloc, free
 cdef extern from "alloca.h":
     void *alloca(int)
 
-DEF NSPECIES = 4
+DEF NSPECIES = 3
 DEF MAX_NCELLS = 1024
 
 cdef extern from "umist_solver.h":
@@ -65,9 +65,6 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     cdef np.ndarray[np.float64_t, ndim=1] us_H2_1_arr = ics["us_H2_1"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] us_H2_1_int
-    cdef np.ndarray[np.float64_t, ndim=1] de_2_arr = ics["de_2"]
-    # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] de_2_int
     cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
     # All of the intermediate variables get declared, but not necessarily assigned
     cdef np.ndarray[np.float64_t, ndim=2] ge_int
@@ -89,7 +86,6 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     if intermediate == 1:
         us_H_1_int = np.zeros((N, niter), "float64")
         us_H2_1_int = np.zeros((N, niter), "float64")
-        de_2_int = np.zeros((N, niter), "float64")
         ge_int = np.zeros((N, niter), "float64")
         temp_int = np.zeros((N, niter), "float64")
         result_int = np.zeros(niter, "uint8")
@@ -104,11 +100,6 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
         scale[j] = 1.0
         j += 1
         input[j] = prev[j] = us_H2_1_arr[i] / 2
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
-        scale[j] = 1.0
-        j += 1
-        input[j] = prev[j] = de_2_arr[i] / 0
         atol[j] = input[j] * 1e-11
         rtol[j] = 1e-11
         scale[j] = 1.0
@@ -142,8 +133,6 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
                 us_H_1_int[i, iter] = input[j]
                 j += 1
                 us_H2_1_int[i, iter] = input[j]
-                j += 1
-                de_2_int[i, iter] = input[j]
                 j += 1
                 ge_int[i, iter] = input[j]
                 j += 1
@@ -181,12 +170,10 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
     rv, rv_t = {}, {}
     us_H_1_arr = rv["us_H_1"] = np.zeros(N, "float64")
     us_H2_1_arr = rv["us_H2_1"] = np.zeros(N, "float64")
-    de_2_arr = rv["de_2"] = np.zeros(N, "float64")
     ge_arr = rv["ge"] = np.zeros(N, "float64")
     if intermediate:
         rv_t["us_H_1"] = us_H_1_int[:niter]
         rv_t["us_H2_1"] = us_H2_1_int[:niter]
-        rv_t["de_2"] = de_2_int[:niter]
         rv_t["ge"] = ge_int[:niter]
         rv_t["successful"] = result_int.astype("bool")
         rv_t['T'] = temp_int
@@ -198,8 +185,6 @@ def run_umist(ics, double tf, int niter = 10000, int intermediate = 1):
         us_H_1_arr[i] = input[j] * 1
         j += 1
         us_H2_1_arr[i] = input[j] * 2
-        j += 1
-        de_2_arr[i] = input[j] * 0
         j += 1
         ge_arr[i] = input[j] * 1.0
         j += 1
