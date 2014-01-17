@@ -2,6 +2,7 @@
 
 import numpy as np
 import re
+import os
 
 from reaction_classes import \
     reaction, \
@@ -75,7 +76,8 @@ def setup_umist_reactions(allowed_species):
     umist_names = set(species_registry[s].original_name
                       for s in allowed_species)
     #umist_names.add("PHOTON")
-    for line in open("RATE12.txt", "r"):
+    fn = os.path.join(os.path.dirname(__file__), "RATE12.txt")
+    for line in open(fn, "r"):
         rline = re.split(":?", line)
         if not all(r in umist_names for r in rline[2:6]): continue
         _create_reaction(rline)
