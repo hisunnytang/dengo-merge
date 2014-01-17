@@ -7,9 +7,11 @@ cdef extern from "alloca.h":
     void *alloca(int)
 
 DEF NSPECIES = {{network.required_species | length}}
-DEF MAX_NCELLS = 1024
+DEF MAX_NCELLS=1024
 
 cdef extern from "{{solver_name}}_solver.h":
+    cdef int _MAX_NCELLS  "MAX_NCELLS"
+    cdef int _NSPECIES "NSPECIES"
     ctypedef struct {{solver_name}}_data:
         double dbin
         double idbin
@@ -65,6 +67,8 @@ def main_run_{{solver_name}}():
     print "Total elapsed time: %0.3e" % (t2-t1)
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1):
+    assert(_MAX_NCELLS == MAX_NCELLS)
+    assert(_NSPECIES == NSPECIES)
     {%- for s in network.required_species | sort %}
     cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
     # All of the intermediate variables get declared, but not necessarily assigned

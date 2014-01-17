@@ -16,7 +16,8 @@ The generalized rate data type holders.
 #include "stdio.h"
 #include "string.h"
 
-#define MAX_NCELLS 1
+#define MAX_NCELLS 1024
+#define NSPECIES {{network.required_species | length}}
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
 
