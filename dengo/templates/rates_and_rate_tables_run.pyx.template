@@ -46,9 +46,10 @@ cdef extern from "{{solver_name}}_solver.h":
             char ***FieldNames)
     void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
     void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
-    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double *input,
-                double *rtol, double *atol, int dims,
-                {{solver_name}}_data *data)
+    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+                                         double *input, double *rtol,
+                                         double *atol, int dims,
+                                         {{solver_name}}_data *data)
     int BE_chem_solve(rhs_f f, jac_f J,
 		    double *u, double dt, double *rtol, 
                     double *atol, int nstrip, int nchem, 
@@ -102,8 +103,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
     for i in range(N):
         {%- for s in network.required_species | sort %}
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
-        atol[j] = input[j] * 1e-11
-        rtol[j] = 1e-11
+        atol[j] = input[j] * 1e-06
+        rtol[j] = 1e-06
         scale[j] = 1.0
         j += 1
         {%- endfor %}
