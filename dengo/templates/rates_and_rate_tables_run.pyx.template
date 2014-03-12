@@ -122,7 +122,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
     cdef double *u0 = <double *> malloc(sizeof(double) * N * NSPECIES)
     cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
     cdef double *gu = <double *> malloc(sizeof(double) * N * NSPECIES)
-    cdef double *Ju = <double *> malloc(sizeof(double) * N * N * NSPECIES)
+    cdef double *Ju = <double *> malloc(sizeof(double) * N * NSPECIES * NSPECIES)
     for iter in range(niter):
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, N, NSPECIES, scale,
                                <void *> data, u0, s, gu, Ju)
