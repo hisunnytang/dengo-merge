@@ -7,16 +7,18 @@ from dengo.ion_by_ion import setup_ionization
 from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
 
-NCELLS = 32
-density = 1.0 * 1.67e-24
+NCELLS = 1
+density = 1e-3
+#* 1.67e-24
 temperature = np.logspace(2, 8, NCELLS)
+temperature[:] = 5e6
 X = 1e-8
 
 ion_by_ion = ChemicalNetwork(write_intermediate = False,
                              stop_time = 3.1557e13)
 ion_by_ion.add_species("de")
 
-for atom in ["H", "He", "C", "N", "O", "Ne", "Mg", "Si", "S"]:
+for atom in ["H", "He", "O"]:#"C", "N", "O"]:# , "Ne", "Mg", "Si", "S"]:
     s, c, r = setup_ionization(atom)
     ion_by_ion.add_collection(s, c, r)
 
@@ -89,7 +91,7 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 ion_by_ion_solver_run = pyximport.load_module("ion_by_ion_solver_run",
                             "ion_by_ion_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16)
+rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 100000)
 import pylab
 pylab.clf()
 
@@ -105,7 +107,7 @@ for n, v in sorted(rv_int.items()):
     if n in skip: continue
     pylab.loglog(rv_int['t'], v, label = n)
 
-pylab.ylim(density * 1e-20, density * 10)
+pylab.ylim(density * 1e-30, density * 10)
 pylab.xlabel("time [s]")
 pylab.legend(loc='best', fontsize='xx-small')
 pylab.savefig("plot.png")

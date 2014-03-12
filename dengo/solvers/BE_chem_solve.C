@@ -186,6 +186,10 @@ int BE_chem_solve(rhs_f f, jac_f J,
           if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
             printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i); dt = %0.5g, atol = %0.5g\n",
                    isweep,ix,i, dt, atol[ioff+i]);
+            if (dt < 1.0) {
+	              fprintf(stderr, "dt %0.5g, Sweep %d, Unsolved[%d]: nchem: %d change: % 0.8g sum tol: % 0.5g atol: % 0.5g rtol: % 0.5g value: % 0.5g\n",
+		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
+            }
 	    ///*
 	    // rescale back to input variables
 	    for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];

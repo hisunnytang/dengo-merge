@@ -61,6 +61,7 @@ cdef extern from "{{solver_name}}_solver.h":
             int nstrip, int nchem, void *sdata)
     int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
                       int nchem, void *sdata)
+    int ensure_electron_consistency(double *input, int nstrip, int nchem)
 
 def main_run_{{solver_name}}():
     t1 = time.time()
@@ -106,9 +107,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
         atol[j] = input[j] * 1e-06
         rtol[j] = 1e-06
-        scale[j] = 1.0
+        scale[j] = input[j]
         j += 1
         {%- endfor %}
+
+    ensure_electron_consistency(input, dims, NSPECIES);
 
     cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
     cdef rhs_f f = calculate_rhs_{{solver_name}}
@@ -146,10 +149,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
                 print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (
                     iter, dt, ttot, tf)
             copy_array(input, prev, NTOT)
+            floor_values(input, NTOT, 1e-25)
             ttot += dt
             dt *= 1.1
             if tf - ttot < dt:
-                dt = tf- ttot
+                dt = tf - ttot
         elif status == 1:
             dt /= 2.0
             copy_array(prev, input, NTOT)
@@ -190,3 +194,9 @@ cdef copy_array(double *input, double *output, int dims):
     cdef int i
     for i in range(dims):
         output[i] = input[i]
+
+cdef floor_values(double *input, int dims, double floor):
+    cdef int i
+    for i in range(dims):
+        if input[i] < floor:
+            input[i] = floor
