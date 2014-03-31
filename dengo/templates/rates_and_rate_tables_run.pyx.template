@@ -19,6 +19,15 @@ cdef extern from "{{solver_name}}_solver.h":
         double bounds[2]
         int nbins
 
+        double d_zbin
+        double id_zbin
+        double z_bounds[2]
+        int n_zbins
+
+        double current_z
+        double zdef
+        double dz
+
         double Ts[MAX_NCELLS]
         double Tdef[MAX_NCELLS]
         double dT[MAX_NCELLS]
@@ -69,7 +78,8 @@ def main_run_{{solver_name}}():
     t2 = time.time()
     print "Total elapsed time: %0.3e" % (t2-t1)
 
-def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1):
+def run_{{solver_name}}(ics, double tf, int niter = 10000,
+                        int intermediate = 1, z = -1.0):
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
     {%- for s in network.required_species | sort %}
@@ -123,6 +133,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000, int intermediate = 1)
     # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
+    data.current_z = z
     cdef double *u0 = <double *> malloc(sizeof(double) * dims * NSPECIES)
     cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
     cdef double *gu = <double *> malloc(sizeof(double) * dims * NSPECIES)
