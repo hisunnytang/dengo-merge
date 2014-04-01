@@ -8,7 +8,7 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
 
 NCELLS = 1
-density = 1e-3
+density = 1e-3 
 #* 1.67e-24
 temperature = np.logspace(2, 8, NCELLS)
 temperature[:] = 5e6
@@ -111,3 +111,8 @@ pylab.ylim(density * 1e-30, density * 10)
 pylab.xlabel("time [s]")
 pylab.legend(loc='best', fontsize='xx-small')
 pylab.savefig("plot.png")
+
+pylab.clf()
+pylab.loglog(rv_int['t'], rv_int['T'], label = 'T')
+pylab.xlabel("time [s]")
+pylab.savefig("plot_temp.png")
