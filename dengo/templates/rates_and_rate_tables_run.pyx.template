@@ -117,7 +117,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
         atol[j] = input[j] * 1e-06
         rtol[j] = 1e-06
-        scale[j] = 1.0
+        scale[j] = input[j]
         j += 1
         {%- endfor %}
 
@@ -160,6 +160,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
                 print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (
                     iter, dt, ttot, tf)
             copy_array(input, prev, NTOT)
+            # Reset the scaling array to match the new values
+            copy_array(input, scale, NTOT)
             ttot += dt
             dt *= 1.1
             if tf - ttot < dt:
@@ -167,6 +169,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         elif status == 1:
             dt /= 2.0
             copy_array(prev, input, NTOT)
+            # Reset the scaling array to match the new values
+            copy_array(input, scale, NTOT)
             if dt < 1e-30 * tf:
                 print "dt too small (%0.3e / %0.3e) so breaking" % (dt, tf)
                 break
