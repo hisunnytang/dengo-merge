@@ -171,7 +171,8 @@ class ChemicalNetwork(object):
         # Note: this assumes things are number density at this point
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
-            if (s.weight > 0) and (s.name not in ['ge', 'de']):
+            if (s.weight > 0):
+                if s.name in self.skip_weight: continue
                 eq += s.symbol * s.weight
         return ccode(eq)
 
