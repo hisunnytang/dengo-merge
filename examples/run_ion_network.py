@@ -56,9 +56,7 @@ else:
                 if s.name == 'de':
                     continue
                 else:
-                    print s.name, s.free_electrons + 1
-                    ion_name = chu.zion2name(np.int(s.number),
-                                             np.int(s.free_electrons + 1))
+                    ion_name = s.name.lower()
                     ion = ch.ion(ion_name, temperature=init_values['T'])
                     ion.ioneqOne()
                     ion_frac = ion.IoneqOne
