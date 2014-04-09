@@ -193,14 +193,15 @@ def chianti_rate(atom_name, sm1, s, sp1):
 
 def ion_photoionization_rate(species, photo_background='HM12'):
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(np.int(species.number),
-                             np.int(species.free_electrons + 1))
+    ion_name = species.name.lower()
+    #ion_name = chu.zion2name(np.int(species.number),
+    #                         np.int(species.free_electrons + 1))
     if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
-    species_pi = "%s%s" % (element_name.capitalize(), roman.toRoman(ion_state + 1))
+    species_pi = species.name
     de = species_registry['de']
     new_rates = []
 
@@ -432,8 +433,9 @@ def ion_cooling_rate(species, atom_name):
 
 def ion_photoheating_rate(species, photo_background='HM12'):
     if chu is None: raise ImportError
-    ion_name = chu.zion2name(np.int(species.number),
-                             np.int(species.free_electrons + 1))
+    #ion_name = chu.zion2name(np.int(species.number),
+    #                         np.int(species.free_electrons + 1))
+    ion_name = species.name.lower()
     if "_" not in ion_name:
         print "Name must be in 'Ion Species' format."
         raise RuntimeError

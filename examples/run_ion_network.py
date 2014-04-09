@@ -19,7 +19,7 @@ ion_by_ion = ChemicalNetwork(write_intermediate = False,
 ion_by_ion.add_species("de")
 
 for atom in ["H", "He", "O"]:#"C", "N", "O"]:# , "Ne", "Mg", "Si", "S"]:
-    s, c, r = setup_ionization(atom)
+    s, c, r = setup_ionization(atom, photo_background = "HM12")
     ion_by_ion.add_collection(s, c, r)
 
 # This defines the temperature range for the rate tables
@@ -89,7 +89,8 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 ion_by_ion_solver_run = pyximport.load_module("ion_by_ion_solver_run",
                             "ion_by_ion_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 100000)
+rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 1000000,
+                        z = 4.0)
 import pylab
 pylab.clf()
 

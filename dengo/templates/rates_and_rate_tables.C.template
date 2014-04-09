@@ -420,6 +420,8 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
             data->drs_{{name}}[i] = (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
             data->drs_{{name}}[i] /= data->dz;
         }
+        /*fprintf(stderr, "data->rs_{{name}} = %0.3e ; data->drs_{{name}} = %0.3e\n",
+                data->rs_{{name}}[i], data->drs_{{name}}[i]);*/
     }
     {% endif -%}
     {% endfor %}

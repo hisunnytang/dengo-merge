@@ -40,6 +40,7 @@ def setup_ionization(atom_name, photo_background = None, cooling = True):
         ions[i] = AtomicSpecies(atom_name, i)
 
     for i in range(num + 1):
+        ion_state = i + 1
         sm1 = ions.get(i-1, None)
         s   = ions[i]
         sp1 = ions.get(i+1, None)
