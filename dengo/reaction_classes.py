@@ -201,7 +201,7 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         raise RuntimeError
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
-    species_pi = species.name
+    species_pi = "%s_%s" % (element_name.capitalize(), ion_state + 1)
     de = species_registry['de']
     new_rates = []
 
