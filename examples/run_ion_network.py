@@ -8,7 +8,7 @@ from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
 
 NCELLS = 1
-density = 1e-3 
+density = 1.0 
 #* 1.67e-24
 temperature = np.logspace(2, 8, NCELLS)
 temperature[:] = 5e6
@@ -18,8 +18,8 @@ ion_by_ion = ChemicalNetwork(write_intermediate = False,
                              stop_time = 3.1557e13)
 ion_by_ion.add_species("de")
 
-for atom in ["H", "He", "O"]:#"C", "N", "O"]:# , "Ne", "Mg", "Si", "S"]:
-    s, c, r = setup_ionization(atom, photo_background = "HM12")
+for atom in ["H", "He", "O"]: #"C", "N", "O", "Ne", "Si"]:
+    s, c, r = setup_ionization(atom, photo_background="HM12")
     ion_by_ion.add_collection(s, c, r)
 
 # This defines the temperature range for the rate tables
@@ -28,7 +28,7 @@ ion_by_ion.init_temperature((1e0, 1e12))
 # This defines the redsfhit range for the rate tables
 ion_by_ion.init_redshift((0.0, 9.0))
 
-tiny = 1e-10
+tiny = 1e-20
 
 init_array = np.ones(NCELLS) * density
 init_values = dict()
@@ -36,7 +36,9 @@ init_values = dict()
 # set up initial temperatures values used to define ge
 init_values['T'] = temperature
 
-start_neutral = True
+start_neutral = False
+
+import chianti.core as ch
 
 if start_neutral:
     for s in ion_by_ion.required_species:
@@ -44,11 +46,16 @@ if start_neutral:
             init_values[s.name] = init_array.copy()
         else:
             init_values[s.name] = X * init_array
+        # Scale to solar abundances
+        if s.name not in ['de', 'ge']:
+            ion_name = s.name.lower()
+            ion = ch.ion(ion_name, temperature=init_values['T'])
+            init_values[s.name] *= ion.Abundance
+
     init_values['de'][:] = 1e-30
     init_values = ion_by_ion.convert_to_mass_density(init_values)
 else:
     # start CIE
-    import chianti.core as ch
     import chianti.util as chu
 
     for s in sorted(ion_by_ion.required_species):
@@ -89,8 +96,8 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 ion_by_ion_solver_run = pyximport.load_module("ion_by_ion_solver_run",
                             "ion_by_ion_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 1000000,
-                        z = 4.0)
+rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 100000,
+                                                  z = 0.0)
 import pylab
 pylab.clf()
 
