@@ -385,7 +385,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
                 data->logTs[i]);*/
     }
     
-    if ((data->current_z > data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
+    if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
         zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
         if (zbin_id <= 0) {
             zbin_id = 0;
