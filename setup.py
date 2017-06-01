@@ -2,8 +2,6 @@ import os, os.path
 import sys
 import time
 import subprocess
-import distribute_setup
-distribute_setup.use_setuptools()
 
 import setuptools
 

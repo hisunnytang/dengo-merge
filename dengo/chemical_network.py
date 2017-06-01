@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import numpy as np
-from chemistry_constants import tevk, tiny, mh
+from .chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
     count_m, index_i, species_registry, Species, ChemicalSpecies
 import types
@@ -81,7 +81,7 @@ class ChemicalNetwork(object):
                     raise RuntimeError
         self.reactions[reaction.name] = reaction
         reaction.coeff_sym.energy = self.energy_term
-        print "Adding reaction: %s" % reaction
+        print ("Adding reaction: %s" % reaction)
 
     def add_cooling(self, cooling_term, auto_add = True):
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
@@ -92,7 +92,7 @@ class ChemicalNetwork(object):
         else:
             for s in cooling_term.species:
                 if s not in self.required_species:
-                    print "SPECIES NOT FOUND", s
+                    print("SPECIES NOT FOUND", s)
                     raise RuntimeError
         self.cooling_actions[cooling_term.name] = cooling_term
 
@@ -295,6 +295,7 @@ class ChemicalNetwork(object):
         # Now we copy over anything else we might need.
         if ode_solver_source is not None:
             src = pkgutil.get_data("dengo", os.path.join("solvers", ode_solver_source))
+            src = src.decode("utf-8")
             with open(os.path.join(output_dir, ode_solver_source), "w") as f:
                 f.write(src)
         if solver_template.endswith(".c.template"):

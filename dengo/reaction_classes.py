@@ -22,7 +22,7 @@ License:
 """
 
 import numpy as np
-from chemistry_constants import tevk, tiny, mh
+from .chemistry_constants import tevk, tiny, mh
 import types
 import os
 import sympy
@@ -31,6 +31,7 @@ import docutils.utils.roman as roman
 from .periodic_table import \
     periodic_table_by_name, \
     periodic_table_by_number
+from .mixin import ComparableMixin
 
 try:
     import chianti.core as ch
@@ -82,7 +83,7 @@ class ReactionCoefficient(sympy.Symbol):
 
     energy = None
 
-class Reaction(object):
+class Reaction(ComparableMixin):
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
@@ -126,6 +127,11 @@ class Reaction(object):
             up_derivatives[s.name] += r * n * s.weight
         return r
 
+    def _cmpkey(self):
+        return repr(self)
+
+    
+
     def __repr__(self):
         a = "%s : " % self.name \
           + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] ) \
@@ -140,7 +146,7 @@ class Reaction(object):
         return _w
 
     def species_equation(self, species):
-        if isinstance(species, types.StringTypes):
+        if isinstance(species, str):
             species = species_registry[species]
         elif isinstance(species, (sympy.IndexedBase, sympy.Symbol)):
             species = species_registry[str(species)]
@@ -163,7 +169,7 @@ def chianti_rate(atom_name, sm1, s, sp1):
     if ch is None: raise ImportError
     ion_name = s.name.lower()
     if "_" not in ion_name:
-        print "Name must be in ChiantiPy format."
+        print ("Name must be in ChiantiPy format.")
         raise RuntimeError
     de = species_registry['de']
     new_rates = []
@@ -197,7 +203,7 @@ def ion_photoionization_rate(species, photo_background='HM12'):
     #ion_name = chu.zion2name(np.int(species.number),
     #                         np.int(species.free_electrons + 1))
     if "_" not in ion_name:
-        print "Name must be in 'Ion Species' format."
+        print ("Name must be in 'Ion Species' format.")
         raise RuntimeError
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])
@@ -264,13 +270,16 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         new_rates.append("%s_pi" % species.name)
     return new_rates
 
-class Species(object):
+class Species(ComparableMixin):
     def __init__(self, name, weight, pretty_name = None):
         self.pretty_name = pretty_name or name
         self.weight = weight
         self.name = name
         self.symbol = sympy.Symbol("%s" % name)
         species_registry[name] = self
+
+    def _cmpkey(self):
+        return repr(self)
 
     def __repr__(self):
         return "Species: %s" % (self.name)
@@ -353,7 +362,7 @@ class CoolingAction(object):
         return species
 
     def table(self, func):
-        self.tables[func.func_name] = func
+        self.tables[func.__name__] = func
 
     def temporary(self, name, eq):
         self.temporaries[name] = eq
@@ -437,7 +446,7 @@ def ion_photoheating_rate(species, photo_background='HM12'):
     #                         np.int(species.free_electrons + 1))
     ion_name = species.name.lower()
     if "_" not in ion_name:
-        print "Name must be in 'Ion Species' format."
+        print ("Name must be in 'Ion Species' format.")
         raise RuntimeError
     element_name = ion_name.split("_")[0]
     ion_state = int(ion_name.split("_")[1])

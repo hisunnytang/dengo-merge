@@ -22,8 +22,8 @@ License:
 """
 
 import numpy as np
-from chemistry_constants import tevk, tiny, mh
-from reaction_classes import \
+from .chemistry_constants import tevk, tiny, mh
+from .reaction_classes import \
     reaction, \
     AtomicSpecies, \
     ChemicalSpecies, \

@@ -21,10 +21,10 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from chemistry_constants import tevk
+from .chemistry_constants import tevk
 import numpy as np
 import sympy
-from reaction_classes import cooling_action, reaction_registry
+from .reaction_classes import cooling_action, reaction_registry
 
 dhuge = 1.0e30
 
