@@ -1,4 +1,3 @@
-
 cimport numpy as np
 import numpy as np
 import time
@@ -92,9 +91,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
     cdef np.ndarray[np.float64_t, ndim=1] dt_int
-    cdef np.ndarray[np.float64_t, ndim=2] Ju_int
-    
-    
+
     cdef int i, j, k, iter
     cdef int dims = {{network.energy_term.name}}_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
@@ -104,9 +101,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double *rtol = <double *> alloca(NTOT * sizeof(double))
     cdef double *scale = <double *> alloca(NTOT * sizeof(double))
     cdef double v
-    cdef double *total_density = <double *> alloca(dims * sizeof(double))
-    
-    
 
     if intermediate == 1:
         {%- for s in network.required_species | sort %}
@@ -116,40 +110,23 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         result_int = np.zeros(niter, "uint8")
         t_int = np.zeros(niter, "float64")
         dt_int = np.zeros(niter, "float64")
-        
-        Ju_int = np.zeros( (dims * NSPECIES * NSPECIES, niter), "float64" )
-
-{#
-    for i in range(dims):
-        total_density[i] = 0.0
-
-
-    for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        total_density[i] = total_density[i] +  {{s.name}}_arr[i] / {{s.weight}} 
-        {%- endfor %}
-#}
 
     j = 0
     for i in range(dims):
         {%- for s in network.required_species | sort %}
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
-        atol[j] = input[j] * 1e-12
-        rtol[j] = 1e-12
-        scale[j] = input[j] 
-        print "{{s.name}}", scale[j], {{s.name}}_arr[i]
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
         j += 1
         {%- endfor %}
 
+    ensure_electron_consistency(input, dims, NSPECIES);
 
-    
-    
     cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
     cdef rhs_f f = calculate_rhs_{{solver_name}}
     cdef jac_f jf = calculate_jacobian_{{solver_name}}
-    
 
-    cdef double floor_val = 1e-30
     cdef double dt = tf / 1e5
     cdef double ttot = 0.0
     cdef int status
@@ -161,38 +138,17 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
     cdef double *gu = <double *> malloc(sizeof(double) * dims * NSPECIES)
     cdef double *Ju = <double *> malloc(sizeof(double) * dims * NSPECIES * NSPECIES)
-    
-    
-    
-    
-    ensure_electron_consistency(input, dims, NSPECIES); 
     for iter in range(niter):
-        # ensure_electron_consistency(input, dims, NSPECIES);
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, NSPECIES, scale,
                                <void *> data, u0, s, gu, Ju)
-        
-        
-        
-      
-
-        floor_values( input , NTOT, floor_val )     
-        floor_values( prev  , NTOT, floor_val )             
-
         if intermediate == 1:
             j = 0
             for i in range(dims):
                 {%- for s in network.required_species | sort %}
                 {{s.name}}_int[i, iter] = input[j]
                 j += 1
-                {%- endfor %}                
+                {%- endfor %}
                 temp_int[i, iter] = data.Ts[i]
-    
-            i = 0
-            for Ju_idx in range( dims * NSPECIES * NSPECIES ):
-                Ju_ele = Ju[Ju_idx]
-                Ju_int[i, iter] = Ju_ele
-                i += 1
-    
             if status == 0:
                 result_int[iter] = 1
             elif status == 1:
@@ -239,8 +195,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         rv_t['T'] = temp_int
         rv_t['t'] = t_int
         rv_t['dt'] = dt_int
-    
-        rv_t['Ju'] = Ju_int
 
     j = 0
     for i in range(dims):

@@ -184,7 +184,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     double *s  = (double *) alloca(N*sizeof(double));
     double *gu = (double *) alloca(N*dims*sizeof(double));
     double *Ju = (double *) alloca(N*N*dims*sizeof(double));
-    double floor_value = 1e-25;
+    double floor_value = 1e-40;
     while (ttot < dtf) {
         int rv = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, N,
                                scale, (void *) data, u0, s, gu, Ju);
@@ -517,8 +517,8 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
         j = i * nchem;
         /* return de from the abundances of the other species */
         printf("getting from the rhs \n");
-        double de_new = 0;
-        get_electron_density(de_new, input, j , nchem  ); 
+        double de = 0;
+        get_electron_density(de, input, j , nchem  ); 
 
     {%- for species in network.required_species | sort %}
         // 
@@ -593,8 +593,8 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         /* return de evaluated from the species abundances */
         j = i * nchem;
         printf("getting from the jacobian \n");
-        double de_new = 0;
-        get_electron_density( de_new, input, j , nchem  );
+        double de = 0;
+        get_electron_density( de, input, j , nchem  );
         
 
         j = i * nchem * nchem;

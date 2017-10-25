@@ -99,8 +99,6 @@ int BE_chem_solve(rhs_f f, jac_f J, double *u, double dt, double *rtol,
 
 {% block function_declarations %}
 
-int get_electron_density(double de_in, double *input, int nstrip, int nchem);
-
 int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
         int nstrip, int nchem, void *sdata);
 int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
