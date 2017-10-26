@@ -12,7 +12,6 @@ License:
   the Free Software Foundation; either version 3 of the License, or
   (at your option) any later version.
 
-  This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
@@ -24,6 +23,6 @@ License:
 # Handy constants
 
 tevk = 1.1605e4
-tiny = 1e-30
+tiny = 1e-50
 mh = 1.67e-24
 kboltz = 1.380e-16

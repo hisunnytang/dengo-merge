@@ -51,6 +51,8 @@ class ChemicalNetwork(object):
         self.stop_time = stop_time
         self.z_bounds = (0.0, 0.0)
 
+        self.threebody = 4
+
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
             self.add_species(s)
@@ -279,7 +281,7 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "templates"))
-        
+
         template_vars = dict(network = self, solver_name = solver_name)
 
         for suffix in (".C", "_main.C", ".h", "_run.pyx", "_run.pyxbld",
@@ -303,7 +305,7 @@ class ChemicalNetwork(object):
             src = pkgutil.get_data("dengo", os.path.join("templates", hfn))
             with open(os.path.join(output_dir, hfn), "w") as f:
                 f.write(src)
-        
+
         # This writes out the rates for the species in the
         # chemical network to HDF5 files which can later be
         # read by the C++ code that is output by the template

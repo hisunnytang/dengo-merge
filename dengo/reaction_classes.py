@@ -130,7 +130,7 @@ class Reaction(ComparableMixin):
     def _cmpkey(self):
         return repr(self)
 
-    
+
 
     def __repr__(self):
         a = "%s : " % self.name \
@@ -153,7 +153,7 @@ class Reaction(ComparableMixin):
         if species not in self.species: return 0
         nr = self.net_change(species.name)
         return nr * self.lhs_equation
-        
+
     @property
     def lhs_equation(self):
         #eq = self.coeff_sym[index_i]
@@ -173,7 +173,7 @@ def chianti_rate(atom_name, sm1, s, sp1):
         raise RuntimeError
     de = species_registry['de']
     new_rates = []
-    
+
     def ion_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.ionizRate()
@@ -219,10 +219,10 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         # NOTE: these rates do the interpolation as a function fo redshift
         f = h5py.File('input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
                       %(element_name, photo_background))
-        
+
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
-        
+
         end_method = 0 # 0 = extrapolation, 1 = gaussian falloff
 
         if end_method == 0:
@@ -245,7 +245,7 @@ def ion_photoionization_rate(species, photo_background='HM12'):
 
             # convert back to linear
             vals = 10.0**vals
-                
+
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code
@@ -298,7 +298,7 @@ class ChemicalSpecies(Species):
 
 class AtomicSpecies(ChemicalSpecies):
     def __init__(self, atom_name, free_electrons):
-        
+
         num, weight, pn = periodic_table_by_name[atom_name]
         if free_electrons < 0:
             name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
@@ -366,7 +366,7 @@ class CoolingAction(object):
 
     def temporary(self, name, eq):
         self.temporaries[name] = eq
-        
+
     @classmethod
     def create_cooling_action(cls, name, equation):
         obj = cls(name, equation)
@@ -377,7 +377,7 @@ class CoolingAction(object):
 cooling_action = CoolingAction.create_cooling_action
 
 def ion_cooling_rate(species, atom_name):
-    
+
     species_c = species.name
     ion_name = species.name.lower()
     de = species_registry['de']
@@ -391,10 +391,10 @@ def ion_cooling_rate(species, atom_name):
                 '..', 'input', 'cooling',
                 '%s_ion_by_ion_cooling.h5' % atom_name.lower())
         data = h5py.File(fn, 'r')
-        
+
         ### Intepolate values within table values ###
         vals = np.interp(network.T, data['T'], data['%s' %(ion_name)])
-        
+
         end_method = 1 # 0 = extrapolation, 1 = gaussian falloff
 
         if end_method == 0:
@@ -417,7 +417,7 @@ def ion_cooling_rate(species, atom_name):
 
             # convert back to linear
             vals = 10.0**vals
-                
+
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code
@@ -462,10 +462,10 @@ def ion_photoheating_rate(species, photo_background='HM12'):
         # NOTE: these rates do the interpolation as a function fo redshift
         f = h5py.File('input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
                                                                  photo_background))
-        
+
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
-        
+
         end_method = 0 # 0 = extrapolation, 1 = gaussian falloff
 
         if end_method == 0:
@@ -488,7 +488,7 @@ def ion_photoheating_rate(species, photo_background='HM12'):
 
             # convert back to linear
             vals = 10.0**vals
-                
+
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code

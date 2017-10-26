@@ -8,6 +8,8 @@
 #include <sundials/sundials_types.h>
 #include <sundials/sundials_math.h>
 
+ 
+
 /* Accessor macros */
 
 #define Ith(v,i) NV_Ith_S(v,i-1)
@@ -28,19 +30,21 @@
    DENSE_ELEM macro in dense.h. DENSE_ELEM numbers rows and columns of a
    dense matrix starting from 0. */
 
+typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
+typedef int(*jac_f)( long int, realtype, N_Vector  , N_Vector , DlsMat , void *, N_Vector, N_Vector, N_Vector);
 
 
 /* Functions Called by the Solver */
 
-static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
+int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
-static int Jac(long int N, realtype t,
+int Jac(long int N, realtype t,
                N_Vector y, N_Vector fy, DlsMat J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
 /* Private functions to output results */
 
-static void PrintOutput(realtype t, realtype y1, realtype y2, realtype y3);
+static void PrintOutput(void *cvode_mem, realtype t, N_Vector u);
 static void PrintRootInfo(int root_f1, int root_f2);
 
 /* Private function to print final statistics */
@@ -59,18 +63,16 @@ static int check_flag(void *flagvalue, const char *funcname, int opt);
  * -------------------------------------------------------
  */
 
-int main_solver( rhs_f f, jac_f Jac, 
-                 double *input, double rtol, double atol,
-                 int nchem, void *sdata, double T0, double T1)
+int cvodes_main_solver( rhs_f f, jac_f Jac, 
+                 double *input , double *rtol, double *atol, int nchem, void *sdata, double T0, double T1, double *t_now, void *cvode_mem)
 {
-    void *cvode_mem;
-    int flag;
+    int i, flag, flagr, iout;
+    realtype t, reltol; 
     N_Vector y, abstol;
 
 
-    
-    y = NULL;
-    cvode_mem = NULL;
+    y = abstol = NULL;
+    int NEQ = nchem; 
     
     /* Create serial vector of length NEQ for I.C. and abstol */
     y = N_VNew_Serial(nchem);
@@ -80,13 +82,21 @@ int main_solver( rhs_f f, jac_f Jac,
     if (check_flag((void *)abstol, "N_VNew_Serial", 0)) return(1);
 
     /* Initialize y */
-    for (i=0; i<nchem; i++) { Ith(y,i+1)      = input[i]; }
+    for (i=0; i<nchem; i++) { Ith(y,i+1)      = input[i];  }
+
     /* Set the vector absolute tolerance */
-    for (i=0; i<nchem; i++) { Ith(abstol,i+1) = atol[i] ; }
+    for (i=0; i<nchem; i++) {
+        if (atol[i] > 1e-25){
+            Ith(abstol,i+1) = atol[i] ;
+            }
+        else{
+            Ith(abstol,i+1) = 1e-25 ;}
+
+    }
     /* Set the scalar relative tolerance */
-    reltol = rtol;
+    reltol = 1e-6;
 
-
+    if (cvode_mem == NULL){
     /* Create CVODES object */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
@@ -96,10 +106,12 @@ int main_solver( rhs_f f, jac_f Jac,
      * y: Array of initial values
      * T0: Initial Time
      */
+    }
 
     /* Allocate space for CVODES */
     flag = CVodeInit(cvode_mem, f, T0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(1);
+    
 
     
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
@@ -109,7 +121,8 @@ int main_solver( rhs_f f, jac_f Jac,
     
     /* Attach User Data */
     flag = CVodeSetUserData(cvode_mem, sdata);
-    if (check_flag(&flag, "CVodeSetUserData", 1)) return(1);
+    if (check_flag(&flag, "CVodeSetUserDatr", 1)) return(1);
+    
 
     /* Attach Linear Solver */
     flag = CVDense(cvode_mem, NEQ);
@@ -119,28 +132,30 @@ int main_solver( rhs_f f, jac_f Jac,
     flag = CVDlsSetDenseJacFn(cvode_mem, Jac);
     if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return(1);
     
-    
+    /* Set max internal steps in CVODES */
 
 
-    /* In Loop, call CVode, print results, and test for error.
-     * Break out of loop when NOUT preset output times have been reached
-     */
-    for (iout = 1, tout=T1, iput <=NOUT, iout++, tout *=TMULT){
 
-        flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
-        if (check_flag(&flag, "CVode", 1)) break;
+    flag = CVode( cvode_mem, T1, y, &t, CV_NORMAL);
+   
+    t_now[0] = t;
 
-        PrintOutput(cvode_mem, t, y);
+    if (flag == CV_TOO_MUCH_WORK){
+    return(1);
     }
 
-    /* Print final Statisitics */
-    PrintFinalStats(cvode_mem, sensi);
+
+
+    
+    /* feed the answer to the pointer array y */
+    for (i=0; i<nchem; i++) { input[i] = Ith(y,i+1) ;  }
+
+
+
 
     /* Free Memory */
     N_VDestroy_Serial(y);
-    if (sensi) {
-        N_VDestroyVectorArray_Serial(yS, NS);
-    }
+    
     CVodeFree(&cvode_mem);
 
     return(0);
@@ -154,18 +169,42 @@ int main_solver( rhs_f f, jac_f Jac,
  *-------------------------------
  */
 
-static void PrintOutput(realtype t, realtype y1, realtype y2, realtype y3)
+
+static void PrintOutput(void *cvode_mem, realtype t, N_Vector u)
 {
+  long int nst;
+  int qu, flag;
+  realtype hu, *udata;
+  
+  udata = N_VGetArrayPointer_Serial(u);
+
+  flag = CVodeGetNumSteps(cvode_mem, &nst);
+  check_flag(&flag, "CVodeGetNumSteps", 1);
+  flag = CVodeGetLastOrder(cvode_mem, &qu);
+  check_flag(&flag, "CVodeGetLastOrder", 1);
+  flag = CVodeGetLastStep(cvode_mem, &hu);
+  check_flag(&flag, "CVodeGetLastStep", 1);
+
 #if defined(SUNDIALS_EXTENDED_PRECISION)
-  printf("At t = %0.4Le      y =%14.6Le  %14.6Le  %14.6Le\n", t, y1, y2, y3);
+  printf("%8.3Le %2d  %8.3Le %5ld\n", t, qu, hu, nst);
 #elif defined(SUNDIALS_DOUBLE_PRECISION)
-  printf("At t = %0.4e      y =%14.6e  %14.6e  %14.6e\n", t, y1, y2, y3);
+  printf("%8.3e %2d  %8.3e %5ld\n", t, qu, hu, nst);
 #else
-  printf("At t = %0.4e      y =%14.6e  %14.6e  %14.6e\n", t, y1, y2, y3);
+  printf("%8.3e %2d  %8.3e %5ld\n", t, qu, hu, nst);
 #endif
 
-  return;
+  printf("                  Solution       ");
+
+#if defined(SUNDIALS_EXTENDED_PRECISION)
+  printf("%12.4Le %12.4Le %12.4Le \n", udata[0], udata[1], udata[2]);
+#elif defined(SUNDIALS_DOUBLE_PRECISION)
+  printf("%12.4e %12.4e %12.4e \n", udata[0], udata[1], udata[2]);
+#else
+  printf("%12.4e %12.4e %12.4e \n", udata[0], udata[1], udata[2]);
+#endif
+
 }
+
 
 static void PrintRootInfo(int root_f1, int root_f2)
 {
