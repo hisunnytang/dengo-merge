@@ -22,3 +22,10 @@ Dependencies:
 
         - Download from http://sourceforge.net/projects/chiantipy/
         - run 'python setup.py install' in ChiantiPy directory
+
+
+
+
+TO-DO-LIST:
+- include CIE cooling
+- include deuterium reactions
