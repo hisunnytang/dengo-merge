@@ -1,4 +1,4 @@
-/*****************************************************************************
+#include <cvspils/sundials_CVSpils.h>/*****************************************************************************
  *                                                                           *
  * Copyright 2011 Daniel R. Reynolds                                         *
  *                                                                           *
@@ -181,7 +181,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
 		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
               }
               unsolved = 1;
-              // break;
+              break;
           }
           if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
             printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i); dt = %0.5g, atol = %0.5g\n",
@@ -296,8 +296,7 @@ int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
   ///*
   // rescale u to scaled variables
   for (i=0; i<nstrip*nchem; i++)  u[i] *= inv_scaling[i];
-  
-   
+
   // rescale Jacobian rows to use normalization
   for (ix=0; ix<nstrip; ix++)
     for (jvar=0; jvar<nchem; jvar++) 
@@ -309,8 +308,7 @@ int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
     for (ivar=0; ivar<nchem; ivar++) 
       for (jvar=0; jvar<nchem; jvar++) 
 	Ju[(ix*nchem+jvar)*nchem+ivar] *= scaling[ix*nchem+jvar];
-  //
-  
+  //*/
 
   // update Jacobian to additionally include remaining terms,
   //   J = I - dt*Jf(u)
