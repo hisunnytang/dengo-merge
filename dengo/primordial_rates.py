@@ -220,6 +220,19 @@ def setup_primordial():
         _i2 = ~_i1
 
         # There is also SAVIN 2004 in grackle
+
+
+        vals = (np.exp(-21237.15/state.T) *  \
+            (- 3.3232183e-07 \
+             + 3.3735382e-07 * state.logT \
+             - 1.4491368e-07 * state.logT**2 \
+             + 3.4172805e-08 * state.logT**3 \
+             - 4.7813720e-09 * state.logT**4 \
+             + 3.9731542e-10 * state.logT**5 \
+             - 1.8171411e-11 * state.logT**6 \
+             + 3.5311932e-13 * state.logT**7))
+
+
         # Abel et al. (1997)
         vals = np.exp(-24.24914687731536
                       + 3.400824447095291*state.logtev
@@ -257,9 +270,12 @@ def setup_primordial():
 
         # the threebody flag followed the convention coined in grackle
         if state.threebody == 0:
-            _i1 = (state.T > 300.0)
+            _i1 = (state.tev > 0.3)
             _i2 = ~_i1
-            vals = np.ones((len(state.T)))*tiny
+            vals = 1.0670825e-10*state.tev**2.012/ \
+             (np.exp(4.463/state.tev)*(1.0+0.2472 \
+             * state.tev)**3.512)
+            vals[_i2] = tiny
         elif state.threebody == 1:
             vals = 1.3e-22 * (state.T/ 300.0)**(-1.0)
         elif state.threebody == 2:
@@ -366,8 +382,8 @@ def setup_primordial():
         if state.threebody == 0:
             _i1 = (state.T > 300.0)
             _i2 = ~_i1
-            vals = 1.3e-22 * (state.T/300.0)**(-0.38)
-            vals[_i2] = 1.3e-22* (state.T/300.0)**(-1.0)
+            vals = 1.3e-32 * (state.T/300.0)**(-0.38)
+            vals[_i2] = 1.3e-32* (state.T[_i2]/300.0)**(-1.0)
         elif state.threebody == 1:
             vals = 5.5e-29 / state.T
         elif state.threebody == 2:

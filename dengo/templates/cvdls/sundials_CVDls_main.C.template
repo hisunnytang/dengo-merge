@@ -1,0 +1,5 @@
+#include "{{solver_name}}_solver.h"
+
+int main(int argc, char **argv) {
+    {{solver_name}}_main(argc, argv);
+}

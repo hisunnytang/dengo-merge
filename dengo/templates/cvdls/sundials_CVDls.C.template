@@ -21,6 +21,12 @@
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
     
+    /* allocate space for the scale related pieces */
+    for (i = 0; i< {{network.required_species | length}} ; i++){
+    data->scale[i] = 1.0;
+    }
+    
+    /*initialize temperature so it wont crash*/
     data->Ts[0] = 1000.0;
 
     /* Temperature-related pieces */
@@ -188,14 +194,18 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     double *Ju = (double *) alloca(N*N*dims*sizeof(double));
     double floor_value = 1e-25;
     while (ttot < dtf) {
-        int rv = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, N,
-                               scale, (void *) data, u0, s, gu, Ju);
-        /*
-        fprintf(stderr, "Return value [%d]: %i.  %0.5g / %0.5g = %0.5g (%0.5g)\n",
-                niter, rv, ttot, dtf, ttot/dtf, dt);
-        fprintf(stderr, "Value[0] = %0.5g %0.5g\n",
-                input[0], prev[0]);
+        
+
+        /* f and jf are function for evaluating rhs and jac for the solver
+        * input: {double array}
+        * rtol : {double} scalar (relative tolerance)
+        * atol : {double array} vector (absolue tolerance)
+        * NSPECIES: {int}
+        * 
         */
+        int rv = 1;
+        /*int rv = cvodes_main_solver( f, jf, input, rtol ,  atol, NSPECIES, (void *) data, ttot , ttot + dt);*/
+
         for (i = 0; i < dims * N; i++) {
             if (input[i] < 0) {
                 rv = 1;
@@ -316,33 +326,67 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
     double mh = 1.67e-24;
     double gamma = 5.e0/3.e0;
+    
     {% if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
     double T,x, expx, Tnew;
     {% endif %}
+
+    
+
+
     /* Calculate total density */
 
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {%- endfor %}
+    
+    /* define scale */
+    double scale;
 
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
     {%- for species in network.required_species | sort %}
-        {{species.name}} = input[j];
-        /*fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
-                i, {{species.name}});*/
+        scale = data->scale[j];
+        {{species.name}} = input[j]*scale;
         j++;
     {% endfor %}
         density = {{network.print_mass_density()}};
-
+        
+    
         {% if 'H2_1' in network.species_list() %}
         
+        // Initiate the "guess" temperature
         T = data->Ts[i];
         Tnew = T + 10.0;
+        double dge_dT;
+        double dge;
         
+        while ( abs(T - Tnew) > 0.1 ){
+        // We do Newton's Iteration to calculate the temperature
+        // Since gammaH2 is dependent on the temperature too!
+        T = Tnew;
+
+        // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
+        // This is the function we want to minimize
+        // which should only be dependent on the first part
+        dge_dT = {{network.temperature_calculation(derivative_dge_dT=True)}};
         
+        //This is the change in ge for each iteration
+        dge = {{network.temperature_calculation(get_dge=True)}};
+
+        Tnew = T - dge/dge_dT;
+        //fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dT: %.5g, dge: %.5g \n", T,Tnew, dge/dge_dT, dge);
+        }
+        //fprintf(stderr,"---------------------\n");
+        data->Ts[i] = Tnew;
+        
+        // Simplest Implementation: Assume a constant gammaH2
+        //double gammaH2 = 7./5.;
+        //data->Ts[i] = {{network.temperature_calculation()}};
+        
+        {#
         while ( abs(T - Tnew) > 0.01 ){
         T = data->Ts[i];
         x = 6100.0 / T;
@@ -351,16 +395,13 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         Tnew = {{ network.temperature_calculation() }};
         data->Ts[i] = Tnew;
         }
-        
+        #}
 
-        //gammaH2 = 7.0/5.0;
-        //data->Ts[i] = {{network.temperature_calculation()}};
-        
         {% else %}
         data->Ts[i] = {{network.temperature_calculation()}};
         {% endif %}
-
         
+        //fprintf(stderr, "T: %0.16g \n", data->Ts[i] );
 
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
@@ -369,7 +410,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         }
         data->logTs[i] = log(data->Ts[i]);
         data->invTs[i] = 1.0 / data->Ts[i];
-	data->dTs_{{ network.energy_term.name }}[i] = 
+	    data->dTs_{{ network.energy_term.name }}[i] = 
         {{ network.temperature_calculation(derivative=True) }};
         /*fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
                 i, data->Ts[i], density);*/
@@ -483,162 +524,6 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
 }
 {% endblock %} {# interpolate_rates #}
 
-{% block calculate_rhs %}
-
-int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
-                  int nchem, void *sdata)
-{
-    /* We iterate over all of the rates */
-    /* Calculate temperature first */
-    {{solver_name}}_data *data = ({{solver_name}}_data*)sdata;
-    int i, j;
-    {{solver_name}}_calculate_temperature(data, input, nstrip, nchem);
-
-    {{solver_name}}_interpolate_rates(data, nstrip);
-
-    /* Now we set up some temporaries */
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    {%- endfor %}
-
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    {%- endfor %}
-    {%- endfor %}
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    double z;
-    double T;
-
-    double mh = 1.67e-24;
-    double mdensity;
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-        mdensity = 0.0;
-        T = data->Ts[i];
-        z = data->current_z;
-    {%- for species in network.required_species | sort %}
-        {{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" 
-             and species.name != "us_e_0" %}
-        mdensity += {{species.name}};
-        {%endif%}
-        if ({{species.name}} < 0.0) {
-            /* fprintf(stderr, "RNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
-               i, {{species.name}}, j); */
-            return 1;
-          {{species.name}} = 1e-20;
-        }
-        j++;
-    {% endfor %}
-
-
-        {%- if "H2_1" in network.species_list() %}
-        double nH; 
-        nH = H_1 + H_2 + 2.0*H2_1 + 2.0*H2_2;
-        {% endif %}
-
-        mdensity *= mh;
-        j = i * nchem;
-    {%- for species in network.required_species | sort %}
-        // 
-        // Species: {{species.name}}
-        // 
-        {{ network.print_ccode(species, assign_to = "rhs[j]") }}
-        {% if species.name == "ge" %}
-	rhs[j] /= mdensity;
-        {% endif %}
-        j++;
-    {% endfor %}
-    }  
-    return 0;
-}
-
-{% endblock %}
-
-{% block calculate_jacobian %}
-int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
-        int nstrip, int nchem, void *sdata)
-{
-    /* We iterate over all of the rates */
-    /* Calculate temperature first */
-    {{solver_name}}_data *data = ({{solver_name}}_data*)sdata;
-
-    int i, j;
-    /* Now we set up some temporaries */
-    double *T{{ network.energy_term.name }} = data->dTs_{{ network.energy_term.name }};
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    double *r{{name}} = data->drs_{{name}};
-    {%- endfor %}
-
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
-    {%- endfor %}
-    {%- endfor %}
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    double z;
-    double T;
-
-    double mh = 1.67e-24;
-    double mdensity;
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-        mdensity = 0.0;
-        T = data->Ts[i];
-        z = data->current_z;
-        {%- for species in network.required_species | sort %}
-	{{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" 
-             and species.name != "us_e_0" %}
-        mdensity += {{species.name}};
-	{%endif%}
-        if ({{species.name}} < 0.0) {
-            fprintf(stderr, "JNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
-                    i, {{species.name}}, j);
-            /*{{species.name}} = 0.0;*/
-            {{species.name}} = 1e-20;
-            return 1;
-        }
-        j++;
-        {% endfor %}
-        mdensity *= mh;
-        
-
-        {%- if "H2_1" in network.species_list() %}
-        double nH; 
-        nH = H_1 + H_2 + 2.0*H2_1 + 2.0*H2_2;
-        {% endif %}
-
-        j = i * nchem * nchem;
-        {%- for s1 in network.required_species | sort %}
-        // 
-        // Species: {{s1.name }}
-        // 
-        {%- for s2 in network.required_species | sort %}
-            // {{s2.name}} by {{s1.name}}
-            {{ network.print_jacobian_component(s2, s1, assign_to="Joutput[j]") }}
-	    {% if s2.name == 'ge' %}
-	    Joutput[j] /= mdensity;
-	    {% endif %}
-	    {% if s1.name == 'ge' %}
-            Joutput[j] *= T{{ network.energy_term.name }}[i];
-            {% endif %}
-            j++;
-        {%- endfor %}
-    {% endfor %}
-    }
-
-    return 0;
-    
-}
-{% endblock %}
 
 {% block ensure_electron_consistency %}
 
@@ -652,6 +537,8 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
     {%- endfor %}
     double total_e = 0.0;
     int e_indx;
+    
+    double scale;
 
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
@@ -684,11 +571,15 @@ void temperature_from_mass_density(double *input, int nstrip,
     {% if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
-    double T = 1000.0; //THIS IS TEMPORARY TOO!!!
+    
+    double T =  1000.0; // THIS IS TEMPORARY!!! DELTETE!!
+
     {% endif %}
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {%- endfor %}
+    
+    double scale;
 
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
@@ -709,3 +600,201 @@ void temperature_from_mass_density(double *input, int nstrip,
          
 }
 {% endblock %} {# temperature_from_mass_density #}
+
+{% block calculate_jacobian_sundials %}
+int calculate_jacobian_{{solver_name}}
+                                        ( realtype t,
+                                        N_Vector y, N_Vector fy,
+                                        SUNMatrix J, void *user_data,
+                                        N_Vector tmp1, N_Vector tmp2,
+                                        N_Vector tmp3)
+{
+    /* We iterate over all of the rates */
+    /* Calcuate temperature first */
+    
+    int nstrip = 1;
+    int nchem = {{network.required_species | length }};
+
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
+    
+
+    int i, j;
+    j = 0;
+    /* change N_Vector back to an array */
+    double y_arr[ {{network.required_species | length }} ];
+    {%- for species in network.required_species | sort %}
+    y_arr[{{loop.index - 1}}] = Ith(y , {{loop.index }});
+    {%- endfor %}
+
+    {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
+
+    {{solver_name}}_interpolate_rates(data, nstrip);
+
+    /* Now We set up some temporaries */
+
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
+    double *r{{name}} = data->drs_{{name}};
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity;
+    
+    int jj;
+    jj = 0;
+    double scale, scale1, scale2;
+
+    for (i = 0; i<nstrip; i++) {
+        j = i*nchem;
+        mdensity = 0.0;
+        z = data->current_z;
+        {%- for species in network.required_species | sort %}
+        scale = data->scale[j];
+        {{species.name}} = Ith( y, {{loop.index }}  )*scale;
+        //fprintf(stderr,"from jac: {{species.name}} = %.3g\n, Ith(y{{loop.index}}) = %.3g \n" , {{species.name}}, Ith(y,{{loop.index}} ) );
+        {%if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
+        mdensity += {{species.name}};
+        {% endif %}
+
+        j++;
+        {% endfor %}
+
+        {%- if "H2_1" in network.species_list() %}
+        double nH; 
+        nH = H_1 + H_2 + 2.0*H2_1 + 2.0*H2_2;
+        {% endif %}
+
+
+        mdensity *= mh;
+
+        j = i * nchem * nchem;
+
+        {%- for s1 in network.required_species | sort %}
+        //
+        // Species: {{s1.name}}
+        //
+        {% set i_s1 = loop %}
+        {%- for s2 in network.required_species | sort %}
+        // {{s2.name}} by {{s1.name}}
+        {% set i_s2 = loop%}
+        {{ network.print_jacobian_component(s2, s1, assign_to="IJth(J, {0}, {1} )".format( i_s2.index, i_s1.index) ) }}
+        
+        scale2 = data->scale[{{i_s2.index}} - 1];
+        scale1 = data->scale[{{i_s1.index}} - 1];
+        IJth(J, {{i_s2.index}}, {{i_s1.index}}) /= scale2/scale1;
+
+        {% if s2.name == 'ge' %}
+        IJth(J, {{i_s2.index}}, {{i_s1.index}} ) /= mdensity;
+        {% endif %}
+
+        {% if s1.name == 'ge' %}
+        IJth(J, {{i_s2.index}}, {{i_s1.index}} ) *= T{{network.energy_term.name}}[i];
+        {% endif %}
+        {%- endfor %}
+        {% endfor %}
+    }
+    return 0;
+}
+
+
+{% endblock %}
+
+
+{% block calcuate_rhs_sundials%}
+int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data)
+{
+    {{solver_name}}_data *data = ({{solver_name}}_data* ) user_data;
+    int i, j;
+
+    int nchem = {{network.required_species | length }};
+    int nstrip = 1;
+    
+    /* change N_Vector back to an array */
+    double y_arr[ {{network.required_species | length }} ];
+    {%- for species in network.required_species | sort %}
+    /* the variable is ALREADY scaled in "calculate temperature" */
+    y_arr[{{loop.index - 1}}] = Ith(y , {{loop.index }});
+    // fprintf(stderr, "scale: %.3g \n", data->scale[{{loop.index - 1}}]);
+    {%- endfor %}
+
+    {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
+    {{solver_name}}_interpolate_rates(data, nstrip);
+
+
+    /* Now we set up some temporaries */
+
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity;
+
+    T = data->Ts[i];
+    z = data->current_z;
+    
+    double scale;
+    int jj =0;
+    {%- for species in network.required_species | sort %}
+    scale = data->scale[jj];
+    {{species.name}} = Ith( y,{{loop.index }} )*scale;
+    jj++;
+    {% if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
+    mdensity += {{species.name}};
+    {% endif %}
+
+
+    {% endfor %}
+    
+    {%- if "H2_1" in network.species_list() %}
+    double nH; 
+    nH = H_1 + H_2 + 2.0*H2_1 + 2.0*H2_2;
+    {% endif %}
+    
+    mdensity *= mh;
+
+    {%- for species in network.required_species | sort %}
+    //
+    // Species: {{species.name}}
+    //
+    {{network.print_ccode(species, assign_to="Ith(ydot, {})".format(loop.index) ) }}
+    
+    scale = data->scale[{{loop.index}} - 1];
+    Ith(ydot, {{loop.index}}) /= scale;
+
+    {% if species.name == "ge" %}
+    Ith(ydot, {{loop.index}}) /= mdensity;
+    {% endif %}
+    {% endfor %}
+    
+    return 0;
+}
+{% endblock %}

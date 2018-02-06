@@ -8,7 +8,7 @@
 #include <sundials/sundials_types.h>
 #include <sundials/sundials_math.h>
 
-#include <sundials_time_solver.h>
+#include <sundials_onestep_solver.h>
  
 
 /* Accessor macros */
@@ -65,7 +65,7 @@ static int check_flag(void *flagvalue, const char *funcname, int opt);
  */
 
 int cvodes_main_solver( rhs_f f, jac_f Jac, 
-                 double *input , double *rtol, double *atol, int nchem, void *sdata, double T0, double T1, int N_iteration, double *output , double *T_arr, double *dt_arr, double *ttot_arr, double *success_arr)
+                 double *input , double *rtol, double *atol, int nchem, void *sdata, double *dt_now)
 {
     void *cvode_mem;
     int i, flag, flagr, iout;
@@ -77,7 +77,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     cvode_mem = NULL;
     int NEQ = nchem; 
     
-    sundials_time_data *data = (sundials_time_data*)sdata;
+    sundials_onestep_data *data = (sundials_onestep_data*)sdata;
 
 
     /* Create serial vector of length NEQ for I.C. and abstol */
@@ -95,18 +95,15 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         Ith(y,i+1)      = input[i] / scale;
              
     }
-
+    
+    /* fixed the incoming abs tolerance */
     /* Set the vector absolute tolerance */
     for (i=0; i<nchem; i++) {
-        if (atol[i] > 1e-20){
-            Ith(abstol,i+1) = 1e-6 ;
-            }
-        else{
-            Ith(abstol,i+1) = 1e-6;
+        Ith(abstol,i+1) = 1e-9 ;
         }
-    }
+    
     /* Set the scalar relative tolerance */
-    reltol = 1e-6;
+    reltol = 1e-9;
 
 
     /* Create CVODES object */
@@ -120,7 +117,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
      */
 
     /* Allocate space for CVODES */
-    flag = CVodeInit(cvode_mem, f, T0, y);
+    flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(1);
 
     
@@ -145,112 +142,56 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     flag = CVDlsSetDenseJacFn(cvode_mem, Jac);
     if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return(1);
     
+    // tout is the desired output time
+    // evolve CVODE in one dt
     
 
-    double tout;
-    printf(" = %d \n", N_iteration);
-    
-    double dt = ( (T1 - T0) ) / (N_iteration);
-    double dt0 = dt;
-    double last_dt;
+    t = 0;
+    double tout = dt_now[0];
+    flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
+        /* return data */
+    dt_now[0]   = t;
 
-
-    double y_now;
-
-    /* printf("dt = %.3e, T1 =  %.3e, T0 = %.3e, NITER[0] = %.3e \n", dt, T1, T0, N_iteration ); */
-
-    
-    for (iout = 1, tout=T0+dt; iout < N_iteration ; iout++, tout += dt){
-        flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
-        /* printf("time in integration: %.3e ; dt = %.3e , tnow = %.3e \n",t , t - ttot_arr[iout - 2], tout - t ); */
-
-        
-        /* 
-         * Check the normalized y
-         */
-        for (int ii = 0; ii < nchem; ii++){
-            scale = data->scale[ii];
-            y_now = Ith(y,ii+1);
-            
-            data->scale[ii] = scale * y_now;
-            Ith(y,ii+1) = 1.0;
-           
+    for (i=0; i<nchem; i++) {
+        scale = data->scale[i];    
+        input[i] = Ith(y,i+1)*scale;
         }
-
-        flag = CVodeReInit(cvode_mem, tout, y);
-
-        
-        if (iout >= 2){
-            last_dt = t - ttot_arr[iout - 2]; 
-            dt_arr[iout - 1]  = last_dt; 
-        }
-        else{
-            last_dt = t - T0;
-            dt_arr[iout - 1]  = last_dt; 
-        }
-        if (flag == CV_TOO_MUCH_WORK){
-            /* fail integration */
-            /* half the timestep */
-            
-            dt = dt/2.0;
-            success_arr[iout - 1] = 1 ;
-        }
-        else{ 
-            /* Success! */
-
-            success_arr[iout - 1] = 1 ;
-            dt *= 1.1 ;
-        }
-        
-
-        int jj = 0; 
-        for ( i = (iout - 1)*nchem; i < iout*nchem; i++){
-            scale = data->scale[jj];
-            output[i] = scale;
-            jj += 1;
-            }
-        
-        
-
-        ttot_arr[iout -1] = t;
-        T_arr[iout - 1]   = data->Ts[0];
-        
-        if (  (dt <= 1e-20*dt0)  || (last_dt <= 1e-10) ){ 
-            printf("breaking! dt is too small %.3e \n", dt );
-            return(iout); break; }
-
-        if (t >= T1){ 
-            N_iteration = iout ;
-            printf("iterate for %d times \n", iout);
-            return(iout);
-            break;
-        }
-
-        if (t + dt >= T1){
-            printf( "tout now: %.3e \n" , tout);
-            printf( "t alone: %.3e\n", t);
-            dt = T1 - t;
-        }
-
-
-
-        tout = t;
-     /*    tout = T1 - dt;       */
-
-
-    }
-
-    printf( "tout now: %.3e \n" , tout);
-    printf( "t alone: %.3e\n", t);
-
-    
 
     /* Free Memory */
-    N_VDestroy_Serial(y);
-    
+    N_VDestroy_Serial(y); 
     CVodeFree(&cvode_mem);
 
-    return( (iout - 1) );
+
+    if (flag == CV_TOO_MUCH_WORK){
+        /* The initial time t0 and the final time tout 
+         * are too close to each other
+         * and the user did not specify an initial step size
+         */
+        dt_now[0] = tout;
+        return 1;
+    }
+    
+    if (flag == CV_CONV_FAILURE){
+        /* Either convergence test failures occurred too many times
+         * during one internal time step, or with |h| = hmin
+         */
+        dt_now[0] = tout;
+        return 1;
+    } 
+    if (flag == CV_TOO_CLOSE){
+        /* The initial time t0 and the final time 
+         * tout are too close to each other
+         * and the user did not specify an 
+         * initial step size
+         */
+        return 1;
+    }
+
+
+
+    return 0;
+
+
 }
 
 

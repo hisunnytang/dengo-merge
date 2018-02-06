@@ -113,7 +113,10 @@ class Reaction(ComparableMixin):
     def net_change(self, sname):
         up = sum( n for n, s in self.right_side if s.name == sname)
         down = sum( n for n, s in self.left_side if s.name == sname)
-        return up - down
+        if up == down:
+            return up - down
+        else:
+            return up - down
 
     def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right
@@ -336,14 +339,26 @@ class CoolingAction(object):
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
         ta_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.tables)
+
         self.table_symbols.update(ta_sym)
         #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
         tp_sym = dict((n, sympy.Symbol("%s" % (n))) for n in self.temporaries)
         self.temp_symbols.update(tp_sym)
+
+        for n, s in species_registry.items():
+            try:
+                name, Ilevel = n.split('_')
+                sp_name = name + eval(Ilevel)*'I'
+                temp_dict = {sp_name: s.symbol}
+                symbols.update(temp_dict)
+            except:
+                pass
+
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
         self._eq = eval(self._equation, symbols)
         for n, e in self.temporaries.items():
+            e = eval(e, symbols)
             e = sympy.sympify(e)
             for n2, e2 in ta_sym.items():
                 e = e.subs(n2, e2)
@@ -352,11 +367,13 @@ class CoolingAction(object):
 
     @property
     def species(self):
-        self.equation
+        # self.equation
         bad = set(self.temp_symbols.values() + self.table_symbols.values())
         species = set([])
         #for s in self.equation.atoms(sympy.IndexedBase):
         for s in self.equation.atoms(sympy.Symbol):
+            bad = set(self.temp_symbols.values() + self.table_symbols.values())
+
             if s not in bad:
                 species.add(species_registry[str(s).replace("[i]","")])
         return species

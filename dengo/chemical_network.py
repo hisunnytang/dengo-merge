@@ -52,6 +52,7 @@ class ChemicalNetwork(object):
         self.z_bounds = (0.0, 0.0)
 
         self.threebody = 4
+        self.cie_cooling = 1
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -150,6 +151,7 @@ class ChemicalNetwork(object):
         eq = sympy.sympify("0")
         for term in self.cooling_actions:
             eq += self.cooling_actions[term].equation
+
         return ccode(eq, assign_to = assign_to)
 
     def print_jacobian_component(self, s1, s2, assign_to = None):
@@ -169,6 +171,48 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
         return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
 
+
+    def print_JacTimesVec_component(self, s1, assign_to = None):
+        """
+        Compute the product of Jacobian * Vec for a given Vec
+        Might be useful when we use the CVSpils solver
+        """
+        if s1 == self.energy_term:
+            st = sum(self.cooling_actions[ca].equation
+                     for ca in sorted(self.cooling_actions))
+        else:
+            st = self.species_total(s1)
+        if assign_to is None:
+            assign_to = sympy.Symbol("d_%s_dy_y" % (s1.name))
+        if isinstance(st, (list, tuple)):
+            codes = []
+            for temp_name, temp_eq in st[0]:
+                teq = sympy.sympify(temp_eq)
+                codes.append(ccode(teq, assign_to = temp_name))
+            codes.append(ccode(st[1], assign_to = assign_to))
+            return "\n".join(codes)
+
+        JtV_eq = sympy.sympify("0")
+        mdensity = sympy.sympify("mdensity")
+        T_energy = sympy.Symbol("T{0}[i]".format(self.energy_term.name) )
+
+        i = 0
+        for s2 in self.required_species:
+
+            vec    = sympy.sympify("v{0}".format(i))
+            newterm = sympy.diff(st,s2.symbol) * vec
+
+            if s1.name == "ge":
+                newterm /= mdensity
+            elif s2.name == "ge":
+                newterm *= T_energy
+
+            JtV_eq += newterm
+            i += 1
+        return ccode( JtV_eq , assign_to = assign_to)
+
+
+
     def print_mass_density(self):
         # Note: this assumes things are number density at this point
         eq = sympy.sympify("0")
@@ -178,22 +222,27 @@ class ChemicalNetwork(object):
                 eq += s.symbol * s.weight
         return ccode(eq)
 
-    def species_gamma(self, species):
-        if species.name == 'H2I' or species.name == 'H2II':
-            gamma = sympy.Symbol('gammaH2')
+
+    def species_gamma(self, species, temp=False):
+        if species.name == 'H2_1' or species.name == 'H2_2':
+            gammaH2 = sympy.Symbol('gammaH2')
+            if temp:
+                T = sympy.Symbol('T')
+                gammaH2 = 2.0 / (5.0 + 2.0* (6100.0/T)* (6100.0/T)* sympy.exp(6100.0/T) / ( (sympy.exp(6100.0/T) - 1.0) )**2.0 ) +1.0
+            return gammaH2
         else:
             gamma = sympy.Symbol('gamma')
         return gamma
 
-    def gamma_factor(self):
+    def gamma_factor(self, temp=False):
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
             if s.name != 'ge':
                 eq += (sympy.sympify(s.name)) / \
-                    (self.species_gamma(s) - 1.0)
+                    (self.species_gamma(s, temp=temp) - 1.0)
         return eq
 
-    def temperature_calculation(self, derivative=False):
+    def temperature_calculation(self, derivative=False, derivative_dge_dT=False, get_dge=False):
         # If derivative=True, returns the derivative of
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
@@ -205,9 +254,21 @@ class ChemicalNetwork(object):
         if derivative == True:
             deriv_eq = sympy.diff(function_eq, ge)
             return ccode(deriv_eq)
+        elif derivative_dge_dT == True:
+            # when H2 presents, the gamma is dependent on  temperature
+            # therefore temperature must iterate to a convergence for a given ge
+            # this part evaluates the derivatives of the function ge with respect to T
+            T = sympy.Symbol('T')
+            f = self.gamma_factor(temp=True) * sympy.Symbol('kb') * sympy.Symbol('T') \
+                    / sympy.Symbol('mh') / sympy.Symbol('density')
+            dge_dT = sympy.diff(f, T)
+            return ccode(dge_dT)
+        elif get_dge == True:
+            T = sympy.Symbol('T')
+            dge = self.gamma_factor(temp=True) * sympy.Symbol('kb') * T / sympy.Symbol('mh') / sympy.Symbol('density') - sympy.Symbol('ge')
+            return ccode(dge)
         else:
             return ccode(function_eq)
-        return ccode(eq)
 
     # This function computes the total number density
     def calculate_number_density(self, values, skip = ()):
@@ -294,12 +355,21 @@ class ChemicalNetwork(object):
             with open(oname ,"w") as f:
                 f.write(solver_out)
 
+        env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
+                loader = jinja2.PackageLoader("dengo", "solvers"))
+
         # Now we copy over anything else we might need.
         if ode_solver_source is not None:
-            src = pkgutil.get_data("dengo", os.path.join("solvers", ode_solver_source))
-            src = src.decode("utf-8")
+
+            #iname = os.path.join("solvers", ode_solver_source)
+            #src = pkgutil.get_data("dengo", iname)
+            #src = src.decode("utf-8")
+
+            template_inst = env.get_template(ode_solver_source)
+            solver_out = template_inst.render(**template_vars)
+
             with open(os.path.join(output_dir, ode_solver_source), "w") as f:
-                f.write(src)
+                f.write(solver_out)
         if solver_template.endswith(".c.template"):
             hfn = solver_template.rsplit(".", 2)[0] + ".h"
             src = pkgutil.get_data("dengo", os.path.join("templates", hfn))
