@@ -120,7 +120,6 @@ def Init_values(temperature, density, n_species = 6, cooling=True):
 def create_cvspils_solver(init, primordial, solver_name, cooling):
     # generate initial value array
     # create a chemical_network for the system
-    init, primordial = Init_values(np.array([1000.0]), np.array([1e5]), n_species = 9, cooling=cooling)
 
     # name of the solver
     pyximport.install(setup_args={"include_dirs":np.get_include()},
@@ -234,7 +233,25 @@ def calc_fftime(den):
     tff = numpy.sqrt(1.0 / u.G / rho).in_units('s')
     return tff
 
-success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20,
+
+def run_cvspils( temperature, density , total_t, init=None, primordial = None):
+
+    solver_name = 'cvspils_9species'
+    if init == None:
+        init, primordial = Init_values(np.array([temperature]), np.array([density]), n_species = 9)
+    chemistry_run = create_cvspils_solver(init, primordial, solver_name, cooling=True)
+    import timeit
+
+    tic = timeit.default_timer()
+    rv, rv_int = eval("chemistry_run.run_"+solver_name+"(init, total_t, niter=1e4)")
+    toc = timeit.default_timer()
+
+    run_time = toc - tic
+    return rv,rv_int, run_time
+
+
+if __name__ == "__main__":
+    success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20,
                                                     Ddim = 20 , n_species=9,
                                                     solver_name = "cvspils_9species_cooling",
                                                     cooling=True)

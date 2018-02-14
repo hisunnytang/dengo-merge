@@ -118,10 +118,6 @@ def Init_values(temperature, density, n_species = 9, cooling=True):
 
 
 def create_bechem_solver(init, primordial, solver_name, cooling):
-    # generate initial value array
-    # create a chemical_network for the system
-    init, primordial = Init_values(np.array([1000.0]), np.array([1e5]), n_species = 9, cooling=cooling)
-
     # name of the solver
     pyximport.install(setup_args={"include_dirs":np.get_include()},
                       reload_support=True, inplace=True)
@@ -245,11 +241,28 @@ def calc_fftime(den):
     return tff
 
 
-# initialize data dictionary
-solver_name = 'bechem_9species'
-init, primordial = Init_values(np.array([2000]), np.array([1e10]), n_species = 9)
-chemistry_run = create_bechem_solver(init, primordial, solver_name, cooling=True)
-success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20 ,
+def run_bechem( temperature, density , total_t, init=None, primordial=None):
+
+    solver_name = 'cvspils_9species'
+    if init == None:
+        init, primordial = Init_values(np.array([temperature]), np.array([density]), n_species = 9)
+    chemistry_run = create_bechem_solver(init, primordial, solver_name, cooling=True)
+    import timeit
+
+    tic = timeit.default_timer()
+    rv, rv_int = eval("chemistry_run.run_"+solver_name+"(init, total_t, niter=1e4)")
+    toc = timeit.default_timer()
+
+    run_time = toc - tic
+    return rv,rv_int, run_time
+
+
+if __name__ == '__main__':
+    # initialize data dictionary
+    solver_name = 'bechem_9species'
+    init, primordial = Init_values(np.array([2000]), np.array([1e10]), n_species = 9)
+    chemistry_run = create_bechem_solver(init, primordial, solver_name, cooling=True)
+    success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20 ,
                                                                       Ddim = 20 ,
                                                                       n_species=9,
                                                                       solver_name = "bechem_9species",
