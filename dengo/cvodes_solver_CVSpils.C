@@ -163,11 +163,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
 
 
     if (flag == CV_TOO_MUCH_WORK){
-        /* The initial time t0 and the final time tout 
-         * are too close to each other
-         * and the user did not specify an initial step size
-         */
-        dt_now[0] = tout;
+        /* The solver took mxstep internal steps but still could not reach tout */
         return 1;
     }
     
@@ -175,7 +171,6 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
          */
-        dt_now[0] = tout;
         return 1;
     } 
     if (flag == CV_TOO_CLOSE){

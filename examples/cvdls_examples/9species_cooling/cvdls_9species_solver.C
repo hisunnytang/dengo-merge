@@ -48,6 +48,9 @@ cvdls_9species_data *cvdls_9species_setup_data(
 
     cvdls_9species_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    
+    cvdls_9species_read_gamma(data);
+    fprintf(stderr, "Successfully read in gamma tables. \n");
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
         NumberOfFields[0] = 10;
@@ -601,6 +604,8 @@ void cvdls_9species_read_cooling_tables(cvdls_9species_data *data)
                             data->c_ceHeII_ceHeII);
     H5LTread_dataset_double(file_id, "/ceHI_ceHI",
                             data->c_ceHI_ceHI);
+    H5LTread_dataset_double(file_id, "/cie_cooling_cieco",
+                            data->c_cie_cooling_cieco);
     H5LTread_dataset_double(file_id, "/ciHeI_ciHeI",
                             data->c_ciHeI_ciHeI);
     H5LTread_dataset_double(file_id, "/ciHeII_ciHeII",
@@ -651,6 +656,25 @@ void cvdls_9species_read_cooling_tables(cvdls_9species_data *data)
     H5Fclose(file_id);
 }
 
+void cvdls_9species_read_gamma(cvdls_9species_data *data)
+{
+
+    hid_t file_id = H5Fopen("cvdls_9species_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    H5LTread_dataset_double(file_id, "/gammaH2_1",
+                            data->g_gammaH2_1 );
+    H5LTread_dataset_double(file_id, "/dgammaH2_1_dT",
+                            data->g_dgammaH2_1_dT );   
+    
+    H5LTread_dataset_double(file_id, "/gammaH2_2",
+                            data->g_gammaH2_2 );
+    H5LTread_dataset_double(file_id, "/dgammaH2_2_dT",
+                            data->g_dgammaH2_2_dT );   
+    
+
+    H5Fclose(file_id);
+
+}
  
 
 
@@ -670,8 +694,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
     
 
     
-
-
+    
     /* Calculate total density */
     double H2_1;
     double H2_2;
@@ -736,38 +759,63 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         
         // Initiate the "guess" temperature
         T = data->Ts[i];
-        Tnew = T + 10.0;
+        Tnew = T + 1.0;
         double dge_dT;
         double dge;
+
         
+
+        double gammaH2_1;
+        double dgammaH2_1_dT;
+        
+
+        double gammaH2_2;
+        double dgammaH2_2_dT;
+        
+       
         while ( abs(T - Tnew) > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
         // Since gammaH2 is dependent on the temperature too!
+
         T = Tnew;
+        
+
+        
+
+        // update gammaH2 
+        x = 6100.0 / T;
+        expx = exp(x);
+        gammaH2 = 2.0 / (5.0 + 2.0 *x*x* expx/ (expx - 1.0) / (expx - 1.0) ) + 1.0;
+        
+        gammaH2_1 = gammaH2;
+        dgammaH2_1_dT = 0.0;
+        
+        gammaH2_2 = gammaH2;
+        dgammaH2_2_dT = 0.0;
+        
+        
 
         // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
         // This is the function we want to minimize
         // which should only be dependent on the first part
-        dge_dT = T*kb*(H2_1*(-74420000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 3) + 453962000000.0*pow(exp(6100.0/T) - 1.0, -3.0)*exp(12200.0/T)/pow(T, 4) - 226981000000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 4)) + H2_2*(-74420000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 3) + 453962000000.0*pow(exp(6100.0/T) - 1.0, -3.0)*exp(12200.0/T)/pow(T, 4) - 226981000000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 4)))/(density*mh) + kb*(H2_1*(2.5 + 37210000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 2)) + H2_2*(2.5 + 37210000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 2)) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh);
+        dge_dT = T*kb*(-H2_1*dgammaH2_1_dT/pow(gammaH2_1 - 1.0, 2) - H2_2*dgammaH2_2_dT/pow(gammaH2_2 - 1.0, 2))/(density*mh) + kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh);
         
         //This is the change in ge for each iteration
-        dge = T*kb*(H2_1*(2.5 + 37210000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 2)) + H2_2*(2.5 + 37210000.0*pow(exp(6100.0/T) - 1.0, -2.0)*exp(6100.0/T)/pow(T, 2)) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh) - ge;
+        dge = T*kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh) - ge;
 
         Tnew = T - dge/dge_dT;
-        //fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dT: %.5g, dge: %.5g \n", T,Tnew, dge/dge_dT, dge);
-        }
-        //fprintf(stderr,"---------------------\n");
         data->Ts[i] = Tnew;
-        
-        // Simplest Implementation: Assume a constant gammaH2
-        //double gammaH2 = 7./5.;
-        //data->Ts[i] = density*ge*mh/(kb*(H2_1/(gammaH2 - 1.0) + H2_2/(gammaH2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0)));
-        
-        
+
+        // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
+        }
+        // fprintf(stderr,"---------------------\n");
+        data->Ts[i] = Tnew;
+
+
+        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+
 
         
-        
-        //fprintf(stderr, "T: %0.16g \n", data->Ts[i] );
 
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
@@ -1071,6 +1119,15 @@ void cvdls_9species_interpolate_rates(cvdls_9species_data *data,
     
     for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
+        data->cs_cie_cooling_cieco[i] = data->c_cie_cooling_cieco[bin_id] +
+            data->Tdef[i] * (data->c_cie_cooling_cieco[bin_id+1] - data->c_cie_cooling_cieco[bin_id]);
+        data->dcs_cie_cooling_cieco[i] = (data->c_cie_cooling_cieco[bin_id+1] - data->c_cie_cooling_cieco[bin_id]);;
+        data->dcs_cie_cooling_cieco[i] /= data->dT[i];
+	data->dcs_cie_cooling_cieco[i] *= data->invTs[i];
+    }
+    
+    for (i = 0; i < nstrip; i++) {
+        bin_id = data->bin_id[i];
         data->cs_ciHeI_ciHeI[i] = data->c_ciHeI_ciHeI[bin_id] +
             data->Tdef[i] * (data->c_ciHeI_ciHeI[bin_id+1] - data->c_ciHeI_ciHeI[bin_id]);
         data->dcs_ciHeI_ciHeI[i] = (data->c_ciHeI_ciHeI[bin_id+1] - data->c_ciHeI_ciHeI[bin_id]);;
@@ -1268,6 +1325,58 @@ void cvdls_9species_interpolate_rates(cvdls_9species_data *data,
 
 }
  
+
+
+void cvdls_9species_interpolate_gamma(cvdls_9species_data *data,
+                    int i)
+{   
+
+    /*
+     * find the bin_id for the given temperature 
+     * update dT for i_th strip
+     */
+
+    int bin_id, zbin_id;
+    double lb, t1, t2;
+    double lbz, z1, z2;
+    int no_photo = 0;
+    lb = log(data->bounds[0]);
+    lbz = log(data->z_bounds[0] + 1.0);
+    
+    data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
+    if (data->bin_id[i] <= 0) {
+        data->bin_id[i] = 0;
+    } else if (data->bin_id[i] >= data->nbins) {
+        data->bin_id[i] = data->nbins - 1;
+    }
+    t1 = (lb + (bin_id    ) * data->dbin);
+    t2 = (lb + (bin_id + 1) * data->dbin);
+    data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
+    data->dT[i] = (t2 - t1);
+
+    
+    
+    bin_id = data->bin_id[i];
+    data->gammaH2_2[i] = data->g_gammaH2_2[bin_id] +
+        data->Tdef[i] * (data->g_gammaH2_2[bin_id+1] - data->g_gammaH2_2[bin_id]);
+
+    data->dgammaH2_2_dT[i] = data->g_dgammaH2_2_dT[bin_id] +
+        data->Tdef[i] * (data->g_dgammaH2_2_dT[bin_id+1] 
+        - data->g_dgammaH2_2_dT[bin_id]);
+    
+    
+    bin_id = data->bin_id[i];
+    data->gammaH2_1[i] = data->g_gammaH2_1[bin_id] +
+        data->Tdef[i] * (data->g_gammaH2_1[bin_id+1] - data->g_gammaH2_1[bin_id]);
+
+    data->dgammaH2_1_dT[i] = data->g_dgammaH2_1_dT[bin_id] +
+        data->Tdef[i] * (data->g_dgammaH2_1_dT[bin_id+1] 
+        - data->g_dgammaH2_1_dT[bin_id]);
+    
+       
+    }
+
+
 
 
 
@@ -1511,7 +1620,7 @@ int calculate_jacobian_cvdls_9species
 
     cvdls_9species_calculate_temperature(data, y_arr, nstrip, nchem);
 
-    cvdls_9species_interpolate_rates(data, nstrip);
+    // cvdls_9species_interpolate_rates(data, nstrip);
 
     /* Now We set up some temporaries */
 
@@ -1568,6 +1677,8 @@ int calculate_jacobian_cvdls_9species
     double *rceHeII_ceHeII = data->dcs_ceHeII_ceHeII;
     double *ceHI_ceHI = data->cs_ceHI_ceHI;
     double *rceHI_ceHI = data->dcs_ceHI_ceHI;
+    double *cie_cooling_cieco = data->cs_cie_cooling_cieco;
+    double *rcie_cooling_cieco = data->dcs_cie_cooling_cieco;
     double *ciHeI_ciHeI = data->cs_ciHeI_ciHeI;
     double *rciHeI_ciHeI = data->dcs_ciHeI_ciHeI;
     double *ciHeII_ciHeII = data->cs_ciHeII_ciHeII;
@@ -1642,7 +1753,7 @@ int calculate_jacobian_cvdls_9species
         H2_1 = Ith( y, 1  )*scale;
         //fprintf(stderr,"from jac: H2_1 = %.3g\n, Ith(y1) = %.3g \n" , H2_1, Ith(y,1 ) );
         
-        mdensity += H2_1;
+        mdensity += H2_1 * 2.01588;
         
 
         j++;
@@ -1651,7 +1762,7 @@ int calculate_jacobian_cvdls_9species
         H2_2 = Ith( y, 2  )*scale;
         //fprintf(stderr,"from jac: H2_2 = %.3g\n, Ith(y2) = %.3g \n" , H2_2, Ith(y,2 ) );
         
-        mdensity += H2_2;
+        mdensity += H2_2 * 2.01588;
         
 
         j++;
@@ -1660,7 +1771,7 @@ int calculate_jacobian_cvdls_9species
         H_1 = Ith( y, 3  )*scale;
         //fprintf(stderr,"from jac: H_1 = %.3g\n, Ith(y3) = %.3g \n" , H_1, Ith(y,3 ) );
         
-        mdensity += H_1;
+        mdensity += H_1 * 1.00794;
         
 
         j++;
@@ -1669,7 +1780,7 @@ int calculate_jacobian_cvdls_9species
         H_2 = Ith( y, 4  )*scale;
         //fprintf(stderr,"from jac: H_2 = %.3g\n, Ith(y4) = %.3g \n" , H_2, Ith(y,4 ) );
         
-        mdensity += H_2;
+        mdensity += H_2 * 1.00794;
         
 
         j++;
@@ -1678,7 +1789,7 @@ int calculate_jacobian_cvdls_9species
         H_m0 = Ith( y, 5  )*scale;
         //fprintf(stderr,"from jac: H_m0 = %.3g\n, Ith(y5) = %.3g \n" , H_m0, Ith(y,5 ) );
         
-        mdensity += H_m0;
+        mdensity += H_m0 * 1.00794;
         
 
         j++;
@@ -1687,7 +1798,7 @@ int calculate_jacobian_cvdls_9species
         He_1 = Ith( y, 6  )*scale;
         //fprintf(stderr,"from jac: He_1 = %.3g\n, Ith(y6) = %.3g \n" , He_1, Ith(y,6 ) );
         
-        mdensity += He_1;
+        mdensity += He_1 * 4.002602;
         
 
         j++;
@@ -1696,7 +1807,7 @@ int calculate_jacobian_cvdls_9species
         He_2 = Ith( y, 7  )*scale;
         //fprintf(stderr,"from jac: He_2 = %.3g\n, Ith(y7) = %.3g \n" , He_2, Ith(y,7 ) );
         
-        mdensity += He_2;
+        mdensity += He_2 * 4.002602;
         
 
         j++;
@@ -1705,7 +1816,7 @@ int calculate_jacobian_cvdls_9species
         He_3 = Ith( y, 8  )*scale;
         //fprintf(stderr,"from jac: He_3 = %.3g\n, Ith(y8) = %.3g \n" , He_3, Ith(y,8 ) );
         
-        mdensity += He_3;
+        mdensity += He_3 * 4.002602;
         
 
         j++;
@@ -1837,7 +1948,7 @@ int calculate_jacobian_cvdls_9species
         
         // ge by H2_1
         
-        IJth(J, 10, 1 ) = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - H_1*h2formation_h2mcool[i]/(h2formation_ncrn[i]*nH/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + h2formation_ncrd2[i]*h2formation_ncrn[i]*nH*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/(pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2)*pow(h2formation_ncrn[i]*nH/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, 2));
+        IJth(J, 10, 1 ) = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - cie_cooling_cieco[i]*mdensity*mh - gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2);
         
         scale2 = data->scale[10 - 1];
         scale1 = data->scale[1 - 1];
@@ -2071,7 +2182,7 @@ int calculate_jacobian_cvdls_9species
         
         // ge by H_1
         
-        IJth(J, 10, 3 ) = -H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + h2formation_ncrd1[i]*h2formation_ncrn[i]*nH*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/(pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2)*pow(h2formation_ncrn[i]*nH/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, 2)) + (-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])/(h2formation_ncrn[i]*nH/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0);
+        IJth(J, 10, 3 ) = -H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) + 0.5*(-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0);
         
         scale2 = data->scale[10 - 1];
         scale1 = data->scale[3 - 1];
@@ -2973,7 +3084,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // fprintf(stderr, "scale: %.3g \n", data->scale[9]);
 
     cvdls_9species_calculate_temperature(data, y_arr , nstrip, nchem );
-    cvdls_9species_interpolate_rates(data, nstrip);
+    // cvdls_9species_interpolate_rates(data, nstrip);
 
 
     /* Now we set up some temporaries */
@@ -3003,6 +3114,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     double *ceHeI_ceHeI = data->cs_ceHeI_ceHeI;
     double *ceHeII_ceHeII = data->cs_ceHeII_ceHeII;
     double *ceHI_ceHI = data->cs_ceHI_ceHI;
+    double *cie_cooling_cieco = data->cs_cie_cooling_cieco;
     double *ciHeI_ciHeI = data->cs_ciHeI_ciHeI;
     double *ciHeII_ciHeII = data->cs_ciHeII_ciHeII;
     double *ciHeIS_ciHeIS = data->cs_ciHeIS_ciHeIS;
@@ -3052,7 +3164,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     H2_1 = Ith( y,1 )*scale;
     jj++;
     
-    mdensity += H2_1;
+    mdensity += H2_1 * 2.01588;
     
 
 
@@ -3061,7 +3173,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     H2_2 = Ith( y,2 )*scale;
     jj++;
     
-    mdensity += H2_2;
+    mdensity += H2_2 * 2.01588;
     
 
 
@@ -3070,7 +3182,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     H_1 = Ith( y,3 )*scale;
     jj++;
     
-    mdensity += H_1;
+    mdensity += H_1 * 1.00794;
     
 
 
@@ -3079,7 +3191,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     H_2 = Ith( y,4 )*scale;
     jj++;
     
-    mdensity += H_2;
+    mdensity += H_2 * 1.00794;
     
 
 
@@ -3088,7 +3200,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     H_m0 = Ith( y,5 )*scale;
     jj++;
     
-    mdensity += H_m0;
+    mdensity += H_m0 * 1.00794;
     
 
 
@@ -3097,7 +3209,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     He_1 = Ith( y,6 )*scale;
     jj++;
     
-    mdensity += He_1;
+    mdensity += He_1 * 4.002602;
     
 
 
@@ -3106,7 +3218,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     He_2 = Ith( y,7 )*scale;
     jj++;
     
-    mdensity += He_2;
+    mdensity += He_2 * 4.002602;
     
 
 
@@ -3115,7 +3227,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     He_3 = Ith( y,8 )*scale;
     jj++;
     
-    mdensity += He_3;
+    mdensity += He_3 * 4.002602;
     
 
 
@@ -3143,7 +3255,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: H2_1
     //
     Ith(ydot, 1) = k08[i]*H_1*H_m0 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k12[i]*H2_1*de - k13[i]*H2_1*H_1 + k19[i]*H2_2*H_m0 + k21[i]*H2_1*pow(H_1, 2) + k22[i]*pow(H_1, 3) - k23[i]*pow(H2_1, 2);
-    
+ 
     scale = data->scale[1 - 1];
     Ith(ydot, 1) /= scale;
 
@@ -3153,7 +3265,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: H2_2
     //
     Ith(ydot, 2) = k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de - k19[i]*H2_2*H_m0;
-    
+ 
     scale = data->scale[2 - 1];
     Ith(ydot, 2) /= scale;
 
@@ -3163,7 +3275,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: H_1
     //
     Ith(ydot, 3) = -k01[i]*H_1*de + k02[i]*H_2*de - k07[i]*H_1*de - k08[i]*H_1*H_m0 - k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + 2*k12[i]*H2_1*de + 2*k13[i]*H2_1*H_1 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + 2*k16[i]*H_2*H_m0 + 2*k18[i]*H2_2*de + k19[i]*H2_2*H_m0 - 2*k21[i]*H2_1*pow(H_1, 2) - 2*k22[i]*pow(H_1, 3) + 2*k23[i]*pow(H2_1, 2);
-    
+ 
     scale = data->scale[3 - 1];
     Ith(ydot, 3) /= scale;
 
@@ -3173,7 +3285,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: H_2
     //
     Ith(ydot, 4) = k01[i]*H_1*de - k02[i]*H_2*de - k09[i]*H_1*H_2 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0;
-    
+ 
     scale = data->scale[4 - 1];
     Ith(ydot, 4) /= scale;
 
@@ -3183,7 +3295,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: H_m0
     //
     Ith(ydot, 5) = k07[i]*H_1*de - k08[i]*H_1*H_m0 - k14[i]*H_m0*de - k15[i]*H_1*H_m0 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0 - k19[i]*H2_2*H_m0;
-    
+ 
     scale = data->scale[5 - 1];
     Ith(ydot, 5) /= scale;
 
@@ -3193,7 +3305,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: He_1
     //
     Ith(ydot, 6) = -k03[i]*He_1*de + k04[i]*He_2*de;
-    
+ 
     scale = data->scale[6 - 1];
     Ith(ydot, 6) /= scale;
 
@@ -3203,7 +3315,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: He_2
     //
     Ith(ydot, 7) = k03[i]*He_1*de - k04[i]*He_2*de - k05[i]*He_2*de + k06[i]*He_3*de;
-    
+ 
     scale = data->scale[7 - 1];
     Ith(ydot, 7) /= scale;
 
@@ -3213,7 +3325,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: He_3
     //
     Ith(ydot, 8) = k05[i]*He_2*de - k06[i]*He_3*de;
-    
+ 
     scale = data->scale[8 - 1];
     Ith(ydot, 8) /= scale;
 
@@ -3223,7 +3335,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     // Species: de
     //
     Ith(ydot, 9) = k01[i]*H_1*de - k02[i]*H_2*de + k03[i]*He_1*de - k04[i]*He_2*de + k05[i]*He_2*de - k06[i]*He_3*de - k07[i]*H_1*de + k08[i]*H_1*H_m0 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de;
-    
+ 
     scale = data->scale[9 - 1];
     Ith(ydot, 9) /= scale;
 
@@ -3232,8 +3344,8 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     // Species: ge
     //
-    Ith(ydot, 10) = -H2_1*gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*de - H_1*ciHI_ciHI[i]*de - H_2*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*de - He_2*ceHeII_ceHeII[i]*de - He_2*ceHeI_ceHeI[i]*pow(de, 2) - He_2*ciHeII_ciHeII[i]*de - He_2*ciHeIS_ciHeIS[i]*pow(de, 2) - He_2*de*reHeII1_reHeII1[i] - He_2*de*reHeII2_reHeII2[i] - He_3*de*reHeIII_reHeIII[i] - brem_brem[i]*de*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + (-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/(h2formation_ncrn[i]*nH/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0);
-    
+    Ith(ydot, 10) = (-H2_1*cie_cooling_cieco[i]*mdensity*mh - H2_1*gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*de - H_1*ciHI_ciHI[i]*de - H_2*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*de - He_2*ceHeII_ceHeII[i]*de - He_2*ceHeI_ceHeI[i]*pow(de, 2) - He_2*ciHeII_ciHeII[i]*de - He_2*ciHeIS_ciHeIS[i]*pow(de, 2) - He_2*de*reHeII1_reHeII1[i] - He_2*de*reHeII2_reHeII2[i] - He_3*de*reHeIII_reHeIII[i] - brem_brem[i]*de*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]))*fmin(1.00000000000000, (1.0 - exp(-fmax(1.00000000000000e-5, mdensity)))/fmax(1.00000000000000e-5, mdensity));
+ 
     scale = data->scale[10 - 1];
     Ith(ydot, 10) /= scale;
 
@@ -3241,6 +3353,6 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     Ith(ydot, 10) /= mdensity;
     
     
-    
+    // fprintf(stderr, "k22: %0.5g, T: %0.5g \n", k22[i], T);
     return 0;
-}
+    }

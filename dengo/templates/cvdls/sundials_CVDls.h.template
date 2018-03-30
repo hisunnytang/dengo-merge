@@ -54,7 +54,7 @@ int {{solver_name}}_main(int argc, char **argv);
 
 {% block data_structs_for_rates %}
 
-typedef struct sundials_time_data {
+typedef struct {{solver_name}}_data {
     /* All of the network bins will be the same width */
     double dbin;
     double idbin;
@@ -108,16 +108,28 @@ typedef struct sundials_time_data {
     int bin_id[MAX_NCELLS];
     int ncells;
 
+    {%- for sp in network.interpolate_gamma_species_name | sort %}
+    double g_gamma{{sp}}[{{network.T | length}}];
+    double g_dgamma{{sp}}_dT[{{network.T | length}}];
+
+
+    double gamma{{sp}}[MAX_NCELLS];
+    double dgamma{{sp}}_dT[MAX_NCELLS];
+    {% endfor %}
+
     double scale[{{network.required_species | length}}];
 } {{ solver_name }}_data;
 
-sundials_time_data *{{solver_name}}_setup_data(int *, char***);
-void {{ solver_name }}_read_rate_tables(sundials_time_data*);
-void {{ solver_name }}_read_cooling_tables(sundials_time_data*);
+{{solver_name}}_data *{{solver_name}}_setup_data(int *, char***);
+void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
+void {{ solver_name }}_read_gamma({{solver_name}}_data*);
+void {{solver_name}}_interpolate_gamma({{solver_name}}_data*, int );
+
 double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *input, double *rtol,
                                      double *atol, long long dims,
-                                     sundials_time_data *data);
+                                     {{solver_name}}_data *data);
 {% endblock %} {# data_struct_for_rates #}
 
 

@@ -54,7 +54,7 @@ int cvdls_9species_main(int argc, char **argv);
 
 
 
-typedef struct sundials_time_data {
+typedef struct cvdls_9species_data {
     /* All of the network bins will be the same width */
     double dbin;
     double idbin;
@@ -185,6 +185,10 @@ typedef struct sundials_time_data {
     double cs_ceHI_ceHI[MAX_NCELLS];
     double dcs_ceHI_ceHI[MAX_NCELLS];
     
+    double c_cie_cooling_cieco[1024];
+    double cs_cie_cooling_cieco[MAX_NCELLS];
+    double dcs_cie_cooling_cieco[MAX_NCELLS];
+    
     double c_ciHeI_ciHeI[1024];
     double cs_ciHeI_ciHeI[MAX_NCELLS];
     double dcs_ciHeI_ciHeI[MAX_NCELLS];
@@ -268,17 +272,34 @@ typedef struct sundials_time_data {
     
     int bin_id[MAX_NCELLS];
     int ncells;
+    double g_gammaH2_1[1024];
+    double g_dgammaH2_1_dT[1024];
+
+
+    double gammaH2_1[MAX_NCELLS];
+    double dgammaH2_1_dT[MAX_NCELLS];
+    
+    double g_gammaH2_2[1024];
+    double g_dgammaH2_2_dT[1024];
+
+
+    double gammaH2_2[MAX_NCELLS];
+    double dgammaH2_2_dT[MAX_NCELLS];
+    
 
     double scale[10];
 } cvdls_9species_data;
 
-sundials_time_data *cvdls_9species_setup_data(int *, char***);
-void cvdls_9species_read_rate_tables(sundials_time_data*);
-void cvdls_9species_read_cooling_tables(sundials_time_data*);
+cvdls_9species_data *cvdls_9species_setup_data(int *, char***);
+void cvdls_9species_read_rate_tables(cvdls_9species_data*);
+void cvdls_9species_read_cooling_tables(cvdls_9species_data*);
+void cvdls_9species_read_gamma(cvdls_9species_data*);
+void cvdls_9species_interpolate_gamma(cvdls_9species_data*, int );
+
 double dengo_evolve_cvdls_9species (double dtf, double &dt, double z,
                                      double *input, double *rtol,
                                      double *atol, long long dims,
-                                     sundials_time_data *data);
+                                     cvdls_9species_data *data);
  
 
 
@@ -302,6 +323,9 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 void ensure_electron_consistency(double *input, int nstrip, int nchem);
 void temperature_from_mass_density(double *input, int nstrip, int nchem, 
                                    double *strip_temperature);
+
+void cvdls_9species_interpolate_rates( void *sdata, int nstrip);
+
 
 
 

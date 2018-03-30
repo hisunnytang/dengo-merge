@@ -48,6 +48,9 @@
 
     {{ solver_name }}_read_cooling_tables(data);
     fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    
+    {{ solver_name }}_read_gamma(data);
+    fprintf(stderr, "Successfully read in gamma tables. \n");
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
         NumberOfFields[0] = {{network.required_species | length}};
@@ -315,6 +318,23 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
     H5Fclose(file_id);
 }
 
+void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
+{
+
+    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    
+
+    {%- for sp in network.interpolate_gamma_species_name | sort %}
+    H5LTread_dataset_double(file_id, "/gamma{{sp}}",
+                            data->g_gamma{{sp}} );
+    H5LTread_dataset_double(file_id, "/dgamma{{sp}}_dT",
+                            data->g_dgamma{{sp}}_dT );   
+    {% endfor %}
+
+    H5Fclose(file_id);
+
+}
 {% endblock %} {# read_tables #}
 
 {% block calculate_temperature %}
@@ -334,8 +354,7 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     {% endif %}
 
     
-
-
+    
     /* Calculate total density */
 
     {%- for species in network.required_species | sort %}
@@ -359,14 +378,42 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         
         // Initiate the "guess" temperature
         T = data->Ts[i];
-        Tnew = T + 10.0;
+        Tnew = T + 1.0;
         double dge_dT;
         double dge;
+
+        {% for sp in network.interpolate_gamma_species_name | sort %}
+
+        double gamma{{sp}};
+        double dgamma{{sp}}_dT;
+        {% endfor %}
+        
         
         while ( abs(T - Tnew) > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
         // Since gammaH2 is dependent on the temperature too!
+
         T = Tnew;
+        
+        {{ solver_name }}_interpolate_gamma(data, i);
+        {% for sp in network.interpolate_gamma_species_name | sort %}
+        gamma{{sp}} = data->gamma{{sp}}[i];
+        dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[i];
+        // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
+        {% endfor %}
+       
+        
+        // update gammaH2
+
+        {#
+        x = 6100.0 / T;
+        expx = exp(x);
+        gammaH2 = 2.0 / (5.0 + 2.0 *x*x* expx/ (expx - 1.0) / (expx - 1.0) ) + 1.0;
+        {% for sp in network.interpolate_gamma_species_name | sort %}
+        gamma{{sp}} = gammaH2;
+        dgamma{{sp}}_dT = 0.0;
+        {% endfor %}
+        #}
 
         // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
         // This is the function we want to minimize
@@ -377,31 +424,20 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         dge = {{network.temperature_calculation(get_dge=True)}};
 
         Tnew = T - dge/dge_dT;
-        //fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dT: %.5g, dge: %.5g \n", T,Tnew, dge/dge_dT, dge);
-        }
-        //fprintf(stderr,"---------------------\n");
         data->Ts[i] = Tnew;
-        
-        // Simplest Implementation: Assume a constant gammaH2
-        //double gammaH2 = 7./5.;
-        //data->Ts[i] = {{network.temperature_calculation()}};
-        
-        {#
-        while ( abs(T - Tnew) > 0.01 ){
-        T = data->Ts[i];
-        x = 6100.0 / T;
-        expx = exp(x);
-        gammaH2 = 2.0 / (5.0 + 2.0 *x*x* expx/ (expx - 1.0) / (expx - 1.0) ) + 1.0;
-        Tnew = {{ network.temperature_calculation() }};
-        data->Ts[i] = Tnew;
+
+        // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
         }
-        #}
+        // fprintf(stderr,"---------------------\n");
+        data->Ts[i] = Tnew;
+
+
+        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+
 
         {% else %}
         data->Ts[i] = {{network.temperature_calculation()}};
         {% endif %}
-        
-        //fprintf(stderr, "T: %0.16g \n", data->Ts[i] );
 
         if (data->Ts[i] < data->bounds[0]) {
             data->Ts[i] = data->bounds[0];
@@ -523,6 +559,49 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
 
 }
 {% endblock %} {# interpolate_rates #}
+
+{% block interpolate_gamma %}
+void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
+                    int i)
+{   
+
+    /*
+     * find the bin_id for the given temperature 
+     * update dT for i_th strip
+     */
+
+    int bin_id, zbin_id;
+    double lb, t1, t2;
+    double lbz, z1, z2;
+    int no_photo = 0;
+    lb = log(data->bounds[0]);
+    lbz = log(data->z_bounds[0] + 1.0);
+    
+    data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
+    if (data->bin_id[i] <= 0) {
+        data->bin_id[i] = 0;
+    } else if (data->bin_id[i] >= data->nbins) {
+        data->bin_id[i] = data->nbins - 1;
+    }
+    t1 = (lb + (bin_id    ) * data->dbin);
+    t2 = (lb + (bin_id + 1) * data->dbin);
+    data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
+    data->dT[i] = (t2 - t1);
+
+    {% for sp in network.interpolate_gamma_species_name%}
+    
+    bin_id = data->bin_id[i];
+    data->gamma{{sp}}[i] = data->g_gamma{{sp}}[bin_id] +
+        data->Tdef[i] * (data->g_gamma{{sp}}[bin_id+1] - data->g_gamma{{sp}}[bin_id]);
+
+    data->dgamma{{sp}}_dT[i] = data->g_dgamma{{sp}}_dT[bin_id] +
+        data->Tdef[i] * (data->g_dgamma{{sp}}_dT[bin_id+1] 
+        - data->g_dgamma{{sp}}_dT[bin_id]);
+    {% endfor %}
+       
+    }
+
+{% endblock interpolate_gamma%}
 
 
 {% block ensure_electron_consistency %}
@@ -668,7 +747,7 @@ int calculate_jacobian_{{solver_name}}
         {{species.name}} = Ith( y, {{loop.index }}  )*scale;
         //fprintf(stderr,"from jac: {{species.name}} = %.3g\n, Ith(y{{loop.index}}) = %.3g \n" , {{species.name}}, Ith(y,{{loop.index}} ) );
         {%if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
-        mdensity += {{species.name}};
+        mdensity += {{species.name}} * {{species.weight}};
         {% endif %}
 
         j++;
@@ -768,7 +847,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     {{species.name}} = Ith( y,{{loop.index }} )*scale;
     jj++;
     {% if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
-    mdensity += {{species.name}};
+    mdensity += {{species.name}} * {{species.weight}};
     {% endif %}
 
 
@@ -786,7 +865,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     // Species: {{species.name}}
     //
     {{network.print_ccode(species, assign_to="Ith(ydot, {})".format(loop.index) ) }}
-    
+ 
     scale = data->scale[{{loop.index}} - 1];
     Ith(ydot, {{loop.index}}) /= scale;
 
@@ -794,7 +873,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     Ith(ydot, {{loop.index}}) /= mdensity;
     {% endif %}
     {% endfor %}
-    
+    // fprintf(stderr, "k22: %0.5g, T: %0.5g \n", k22[i], T);
     return 0;
-}
+    }
 {% endblock %}

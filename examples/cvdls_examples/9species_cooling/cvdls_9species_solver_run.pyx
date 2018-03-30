@@ -518,6 +518,10 @@ cdef extern from "cvdls_9species_solver.h":
         double cs_ceHI_ceHI[MAX_NCELLS]
         double dcs_ceHI_ceHI[MAX_NCELLS]
         
+        double c_cie_cooling_cieco[1024]
+        double cs_cie_cooling_cieco[MAX_NCELLS]
+        double dcs_cie_cooling_cieco[MAX_NCELLS]
+        
         double c_ciHeI_ciHeI[1024]
         double cs_ciHeI_ciHeI[MAX_NCELLS]
         double dcs_ciHeI_ciHeI[MAX_NCELLS]
@@ -611,6 +615,8 @@ cdef extern from "cvdls_9species_solver.h":
             char ***FieldNames)
     void cvdls_9species_read_rate_tables(cvdls_9species_data*)
     void cvdls_9species_read_cooling_tables(cvdls_9species_data*)
+    void cvdls_9species_read_gamma(cvdls_9species_data*)
+
     double dengo_evolve_cvdls_9species (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
@@ -630,7 +636,8 @@ cdef extern from "cvdls_9species_solver.h":
     
     int cvodes_main_solver( rhs_f f, jac_f jf, double *input, double *rtol, double *atol, int nchem, void *sdata, double *dt_now);
 
-
+    void cvdls_9species_interpolate_rates( void *sdata, int nstrip);
+ 
 
 def main_run_cvdls_9species():
     t1 = time.time()
@@ -763,6 +770,7 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     cdef rhs_f f = calculate_rhs_cvdls_9species
     cdef jac_f jf = calculate_jacobian_cvdls_9species
 
+
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
@@ -790,6 +798,8 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     for i in range(dims):
         data.Ts[i] = ics['T'][i]
         print("initial  temperature: %.3E" %data.Ts[i])
+    
+    cvdls_9species_interpolate_rates( cvdls_9species_data *data,  1)
 
 
     for iter in range(niter):

@@ -31,6 +31,7 @@ import os
 import jinja2
 import h5py
 from sympy.printing import ccode
+from sympy.utilities import lambdify
 
 ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name = "Electrons")
@@ -50,6 +51,13 @@ class ChemicalNetwork(object):
         self.required_species.add(self.energy_term)
         self.stop_time = stop_time
         self.z_bounds = (0.0, 0.0)
+
+
+
+        # create a list of species where gamma has to be
+        # integrate / calculate separately
+        self.interpolate_gamma_species = set([])
+        self.interpolate_gamma_species_name = set(['H2_1', 'H2_2'])
 
         self.threebody = 4
         self.cie_cooling = 1
@@ -73,8 +81,14 @@ class ChemicalNetwork(object):
         if auto_add:
             for n, s in reaction.left_side:
                 self.required_species.add(s)
+
+                if s.name in self.interpolate_gamma_species_name:
+                    self.interpolate_gamma_species.add(s)
             for n, s in reaction.right_side:
                 self.required_species.add(s)
+
+                if s.name in self.interpolate_gamma_species_name:
+                    self.interpolate_gamma_species.add(s)
         else:
             for n, s in reaction.left_side:
                 if s not in self.required_species:
@@ -85,6 +99,8 @@ class ChemicalNetwork(object):
         self.reactions[reaction.name] = reaction
         reaction.coeff_sym.energy = self.energy_term
         print ("Adding reaction: %s" % reaction)
+
+
 
     def add_cooling(self, cooling_term, auto_add = True):
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
@@ -152,7 +168,20 @@ class ChemicalNetwork(object):
         for term in self.cooling_actions:
             eq += self.cooling_actions[term].equation
 
+        if self.cie_cooling == 1:
+            cie_fudge = self.cie_optical_depth_correction()
+            eq = eq*cie_fudge
+
         return ccode(eq, assign_to = assign_to)
+
+    def cie_optical_depth_correction(self):
+        ciefudge = 1.0
+
+        mdensity = sympy.Symbol('mdensity')
+        tau = ( mdensity/ 1.96e16 )**2.0
+        tau = sympy.Max( mdensity, 1e-5 )
+        ciefudge = sympy.Min((1.0 - sympy.exp(-tau))/ tau, 1.0)
+        return ciefudge
 
     def print_jacobian_component(self, s1, s2, assign_to = None):
         if s1 == self.energy_term:
@@ -222,17 +251,80 @@ class ChemicalNetwork(object):
                 eq += s.symbol * s.weight
         return ccode(eq)
 
+    def interpolate_species_gamma(self, sp, deriv=False):
+        if (sp.name == 'H2_1') or (sp.name == 'H2_2') :
+            expr_gammaH2 = self.species_gamma( species_registry['H2_1'], temp=True, name=False )
 
-    def species_gamma(self, species, temp=False):
-        if species.name == 'H2_1' or species.name == 'H2_2':
-            gammaH2 = sympy.Symbol('gammaH2')
-            if temp:
-                T = sympy.Symbol('T')
-                gammaH2 = 2.0 / (5.0 + 2.0* (6100.0/T)* (6100.0/T)* sympy.exp(6100.0/T) / ( (sympy.exp(6100.0/T) - 1.0) )**2.0 ) +1.0
-            return gammaH2
+            if deriv is True:
+                expr_dgammaH2_dT = sympy.diff(expr_gammaH2, 'T')
+                f_dgammaH2_dT = lambdify('T', expr_dgammaH2_dT)
+                dgammaH2_dT = f_dgammaH2_dT(self.T)
+                _i1 = np.isnan(dgammaH2_dT)
+                dgammaH2_dT[_i1] = 0.0
+
+                return dgammaH2_dT
+            else:
+                f_gammaH2 = lambdify('T',expr_gammaH2)
+                gammaH2_T =  f_gammaH2(self.T)
+                _i1 = np.isnan(gammaH2_T)
+                gammaH2_T[_i1] = 7./5.
+                return gammaH2_T
+
+        else:
+            print('Provide your gamma function for {}'.format(sp.name) )
+            raise RuntimeError
+
+
+    def species_gamma(self, species, temp=False, name=True):
+        if species in self.interpolate_gamma_species:
+            sp_name = species.name
+            T = sympy.Symbol('T')
+
+            if temp and name:
+                # so gamma enters as a function that depends on temperature
+                # when gamma factor enters the temperature calculation which
+                # involves derivatives of temperature (dgammaH2_dT) this term will not be dropped off
+                # and be left as a function of T, which can later be supplied from the interpolated values
+                # as gammaH2 does
+
+                # this returns name of the gamma as a function of T
+                # goes into the analytical differntiation for energy
+                f_gammaH2 = sympy.Function('gamma%s' %sp_name)(T)
+                return f_gammaH2
+            elif temp and ~name:
+                # x = 6100.0/T
+                # expx = sympy.exp(x)
+                # gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1
+
+                T0 = T**(1/6.5)
+                a0 = 64.2416
+                a1 = -9.36334
+                a2 = -0.377266
+                a3 = 69.8091
+                a4 = 0.0493452
+                a5 = 2.28021
+                a6 = 0.115357
+                a7 = 0.114188
+                a8 = 2.90778
+                a9 = 0.689708
+
+                gammaH2_expr = sympy.exp(-a0*T0**a1)*(a2+T0**-a3) \
+                        + a4*sympy.exp( - (T0-a5)**2 / a6)\
+                        + a7*sympy.exp( -(T0-a8)**2 / a9) \
+                        + 5./3.
+                x = 6100.0/T
+                expx = sympy.exp(x)
+                gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1
+
+                return gammaH2_expr
+            else:
+                gammaH2 = sympy.Symbol('gammaH2')
+                return gammaH2
+
         else:
             gamma = sympy.Symbol('gamma')
         return gamma
+
 
     def gamma_factor(self, temp=False):
         eq = sympy.sympify("0")
@@ -262,10 +354,30 @@ class ChemicalNetwork(object):
             f = self.gamma_factor(temp=True) * sympy.Symbol('kb') * sympy.Symbol('T') \
                     / sympy.Symbol('mh') / sympy.Symbol('density')
             dge_dT = sympy.diff(f, T)
+            tmp = sympy.Symbol('tmp')
+            for sp in self.interpolate_gamma_species:
+                # substitute the sympy function with sympy Symbols
+                sym_fgamma = sympy.Function('gamma%s' %sp.name)(T)
+                sym_dfgamma = sympy.diff(sym_fgamma, T)
+                dgamma = sympy.Symbol('dgamma%s_dT' %sp.name)
+                dge_dT = dge_dT.subs({sym_dfgamma: dgamma})
+
+                fgamma = sympy.Symbol('gamma%s' %sp.name)
+                dge_dT = dge_dT.subs({sym_fgamma: tmp})
+                dge_dT = dge_dT.subs({tmp : fgamma})
+
             return ccode(dge_dT)
         elif get_dge == True:
             T = sympy.Symbol('T')
             dge = self.gamma_factor(temp=True) * sympy.Symbol('kb') * T / sympy.Symbol('mh') / sympy.Symbol('density') - sympy.Symbol('ge')
+
+            tmp = sympy.Symbol('tmp')
+            for sp in self.interpolate_gamma_species:
+                sym_fgamma = sympy.Function('gamma%s' %sp.name)(T)
+                fgamma = sympy.Symbol('gamma%s' %sp.name)
+                dge = dge.subs({sym_fgamma: tmp})
+                dge = dge.subs({tmp: fgamma})
+
             return ccode(dge)
         else:
             return ccode(function_eq)
@@ -387,7 +499,15 @@ class ChemicalNetwork(object):
             for tab in action.tables:
                 f.create_dataset("/%s_%s" % (action.name, tab),
                     data=action.tables[tab](self).astype("float64"))
+
+        for sp in sorted(self.interpolate_gamma_species):
+            name = sp.name
+            f.create_dataset("/gamma%s" %name,
+                    data = self.interpolate_species_gamma(sp).astype("float64"))
+            f.create_dataset("/dgamma%s_dT" %name,
+                    data = self.interpolate_species_gamma(sp,deriv=True).astype("float64"))
         f.close()
+
 
         if init_values is None: return
 
