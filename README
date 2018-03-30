@@ -27,5 +27,8 @@ Dependencies:
 
 
 TO-DO-LIST:
-- include CIE cooling
-- include deuterium reactions
+- interfacing with gamer
+- compare the efficiency of direct linear solver and krylov method
+- solve for temperature with sundials/cvode internal rootfinder?
+- maybe an openmp version
+
