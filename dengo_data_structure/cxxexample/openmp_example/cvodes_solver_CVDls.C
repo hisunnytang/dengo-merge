@@ -1,3 +1,4 @@
+#include "omp.h"
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
@@ -101,12 +102,16 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Initialize y 
      * Rescale the input variables to unity
      */
+
+    int omp_get_thread_num();
+    int threadID = omp_get_thread_num();
+
     double scale;
     for (i=0; i<NEQ; i++) {
-        data->scale[i] = input[i];
-        scale = data->scale[i];
+        data->scale[threadID][i] = input[i];
+        scale = data->scale[threadID][i];
         Ith(y,i+1)      = input[i] / scale;
-        // fprintf(stderr, "input [%d]: %0.5g \n", i, input[i]);
+        //fprintf(stderr, "from %d: input [%d]: %0.5g \n", threadID, i, input[i]);
  
     }
     
@@ -172,6 +177,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
 
     t = 0;
     double tout = dt_now[0];
+
     
     // tout is the desired output time
     // evolve CVODE in one dt
@@ -183,9 +189,9 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
 
     // rescale the input
     for (i=0; i<NEQ; i++) {
-        scale = data->scale[i];    
+        scale = data->scale[threadID][i];    
         input[i] = Ith(y,i+1)*scale;
-        // fprintf(stderr, "input [%d]: %0.5g \n", i, input[i]);
+        //fprintf(stderr, "output [%d]: %0.5g \n", i, input[i]);
 
         }
 

@@ -22,10 +22,12 @@ cvdls_9species_data *cvdls_9species_setup_data(
     cvdls_9species_data *data = (cvdls_9species_data *) malloc(sizeof(cvdls_9species_data));
     
     /* allocate space for the scale related pieces */
-    for (i = 0; i< 10 ; i++){
-    data->scale[i] = 1.0;
+    for (int n = 0; n<omp_get_max_threads(); n++){
+        for (i = 0; i< 10 ; i++){
+            data->scale[n][i] = 1.0;
+        }
     }
-    
+
     /*initialize temperature so it wont crash*/
     data->Ts[0] = 1000.0;
 
@@ -88,10 +90,17 @@ int cvdls_9species_main(int argc, char** argv)
     cvdls_9species_data *data = cvdls_9species_setup_data(NULL, NULL);
 
     /* Initial conditions */
-
-    hid_t file_id = H5Fopen("cvdls_9species_initial_conditions.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-    if (file_id < 0) {fprintf(stderr, "Failed to open "
-        "cvdls_9species_initial_conditions.h5 so dying.\n");
+    
+    char const *filename;
+    if (argc > 1){
+        filename = argv[1];
+    } else{
+        filename = "cvdls_9species_initial_conditions.h5";
+    }
+    
+    hid_t file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
+    
+    if (file_id < 0) {fprintf(stderr, "Failed to open %s so dying.\n", filename);
         return(1);}
 
     /* Allocate the correct number of cells */
@@ -119,6 +128,7 @@ int cvdls_9species_main(int argc, char** argv)
     
     unsigned int i = 0, j;
     
+
     fprintf(stderr, "Reading I.C. for /H2_1\n");
     H5LTread_dataset_double(file_id, "/H2_1", tics);
     for (j = 0; j < dims; j++) {
@@ -257,8 +267,6 @@ int cvdls_9species_main(int argc, char** argv)
     double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
-
-    for (i = 0; i < dims)
     ttot = dengo_evolve_cvdls_9species(dtf, dt, z, input, rtol, atol, dims, data);
 
     /* Write results to HDF5 file */
@@ -370,7 +378,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
             double *rtol, double *atol, long long dims, cvdls_9species_data *data) {
     int i, j;
     hid_t file_id;
-    /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
+    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
 
     int N = 10;
     for (i = 0; i<dims; i++) {
@@ -441,7 +449,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
     data->current_z = z;
     int niter = 0;
     int siter = 0;
-    double ttot = 0;
+    //double ttot = 0;
     double *scale = (double *) alloca(dims * N * sizeof(double));
     double *prev = (double *) alloca(dims * N * sizeof(double));
     for (i = 0; i < dims * N; i++) scale[i] = input[i];
@@ -451,8 +459,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
     double *gu = (double *) alloca(N*dims*sizeof(double));
     double *Ju = (double *) alloca(N*N*dims*sizeof(double));
     double floor_value = 1e-25;
-    while (ttot < dtf) {
-        
+            
 
         /* f and jf are function for evaluating rhs and jac for the solver
         * input: {double array}
@@ -462,46 +469,110 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         * 
         */
         // int rv = 1;
-        fprintf(stderr, "ttot: %0.5g\n", ttot);
-        fprintf(stderr, "---------dt = %0.5g-------\n", dt); 
+        
+        //fprintf(stderr, "ttot: %0.5g\n", ttot);
+        // fprintf(stderr, "---------dt = %0.5g-------\n", dt); 
+        
+        double *internal_dt = (double *) alloca(dims * sizeof(double));
+        double *ttot = (double *) alloca(dims * sizeof(double));
+                int d;
+                int sum;
+        
+        #pragma omp parallel 
+        {
+        #pragma omp for private (sum, i,d)
+        for ( d = 0; d < dims; d++){
+        int omp_get_thread_num();
 
-        int rv = cvodes_main_solver( f, jf, input, rtol ,  atol, NSPECIES, data, &dt);
-        fprintf(stderr, "here"); 
+        double *input_N = (double *) alloca(N * sizeof(double)); 
+        double *atol_N  = (double *) alloca(N * sizeof(double));
+        double *rtol_N  = (double *) alloca(N * sizeof(double));
+        double *prev_N  = (double *) alloca(N * sizeof(double));
 
-        for (i = 0; i < dims * N; i++) {
-            if (input[i] < 0) {
-                rv = 1;
-                break;
+
+            // fprintf(stderr, "nth strip: %d", d);
+        int threadID = omp_get_thread_num();
+            // fprintf(stderr, "threadID: %d \n", threadID);
+
+            // copy array which can be passed to the solver
+            for (i = 0; i < N; i++){
+                sum = d*N + i;
+                //fprintf(stderr,"d:%d,N:%d,i:%i, sum:%d\n",d,N,i, sum ); //, d*N+i );//, input[d*N+i]);
+                input_N[i] = input[ sum ];
+                atol_N[ i]  = atol[ sum ];
+                rtol_N[ i]  = rtol[ sum ];
+                prev_N[ i]  = prev[ sum ];
+                
+                // this is being passed around 
+                // passively by the "dengo_rate_data" 
+                // will have to fix it for openmp
+                data->scale[threadID][i] = input[sum];
+                //fprintf(stderr, "input_N: %0.5g, i: %d, threadID: %d,d: %d \n", input_N[i],i, threadID, d);
             }
-        }
-        if (rv == 0) {
-        fprintf(stderr, "succesful integratoin\n");
+            //fprintf(stderr, "hello from thread %d, strip %d\n", omp_get_thread_num(), d);
 
-	    if (siter == 50000) break;
-	    siter++;
-            if (siter % 10000 == 0) {
-                fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
-                        siter, dt, ttot, dtf);
-            }
-            ttot += dt;
-	    dt = DMIN(dt * 1.1, dtf - ttot);
+            // initialize a dt for the solver
+            internal_dt[d] = dtf / 1.0e3;
+            ttot[d] = 0.0;
+            siter = 0;
+            
+            while (ttot[d] < dtf) {
+                //fprintf(stderr, "%d th strip calculation at ttot: %0.5g with dt: %0.5g from (%d)\n", d, ttot[d]/dtf, internal_dt[d], omp_get_thread_num());
+
+                int rv = cvodes_main_solver( f, jf, input_N, rtol_N ,atol_N, NSPECIES, data, &internal_dt[d]);
+                // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+
+                //for (i = 0; i < N; i++) {
+                //    if (input[i] < 0) {
+                //        rv = 1;
+                //        fprintf(stderr, "-------%d has gone wild\n", d);
+                //        break;
+                //    }
+                //}
+
+                ttot[d] += internal_dt[d];
+	            internal_dt[d] = DMIN(internal_dt[d] * 1.1, dtf - ttot[d]);
+
+                if (rv == 0) {
+                // fprintf(stderr, "succesful integratoin\n");
+
+	                if (siter == 50000) break;
+	                siter++;
+                    if (siter % 10000 == 0) {
+                        fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n", 
+                                siter, internal_dt[d], ttot[d], dtf);
+                    }
+
 	    
-	    for (i = 0; i < dims * N; i++) prev[i] = input[i];
-            // for (i = 0; i < dims * N; i++) {     
-            //    if (input[i] < floor_value) {
-            //      input[i] = floor_value;
-            //    }
-            //}
-        } else {
-            dt /= 2.0;
-            for (i = 0; i < dims * N; i++) input[i] = prev[i];
-            if (dt/dtf < 1e-30)  {
-                fprintf(stderr, "Dying! dt/dtf = %0.5g\n", dt/dtf);
-                break;
+	            for (i = 0; i < N; i++) prev_N[i] = input_N[i];
+                for (i = 0; i < N; i++) {     
+                    if (input_N[i] < floor_value) {
+                      input_N[i] = floor_value;
+                    }
+                }
+                } else {
+                    // fprintf(stderr, "failed\n");
+                    internal_dt[d] /= 2.0;
+                    if (internal_dt[d]/dtf < 1e-30)  {
+                        fprintf(stderr, "Dying! dt/dtf = %0.5g\n", internal_dt[d]/dtf);
+                    
+                        for (i = 0; i < N; i++) input_N[i] = prev_N[i];
+                        break;
+                    }
+                }
+                siter++;
+            }
+            // fprintf(stderr, "%d strip finished at t = %0.5g, from thread %d \n",d, ttot[d], threadID);
+            // should copy the results back to input[i] from input_N
+            for (i = 0; i < N; i++){ 
+                input[d*N +i] = input_N[i] ;
+                // fprintf(stderr, "%d: %0.5g\n",i, input_N[i]);
+                //free(input_N[i]);
+                //free(atol_N[i]);
+                //free(rtol_N[i]);
             }
         }
-        niter++;
-    }
+        }
     /* fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
        ttot, dtf, dtf-ttot); */
     for (i = 0; i<dims; i++) {
@@ -564,7 +635,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         j++;
       
     }
-    return ttot;
+    return 1;//ttot[0];
 }
  
 
@@ -642,9 +713,9 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
     double T,x, expx, Tnew;
-    
-
-    
+    int omp_get_thread_num(); 
+    int threadID = omp_get_thread_num();
+    // fprintf(stderr,"threadID from temp: %d \n", threadID); 
     
     /* Calculate total density */
     double H2_1;
@@ -661,45 +732,44 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
     /* define scale */
     double scale;
 
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-        scale = data->scale[j];
+        j = 0;
+        scale = data->scale[threadID][j];
         H2_1 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H2_2 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_1 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_2 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_m0 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_1 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_2 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_3 = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         de = input[j]*scale;
         j++;
     
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         ge = input[j]*scale;
         j++;
     
@@ -707,7 +777,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         
     
         
-        
+        i = threadID; 
         // Initiate the "guess" temperature
         T = data->Ts[i];
         Tnew = T + 1.0;
@@ -723,7 +793,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         double gammaH2_2;
         double dgammaH2_2_dT;
         
-        
+       //fprintf(stderr, "%d thread: updated T: %0.5g \n", i, T); 
         
         while ( abs(T - Tnew) > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
@@ -735,7 +805,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         
         gammaH2_1 = data->gammaH2_1[i];
         dgammaH2_1_dT = data->dgammaH2_1_dT[i];
-        // fprintf(stderr, ":gammaH2_1 %0.5g , dgammaH2_1_dT: %.5g \n", gammaH2_1, dgammaH2_1_dT  );
+        //fprintf(stderr, "from thread %d:gammaH2_1 %0.5g , dgammaH2_1_dT: %.5g \n", threadID,  gammaH2_1, dgammaH2_1_dT);
         
         gammaH2_2 = data->gammaH2_2[i];
         dgammaH2_2_dT = data->dgammaH2_2_dT[i];
@@ -758,9 +828,9 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         Tnew = T - dge/dge_dT;
         data->Ts[i] = Tnew;
 
-        // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
+        //fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
         }
-        // fprintf(stderr,"---------------------\n");
+        //fprintf(stderr,"---------------------\n");
         data->Ts[i] = Tnew;
 
 
@@ -782,7 +852,6 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
                 i, data->Ts[i], density);*/
     }
          
-}
  
 
 
@@ -804,7 +873,9 @@ void cvdls_9species_interpolate_rates(cvdls_9species_data *data,
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
     /*fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);*/
-    for (i = 0; i < nstrip; i++) {
+    
+    i = omp_get_thread_num();
+    //fprintf(stderr, "hello from thread %d interpolate rates\n", i);
         data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
         if (data->bin_id[i] <= 0) {
             data->bin_id[i] = 0;
@@ -815,10 +886,9 @@ void cvdls_9species_interpolate_rates(cvdls_9species_data *data,
         t2 = (lb + (bin_id + 1) * data->dbin);
         data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
         data->dT[i] = (t2 - t1);
-        /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
-                i, data->bin_id[i], data->dT[i], data->Ts[i],
-                data->logTs[i]);*/
-    }
+        //fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
+        //        i, data->bin_id[i], data->dT[i], data->Ts[i],
+        //        data->logTs[i]);
     
     if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
         zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
@@ -835,194 +905,152 @@ void cvdls_9species_interpolate_rates(cvdls_9species_data *data,
         no_photo = 1;
     }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k01[i] = data->r_k01[bin_id] +
             data->Tdef[i] * (data->r_k01[bin_id+1] - data->r_k01[bin_id]);
         data->drs_k01[i] = (data->r_k01[bin_id+1] - data->r_k01[bin_id]);
         data->drs_k01[i] /= data->dT[i];
 	data->drs_k01[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k02[i] = data->r_k02[bin_id] +
             data->Tdef[i] * (data->r_k02[bin_id+1] - data->r_k02[bin_id]);
         data->drs_k02[i] = (data->r_k02[bin_id+1] - data->r_k02[bin_id]);
         data->drs_k02[i] /= data->dT[i];
 	data->drs_k02[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k03[i] = data->r_k03[bin_id] +
             data->Tdef[i] * (data->r_k03[bin_id+1] - data->r_k03[bin_id]);
         data->drs_k03[i] = (data->r_k03[bin_id+1] - data->r_k03[bin_id]);
         data->drs_k03[i] /= data->dT[i];
 	data->drs_k03[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k04[i] = data->r_k04[bin_id] +
             data->Tdef[i] * (data->r_k04[bin_id+1] - data->r_k04[bin_id]);
         data->drs_k04[i] = (data->r_k04[bin_id+1] - data->r_k04[bin_id]);
         data->drs_k04[i] /= data->dT[i];
 	data->drs_k04[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k05[i] = data->r_k05[bin_id] +
             data->Tdef[i] * (data->r_k05[bin_id+1] - data->r_k05[bin_id]);
         data->drs_k05[i] = (data->r_k05[bin_id+1] - data->r_k05[bin_id]);
         data->drs_k05[i] /= data->dT[i];
 	data->drs_k05[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k06[i] = data->r_k06[bin_id] +
             data->Tdef[i] * (data->r_k06[bin_id+1] - data->r_k06[bin_id]);
         data->drs_k06[i] = (data->r_k06[bin_id+1] - data->r_k06[bin_id]);
         data->drs_k06[i] /= data->dT[i];
 	data->drs_k06[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k07[i] = data->r_k07[bin_id] +
             data->Tdef[i] * (data->r_k07[bin_id+1] - data->r_k07[bin_id]);
         data->drs_k07[i] = (data->r_k07[bin_id+1] - data->r_k07[bin_id]);
         data->drs_k07[i] /= data->dT[i];
 	data->drs_k07[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k08[i] = data->r_k08[bin_id] +
             data->Tdef[i] * (data->r_k08[bin_id+1] - data->r_k08[bin_id]);
         data->drs_k08[i] = (data->r_k08[bin_id+1] - data->r_k08[bin_id]);
         data->drs_k08[i] /= data->dT[i];
 	data->drs_k08[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k09[i] = data->r_k09[bin_id] +
             data->Tdef[i] * (data->r_k09[bin_id+1] - data->r_k09[bin_id]);
         data->drs_k09[i] = (data->r_k09[bin_id+1] - data->r_k09[bin_id]);
         data->drs_k09[i] /= data->dT[i];
 	data->drs_k09[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k10[i] = data->r_k10[bin_id] +
             data->Tdef[i] * (data->r_k10[bin_id+1] - data->r_k10[bin_id]);
         data->drs_k10[i] = (data->r_k10[bin_id+1] - data->r_k10[bin_id]);
         data->drs_k10[i] /= data->dT[i];
 	data->drs_k10[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k11[i] = data->r_k11[bin_id] +
             data->Tdef[i] * (data->r_k11[bin_id+1] - data->r_k11[bin_id]);
         data->drs_k11[i] = (data->r_k11[bin_id+1] - data->r_k11[bin_id]);
         data->drs_k11[i] /= data->dT[i];
 	data->drs_k11[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k12[i] = data->r_k12[bin_id] +
             data->Tdef[i] * (data->r_k12[bin_id+1] - data->r_k12[bin_id]);
         data->drs_k12[i] = (data->r_k12[bin_id+1] - data->r_k12[bin_id]);
         data->drs_k12[i] /= data->dT[i];
 	data->drs_k12[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k13[i] = data->r_k13[bin_id] +
             data->Tdef[i] * (data->r_k13[bin_id+1] - data->r_k13[bin_id]);
         data->drs_k13[i] = (data->r_k13[bin_id+1] - data->r_k13[bin_id]);
         data->drs_k13[i] /= data->dT[i];
 	data->drs_k13[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k14[i] = data->r_k14[bin_id] +
             data->Tdef[i] * (data->r_k14[bin_id+1] - data->r_k14[bin_id]);
         data->drs_k14[i] = (data->r_k14[bin_id+1] - data->r_k14[bin_id]);
         data->drs_k14[i] /= data->dT[i];
 	data->drs_k14[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k15[i] = data->r_k15[bin_id] +
             data->Tdef[i] * (data->r_k15[bin_id+1] - data->r_k15[bin_id]);
         data->drs_k15[i] = (data->r_k15[bin_id+1] - data->r_k15[bin_id]);
         data->drs_k15[i] /= data->dT[i];
 	data->drs_k15[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k16[i] = data->r_k16[bin_id] +
             data->Tdef[i] * (data->r_k16[bin_id+1] - data->r_k16[bin_id]);
         data->drs_k16[i] = (data->r_k16[bin_id+1] - data->r_k16[bin_id]);
         data->drs_k16[i] /= data->dT[i];
 	data->drs_k16[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k17[i] = data->r_k17[bin_id] +
             data->Tdef[i] * (data->r_k17[bin_id+1] - data->r_k17[bin_id]);
         data->drs_k17[i] = (data->r_k17[bin_id+1] - data->r_k17[bin_id]);
         data->drs_k17[i] /= data->dT[i];
 	data->drs_k17[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k18[i] = data->r_k18[bin_id] +
             data->Tdef[i] * (data->r_k18[bin_id+1] - data->r_k18[bin_id]);
         data->drs_k18[i] = (data->r_k18[bin_id+1] - data->r_k18[bin_id]);
         data->drs_k18[i] /= data->dT[i];
 	data->drs_k18[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k19[i] = data->r_k19[bin_id] +
             data->Tdef[i] * (data->r_k19[bin_id+1] - data->r_k19[bin_id]);
         data->drs_k19[i] = (data->r_k19[bin_id+1] - data->r_k19[bin_id]);
         data->drs_k19[i] /= data->dT[i];
 	data->drs_k19[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k21[i] = data->r_k21[bin_id] +
             data->Tdef[i] * (data->r_k21[bin_id+1] - data->r_k21[bin_id]);
         data->drs_k21[i] = (data->r_k21[bin_id+1] - data->r_k21[bin_id]);
         data->drs_k21[i] /= data->dT[i];
 	data->drs_k21[i] *= data->invTs[i];
-    }
     
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->rs_k22[i] = data->r_k22[bin_id] +
             data->Tdef[i] * (data->r_k22[bin_id+1] - data->r_k22[bin_id]);
         data->drs_k22[i] = (data->r_k22[bin_id+1] - data->r_k22[bin_id]);
         data->drs_k22[i] /= data->dT[i];
 	data->drs_k22[i] *= data->invTs[i];
-    }
     
 
 }
@@ -1044,7 +1072,9 @@ void cvdls_9species_interpolate_gamma(cvdls_9species_data *data,
     int no_photo = 0;
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
-    
+    int omp_get_thread_num(); 
+    i = omp_get_thread_num();
+
     data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
     if (data->bin_id[i] <= 0) {
         data->bin_id[i] = 0;
@@ -1304,8 +1334,6 @@ int calculate_jacobian_cvdls_9species
 
     cvdls_9species_data *data = (cvdls_9species_data*)user_data; 
     
-    
-    fprintf(stderr, "time: %0.5g \n", t);
 
     int i, j;
     j = 0;
@@ -1391,20 +1419,25 @@ int calculate_jacobian_cvdls_9species
     jj = 0;
     double scale, scale1, scale2;
 
-    for (i = 0; i<nstrip; i++) {
-        j = i*nchem;
+    j = 0;
+
+    int omp_get_thread_num();
+    int threadID = omp_get_thread_num();
+
+    i = threadID;
+
         mdensity = 0.0;
         z = data->current_z;
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H2_1 = Ith( y, 1  )*scale;
-        //fprintf(stderr,"from jac: H2_1 = %.3g\n, Ith(y1) = %.3g \n" , H2_1, Ith(y,1 ) );
+        //fprintf(stderr,"%d from jac: H2_1 = %.3g, Ith(y1) = %.3g \n" , threadID, H2_1, Ith(y,1 ) );
         
         mdensity += H2_1 * 2.01588;
         
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H2_2 = Ith( y, 2  )*scale;
         //fprintf(stderr,"from jac: H2_2 = %.3g\n, Ith(y2) = %.3g \n" , H2_2, Ith(y,2 ) );
         
@@ -1413,7 +1446,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_1 = Ith( y, 3  )*scale;
         //fprintf(stderr,"from jac: H_1 = %.3g\n, Ith(y3) = %.3g \n" , H_1, Ith(y,3 ) );
         
@@ -1422,7 +1455,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_2 = Ith( y, 4  )*scale;
         //fprintf(stderr,"from jac: H_2 = %.3g\n, Ith(y4) = %.3g \n" , H_2, Ith(y,4 ) );
         
@@ -1431,7 +1464,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         H_m0 = Ith( y, 5  )*scale;
         //fprintf(stderr,"from jac: H_m0 = %.3g\n, Ith(y5) = %.3g \n" , H_m0, Ith(y,5 ) );
         
@@ -1440,7 +1473,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_1 = Ith( y, 6  )*scale;
         //fprintf(stderr,"from jac: He_1 = %.3g\n, Ith(y6) = %.3g \n" , He_1, Ith(y,6 ) );
         
@@ -1449,7 +1482,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_2 = Ith( y, 7  )*scale;
         //fprintf(stderr,"from jac: He_2 = %.3g\n, Ith(y7) = %.3g \n" , He_2, Ith(y,7 ) );
         
@@ -1458,7 +1491,7 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         He_3 = Ith( y, 8  )*scale;
         //fprintf(stderr,"from jac: He_3 = %.3g\n, Ith(y8) = %.3g \n" , He_3, Ith(y,8 ) );
         
@@ -1467,14 +1500,14 @@ int calculate_jacobian_cvdls_9species
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         de = Ith( y, 9  )*scale;
         //fprintf(stderr,"from jac: de = %.3g\n, Ith(y9) = %.3g \n" , de, Ith(y,9 ) );
         
 
         j++;
         
-        scale = data->scale[j];
+        scale = data->scale[threadID][j];
         ge = Ith( y, 10  )*scale;
         //fprintf(stderr,"from jac: ge = %.3g\n, Ith(y10) = %.3g \n" , ge, Ith(y,10 ) );
         
@@ -1497,8 +1530,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 1 ) = -k11[i]*H_2 - k12[i]*de - k13[i]*H_1 + k21[i]*pow(H_1, 2);
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 1, 1) /= scale2/scale1;
 
         
@@ -1508,8 +1541,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 1 ) = k11[i]*H_2;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 2, 1) /= scale2/scale1;
 
         
@@ -1519,8 +1552,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 1 ) = k11[i]*H_2 + 2*k12[i]*de + 2*k13[i]*H_1 - 2*k21[i]*pow(H_1, 2);
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 3, 1) /= scale2/scale1;
 
         
@@ -1530,8 +1563,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 1 ) = -k11[i]*H_2;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 4, 1) /= scale2/scale1;
 
         
@@ -1541,8 +1574,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 1 ) = 0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 5, 1) /= scale2/scale1;
 
         
@@ -1552,8 +1585,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 1 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 6, 1) /= scale2/scale1;
 
         
@@ -1563,8 +1596,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 1 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 7, 1) /= scale2/scale1;
 
         
@@ -1574,8 +1607,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 1 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 8, 1) /= scale2/scale1;
 
         
@@ -1585,8 +1618,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 1 ) = 0;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 9, 1) /= scale2/scale1;
 
         
@@ -1596,8 +1629,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 1 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[1 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][1 - 1];
         IJth(J, 10, 1) /= scale2/scale1;
 
         
@@ -1614,8 +1647,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 2 ) = k10[i]*H_1 + k19[i]*H_m0;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 1, 2) /= scale2/scale1;
 
         
@@ -1625,8 +1658,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 2 ) = -k10[i]*H_1 - k18[i]*de - k19[i]*H_m0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 2, 2) /= scale2/scale1;
 
         
@@ -1636,8 +1669,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 2 ) = -k10[i]*H_1 + 2*k18[i]*de + k19[i]*H_m0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 3, 2) /= scale2/scale1;
 
         
@@ -1647,8 +1680,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 2 ) = k10[i]*H_1;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 4, 2) /= scale2/scale1;
 
         
@@ -1658,8 +1691,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 2 ) = -k19[i]*H_m0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 5, 2) /= scale2/scale1;
 
         
@@ -1669,8 +1702,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 2 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 6, 2) /= scale2/scale1;
 
         
@@ -1680,8 +1713,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 2 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 7, 2) /= scale2/scale1;
 
         
@@ -1691,8 +1724,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 2 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 8, 2) /= scale2/scale1;
 
         
@@ -1702,8 +1735,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 2 ) = -k18[i]*de;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 9, 2) /= scale2/scale1;
 
         
@@ -1713,8 +1746,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 2 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[2 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][2 - 1];
         IJth(J, 10, 2) /= scale2/scale1;
 
         
@@ -1731,8 +1764,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 3 ) = k08[i]*H_m0 + k10[i]*H2_2 - k13[i]*H2_1 + 2*k21[i]*H2_1*H_1 + 3*k22[i]*pow(H_1, 2);
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 1, 3) /= scale2/scale1;
 
         
@@ -1742,8 +1775,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 3 ) = k09[i]*H_2 - k10[i]*H2_2;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 2, 3) /= scale2/scale1;
 
         
@@ -1753,8 +1786,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 3 ) = -k01[i]*de - k07[i]*de - k08[i]*H_m0 - k09[i]*H_2 - k10[i]*H2_2 + 2*k13[i]*H2_1 + k15[i]*H_m0 - 4*k21[i]*H2_1*H_1 - 6*k22[i]*pow(H_1, 2);
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 3, 3) /= scale2/scale1;
 
         
@@ -1764,8 +1797,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 3 ) = k01[i]*de - k09[i]*H_2 + k10[i]*H2_2;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 4, 3) /= scale2/scale1;
 
         
@@ -1775,8 +1808,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 3 ) = k07[i]*de - k08[i]*H_m0 - k15[i]*H_m0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 5, 3) /= scale2/scale1;
 
         
@@ -1786,8 +1819,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 3 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 6, 3) /= scale2/scale1;
 
         
@@ -1797,8 +1830,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 3 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 7, 3) /= scale2/scale1;
 
         
@@ -1808,8 +1841,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 3 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 8, 3) /= scale2/scale1;
 
         
@@ -1819,8 +1852,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 3 ) = k01[i]*de - k07[i]*de + k08[i]*H_m0 + k15[i]*H_m0;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 9, 3) /= scale2/scale1;
 
         
@@ -1830,8 +1863,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 3 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[3 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][3 - 1];
         IJth(J, 10, 3) /= scale2/scale1;
 
         
@@ -1848,8 +1881,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 4 ) = -k11[i]*H2_1;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 1, 4) /= scale2/scale1;
 
         
@@ -1859,8 +1892,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 4 ) = k09[i]*H_1 + k11[i]*H2_1 + k17[i]*H_m0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 2, 4) /= scale2/scale1;
 
         
@@ -1870,8 +1903,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 4 ) = k02[i]*de - k09[i]*H_1 + k11[i]*H2_1 + 2*k16[i]*H_m0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 3, 4) /= scale2/scale1;
 
         
@@ -1881,8 +1914,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 4 ) = -k02[i]*de - k09[i]*H_1 - k11[i]*H2_1 - k16[i]*H_m0 - k17[i]*H_m0;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 4, 4) /= scale2/scale1;
 
         
@@ -1892,8 +1925,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 4 ) = -k16[i]*H_m0 - k17[i]*H_m0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 5, 4) /= scale2/scale1;
 
         
@@ -1903,8 +1936,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 4 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 6, 4) /= scale2/scale1;
 
         
@@ -1914,8 +1947,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 4 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 7, 4) /= scale2/scale1;
 
         
@@ -1925,8 +1958,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 4 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 8, 4) /= scale2/scale1;
 
         
@@ -1936,8 +1969,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 4 ) = -k02[i]*de + k17[i]*H_m0;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 9, 4) /= scale2/scale1;
 
         
@@ -1947,8 +1980,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 4 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[4 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][4 - 1];
         IJth(J, 10, 4) /= scale2/scale1;
 
         
@@ -1965,8 +1998,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 5 ) = k08[i]*H_1 + k19[i]*H2_2;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 1, 5) /= scale2/scale1;
 
         
@@ -1976,8 +2009,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 5 ) = k17[i]*H_2 - k19[i]*H2_2;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 2, 5) /= scale2/scale1;
 
         
@@ -1987,8 +2020,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 5 ) = -k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + 2*k16[i]*H_2 + k19[i]*H2_2;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 3, 5) /= scale2/scale1;
 
         
@@ -1998,8 +2031,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 5 ) = -k16[i]*H_2 - k17[i]*H_2;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 4, 5) /= scale2/scale1;
 
         
@@ -2009,8 +2042,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 5 ) = -k08[i]*H_1 - k14[i]*de - k15[i]*H_1 - k16[i]*H_2 - k17[i]*H_2 - k19[i]*H2_2;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 5, 5) /= scale2/scale1;
 
         
@@ -2020,8 +2053,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 5 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 6, 5) /= scale2/scale1;
 
         
@@ -2031,8 +2064,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 5 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 7, 5) /= scale2/scale1;
 
         
@@ -2042,8 +2075,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 5 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 8, 5) /= scale2/scale1;
 
         
@@ -2053,8 +2086,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 5 ) = k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + k17[i]*H_2;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 9, 5) /= scale2/scale1;
 
         
@@ -2064,8 +2097,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 5 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[5 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][5 - 1];
         IJth(J, 10, 5) /= scale2/scale1;
 
         
@@ -2082,8 +2115,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 6 ) = 0;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 1, 6) /= scale2/scale1;
 
         
@@ -2093,8 +2126,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 6 ) = 0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 2, 6) /= scale2/scale1;
 
         
@@ -2104,8 +2137,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 6 ) = 0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 3, 6) /= scale2/scale1;
 
         
@@ -2115,8 +2148,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 6 ) = 0;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 4, 6) /= scale2/scale1;
 
         
@@ -2126,8 +2159,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 6 ) = 0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 5, 6) /= scale2/scale1;
 
         
@@ -2137,8 +2170,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 6 ) = -k03[i]*de;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 6, 6) /= scale2/scale1;
 
         
@@ -2148,8 +2181,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 6 ) = k03[i]*de;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 7, 6) /= scale2/scale1;
 
         
@@ -2159,8 +2192,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 6 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 8, 6) /= scale2/scale1;
 
         
@@ -2170,8 +2203,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 6 ) = k03[i]*de;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 9, 6) /= scale2/scale1;
 
         
@@ -2181,8 +2214,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 6 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[6 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][6 - 1];
         IJth(J, 10, 6) /= scale2/scale1;
 
         
@@ -2199,8 +2232,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 7 ) = 0;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 1, 7) /= scale2/scale1;
 
         
@@ -2210,8 +2243,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 7 ) = 0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 2, 7) /= scale2/scale1;
 
         
@@ -2221,8 +2254,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 7 ) = 0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 3, 7) /= scale2/scale1;
 
         
@@ -2232,8 +2265,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 7 ) = 0;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 4, 7) /= scale2/scale1;
 
         
@@ -2243,8 +2276,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 7 ) = 0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 5, 7) /= scale2/scale1;
 
         
@@ -2254,8 +2287,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 7 ) = k04[i]*de;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 6, 7) /= scale2/scale1;
 
         
@@ -2265,8 +2298,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 7 ) = -k04[i]*de - k05[i]*de;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 7, 7) /= scale2/scale1;
 
         
@@ -2276,8 +2309,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 7 ) = k05[i]*de;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 8, 7) /= scale2/scale1;
 
         
@@ -2287,8 +2320,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 7 ) = -k04[i]*de + k05[i]*de;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 9, 7) /= scale2/scale1;
 
         
@@ -2298,8 +2331,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 7 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[7 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][7 - 1];
         IJth(J, 10, 7) /= scale2/scale1;
 
         
@@ -2316,8 +2349,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 8 ) = 0;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 1, 8) /= scale2/scale1;
 
         
@@ -2327,8 +2360,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 8 ) = 0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 2, 8) /= scale2/scale1;
 
         
@@ -2338,8 +2371,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 8 ) = 0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 3, 8) /= scale2/scale1;
 
         
@@ -2349,8 +2382,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 8 ) = 0;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 4, 8) /= scale2/scale1;
 
         
@@ -2360,8 +2393,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 8 ) = 0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 5, 8) /= scale2/scale1;
 
         
@@ -2371,8 +2404,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 8 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 6, 8) /= scale2/scale1;
 
         
@@ -2382,8 +2415,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 8 ) = k06[i]*de;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 7, 8) /= scale2/scale1;
 
         
@@ -2393,8 +2426,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 8 ) = -k06[i]*de;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 8, 8) /= scale2/scale1;
 
         
@@ -2404,8 +2437,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 8 ) = -k06[i]*de;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 9, 8) /= scale2/scale1;
 
         
@@ -2415,8 +2448,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 8 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[8 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][8 - 1];
         IJth(J, 10, 8) /= scale2/scale1;
 
         
@@ -2433,8 +2466,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 9 ) = -k12[i]*H2_1;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 1, 9) /= scale2/scale1;
 
         
@@ -2444,8 +2477,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 9 ) = -k18[i]*H2_2;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 2, 9) /= scale2/scale1;
 
         
@@ -2455,8 +2488,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 9 ) = -k01[i]*H_1 + k02[i]*H_2 - k07[i]*H_1 + 2*k12[i]*H2_1 + k14[i]*H_m0 + 2*k18[i]*H2_2;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 3, 9) /= scale2/scale1;
 
         
@@ -2466,8 +2499,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 9 ) = k01[i]*H_1 - k02[i]*H_2;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 4, 9) /= scale2/scale1;
 
         
@@ -2477,8 +2510,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 9 ) = k07[i]*H_1 - k14[i]*H_m0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 5, 9) /= scale2/scale1;
 
         
@@ -2488,8 +2521,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 9 ) = -k03[i]*He_1 + k04[i]*He_2;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 6, 9) /= scale2/scale1;
 
         
@@ -2499,8 +2532,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 9 ) = k03[i]*He_1 - k04[i]*He_2 - k05[i]*He_2 + k06[i]*He_3;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 7, 9) /= scale2/scale1;
 
         
@@ -2510,8 +2543,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 9 ) = k05[i]*He_2 - k06[i]*He_3;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 8, 9) /= scale2/scale1;
 
         
@@ -2521,8 +2554,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 9 ) = k01[i]*H_1 - k02[i]*H_2 + k03[i]*He_1 - k04[i]*He_2 + k05[i]*He_2 - k06[i]*He_3 - k07[i]*H_1 + k14[i]*H_m0 - k18[i]*H2_2;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 9, 9) /= scale2/scale1;
 
         
@@ -2532,8 +2565,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 9 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[9 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][9 - 1];
         IJth(J, 10, 9) /= scale2/scale1;
 
         
@@ -2550,8 +2583,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 1, 10 ) = 0;
         
-        scale2 = data->scale[1 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][1 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 1, 10) /= scale2/scale1;
 
         
@@ -2563,8 +2596,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 2, 10 ) = 0;
         
-        scale2 = data->scale[2 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][2 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 2, 10) /= scale2/scale1;
 
         
@@ -2576,8 +2609,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 3, 10 ) = 0;
         
-        scale2 = data->scale[3 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][3 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 3, 10) /= scale2/scale1;
 
         
@@ -2589,8 +2622,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 4, 10 ) = 0;
         
-        scale2 = data->scale[4 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][4 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 4, 10) /= scale2/scale1;
 
         
@@ -2602,8 +2635,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 5, 10 ) = 0;
         
-        scale2 = data->scale[5 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][5 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 5, 10) /= scale2/scale1;
 
         
@@ -2615,8 +2648,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 6, 10 ) = 0;
         
-        scale2 = data->scale[6 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][6 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 6, 10) /= scale2/scale1;
 
         
@@ -2628,8 +2661,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 7, 10 ) = 0;
         
-        scale2 = data->scale[7 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][7 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 7, 10) /= scale2/scale1;
 
         
@@ -2641,8 +2674,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 8, 10 ) = 0;
         
-        scale2 = data->scale[8 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][8 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 8, 10) /= scale2/scale1;
 
         
@@ -2654,8 +2687,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 9, 10 ) = 0;
         
-        scale2 = data->scale[9 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][9 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 9, 10) /= scale2/scale1;
 
         
@@ -2667,8 +2700,8 @@ int calculate_jacobian_cvdls_9species
         
         IJth(J, 10, 10 ) = 0;
         
-        scale2 = data->scale[10 - 1];
-        scale1 = data->scale[10 - 1];
+        scale2 = data->scale[threadID][10 - 1];
+        scale1 = data->scale[threadID][10 - 1];
         IJth(J, 10, 10) /= scale2/scale1;
 
         
@@ -2679,7 +2712,6 @@ int calculate_jacobian_cvdls_9species
         IJth(J, 10, 10 ) *= Tge[i];
         
         
-    }
     return 0;
 }
 
@@ -2771,13 +2803,20 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
     double mh = 1.67e-24;
     double mdensity;
+    
+    // i = nstrip;
+    i = 0;
+    int threadID = omp_get_thread_num();
+    i = threadID;
 
     T = data->Ts[i];
     z = data->current_z;
-    
+   
+    // fprintf(stderr, "T from rhs: %0.5g\n", T);
+
     double scale;
     int jj =0;
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     H2_1 = Ith( y,1 )*scale;
     jj++;
     
@@ -2786,7 +2825,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     H2_2 = Ith( y,2 )*scale;
     jj++;
     
@@ -2795,7 +2834,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     H_1 = Ith( y,3 )*scale;
     jj++;
     
@@ -2804,7 +2843,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     H_2 = Ith( y,4 )*scale;
     jj++;
     
@@ -2813,7 +2852,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     H_m0 = Ith( y,5 )*scale;
     jj++;
     
@@ -2822,7 +2861,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     He_1 = Ith( y,6 )*scale;
     jj++;
     
@@ -2831,7 +2870,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     He_2 = Ith( y,7 )*scale;
     jj++;
     
@@ -2840,7 +2879,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     He_3 = Ith( y,8 )*scale;
     jj++;
     
@@ -2849,14 +2888,14 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     de = Ith( y,9 )*scale;
     jj++;
     
 
 
     
-    scale = data->scale[jj];
+    scale = data->scale[threadID][jj];
     ge = Ith( y,10 )*scale;
     jj++;
     
@@ -2873,7 +2912,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 1) = k08[i]*H_1*H_m0 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k12[i]*H2_1*de - k13[i]*H2_1*H_1 + k19[i]*H2_2*H_m0 + k21[i]*H2_1*pow(H_1, 2) + k22[i]*pow(H_1, 3);
  
-    scale = data->scale[1 - 1];
+    scale = data->scale[threadID][1 - 1];
     Ith(ydot, 1) /= scale;
 
     
@@ -2883,7 +2922,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 2) = k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de - k19[i]*H2_2*H_m0;
  
-    scale = data->scale[2 - 1];
+    scale = data->scale[threadID][2 - 1];
     Ith(ydot, 2) /= scale;
 
     
@@ -2893,7 +2932,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 3) = -k01[i]*H_1*de + k02[i]*H_2*de - k07[i]*H_1*de - k08[i]*H_1*H_m0 - k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + 2*k12[i]*H2_1*de + 2*k13[i]*H2_1*H_1 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + 2*k16[i]*H_2*H_m0 + 2*k18[i]*H2_2*de + k19[i]*H2_2*H_m0 - 2*k21[i]*H2_1*pow(H_1, 2) - 2*k22[i]*pow(H_1, 3);
  
-    scale = data->scale[3 - 1];
+    scale = data->scale[threadID][3 - 1];
     Ith(ydot, 3) /= scale;
 
     
@@ -2903,7 +2942,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 4) = k01[i]*H_1*de - k02[i]*H_2*de - k09[i]*H_1*H_2 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0;
  
-    scale = data->scale[4 - 1];
+    scale = data->scale[threadID][4 - 1];
     Ith(ydot, 4) /= scale;
 
     
@@ -2913,7 +2952,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 5) = k07[i]*H_1*de - k08[i]*H_1*H_m0 - k14[i]*H_m0*de - k15[i]*H_1*H_m0 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0 - k19[i]*H2_2*H_m0;
  
-    scale = data->scale[5 - 1];
+    scale = data->scale[threadID][5 - 1];
     Ith(ydot, 5) /= scale;
 
     
@@ -2923,7 +2962,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 6) = -k03[i]*He_1*de + k04[i]*He_2*de;
  
-    scale = data->scale[6 - 1];
+    scale = data->scale[threadID][6 - 1];
     Ith(ydot, 6) /= scale;
 
     
@@ -2933,7 +2972,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 7) = k03[i]*He_1*de - k04[i]*He_2*de - k05[i]*He_2*de + k06[i]*He_3*de;
  
-    scale = data->scale[7 - 1];
+    scale = data->scale[threadID][7 - 1];
     Ith(ydot, 7) /= scale;
 
     
@@ -2943,7 +2982,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 8) = k05[i]*He_2*de - k06[i]*He_3*de;
  
-    scale = data->scale[8 - 1];
+    scale = data->scale[threadID][8 - 1];
     Ith(ydot, 8) /= scale;
 
     
@@ -2953,7 +2992,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 9) = k01[i]*H_1*de - k02[i]*H_2*de + k03[i]*He_1*de - k04[i]*He_2*de + k05[i]*He_2*de - k06[i]*He_3*de - k07[i]*H_1*de + k08[i]*H_1*H_m0 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de;
  
-    scale = data->scale[9 - 1];
+    scale = data->scale[threadID][9 - 1];
     Ith(ydot, 9) /= scale;
 
     
@@ -2963,7 +3002,7 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
     //
     Ith(ydot, 10) = 0;
  
-    scale = data->scale[10 - 1];
+    scale = data->scale[threadID][10 - 1];
     Ith(ydot, 10) /= scale;
 
     

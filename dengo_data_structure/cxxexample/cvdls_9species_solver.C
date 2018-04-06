@@ -251,7 +251,7 @@ int cvdls_9species_main(int argc, char** argv)
         rtol[j * N + i] = 1e-09;
         if(j==0) {
             fprintf(stderr, "ge[0] = %0.3g, atol => % 0.16g\n",
-                    tics[j], atol[j]);
+                    tics[j*N + i], atol[j*N + i]);
         }
     }
     i++;
@@ -375,7 +375,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
             double *rtol, double *atol, long long dims, cvdls_9species_data *data) {
     int i, j;
     hid_t file_id;
-    /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
+    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
 
     int N = 10;
     for (i = 0; i<dims; i++) {
@@ -456,8 +456,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
     double *gu = (double *) alloca(N*dims*sizeof(double));
     double *Ju = (double *) alloca(N*N*dims*sizeof(double));
     double floor_value = 1e-25;
-    while (ttot < dtf) {
-        
+            
 
         /* f and jf are function for evaluating rhs and jac for the solver
         * input: {double array}
@@ -470,43 +469,82 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         
         //fprintf(stderr, "ttot: %0.5g\n", ttot);
         // fprintf(stderr, "---------dt = %0.5g-------\n", dt); 
+        
+        double *input_N = (double *) alloca(N * sizeof(double)); 
+        double *atol_N  = (double *) alloca(N * sizeof(double));
+        double *rtol_N  = (double *) alloca(N * sizeof(double));
+        double *prev_N  = (double *) alloca(N * sizeof(double));
 
-        int rv = cvodes_main_solver( f, jf, input, rtol ,  atol, NSPECIES, data, &dt);
+        
+        for (int d = 0; d < dims; d++){
 
-        for (i = 0; i < dims * N; i++) {
-            if (input[i] < 0) {
-                rv = 1;
-                break;
+            // fprintf(stderr, "nth strip: %d", d);
+
+            // copy array which can be passed to the solver
+            for (i = 0; i < N; i++){ 
+                input_N[i] = input[d*N + i];
+                atol_N[ i]  = atol[ d*N + i];
+                rtol_N[ i]  = rtol[ d*N + i];
+                prev_N[ i]  = prev[ d*N + i];
+                
+                // this is being passed around 
+                // passively by the "dengo_rate_data" 
+                // will have to fix it for openmp
+                data->scale[i] = input[d*N + i];
             }
-        }
-        if (rv == 0) {
-        // fprintf(stderr, "succesful integratoin\n");
+            // initialize a dt for the solver
+            dt = dtf / 1.0e3;
+            ttot = 0.0;
+            siter = 0;
+            //fprintf(stderr, "%d th strip calculation \n", d);
+            while (ttot < dtf) {
+                int rv = cvodes_main_solver( f, jf, input_N, rtol_N ,atol_N, NSPECIES, data, &dt);
+                // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
 
-	    if (siter == 50000) break;
-	    siter++;
-            if (siter % 10000 == 0) {
-                fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n",
-                        siter, dt, ttot, dtf);
-            }
-            ttot += dt;
-	    dt = DMIN(dt * 1.1, dtf - ttot);
+                for (i = 0; i < N; i++) {
+                    if (input[i] < 0) {
+                        rv = 1;
+                        break;
+                    }
+                }
+
+                ttot += dt;
+	            dt = DMIN(dt * 1.1, dtf - ttot);
+                if (rv == 0) {
+                // fprintf(stderr, "succesful integratoin\n");
+
+	                if (siter == 50000) break;
+	                siter++;
+                    if (siter % 10000 == 0) {
+                        fprintf(stderr, "Successful Iteration[%d]: (%0.4g) %0.16g / %0.16g\n", 
+                                siter, dt, ttot, dtf);
+                    }
+
 	    
-	    for (i = 0; i < dims * N; i++) prev[i] = input[i];
-            // for (i = 0; i < dims * N; i++) {     
-            //    if (input[i] < floor_value) {
-            //      input[i] = floor_value;
-            //    }
-            //}
-        } else {
-            dt /= 2.0;
-            for (i = 0; i < dims * N; i++) input[i] = prev[i];
-            if (dt/dtf < 1e-30)  {
-                fprintf(stderr, "Dying! dt/dtf = %0.5g\n", dt/dtf);
-                break;
+	            for (i = 0; i < N; i++) prev_N[i] = input_N[i];
+                // for (i = 0; i < dims * N; i++) {     
+                //    if (input[i] < floor_value) {
+                //      input[i] = floor_value;
+                //    }
+                //}
+                } else {
+                    // fprintf(stderr, "failed\n");
+                    dt /= 2.0;
+                    // for (i = 0; i < N; i++) input_N[i] = prev_N[i];
+                    // if (dt/dtf < 1e-30)  {
+                    //     fprintf(stderr, "Dying! dt/dtf = %0.5g\n", dt/dtf);
+                    //     break;
+                    //}
+                }
+                siter++;
+            }
+            //fprintf(stderr, "%d strip finished at t = %0.5g \n",d, ttot);
+            // should copy the results back to input[i] from input_N
+            for (i = 0; i < N; i++){ 
+                input[d*N +i] = input_N[i] ;
+                // fprintf(stderr, "%d: %0.5g\n",i, input_N[i]);
             }
         }
-        niter++;
-    }
     /* fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
        ttot, dtf, dtf-ttot); */
     for (i = 0; i<dims; i++) {
@@ -2774,10 +2812,14 @@ int calculate_rhs_cvdls_9species(realtype t, N_Vector y, N_Vector ydot, void *us
 
     double mh = 1.67e-24;
     double mdensity;
-
+    
+    // i = nstrip;
+    i = 0;
     T = data->Ts[i];
     z = data->current_z;
-    
+   
+    // fprintf(stderr, "T from rhs: %0.5g\n", T);
+
     double scale;
     int jj =0;
     scale = data->scale[jj];

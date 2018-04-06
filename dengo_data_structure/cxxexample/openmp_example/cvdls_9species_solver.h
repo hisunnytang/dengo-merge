@@ -181,8 +181,9 @@ typedef struct cvdls_9species_data {
     double gammaH2_2[MAX_NCELLS];
     double dgammaH2_2_dT[MAX_NCELLS];
     
+    // int max_threads = omp_get_max_threads();
 
-    double scale[10];
+    double scale[10][10];
 } cvdls_9species_data;
 
 cvdls_9species_data *cvdls_9species_setup_data(int *, char***);
