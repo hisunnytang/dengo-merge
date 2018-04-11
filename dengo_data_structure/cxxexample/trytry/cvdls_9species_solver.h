@@ -4,7 +4,7 @@ The generalized rate data type holders.
 
 */
 
-
+#include "omp.h"
 /* stdlib, hdf5, local includes */
 
 #include "time.h"
