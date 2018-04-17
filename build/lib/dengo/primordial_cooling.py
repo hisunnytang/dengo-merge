@@ -21,11 +21,11 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from .chemistry_constants import tevk
+from .chemistry_constants import tevk, kboltz
 import numpy as np
 import sympy
 from .reaction_classes import cooling_action, reaction_registry
-
+from .thin_cie_cooling import cie_cooling_rate
 dhuge = 1.0e30
 
 # Collisional excitations
@@ -100,7 +100,13 @@ def cool(eq):
     @eq.table
     def reHII(state):
         vals = 8.70e-27*np.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
-            / (1.0 + (state.T/1.0e6)**(0.7)) 
+            / (1.0 + (state.T/1.0e6)**(0.7))
+
+        # (from Hui and Gnedin 1997)
+        lambdaHI = 2.0 * 157807e0 / state.T
+        vals = 1.778e-29 * state.T * lambdaHI**1.965 / \
+         (1.0e0 + (lambdaHI/0.541)**0.502)**2.697
+
         return vals
 
 # -- reHeII1 --
@@ -109,6 +115,10 @@ def cool(eq):
     @eq.table
     def reHeII1(state):
         vals = 1.55e-26*state.T**0.3647
+
+        lambdaHeII = 2.0 * 285335.0 / state.T
+        vals = 3.0e-14 * kboltz * state.T * lambdaHeII**0.654
+
         return vals
 
 # -- reHeII2 --
@@ -118,7 +128,7 @@ def cool(eq):
     def reHeII2(state):
         vals = 1.24e-13*state.T**(-1.5) \
             * np.exp(-np.minimum(np.log(dhuge),470000.0/state.T)) \
-            * (1.+0.3*np.exp(-np.minimum(np.log(dhuge),94000.0/state.T))) 
+            * (1.+0.3*np.exp(-np.minimum(np.log(dhuge),94000.0/state.T)))
         return vals
 
 # -- reHeIII --
@@ -128,6 +138,11 @@ def cool(eq):
     def reHeIII(state):
         vals = 3.48e-26*np.sqrt(state.T)*(state.T/1000.0)**(-0.2) \
             / (1.0 + (state.T/1.0e6)**(0.7))
+
+        lambdaHeIII = 2.0 * 631515.0e0/ state.T
+        vals = 8.0*1.778e-29 *state.T * lambdaHeIII**1.965 \
+                / (1.0e0 + (lambdaHeIII/0.541e0)**0.502)**2.697
+
         return vals
 
 # -- brema --
@@ -135,6 +150,8 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def brem(state):
+
+        # balck 1981 / Spitzer & Hart 1979
         vals = 1.43e-27*np.sqrt(state.T) \
              *(1.1+0.34*np.exp(-(5.5-np.log10(state.T))**2/3.0))
         return vals
@@ -144,7 +161,9 @@ def cool(eq):
 # Glover and Abel 2008.  Note that this includes the unused Galli & Palla 1999
 # low density table.
 #@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)")
-@cooling_action("gloverabel08", "-(H2I)*gphdl/(1.0+gphdl/galdl)")
+
+#@cooling_action("gloverabel08", "-(H2I)*gphdl/(1.0+gphdl/galdl)")
+@cooling_action("gloverabel08", "-(H2I)*h2lte/(1.0+h2lte/galdl) ")
 def cool(eq):
     @eq.table
     def gpldl(state):
@@ -161,13 +180,13 @@ def cool(eq):
         # high density limit from HM79 (typo corrected Aug 30/2007)
         # -- gphdl --
         tm  = np.maximum(state.T, 10.0e0)
-        tm  = np.minimum(tm, 1.e4)
+        tm  = np.minimum(tm, 1.e5)
         t3 = tm/1000.
         # HDLR is from p31 of HM79.
         HDLR = ((9.5e-22*t3**3.76)/(1.+0.12*t3**2.1)*
                 np.exp(-(0.13/t3)**3)+3.e-24*np.exp(-0.51/t3))
         HDLV = (6.7e-19*np.exp(-5.86/t3) + 1.6e-18*np.exp(-11.7/t3))
-        vals  = (HDLR + HDLV) 
+        vals  = (HDLR + HDLV)
         return vals
 
     # Excitation by HI
@@ -178,7 +197,7 @@ def cool(eq):
         # Low density rates from Glover & Abel 2008
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
-        lt3 = np.log10(tm / 1.e3)  
+        lt3 = np.log10(tm / 1.e3)
 
         _i1 = (state.T < 100.0)
         _i2 = (state.T < 1000.0)
@@ -209,7 +228,7 @@ def cool(eq):
     def gaH2(state):
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
-        lt3 = np.log10(tm / 1.e3)  
+        lt3 = np.log10(tm / 1.e3)
         vals = 10**(-23.962112e0
              + 2.09433740e0  * lt3
              - 0.77151436e0  * lt3**2
@@ -224,7 +243,7 @@ def cool(eq):
     def gaHe(state):
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
-        lt3 = np.log10(tm / 1.e3)  
+        lt3 = np.log10(tm / 1.e3)
         vals = 10**(-23.689237e0
              + 2.1892372e0  * lt3
              - 0.81520438e0 * lt3**2
@@ -239,13 +258,25 @@ def cool(eq):
     def gaHp(state):
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
-        lt3 = np.log10(tm / 1.e3)  
+        lt3 = np.log10(tm / 1.e3)
         vals = 10**(-21.716699e0
              + 1.3865783e0   * lt3
              - 0.37915285e0  * lt3**2
              + 0.11453688e0  * lt3**3
              - 0.23214154e0  * lt3**4
-             + 0.058538864e0 * lt3**5) 
+             + 0.058538864e0 * lt3**5)
+
+        # Revised rate
+
+        # Honvault et al (2011, Phys. Rev. Lett., 107, 023201) and
+        # Honvault et al (2012, Phys. Rev. Lett., 108, 109903).
+
+        vals = 10.0**(-22.089523 \
+                + 1.5714711 * lt3 \
+                + 0.015391166 * lt3**2 \
+                - 0.23619985  * lt3**3 \
+                - 0.51002221  * lt3**4 \
+                + 0.32168730  * lt3**5)
         return vals
 
     # Excitation by electrons
@@ -254,7 +285,7 @@ def cool(eq):
     def gael(state):
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
-        lt3 = np.log10(tm / 1.e3)  
+        lt3 = np.log10(tm / 1.e3)
         _i1 = (state.T < 200)
         vals = 10**(-22.190316
              + 1.5728955  * lt3
@@ -267,8 +298,61 @@ def cool(eq):
              - 77.121176e0  * lt3[_i1]**2
              - 51.352459e0  * lt3[_i1]**3
              - 15.169160e0  * lt3[_i1]**4
-             - 0.98120322e0 * lt3[_i1]**5) 
+             - 0.98120322e0 * lt3[_i1]**5)
+
+        # Revised Rate, based on data from
+        # Yoon et al (2008, J. Phys. Chem. Ref. Data, 37, 913).
+
+        _i1 = (state.T<100.0)
+        _i2 = (state.T<500.0)
+
+        vals = 10.0**(-22.921189 \
+                + 1.6802758 * lt3 \
+                + 0.93310622 * lt3**2 \
+                + 4.0406627  * lt3**3 \
+                - 4.7274036  * lt3**4 \
+                - 8.8077017  * lt3**5 \
+                + 8.9167183  * lt3**6 \
+                + 6.4380698  * lt3**7 \
+                - 6.3701156  * lt3**8)
+        vals[_i2] = 10.0**(-21.928796 \
+                + 16.815730 * lt3[_i2]  \
+                + 96.743155 * lt3[_i2] **2 \
+                + 343.19180 * lt3[_i2] **3 \
+                + 734.71651 * lt3[_i2] **4 \
+                + 983.67576 * lt3[_i2] **5 \
+                + 801.81247 * lt3[_i2] **6 \
+                + 364.14446 * lt3[_i2] **7 \
+                + 70.609154 * lt3[_i2] **8)
+
+        vals[_i1] = 0.0
+
+
         return vals
+    @eq.table
+    def h2lte(state):
+        tm = np.maximum( state.T, 10.0 )
+        tm = np.minimum( tm, 1.0e4 )
+        lt3 = np.log10( tm / 1.0e3)
+
+        _i1 = (tm < 100.0)
+        #     e part 4) - New fit to LTE rate from Glover (2015, MNRAS, 451, 2082)
+        # Crude extrapolation, but don't expect H2 cooling to be significant
+        # at these temperatures
+        vals = 10.0**(-20.584225
+                 + 5.0194035 * lt3 \
+                 - 1.5738805 * lt3**2 \
+                 - 4.7155769 * lt3**3 \
+                 + 2.4714161 * lt3**4 \
+                 + 5.4710750 * lt3**5 \
+                 - 3.9467356 * lt3**6 \
+                 - 2.2148338 * lt3**7 \
+                 + 1.8161874 * lt3**8)
+
+        vals[_i1] = 7.0-27 * tm[_i1]**1.5 * np.exp(-512./tm[_i1])
+        return vals
+
+
 
     eq.temporary("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
     # do we have gphdl right?
@@ -280,14 +364,14 @@ def cool(eq):
 @cooling_action("compton", "-(comp1)*(T - (comp2))*de") # + comp3")
 def cool(eq):
     @eq.table
-    def comp(state):
+    def comp_(state):
         vals = 5.65e-36 + state.T*0.0
         # for what it's worth, calculated with a bunch of precision:
         # 5.6534549864193774e-36
         return vals
 
     eq.temporary("z", "z")
-    eq.temporary("comp1", "comp * (1.0 + z)**4")
+    eq.temporary("comp1", "comp_ * (1.0 + z)**4")
     eq.temporary("comp2", "2.73 * (1.0 + z)")
     eq.temporary("T", "T")
     #eq.temporary("comp3", "-comp_xray*(T - comp_temp) * de")
@@ -303,7 +387,7 @@ def cool(eq):
         vals = 8.5e-26 + state.T
         return vals
 
-@cooling_action("h2formation", "h2mheat*HI*HI*HI - h2mcool*H2I*HI")
+@cooling_action("h2formation", "h2heatfrac*(h2mheat*HI*HI*HI - h2mcool*H2I*HI)")
 def h2formation(eq):
     @eq.table
     def h2mheat(state):
@@ -314,3 +398,37 @@ def h2formation(eq):
     def h2mcool(state):
         vals = 7.177e-12 * reaction_registry['k13'].coeff_fn(state)
         return vals
+
+    @eq.table
+    def ncrn(state):
+        vals = 1.0e6 * (state.T**(-0.5))
+        return vals
+
+    @eq.table
+    def ncrd1(state):
+        vals = 1.6e0 * np.exp( - (400.0 / state.T)**2.0)
+        return vals
+
+    @eq.table
+    def ncrd2(state):
+        vals = 1.4 * np.exp(-12000.0 / (state.T + 1200.0) )
+        return vals
+
+    # 1/2 account for the double counting of energy loss per hydrogen nuclei
+    # cooling here is the energy loss/gain per H2 molecule formed
+    eq.temporary("h2heatfrac", " (1.0 + ncrn / (HI * ncrd1 + H2I * ncrd2))**(-1.0)/2.0 " )
+    eq.temporary("nH", "nH")
+
+
+
+@cooling_action("cie_cooling", " - cieco * H2I * mdensity * mh")
+def cie_cooling(eq):
+    @eq.table
+    def cieco(state):
+
+        vals = cie_cooling_rate(state)
+        return vals
+
+    eq.temporary("mdensity", "mdensity")
+    eq.temporary("mh", "mh")
+
