@@ -26,7 +26,7 @@ typedef struct
   int *grid_dimension;
   int *grid_start;
   int *grid_end;
-
+  long int ncells;
   double grid_dx;
     
   // This should be updated dynamically 
@@ -43,7 +43,7 @@ typedef struct
   double *de_density;
 
   double *ge_density;
-
+  
 
 } dengo_field_data;
 

@@ -2,7 +2,7 @@
 
 1. Create all templates file with dengo in python
 2. "initial_condition.h5" is created
-3. Make file
-4. run "hellomake"
-5. results will be saved in "solution.h5"
+3. Make file which builds a shared library
+4. results will be saved in "solution.h5"
+
 
