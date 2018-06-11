@@ -324,8 +324,5 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem);
 void temperature_from_mass_density(double *input, int nstrip, int nchem, 
                                    double *strip_temperature);
 
-void cvdls_9species_interpolate_rates( void *sdata, int nstrip);
-
-
 
 

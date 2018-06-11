@@ -106,7 +106,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         data->scale[i] = input[i];
         scale = data->scale[i];
         Ith(y,i+1)      = input[i] / scale;
-             
+        fprintf(stderr, "scale[%d]: %0.5g \n", i, scale);     
     }
     
     /* fixed the incoming abs tolerance */

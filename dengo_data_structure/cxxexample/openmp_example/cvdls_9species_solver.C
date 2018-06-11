@@ -30,6 +30,7 @@ cvdls_9species_data *cvdls_9species_setup_data(
 
     /*initialize temperature so it wont crash*/
     data->Ts[0] = 1000.0;
+    data->logTs[0] = log(1000.0);
 
     /* Temperature-related pieces */
     data->bounds[0] = 1.0;
@@ -119,12 +120,12 @@ int cvdls_9species_main(int argc, char** argv)
     int N = 10;
 
     double *atol, *rtol;
-    atol = (double *) alloca(N * dims * sizeof(double));
-    rtol = (double *) alloca(N * dims * sizeof(double));
+    atol = (double *) malloc(N * dims * sizeof(double));
+    rtol = (double *) malloc(N * dims * sizeof(double));
 
-    double *tics = (double *) alloca(dims * sizeof(double));
-    double *ics = (double *) alloca(dims * N * sizeof(double));
-    double *input = (double *) alloca(dims * N * sizeof(double));
+    double *tics = (double *) malloc(dims * sizeof(double));
+    double *ics = (double *) malloc(dims * N * sizeof(double));
+    double *input = (double *) malloc(dims * N * sizeof(double));
     
     unsigned int i = 0, j;
     
@@ -267,7 +268,14 @@ int cvdls_9species_main(int argc, char** argv)
     double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
+
+    free(ics);
+    free(tics);
     ttot = dengo_evolve_cvdls_9species(dtf, dt, z, input, rtol, atol, dims, data);
+    
+    free(data);
+    free(rtol);
+    free(atol);
 
     /* Write results to HDF5 file */
     file_id = H5Fcreate("cvdls_9species_solution.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -275,6 +283,8 @@ int cvdls_9species_main(int argc, char** argv)
     dimsarr[0] = dims;
     i = 0;
     
+    fprintf(stderr, "dimension is %d \n", dims);
+
     double H2_1[dims];
     for (j = 0; j < dims; j++) {
         H2_1[j] = input[j * N + i]; 
@@ -355,6 +365,7 @@ int cvdls_9species_main(int argc, char** argv)
     H5LTmake_dataset_double(file_id, "/ge", 1, dimsarr, ge);
     i++;
     
+    /*
     double temperature[dims];
     for (j = 0; j < dims; j++) {
     	temperature[j] = data->Ts[j];
@@ -366,6 +377,8 @@ int cvdls_9species_main(int argc, char** argv)
     timestep[0] = dt;
     H5LTset_attribute_double(file_id, "/", "time", time, 1); 
     H5LTset_attribute_double(file_id, "/", "timestep", timestep, 1);
+    */
+
     H5Fclose(file_id);
     
     return 0;
@@ -441,23 +454,20 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         j++;
       
     }
-    ensure_electron_consistency(input, dims, N);
+    //ensure_electron_consistency(input, dims, N);
 
     rhs_f f = calculate_rhs_cvdls_9species;
     jac_f jf = calculate_jacobian_cvdls_9species;
-    if (dt < 0) dt = dtf / 1.0e3;
+    if (dt < 0) dt = dtf / 1.0e0;
     data->current_z = z;
     int niter = 0;
     int siter = 0;
     //double ttot = 0;
-    double *scale = (double *) alloca(dims * N * sizeof(double));
-    double *prev = (double *) alloca(dims * N * sizeof(double));
+    
+    double *scale = (double *) malloc(dims * N * sizeof(double));
+    double *prev = (double *) malloc(dims * N * sizeof(double));
     for (i = 0; i < dims * N; i++) scale[i] = input[i];
     for (i = 0; i < dims * N; i++) prev[i] = input[i];
-    double *u0 = (double *) alloca(N*dims*sizeof(double));
-    double *s  = (double *) alloca(N*sizeof(double));
-    double *gu = (double *) alloca(N*dims*sizeof(double));
-    double *Ju = (double *) alloca(N*N*dims*sizeof(double));
     double floor_value = 1e-25;
             
 
@@ -473,10 +483,10 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         //fprintf(stderr, "ttot: %0.5g\n", ttot);
         // fprintf(stderr, "---------dt = %0.5g-------\n", dt); 
         
-        double *internal_dt = (double *) alloca(dims * sizeof(double));
-        double *ttot = (double *) alloca(dims * sizeof(double));
-                int d;
-                int sum;
+        double *internal_dt = (double *) malloc(dims * sizeof(double));
+        double *ttot = (double *) malloc(dims * sizeof(double));
+        int d;
+        int sum;
         
         #pragma omp parallel 
         {
@@ -484,10 +494,10 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
         for ( d = 0; d < dims; d++){
         int omp_get_thread_num();
 
-        double *input_N = (double *) alloca(N * sizeof(double)); 
-        double *atol_N  = (double *) alloca(N * sizeof(double));
-        double *rtol_N  = (double *) alloca(N * sizeof(double));
-        double *prev_N  = (double *) alloca(N * sizeof(double));
+        double *input_N = (double *) malloc(N * sizeof(double)); 
+        double *atol_N  = (double *) malloc(N * sizeof(double));
+        double *rtol_N  = (double *) malloc(N * sizeof(double));
+        double *prev_N  = (double *) malloc(N * sizeof(double));
 
 
             // fprintf(stderr, "nth strip: %d", d);
@@ -512,7 +522,7 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
             //fprintf(stderr, "hello from thread %d, strip %d\n", omp_get_thread_num(), d);
 
             // initialize a dt for the solver
-            internal_dt[d] = dtf / 1.0e3;
+            internal_dt[d] = dtf / 1.0e0;
             ttot[d] = 0.0;
             siter = 0;
             
@@ -562,7 +572,8 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
                 }
                 siter++;
             }
-            // fprintf(stderr, "%d strip finished at t = %0.5g, from thread %d \n",d, ttot[d], threadID);
+            
+            fprintf(stderr, "%d strip finished at t = %0.5g, from thread %d \n", d, ttot[d], threadID);
             // should copy the results back to input[i] from input_N
             for (i = 0; i < N; i++){ 
                 input[d*N +i] = input_N[i] ;
@@ -571,8 +582,17 @@ double dengo_evolve_cvdls_9species (double dtf, double &dt, double z, double *in
                 //free(atol_N[i]);
                 //free(rtol_N[i]);
             }
+            free(input_N);
+            free(prev_N);
+            free(rtol_N);
+            free(atol_N);
         }
         }
+
+    free(internal_dt);
+    free(ttot);
+
+    fprintf(stderr, "hell yeah, you made it here :D \n");
     /* fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
        ttot, dtf, dtf-ttot); */
     for (i = 0; i<dims; i++) {
@@ -795,7 +815,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         
        //fprintf(stderr, "%d thread: updated T: %0.5g \n", i, T); 
         
-        while ( abs(T - Tnew) > 0.1 ){
+        while ( fabs(T - Tnew) > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
         // Since gammaH2 is dependent on the temperature too!
 

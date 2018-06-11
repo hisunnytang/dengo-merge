@@ -106,7 +106,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         data->scale[i] = input[i];
         scale = data->scale[i];
         Ith(y,i+1)      = input[i] / scale;
-             
+        fprintf(stderr, "scale[%d]: %0.5g \n", i, scale);     
     }
     
     /* fixed the incoming abs tolerance */
@@ -133,7 +133,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(1);
 
-    flag = CVodeSetMaxNumSteps(cvode_mem, 1000000 );
+    flag = CVodeSetMaxNumSteps(cvode_mem, 500 );
 
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */

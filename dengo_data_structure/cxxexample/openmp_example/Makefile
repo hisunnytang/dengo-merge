@@ -3,7 +3,7 @@ CVODE_INSTDIR= /home/kwoksun2/cvode-3.1.0/instdir
 
 
 CXX = g++
-CXXFLAGS=-I. -I$(CVODE_INSTDIR)/include -fopenmp -ggdb
+CXXFLAGS=-I. -I$(CVODE_INSTDIR)/include -fopenmp -ggdb -g
 
 LDIR = -L$(CVODE_INSTDIR)/lib -lm -lhdf5 -lhdf5_hl -lstdc++
 EXTRA_OBJ = $(CVODE_INSTDIR)/lib/libsundials_cvode.a $(CVODE_INSTDIR)/lib/libsundials_nvecserial.a
@@ -17,3 +17,9 @@ DEPS = cvdls_9species_solver.h
 
 hellomake: $(OBJ)
 	$(CXX) -o hellomake $(OBJ) $(EXTRA_OBJ) $(CXXFLAGS) $(LDIR)
+
+
+
+clean:
+	rm *.o
+	rm hellomake

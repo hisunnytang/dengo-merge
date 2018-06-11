@@ -1,5 +1,5 @@
 import os
-os.environ['YT_DEST'] = '/home/kwoksun2/anaconda2/pkgs/yt-3.3.5-np111py27_2/'
+os.environ['YT_DEST'] = '/home/kwoksun2/anaconda2/'
 import numpy as np
 from dengo.chemical_network import \
     ChemicalNetwork, \
@@ -11,9 +11,6 @@ import yt
 import yt.units as u
 import numpy
 import pickle
-import pyximport
-import h5py
-import timeit
 import time
 
 import sys
@@ -325,11 +322,11 @@ if __name__ == "__main__":
                 data = rv_int[key][0][flag][-1]
                 all_data[key].append(data)
                 print(key, data)
-        
+
         all_data['force_factor'].append( float(force_factor))
         current_density = density_array[-1]
         print("percentage: {}".format(current_density/final_density) )
-    all_data['density']  = density_array    
+    all_data['density']  = density_array
     all_data['run_time'] = run_time
     save_obj(all_data, 'freefall_dengo')
 

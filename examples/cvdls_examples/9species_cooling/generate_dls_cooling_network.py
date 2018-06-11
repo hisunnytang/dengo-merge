@@ -250,12 +250,16 @@ if __name__ == "__main__":
     # initialize data dictionary
     solver_name = 'cvdls_9species'
     init, primordial = Init_values(np.array([2000]), np.array([1e10]), n_species = 9)
-    chemistry_run = create_cvdls_solver(init, primordial, solver_name, cooling=True)
-    success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20 ,
-                                                                      Ddim = 20 ,
-                                                                      n_species=9,
-                                                                      solver_name = "cvdls_9species",
-                                                                      cooling=True)
+    print(init);
+    chemistry_run = create_cvdls_solver(init, primordial, solver_name, cooling=False)
+
+    rv, rv_int = chemistry_run.run_cvdls_9species(init, 1e-1)
+
+    #success, time_taken, temp_arr, den_arr, filename = solver_performance(Tdim = 20 ,
+    #                                                                  Ddim = 20 ,
+    #                                                                  n_species=9,
+    #                                                                  solver_name = "cvdls_9species",
+    #                                                                  cooling=False)
 
 
 def run_cvdls_evolve_freefall( temperature, density, init=None, primordial=None, max_iter=1e4 ):

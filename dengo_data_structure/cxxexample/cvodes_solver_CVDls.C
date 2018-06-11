@@ -74,7 +74,7 @@ static int check_flag(void *flagvalue, const char *funcname, int opt);
  */
 
 int cvodes_main_solver( rhs_f f, jac_f Jac, 
-                 double *input , double *rtol, double *atol, int NEQ, void *sdata, double *dt_now)
+                 double *input , double *rtol, double *atol, int NEQ, cvdls_9species_data *data, double *dt_now)
 {
     void *cvode_mem;
     int i, flag, flagr, iout;
@@ -87,10 +87,11 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     cvode_mem = NULL;
     LS = NULL;
     A = NULL;
+    
 
-    cvdls_9species_data *data = (cvdls_9species_data*)sdata;
+    //cvdls_9species_data *data = (cvdls_9species_data*)sdata;
 
-
+    
     /* Create serial vector of length NEQ for I.C. and abstol */
     y = N_VNew_Serial(NEQ);
     if (check_flag((void *)y, "N_VNew_Serial" , 0)) return(1);
@@ -103,9 +104,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
      */
     double scale;
     for (i=0; i<NEQ; i++) {
-        data->scale[i] = input[i];
-        scale = data->scale[i];
-        Ith(y,i+1)      = input[i] / scale;
+        Ith(y,i+1)      = 1.0;
         // fprintf(stderr, "input [%d]: %0.5g \n", i, input[i]);
  
     }
@@ -138,12 +137,12 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
 
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */
-    flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
+    flag = CVodeSStolerances(cvode_mem, reltol, reltol);
     if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
     
     /* Attach User Data */
-    flag = CVodeSetUserData(cvode_mem, sdata);
-    if (check_flag(&flag, "CVodeSetUserDatr", 1)) return(1);
+    flag = CVodeSetUserData(cvode_mem, data);
+    if (check_flag(&flag, "CVodeSetUserData", 1)) return(1);
     
     
     /*Create dense SUNMatrix for use in linear solves*/
@@ -176,11 +175,11 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     // tout is the desired output time
     // evolve CVODE in one dt
     //
+    //
+
     flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
     /* t is the actual evolved time */
     dt_now[0]   = t;
-    // fprintf(stderr, "CVode flag: %d, %0.5g, %0.5g\n", flag, t, tout );
-
     // rescale the input
     for (i=0; i<NEQ; i++) {
         scale = data->scale[i];    
@@ -193,6 +192,8 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     N_VDestroy(y); 
     N_VDestroy(abstol);
     CVodeFree(&cvode_mem);
+    SUNLinSolFree(LS);
+    SUNMatDestroy(A);
 
 
     if (flag == CV_TOO_MUCH_WORK){

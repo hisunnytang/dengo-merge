@@ -784,7 +784,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         
         gammaH2_1 = data->gammaH2_1[i];
         dgammaH2_1_dT = data->dgammaH2_1_dT[i];
-        // fprintf(stderr, ":gammaH2_1 %0.5g , dgammaH2_1_dT: %.5g \n", gammaH2_1, dgammaH2_1_dT  );
+        fprintf(stderr, ":gammaH2_1 %0.5g , dgammaH2_1_dT: %.5g \n", gammaH2_1, dgammaH2_1_dT  );
         
         gammaH2_2 = data->gammaH2_2[i];
         dgammaH2_2_dT = data->dgammaH2_2_dT[i];
@@ -807,7 +807,7 @@ void cvdls_9species_calculate_temperature(cvdls_9species_data *data,
         Tnew = T - dge/dge_dT;
         data->Ts[i] = Tnew;
 
-        // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
+        fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
         }
         // fprintf(stderr,"---------------------\n");
         data->Ts[i] = Tnew;
@@ -1360,7 +1360,8 @@ void cvdls_9species_interpolate_gamma(cvdls_9species_data *data,
     bin_id = data->bin_id[i];
     data->gammaH2_2[i] = data->g_gammaH2_2[bin_id] +
         data->Tdef[i] * (data->g_gammaH2_2[bin_id+1] - data->g_gammaH2_2[bin_id]);
-
+    
+    fprintf(stderr, "from interpolate_gamma %0.5g \n", data->gammaH2_2[i]);
     data->dgammaH2_2_dT[i] = data->g_dgammaH2_2_dT[bin_id] +
         data->Tdef[i] * (data->g_dgammaH2_2_dT[bin_id+1] 
         - data->g_dgammaH2_2_dT[bin_id]);

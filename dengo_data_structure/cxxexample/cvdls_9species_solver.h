@@ -43,7 +43,7 @@ The generalized rate data type holders.
 
 
 
-#define MAX_NCELLS 1024
+#define MAX_NCELLS 1
 #define NSPECIES 10
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
@@ -183,6 +183,7 @@ typedef struct cvdls_9species_data {
     
 
     double scale[10];
+    double inv_scale[10];
 } cvdls_9species_data;
 
 cvdls_9species_data *cvdls_9species_setup_data(int *, char***);
@@ -206,7 +207,7 @@ typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vect
 
 
 int cvodes_main_solver( rhs_f f, jac_f Jac, 
-                 double *input , double *rtol, double *atol, int nchem, void *sdata, double *dt_now);
+                 double *input , double *rtol, double *atol, int nchem, cvdls_9species_data *data, double *dt_now);
 
 
 

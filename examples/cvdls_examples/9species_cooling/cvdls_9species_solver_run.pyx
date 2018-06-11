@@ -636,8 +636,7 @@ cdef extern from "cvdls_9species_solver.h":
     
     int cvodes_main_solver( rhs_f f, jac_f jf, double *input, double *rtol, double *atol, int nchem, void *sdata, double *dt_now);
 
-    void cvdls_9species_interpolate_rates( void *sdata, int nstrip);
- 
+
 
 def main_run_cvdls_9species():
     t1 = time.time()
@@ -770,7 +769,6 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     cdef rhs_f f = calculate_rhs_cvdls_9species
     cdef jac_f jf = calculate_jacobian_cvdls_9species
 
-
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
@@ -798,8 +796,6 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     for i in range(dims):
         data.Ts[i] = ics['T'][i]
         print("initial  temperature: %.3E" %data.Ts[i])
-    
-    cvdls_9species_interpolate_rates( cvdls_9species_data *data,  1)
 
 
     for iter in range(niter):
@@ -836,25 +832,29 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
             ttot += dt_local
         elif status == 1:
             result_int[iter] = 0
+            ttot += dt_local
+
         t_int[iter] = ttot
         dt_int[iter] = dt_local
         
         if status == 0:
             if iter % 100 == 0:
                 print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt_local, ttot, tf)
+
+            dt_local = 1.1*dt_local
+
             copy_array(input, prev, NTOT)
             # Reset the scaling array to match the new values
             copy_array(input, scale, NTOT)
-            dt_local = 1.1*dt_local
             dt[0] = dt_local;
             if tf - ttot < dt_local:
                 dt_local = tf - ttot
                 dt[0] = dt_local;
         elif status == 1:
             dt[0] = dt_local/2.0;
-            copy_array(prev, input, NTOT)
+            # copy_array(prev, input, NTOT)
             # Reset the scaling array to match the new values
-            copy_array(input, scale, NTOT)
+            # copy_array(input, scale, NTOT)
             if dt[0] < 1e-50 * tf:
                 print "dt too small (%0.3e / %0.3e) so breaking" % (dt[0], tf)
                 break

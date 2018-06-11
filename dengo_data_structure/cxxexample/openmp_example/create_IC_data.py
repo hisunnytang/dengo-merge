@@ -1,14 +1,14 @@
 import numpy
 import h5py
 
-f = h5py.File('cvdls_9species_initial_conditions.h5')
+f = h5py.File('../cvdls_9species_initial_conditions.h5')
 data = {}
 
-size = 16**3
+size = 128
 
 for key in f.keys():
     if key not in ['T', 'ge']:
-        data[key] = f[key]*numpy.logspace(0,5,size)
+        data[key] = f[key]*numpy.ones((size))
     else:
         data[key] = f[key]*numpy.ones((size))
 

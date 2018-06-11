@@ -1,0 +1,20 @@
+import os
+
+def make_ext(modname, pyxfilename):
+    from distutils.extension import Extension
+    if "HDF5_DIR" in os.environ:
+        hdf5_dir = os.environ["HDF5_DIR"]
+    elif "YT_DEST" in os.environ:
+        hdf5_dir = os.environ["YT_DEST"]
+    else:
+        print "You need to set HDF5_DIR or YT_DEST in your environment."
+        raise RuntimeError
+    inc = os.path.join(hdf5_dir, "include")
+    lib = os.path.join(hdf5_dir, "lib")
+    return Extension(name=modname,
+                     sources=[pyxfilename,
+                        "__old_solver.C", "BE_chem_solve.C"],
+                     include_dirs=[inc, "."],
+                     library_dirs=[lib],
+                     libraries=['m', 'hdf5', 'hdf5_hl', "stdc++"],
+                     language="C++")
