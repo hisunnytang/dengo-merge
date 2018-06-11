@@ -1,0 +1,817 @@
+--------------------------------------------------------------------------------
+Command:            ./a.out
+Massif arguments:   (none)
+ms_print arguments: massif.out.5202
+--------------------------------------------------------------------------------
+
+
+    MB
+3.877^                                                                       :
+     |#######################################################################@
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+     |#                                                                      @
+   0 +----------------------------------------------------------------------->Gi
+     0                                                                   8.615
+
+Number of snapshots: 91
+ Detailed snapshots: [2, 4, 7, 13, 18, 28, 39, 48, 51, 61, 66 (peak), 76, 86]
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+  0              0                0                0             0            0
+  1      4,112,837          305,864          305,852            12            0
+  2      4,193,829          379,168          379,013           155            0
+99.96% (379,013B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->80.66% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->80.66% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->80.66% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->80.66% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->80.66% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->80.66% (305,852B) 0xFFEFFFD46: ???
+|           ->80.66% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->80.66% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->80.66% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->19.17% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->19.17% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->19.17% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->19.17% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->00.12% (457B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+  3      4,298,575        1,692,008        1,687,519         4,489            0
+  4      4,369,079        1,711,696        1,702,003         9,693            0
+99.43% (1,702,003B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->75.87% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->75.87% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->75.87% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->17.87% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->17.87% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->17.87% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->17.87% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->17.87% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->17.87% (305,852B) 0xFFEFFFD46: ???
+|           ->17.87% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->17.87% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->17.87% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->04.25% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->04.25% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->04.25% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->04.25% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.45% (24,743B) in 18 places, all below massif's threshold (1.00%)
+  
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+  5      4,480,437        1,731,728        1,717,305        14,423            0
+  6      4,554,327        1,788,176        1,769,822        18,354            0
+  7      4,631,807        1,808,496        1,788,862        19,634            0
+98.91% (1,788,862B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->71.81% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->71.81% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->71.81% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->16.91% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->16.91% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->16.91% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->16.91% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->16.91% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->16.91% (305,852B) 0xFFEFFFD46: ???
+|           ->16.91% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->16.91% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->16.91% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->05.26% (95,056B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->02.07% (37,464B) in 8 places, all below massif's threshold (1.00%)
+| | 
+| ->01.76% (31,824B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.76% (31,824B) in 50 places, all below massif's threshold (1.00%)
+| |   
+| ->01.42% (25,768B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.42% (25,768B) in 9 places, all below massif's threshold (1.00%)
+|     
+->04.02% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->04.02% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->04.02% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->04.02% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->00.91% (16,546B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+  8      4,717,737        1,833,896        1,812,662        21,234            0
+  9      4,778,468        1,852,184        1,829,798        22,386            0
+ 10      4,856,346        1,872,504        1,848,838        23,666            0
+ 11      4,907,571        1,886,728        1,862,166        24,562            0
+ 12      4,986,558        1,902,016        1,876,510        25,506            0
+ 13      5,307,544        2,428,320        2,402,790        25,530            0
+98.95% (2,402,790B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->53.48% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->53.48% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->53.48% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->29.06% (705,752B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->23.32% (566,304B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->21.67% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->21.67% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->21.67% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->21.67% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->21.67% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->21.67% (526,232B) 0x40487D: test_cvdls_read_rate_tables(test_cvdls_data*) (test_cvdls_solver.C:612)
+| | |           ->21.67% (526,232B) 0x4011F3: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:52)
+| | |             ->21.67% (526,232B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+| | |               ->21.67% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |                 
+| | ->01.65% (40,072B) in 13 places, all below massif's threshold (1.00%)
+| |   
+| ->03.44% (83,616B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.41% (34,320B) 0x56078B5: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.41% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.41% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->01.41% (34,320B) 0x56078F0: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.41% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.41% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->00.62% (14,976B) in 1+ places, all below ms_print's threshold (01.00%)
+| | 
+| ->01.24% (30,104B) in 8 places, all below massif's threshold (1.00%)
+| | 
+| ->01.06% (25,728B) 0x5603920: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.06% (25,728B) in 50 places, all below massif's threshold (1.00%)
+|     
+->12.60% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->12.60% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->12.60% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->12.60% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->12.60% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->12.60% (305,852B) 0xFFEFFFD46: ???
+|           ->12.60% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->12.60% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->12.60% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.99% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->02.99% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->02.99% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->02.99% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->00.81% (19,778B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 14      5,367,982        2,438,168        2,411,750        26,418            0
+ 15      5,452,004        2,452,992        2,426,126        26,866            0
+ 16      5,534,872        2,457,808        2,430,686        27,122            0
+ 17      5,598,769        2,460,896        2,433,594        27,302            0
+ 18      5,722,447        2,468,296        2,440,602        27,694            0
+98.88% (2,440,602B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->52.62% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->52.62% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->52.62% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->29.22% (721,256B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->23.46% (579,112B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->21.32% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->21.32% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->21.32% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->21.32% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->21.32% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->21.32% (526,232B) 0x40487D: test_cvdls_read_rate_tables(test_cvdls_data*) (test_cvdls_solver.C:612)
+| | |           ->21.32% (526,232B) 0x4011F3: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:52)
+| | |             ->21.32% (526,232B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+| | |               ->21.32% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |                 
+| | ->02.14% (52,880B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->03.40% (83,928B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.39% (34,320B) 0x56078B5: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.39% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.39% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->01.39% (34,320B) 0x56078F0: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.39% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.39% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->00.62% (15,288B) in 1+ places, all below ms_print's threshold (01.00%)
+| | 
+| ->01.31% (32,392B) in 18 places, all below massif's threshold (1.00%)
+| | 
+| ->01.05% (25,824B) 0x5603920: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.05% (25,824B) in 51 places, all below massif's threshold (1.00%)
+|     
+->12.39% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->12.39% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->12.39% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->12.39% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->12.39% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->12.39% (305,852B) 0xFFEFFFD46: ???
+|           ->12.39% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->12.39% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->12.39% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.95% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->02.95% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->02.95% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->02.95% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.71% (42,086B) in 30 places, all below massif's threshold (1.00%)
+  
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 19      5,803,579        2,473,464        2,445,498        27,966            0
+ 20      5,903,008        2,480,376        2,452,062        28,314            0
+ 21      6,026,613        2,488,640        2,459,886        28,754            0
+ 22      6,107,962        2,493,808        2,464,782        29,026            0
+ 23      6,213,768        2,500,760        2,471,374        29,386            0
+ 24      6,292,552        2,501,056        2,471,598        29,458            0
+ 25      6,698,023        2,501,096        2,471,630        29,466            0
+ 26      7,156,671        1,974,848        1,945,398        29,450            0
+ 27      7,206,489        2,501,088        2,471,628        29,460            0
+ 28      7,527,808        2,501,128        2,471,649        29,479            0
+98.82% (2,471,649B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->51.92% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->51.92% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->51.92% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->29.64% (741,416B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->23.75% (593,968B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->21.04% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->21.04% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->21.04% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->21.04% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->21.04% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->21.04% (526,232B) 0x404AE7: test_cvdls_read_cooling_tables(test_cvdls_data*) (test_cvdls_solver.C:642)
+| | |         | ->21.04% (526,232B) 0x40121D: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:55)
+| | |         |   ->21.04% (526,232B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+| | |         |     ->21.04% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |         |       
+| | |         ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |         
+| | ->02.71% (67,736B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->03.51% (87,672B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.37% (34,320B) 0x56078B5: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.37% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.37% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->01.37% (34,320B) 0x56078F0: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.37% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.37% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->00.76% (19,032B) in 1+ places, all below ms_print's threshold (01.00%)
+| | 
+| ->01.31% (32,800B) in 18 places, all below massif's threshold (1.00%)
+| | 
+| ->01.08% (26,976B) 0x5603920: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.08% (26,976B) in 51 places, all below massif's threshold (1.00%)
+|     
+->12.23% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->12.23% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->12.23% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->12.23% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->12.23% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->12.23% (305,852B) 0xFFEFFFD46: ???
+|           ->12.23% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->12.23% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->12.23% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.91% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->02.91% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->02.91% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->02.91% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.22% (30,558B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->01.22% (30,558B) in 13 places, all below massif's threshold (1.00%)
+|   
+->00.90% (22,415B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 29      7,587,913        2,501,464        2,471,892        29,572            0
+ 30      7,669,058        2,501,704        2,472,044        29,660            0
+ 31      7,717,315        2,501,728        2,472,056        29,672            0
+ 32      7,798,162        2,501,728        2,472,058        29,670            0
+ 33      7,878,879        2,501,728        2,472,058        29,670            0
+ 34      7,997,264        2,501,824        2,472,130        29,694            0
+ 35      8,044,617        2,501,864        2,472,148        29,716            0
+ 36      8,125,382        2,501,864        2,472,148        29,716            0
+ 37      8,247,160        2,501,984        2,472,237        29,747            0
+ 38      8,370,962        2,502,104        2,472,326        29,778            0
+ 39      8,496,981        2,507,472        2,477,354        30,118            0
+98.80% (2,477,354B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->51.79% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->51.79% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->51.79% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->29.71% (744,856B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->23.78% (596,368B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->20.99% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->20.99% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->20.99% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->20.99% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->20.99% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->20.99% (526,232B) 0x404AE7: test_cvdls_read_cooling_tables(test_cvdls_data*) (test_cvdls_solver.C:642)
+| | |         | ->20.99% (526,232B) 0x40121D: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:55)
+| | |         |   ->20.99% (526,232B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+| | |         |     ->20.99% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |         |       
+| | |         ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |         
+| | ->02.80% (70,136B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->03.52% (88,296B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.37% (34,320B) 0x56078B5: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.37% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.37% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->01.37% (34,320B) 0x56078F0: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.37% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.37% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->00.78% (19,656B) in 1+ places, all below ms_print's threshold (01.00%)
+| | 
+| ->01.32% (33,024B) in 18 places, all below massif's threshold (1.00%)
+| | 
+| ->01.08% (27,168B) 0x5603920: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.08% (27,168B) in 51 places, all below massif's threshold (1.00%)
+|     
+->12.20% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->12.20% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->12.20% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->12.20% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->12.20% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->12.20% (305,852B) 0xFFEFFFD46: ???
+|           ->12.20% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->12.20% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->12.20% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.90% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->02.90% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->02.90% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->02.90% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.30% (32,570B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->01.30% (32,570B) in 13 places, all below massif's threshold (1.00%)
+|   
+->00.90% (22,668B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 40      8,577,279        2,512,680        2,482,282        30,398            0
+ 41      8,655,778        2,517,768        2,487,122        30,646            0
+ 42      9,604,224        1,991,520        1,960,890        30,630            0
+ 43      9,650,197        2,517,568        2,486,968        30,600            0
+ 44      9,971,523        2,517,608        2,486,989        30,619            0
+ 45     10,076,843        2,517,848        2,487,172        30,676            0
+ 46     10,154,470        2,517,768        2,487,122        30,646            0
+ 47     11,078,278        1,991,520        1,960,890        30,630            0
+ 48     11,124,166        2,517,568        2,486,968        30,600            0
+98.78% (2,486,968B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->51.59% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->51.59% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->51.59% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->29.84% (751,320B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->23.88% (601,168B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->20.90% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->20.90% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->20.90% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->20.90% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->20.90% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->20.90% (526,232B) 0x40149C: test_cvdls_main(int, char**) (test_cvdls_solver.C:98)
+| | |         | ->20.90% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |         |   
+| | |         ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |         
+| | ->02.98% (74,936B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->03.56% (89,544B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.36% (34,320B) 0x56078B5: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.36% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.36% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->01.36% (34,320B) 0x56078F0: H5T_path_find (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->01.36% (34,320B) 0x5608797: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->01.36% (34,320B) in 110 places, all below massif's threshold (1.00%)
+| | |     
+| | ->00.83% (20,904B) in 1+ places, all below ms_print's threshold (01.00%)
+| | 
+| ->01.31% (33,056B) in 18 places, all below massif's threshold (1.00%)
+| | 
+| ->01.09% (27,552B) 0x5603920: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->01.09% (27,552B) in 51 places, all below massif's threshold (1.00%)
+|     
+->12.15% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->12.15% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->12.15% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->12.15% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->12.15% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->12.15% (305,852B) 0xFFEFFFD46: ???
+|           ->12.15% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->12.15% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->12.15% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.89% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->02.89% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->02.89% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->02.89% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.42% (35,802B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->01.42% (35,802B) in 13 places, all below massif's threshold (1.00%)
+|   
+->00.90% (22,586B) in 1+ places, all below ms_print's threshold (01.00%)
+
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 49     11,445,492        2,517,624        2,487,001        30,623            0
+ 50     11,492,648        2,518,176        2,487,438        30,738            0
+ 51     11,521,868        3,895,008        3,864,159        30,849            0
+99.21% (3,864,159B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->33.34% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->33.34% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->33.34% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->19.30% (751,784B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->15.43% (601,168B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->13.51% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->13.51% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->13.51% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->13.51% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->13.51% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->13.51% (526,232B) 0x40149C: test_cvdls_main(int, char**) (test_cvdls_solver.C:98)
+| | |         | ->13.51% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |         |   
+| | |         ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |         
+| | ->01.92% (74,936B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->02.30% (89,544B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->02.30% (89,544B) in 51 places, all below massif's threshold (1.00%)
+| |   
+| ->01.57% (61,072B) in 20 places, all below massif's threshold (1.00%)
+|   
+->08.41% (327,680B) 0x401617: test_cvdls_main(int, char**) (test_cvdls_solver.C:123)
+| ->08.41% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.41% (327,680B) 0x40163E: test_cvdls_main(int, char**) (test_cvdls_solver.C:124)
+| ->08.41% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.41% (327,680B) 0x4015AF: test_cvdls_main(int, char**) (test_cvdls_solver.C:119)
+| ->08.41% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.41% (327,680B) 0x4015D6: test_cvdls_main(int, char**) (test_cvdls_solver.C:120)
+| ->08.41% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->07.85% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->07.85% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->07.85% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->07.85% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->07.85% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->07.85% (305,852B) 0xFFEFFFD46: ???
+|           ->07.85% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->07.85% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->07.85% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->03.19% (124,395B) in 32 places, all below massif's threshold (1.00%)
+| 
+->01.87% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+  ->01.87% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+    ->01.87% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+      ->01.87% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+        
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 52     11,775,609        3,927,880        3,896,999        30,881            0
+ 53     12,030,496        3,927,880        3,896,998        30,882            0
+ 54     12,285,083        3,927,880        3,896,998        30,882            0
+ 55     12,539,946        3,927,880        3,896,999        30,881            0
+ 56     12,794,791        3,927,880        3,896,999        30,881            0
+ 57     13,049,345        3,927,880        3,896,999        30,881            0
+ 58     13,304,131        3,927,880        3,896,999        30,881            0
+ 59     13,558,815        3,927,880        3,896,997        30,883            0
+ 60     13,813,507        3,927,880        3,896,997        30,883            0
+ 61     14,061,868        3,927,800        3,896,954        30,846            0
+99.21% (3,896,954B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->33.06% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->33.06% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->33.06% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->19.14% (751,848B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->15.31% (601,168B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->13.40% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->13.40% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->13.40% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->13.40% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->13.40% (526,232B) 0x5504D4C: H5Fopen (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |         ->13.40% (526,232B) 0x40149C: test_cvdls_main(int, char**) (test_cvdls_solver.C:98)
+| | |         | ->13.40% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |         |   
+| | |         ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |         
+| | ->01.91% (74,936B) in 29 places, all below massif's threshold (1.00%)
+| |   
+| ->02.28% (89,544B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->02.28% (89,544B) in 51 places, all below massif's threshold (1.00%)
+| |   
+| ->01.56% (61,136B) in 20 places, all below massif's threshold (1.00%)
+|   
+->08.34% (327,680B) 0x4015D6: test_cvdls_main(int, char**) (test_cvdls_solver.C:120)
+| ->08.34% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.34% (327,680B) 0x40163E: test_cvdls_main(int, char**) (test_cvdls_solver.C:124)
+| ->08.34% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.34% (327,680B) 0x401617: test_cvdls_main(int, char**) (test_cvdls_solver.C:123)
+| ->08.34% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.34% (327,680B) 0x4015AF: test_cvdls_main(int, char**) (test_cvdls_solver.C:119)
+| ->08.34% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->07.79% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->07.79% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->07.79% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->07.79% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->07.79% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->07.79% (305,852B) 0xFFEFFFD46: ???
+|           ->07.79% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->07.79% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->07.79% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.25% (88,312B) in 31 places, all below massif's threshold (1.00%)
+| 
+->01.85% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->01.85% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->01.85% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->01.85% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.75% (68,814B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  ->01.04% (40,976B) 0x54E13E4: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  | ->01.04% (40,976B) 0x5684421: H5V_opvv (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |   ->01.04% (40,976B) 0x54E0A78: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |     ->01.04% (40,976B) 0x54F1B12: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |       ->01.04% (40,976B) 0x54F22BB: H5D__select_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |         ->01.04% (40,976B) 0x54E195B: H5D__contig_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |           ->01.04% (40,976B) 0x54ECCE1: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |             ->01.04% (40,976B) 0x54ED309: H5Dread (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |               ->01.04% (40,976B) 0x5915355: H5LTread_dataset_double (in /usr/lib/x86_64-linux-gnu/libhdf5_hl.so.7.0.0)
+  |                 ->01.04% (40,976B) in 2 places, all below massif's threshold (1.00%)
+  |                   
+  ->00.71% (27,838B) in 1+ places, all below ms_print's threshold (01.00%)
+  
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 62     14,533,441        3,927,856        3,896,986        30,870            0
+ 63     14,992,090        3,401,608        3,370,754        30,854            0
+ 64     16,834,698        3,729,048        3,698,244        30,804            0
+ 65     18,473,213        4,056,760        4,025,940        30,820            0
+ 66     18,477,086        4,058,552        4,027,588        30,964            0
+99.24% (4,027,588B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->32.00% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->32.00% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->32.00% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->08.07% (327,680B) 0x403C76: dengo_evolve_test_cvdls(double, double&, double, double*, double*, double*, long long, test_cvdls_data*, double*) (test_cvdls_solver.C:449)
+| ->08.07% (327,680B) 0x4028E6: test_cvdls_main(int, char**) (test_cvdls_solver.C:267)
+|   ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->08.07% (327,680B) 0x403C53: dengo_evolve_test_cvdls(double, double&, double, double*, double*, double*, long long, test_cvdls_data*, double*) (test_cvdls_solver.C:448)
+| ->08.07% (327,680B) 0x4028E6: test_cvdls_main(int, char**) (test_cvdls_solver.C:267)
+|   ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->08.07% (327,680B) 0x40163E: test_cvdls_main(int, char**) (test_cvdls_solver.C:124)
+| ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.07% (327,680B) 0x4015AF: test_cvdls_main(int, char**) (test_cvdls_solver.C:119)
+| ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.07% (327,680B) 0x4015D6: test_cvdls_main(int, char**) (test_cvdls_solver.C:120)
+| ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.07% (327,680B) 0x401617: test_cvdls_main(int, char**) (test_cvdls_solver.C:123)
+| ->08.07% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->07.54% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->07.54% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->07.54% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->07.54% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->07.54% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->07.54% (305,852B) 0xFFEFFFD46: ???
+|           ->07.54% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->07.54% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->07.54% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->05.56% (225,648B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->02.21% (89,544B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->02.21% (89,544B) in 51 places, all below massif's threshold (1.00%)
+| |   
+| ->01.85% (74,936B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.85% (74,936B) in 30 places, all below massif's threshold (1.00%)
+| |   
+| ->01.51% (61,168B) in 20 places, all below massif's threshold (1.00%)
+|   
+->02.21% (89,786B) in 44 places, all below massif's threshold (1.00%)
+| 
+->01.79% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->01.79% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->01.79% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->01.79% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.70% (68,814B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  ->01.01% (40,976B) 0x54E13E4: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  | ->01.01% (40,976B) 0x5684421: H5V_opvv (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |   ->01.01% (40,976B) 0x54E0A78: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |     ->01.01% (40,976B) 0x54F1B12: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |       ->01.01% (40,976B) 0x54F22BB: H5D__select_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |         ->01.01% (40,976B) 0x54E195B: H5D__contig_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |           ->01.01% (40,976B) 0x54ECCE1: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |             ->01.01% (40,976B) 0x54ED309: H5Dread (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |               ->01.01% (40,976B) 0x5915355: H5LTread_dataset_double (in /usr/lib/x86_64-linux-gnu/libhdf5_hl.so.7.0.0)
+  |                 ->01.01% (40,976B) in 2 places, all below massif's threshold (1.00%)
+  |                   
+  ->00.69% (27,838B) in 1+ places, all below ms_print's threshold (01.00%)
+  
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 67  9,245,926,824        4,064,904        4,033,412        31,492            0
+ 68  9,247,053,116        3,927,608        3,896,796        30,812            0
+ 69  9,247,374,435        3,927,664        3,896,819        30,845            0
+ 70  9,247,471,783        3,928,256        3,897,298        30,958            0
+ 71  9,247,583,805        3,928,360        3,897,362        30,998            0
+ 72  9,247,692,381        3,928,440        3,897,409        31,031            0
+ 73  9,247,801,148        3,928,520        3,897,457        31,063            0
+ 74  9,247,913,214        3,931,656        3,900,378        31,278            0
+ 75  9,248,022,675        3,931,808        3,900,482        31,326            0
+ 76  9,248,132,043        3,931,984        3,900,594        31,390            0
+99.20% (3,900,594B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->33.03% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->33.03% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->33.03% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->19.15% (752,800B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->15.31% (601,816B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->13.38% (526,232B) 0x54CDF6C: H5C_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | | ->13.38% (526,232B) 0x54B3D7A: H5AC_create (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |   ->13.38% (526,232B) 0x54FFDDF: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |     ->13.38% (526,232B) 0x550360A: H5F_open (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       ->13.38% (526,232B) 0x5504A2A: H5Fcreate (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | |       | ->13.38% (526,232B) 0x402929: test_cvdls_main(int, char**) (test_cvdls_solver.C:270)
+| | |       |   ->13.38% (526,232B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+| | |       |     
+| | |       ->00.00% (0B) in 1+ places, all below ms_print's threshold (01.00%)
+| | |       
+| | ->01.92% (75,584B) in 32 places, all below massif's threshold (1.00%)
+| |   
+| ->02.28% (89,544B) 0x5603938: H5T_copy (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->02.28% (89,544B) in 51 places, all below massif's threshold (1.00%)
+| |   
+| ->01.56% (61,440B) in 23 places, all below massif's threshold (1.00%)
+|   
+->08.33% (327,680B) 0x4015D6: test_cvdls_main(int, char**) (test_cvdls_solver.C:120)
+| ->08.33% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.33% (327,680B) 0x40163E: test_cvdls_main(int, char**) (test_cvdls_solver.C:124)
+| ->08.33% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.33% (327,680B) 0x401617: test_cvdls_main(int, char**) (test_cvdls_solver.C:123)
+| ->08.33% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->08.33% (327,680B) 0x4015AF: test_cvdls_main(int, char**) (test_cvdls_solver.C:119)
+| ->08.33% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->07.78% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->07.78% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->07.78% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->07.78% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->07.78% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->07.78% (305,852B) 0xFFEFFFD46: ???
+|           ->07.78% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->07.78% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->07.78% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->02.25% (88,488B) in 53 places, all below massif's threshold (1.00%)
+| 
+->01.85% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+| ->01.85% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+|   ->01.85% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+|     ->01.85% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|       
+->01.81% (71,326B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  ->01.04% (40,976B) 0x54E13E4: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  | ->01.04% (40,976B) 0x5684421: H5V_opvv (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |   ->01.04% (40,976B) 0x54E0A78: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |     ->01.04% (40,976B) 0x54F1B12: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |       ->01.04% (40,976B) 0x54F22BB: H5D__select_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |         ->01.04% (40,976B) 0x54E195B: H5D__contig_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |           ->01.04% (40,976B) 0x54ECCE1: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |             ->01.04% (40,976B) 0x54ED309: H5Dread (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+  |               ->01.04% (40,976B) 0x5915355: H5LTread_dataset_double (in /usr/lib/x86_64-linux-gnu/libhdf5_hl.so.7.0.0)
+  |                 ->01.04% (40,976B) in 2 places, all below massif's threshold (1.00%)
+  |                   
+  ->00.77% (30,350B) in 1+ places, all below ms_print's threshold (01.00%)
+  
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 77  9,248,241,503        3,932,136        3,900,698        31,438            0
+ 78  9,248,351,043        3,932,312        3,900,808        31,504            0
+ 79  9,248,468,062        3,933,520        3,901,656        31,864            0
+ 80  9,248,515,049        3,935,152        3,903,108        32,044            0
+ 81  9,248,566,953        3,940,800        3,908,290        32,510            0
+ 82  9,249,062,387        3,940,920        3,908,378        32,542            0
+ 83  9,249,523,401        3,414,664        3,382,164        32,500            0
+ 84  9,249,589,160        3,410,008        3,377,628        32,380            0
+ 85  9,249,636,295        3,337,512        3,308,531        28,981            0
+ 86  9,249,688,906        3,337,208        3,308,251        28,957            0
+99.13% (3,308,251B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->38.92% (1,298,704B) 0x40101B: test_cvdls_setup_data(int*, char***) (test_cvdls_solver.C:26)
+| ->38.92% (1,298,704B) 0x40146D: test_cvdls_main(int, char**) (test_cvdls_solver.C:94)
+|   ->38.92% (1,298,704B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|     
+->09.82% (327,680B) 0x4015AF: test_cvdls_main(int, char**) (test_cvdls_solver.C:119)
+| ->09.82% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->09.82% (327,680B) 0x40163E: test_cvdls_main(int, char**) (test_cvdls_solver.C:124)
+| ->09.82% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->09.82% (327,680B) 0x401617: test_cvdls_main(int, char**) (test_cvdls_solver.C:123)
+| ->09.82% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->09.82% (327,680B) 0x4015D6: test_cvdls_main(int, char**) (test_cvdls_solver.C:120)
+| ->09.82% (327,680B) 0x416BB6: main (test_cvdls_solver_main.C:4)
+|   
+->09.16% (305,852B) 0x60301BF: monstartup (gmon.c:134)
+| ->09.16% (305,852B) 0x400F2B: __gmon_start__ (in /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/dengo_data_structure/Untitled Folder/a.out)
+|   ->09.16% (305,852B) 0x62FBE14: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|     ->09.16% (305,852B) 0x62EE74E: ??? (in /lib/x86_64-linux-gnu/libc-2.19.so)
+|       ->09.16% (305,852B) 0x62FB757: ??? (in /home/kwoksun2/anaconda2/lib/libgcc_s.so.1)
+|         ->09.16% (305,852B) 0xFFEFFFD46: ???
+|           ->09.16% (305,852B) 0x401019B: call_init.part.0 (dl-init.c:64)
+|             ->09.16% (305,852B) 0x40102C1: _dl_init (dl-init.c:36)
+|               ->09.16% (305,852B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+|                 
+->04.90% (163,672B) 0x55229E6: H5FL_reg_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->02.65% (88,560B) in 25 places, all below massif's threshold (1.00%)
+| | 
+| ->02.25% (75,112B) 0x5522B83: H5FL_reg_calloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+|   ->02.25% (75,112B) in 38 places, all below massif's threshold (1.00%)
+|     
+->02.44% (81,593B) in 54 places, all below massif's threshold (1.00%)
+| 
+->02.25% (75,006B) 0x55230A8: H5FL_blk_malloc (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| ->01.23% (40,976B) 0x54E13E4: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| | ->01.23% (40,976B) 0x5684421: H5V_opvv (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |   ->01.23% (40,976B) 0x54E0A78: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |     ->01.23% (40,976B) 0x54F1B12: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |       ->01.23% (40,976B) 0x54F22BB: H5D__select_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |         ->01.23% (40,976B) 0x54E195B: H5D__contig_read (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |           ->01.23% (40,976B) 0x54ECCE1: ??? (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |             ->01.23% (40,976B) 0x54ED309: H5Dread (in /usr/lib/x86_64-linux-gnu/libhdf5.so.7.0.0)
+| |               ->01.23% (40,976B) 0x5915355: H5LTread_dataset_double (in /usr/lib/x86_64-linux-gnu/libhdf5_hl.so.7.0.0)
+| |                 ->01.23% (40,976B) in 2 places, all below massif's threshold (1.00%)
+| |                   
+| ->01.02% (34,030B) in 17 places, all below massif's threshold (1.00%)
+|   
+->02.18% (72,704B) 0x51C5794: _GLOBAL__sub_I_eh_alloc.cc (eh_alloc.cc:123)
+  ->02.18% (72,704B) 0x40101D8: call_init.part.0 (dl-init.c:78)
+    ->02.18% (72,704B) 0x40102C1: _dl_init (dl-init.c:36)
+      ->02.18% (72,704B) 0x4001298: ??? (in /lib/x86_64-linux-gnu/ld-2.19.so)
+        
+--------------------------------------------------------------------------------
+  n        time(i)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 87  9,249,734,940        3,326,096        3,300,772        25,324            0
+ 88  9,249,780,857        3,240,960        3,221,693        19,267            0
+ 89  9,249,826,776        3,068,120        3,065,317         2,803            0
+ 90  9,249,955,543        2,749,640        2,749,422           218            0

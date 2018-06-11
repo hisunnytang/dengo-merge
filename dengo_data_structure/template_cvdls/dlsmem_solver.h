@@ -16,6 +16,8 @@ The generalized rate data type holders.
 #include "stdio.h"
 #include "string.h"
 
+
+#include <gperftools/profiler.h>
 /* header files for CVODES/SUNDIALS */
 #include <cvode/cvode.h>               /* prototypes for CVODE fcts., consts.  */
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */

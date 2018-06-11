@@ -1,0 +1,7 @@
+#!/bin/bash
+
+for i in {1..256}
+do
+    echo "$i th strip" 
+    time ./a.out "$i.h5"
+done

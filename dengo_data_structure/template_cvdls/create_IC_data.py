@@ -4,7 +4,7 @@ import h5py
 f = h5py.File('openmp-mpi/oldIC.h5')
 data = {}
 
-size = 1
+size = 1024
 
 for key in f.keys():
     if key not in ['T', 'ge']:

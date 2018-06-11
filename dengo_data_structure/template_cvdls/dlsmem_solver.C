@@ -494,7 +494,7 @@ double dengo_evolve_dlsmem (double dtf, double &dt, double z, double *input, dou
             // passively by the "dengo_rate_data" 
             // will have to fix it for openmp
             data->scale[i] = input[d*N + i];
-            fprintf(stderr, "data->scale[%d] = %0.5g \n", i, data->scale[i]);
+            // fprintf(stderr, "data->scale[%d] = %0.5g \n", i, data->scale[i]);
             data->inv_scale[i] = 1.0 / input[d*N + i];
         }
         
