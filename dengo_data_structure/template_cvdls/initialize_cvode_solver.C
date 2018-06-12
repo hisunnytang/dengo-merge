@@ -18,7 +18,8 @@
 #include <cvode/cvode_direct.h>        /* access to CVDls interface            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
 /* Define the data structures */
-#include <dlsmem_solver.h>
+#include <_new_solver_solver.h>
+
 
 
 /* Accessor macros */
@@ -53,7 +54,7 @@ int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
-int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, dlsmem_data * data, N_Vector y){
+int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, _new_solver_data * data, N_Vector y){
     
     int flag, i;
 
@@ -62,7 +63,7 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, dlsmem_d
     }
     
     flag = CVodeReInit( cvode_mem, 0.0, y);
-    if (check_flag( &flag, "CVodeReInit", 1)) return(1);
+    //if (check_flag( &flag, "CVodeReInit", 1)) return(1);
 
     double tout = dt[0];
 
@@ -97,7 +98,7 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, dlsmem_d
 }
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac, double abstol, int NEQ, 
-        dlsmem_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y){
+        _new_solver_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y){
     
     void *cvode_mem;
     cvode_mem = NULL;

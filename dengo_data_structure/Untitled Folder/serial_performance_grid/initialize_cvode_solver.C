@@ -122,7 +122,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac, double abstol, int NEQ,
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
 
-    flag = CVodeSetMaxNumSteps(cvode_mem, 5000 );
+    flag = CVodeSetMaxNumSteps(cvode_mem, 10000 );
 
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */

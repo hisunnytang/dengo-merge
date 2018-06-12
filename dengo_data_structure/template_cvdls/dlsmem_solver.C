@@ -487,7 +487,7 @@ double dengo_evolve_dlsmem (double dtf, double &dt, double z, double *input, dou
     
     double dt_now[1];
     for (int d = 0; d < dims; d++){
-        fprintf(stderr, " data->Ts[0] = %0.5g \n", data->Ts[0]); 
+        fprintf(stderr, " data->Ts[0] = %0.5g \n", data->Ts[d]); 
         // copy array which can be passed to the solver
         for (i = 0; i < N; i++){ 
             // this is being passed around 
@@ -509,7 +509,7 @@ double dengo_evolve_dlsmem (double dtf, double &dt, double z, double *input, dou
             
             fprintf(stderr, "dtf: %0.5g; dt_now: %0.5g \n", dtf, dt_now[0]);
             for (i = 0; i < N; i++) {
-                if (input[i] < 0) {
+                if (y[i] < 0) {
                     
 
                     flag = 1;

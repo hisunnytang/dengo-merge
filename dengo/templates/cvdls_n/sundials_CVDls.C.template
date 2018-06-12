@@ -206,7 +206,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
-    double abstol = 1.0e-4;
+    double abstol = 1.0e-6;
     void *cvode_mem;
     int MAX_ITERATION = 100; 
     double y[10];
@@ -252,7 +252,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             
 
             for (i = 0; i < N; i++) {
-                if (input[i] < 0) {
+                if (y[i] < 0) {
                     flag = 1;
                     break;
                 }
@@ -262,7 +262,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
                 for (i = 0; i < N; i++){
                     data->scale[i] = y[i] * data->scale[i];
                     data->inv_scale[i] = 1.0/ data->scale[i];
-                    // fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
+                    fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
                 }
 
                 ttot += dt;
@@ -279,7 +279,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             siter++;
         } // while loop for each strip
         
-        //fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
+        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
         temp_array[ d ] = data->Ts[0];
         ttot_all[d] = ttot;
 

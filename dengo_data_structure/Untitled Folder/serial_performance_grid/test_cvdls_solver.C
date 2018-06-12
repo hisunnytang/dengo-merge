@@ -482,7 +482,7 @@ double dengo_evolve_test_cvdls (double dtf, double &dt, double z, double *input,
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
-    double abstol = 1.0e-4;
+    double abstol = 1.0e-6;
     void *cvode_mem;
     int MAX_ITERATION = 100; 
     double y[10];
@@ -494,11 +494,8 @@ double dengo_evolve_test_cvdls (double dtf, double &dt, double z, double *input,
     y_vec = NULL;   
     LS = NULL;
     A  = NULL;
-    
 
-    
-    for (int d = 0; d < dims; d++){
-     y_vec = N_VNew_Serial(N);
+    y_vec = N_VNew_Serial(N);
 
     for (i=0; i<N; i++) {
         NV_Ith_S(y_vec,i)   = 1.0;
@@ -508,6 +505,10 @@ double dengo_evolve_test_cvdls (double dtf, double &dt, double z, double *input,
     A = SUNDenseMatrix(N, N);
     LS = SUNDenseLinearSolver(y_vec, A);
     cvode_mem = setup_cvode_solver( f, jf, abstol, N, data, LS, A, y_vec);       
+
+
+    
+    for (int d = 0; d < dims; d++){
         // copy array which can be passed to the solver
         for (i = 0; i < N; i++){ 
             // this is being passed around 
@@ -523,13 +524,14 @@ double dengo_evolve_test_cvdls (double dtf, double &dt, double z, double *input,
         siter = 0;
             
         while (ttot < dtf) { 
-            //fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
             flag = cvode_solver( cvode_mem, y, N, &dt, data, y_vec);
             
 
             for (i = 0; i < N; i++) {
                 if (y[i] < 0) {
                     flag = 1;
+                    fprintf(stderr, "negative!!!\n");
                     break;
                 }
             }
@@ -558,7 +560,7 @@ double dengo_evolve_test_cvdls (double dtf, double &dt, double z, double *input,
             siter++;
         } // while loop for each strip
         
-        // fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
+        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
         temp_array[ d ] = data->Ts[0];
         ttot_all[d]    = ttot;
         
@@ -792,9 +794,9 @@ void test_cvdls_calculate_temperature(test_cvdls_data *data,
     
     /* define scale */
     double scale;
-
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
+    i = 0;
+    j = 0;
+        
         scale = data->scale[j];
         H2_1 = input[j]*scale;
         j++;
@@ -856,7 +858,10 @@ void test_cvdls_calculate_temperature(test_cvdls_data *data,
         double dgammaH2_2_dT;
         
         
-        double Tdiff = 1.0; 
+        double Tdiff = 1.0;
+        
+        double _gamma_1 = 1.0 / (gamma - 1.0);
+
         while ( Tdiff > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
         // Since gammaH2 is dependent on the temperature too!
@@ -882,10 +887,10 @@ void test_cvdls_calculate_temperature(test_cvdls_data *data,
         // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
         // This is the function we want to minimize
         // which should only be dependent on the first part
-        dge_dT = T*kb*(-H2_1*dgammaH2_1_dT/pow(gammaH2_1 - 1.0, 2) - H2_2*dgammaH2_2_dT/pow(gammaH2_2 - 1.0, 2))/(density*mh) + kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh);
+        dge_dT = T*kb*(-H2_1*dgammaH2_1_dT/pow(gammaH2_1 - 1.0, 2) - H2_2*dgammaH2_2_dT/pow(gammaH2_2 - 1.0, 2))/(density*mh) + kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1*_gamma_1 + H_2*_gamma_1 + H_m0*_gamma_1 + He_1*_gamma_1 + He_2*_gamma_1 + He_3*_gamma_1 + de*_gamma_1 )/(density*mh);
         
         //This is the change in ge for each iteration
-        dge = T*kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0))/(density*mh) - ge;
+        dge = T*kb*(H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1*_gamma_1 + H_2*_gamma_1 + H_m0*_gamma_1 + He_1*_gamma_1 + He_2*_gamma_1 + He_3*_gamma_1 + de*_gamma_1)/(density*mh) - ge;
 
         Tnew = T - dge/dge_dT;
         data->Ts[i] = Tnew;
@@ -895,7 +900,6 @@ void test_cvdls_calculate_temperature(test_cvdls_data *data,
         }
         // fprintf(stderr,"---------------------\n");
         data->Ts[i] = Tnew;
-
 
         // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
@@ -913,7 +917,6 @@ void test_cvdls_calculate_temperature(test_cvdls_data *data,
         density*mh/(kb*(H2_1/(gammaH2 - 1.0) + H2_2/(gammaH2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0)));
         /*fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
                 i, data->Ts[i], density);*/
-    }
          
 }
  
@@ -1684,7 +1687,7 @@ int calculate_jacobian_test_cvdls( realtype t,
     y_arr[8] = NV_Ith_S(y , 8);
     y_arr[9] = NV_Ith_S(y , 9);
 
-    // test_cvdls_calculate_temperature(data, y_arr, nstrip, nchem);
+    //test_cvdls_calculate_temperature(data, y_arr, nstrip, nchem);
     // test_cvdls_interpolate_rates(data, nstrip);
 
     /* Now We set up some temporaries */

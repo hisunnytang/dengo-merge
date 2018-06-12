@@ -8,7 +8,7 @@ size = 1024
 
 for key in f.keys():
     if key not in ['T', 'ge']:
-        data[key] = f[key]*numpy.ones((size))
+        data[key] = f[key]*numpy.ones((size))*1e4
     else:
         data[key] = f[key]*numpy.ones((size))
     print(key,f[key].value)
