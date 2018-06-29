@@ -18,7 +18,7 @@
 #include <cvode/cvode_direct.h>        /* access to CVDls interface            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
 /* Define the data structures */
-#include <eq_H2_2_solver.h>
+#include <new__solver.h>
 
 
 
@@ -42,9 +42,6 @@
    DENSE_ELEM macro in dense.h. DENSE_ELEM numbers rows and columns of a
    dense matrix starting from 0. */
 
-typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
-typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
-
 
 /* Functions Called by the Solver */
 
@@ -54,46 +51,20 @@ int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
-int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, eq_H2_2_data * data, N_Vector y, double reltol, N_Vector abstol ){
+int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, new__data * data, N_Vector y , double reltol, N_Vector abstol){
     
     int flag, i;
 
     flag = CVodeReInit( cvode_mem, 0.0, y);
-    //if (check_flag( &flag, "CVodeReInit", 1)) return(1);
-
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol  );
     
-    /*
-    N_Vector tolsfac, local_error;
-    tolsfac = NULL;
-    local_error = NULL;
-    tolsfac = N_VNew_Serial(NEQ);
-    local_error = N_VNew_Serial(NEQ);
-    */
     double tout = dt[0];
-
     flag = CVode( cvode_mem, tout, y, dt, CV_NORMAL);
     
-    //flag = CVodeGetErrWeights(cvode_mem, tolsfac);
-    //flag = CVodeGetEstLocalErrors(cvode_mem, local_error);
-    long int nsteps;
-    flag = CVodeGetNumSteps(cvode_mem, &nsteps);
-    fprintf(stderr, "nsteps: %ld \n", nsteps);
     for ( i = 0; i < NEQ; i++){
        output[i] = NV_Ith_S(y, i);
-        
-        //fprintf(stderr, "y                    : %0.5g\n", output[i]);
-        /*
-        fprintf(stderr, "local error x weight : %0.5g\n", NV_Ith_S(local_error, i)* NV_Ith_S(tolsfac, i) ); 
-        */
-        
-       /*
-       N_VDestroy(tolsfac);
-       N_VDestroy(local_error);
-       */
     }
-    // fprintf(stderr, "-----------------------\n");
-    
+
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
@@ -113,8 +84,8 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, eq_H2_2_
 
 }
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac, int NEQ, 
-        eq_H2_2_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol,  N_Vector abstol){
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+        new__data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol){
     
     void *cvode_mem;
     cvode_mem = NULL;
@@ -123,30 +94,32 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac, int NEQ,
 
     /* Create CVODES object */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
-        
+    if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(NULL);
+    
     
     /* Allocate space for CVODES */
     flag = CVodeInit(cvode_mem, f, 0.0, y);
-    
+    if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
 
     flag = CVodeSetMaxNumSteps(cvode_mem, 5000 );
     flag = CVodeSetStabLimDet(cvode_mem, SUNTRUE);
 
-    /* Call CVodesSVtolerances to specify the scalar relative tolerance
-     * and vector absolute tolerances */
-    flag = CVodeSVtolerances(cvode_mem, reltol, abstol  );
-
-    // flag = CVodeWFtolerances( cvode_mem, efun );
-
+    flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
+    if (check_flag(&flag, "CVodeSStolerances", 1)) return(NULL);
+    
     /* Attach User Data */
     flag = CVodeSetUserData(cvode_mem, data);
-    
+    if (check_flag(&flag, "CVodeSetUserData", 1)) return(NULL);
+        
+
     /* Call CVDlsSetLinearSolver to attach the matrix 
      * and linear solver to CVode */
     flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
-        /* Set the user-supplied Jacobian routine Jac */
-    flag = CVDlsSetJacFn(cvode_mem, Jac);
+    if(check_flag(&flag, "CVDlsSetLinearSolver", 1)) return(NULL);
     
+    /* Set the user-supplied Jacobian routine Jac */
+    flag = CVDlsSetJacFn(cvode_mem, Jac);
+    if(check_flag(&flag, "CVDlsSetJacFn", 1)) return(NULL);
     
     return cvode_mem;
 
@@ -180,15 +153,3 @@ static int check_flag(void *flagvalue, const char *funcname, int opt)
 
   return(0);
 }
-
-
-int ewt_fn( N_Vector y, N_Vector ewt, void *user_data  ){
-
-    
-    
-
-
-    return 0;
-
-} 
-

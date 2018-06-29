@@ -457,6 +457,7 @@ class ChemicalNetwork(object):
 
         template_vars = dict(network = self, solver_name = solver_name)
 
+
         for suffix in (".C", "_main.C", ".h", "_run.pyx", "_run.pyxbld",
                        "_run.pyxdep", "_main.py"):
             iname = "%s%s" % (solver_template, suffix)

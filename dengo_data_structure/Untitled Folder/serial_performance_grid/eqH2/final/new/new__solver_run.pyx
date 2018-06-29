@@ -412,11 +412,11 @@ cdef extern from "sundials/sundials_dense.h":
 DEF NSPECIES = 10
 DEF MAX_NCELLS=1024
 
-cdef extern from "dlsmem_solver.h":
+cdef extern from "new__solver.h":
     cdef int _MAX_NCELLS  "MAX_NCELLS"
     cdef int _NSPECIES "NSPECIES"
 
-    ctypedef struct dlsmem_data:
+    ctypedef struct new__data:
         double dbin
         double idbin
         double bounds[2]
@@ -515,10 +515,6 @@ cdef extern from "dlsmem_solver.h":
         double cs_ceHI_ceHI[MAX_NCELLS]
         double dcs_ceHI_ceHI[MAX_NCELLS]
         
-        double c_cie_cooling_cieco[1024]
-        double cs_cie_cooling_cieco[MAX_NCELLS]
-        double dcs_cie_cooling_cieco[MAX_NCELLS]
-        
         double c_ciHeI_ciHeI[1024]
         double cs_ciHeI_ciHeI[MAX_NCELLS]
         double dcs_ciHeI_ciHeI[MAX_NCELLS]
@@ -607,40 +603,40 @@ cdef extern from "dlsmem_solver.h":
     ctypedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * )
     ctypedef int(*jac_f)( long int, realtype, N_Vector , N_Vector , DlsMat , void *, N_Vector, N_Vector, N_Vector)
 
-    int dlsmem_main(int argc, char **argv)
-    dlsmem_data *dlsmem_setup_data(int *NumberOfFields,
+    int new__main(int argc, char **argv)
+    new__data *new__setup_data(int *NumberOfFields,
             char ***FieldNames)
-    void dlsmem_read_rate_tables(dlsmem_data*)
-    void dlsmem_read_cooling_tables(dlsmem_data*)
-    void dlsmem_read_gamma(dlsmem_data*)
+    void new__read_rate_tables(new__data*)
+    void new__read_cooling_tables(new__data*)
+    void new__read_gamma(new__data*)
 
-    double dengo_evolve_dlsmem (double dtf, double &dt, double z,
+    double dengo_evolve_new_ (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
-                                         dlsmem_data *data, double *temp)
+                                         new__data *data, double *temp)
 
     # Declare the Jacobian and RHS function
     
-    int calculate_jacobian_dlsmem(long int N, realtype t,
+    int calculate_jacobian_new_(long int N, realtype t,
                    N_Vector y, N_Vector fy, DlsMat J, void *user_data,
                    N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
-    int calculate_rhs_dlsmem(realtype t, N_Vector y, 
+    int calculate_rhs_new_(realtype t, N_Vector y, 
                     N_Vector ydot, void *user_data);
     
-    void dlsmem_calculate_temperature(dlsmem_data *data, double *input, int nstrip, int nchem);
+    void new__calculate_temperature(new__data *data, double *input, int nstrip, int nchem);
    
        
     int ensure_electron_consistency(double *input, int nstrip, int nchem);
     
 
-def main_run_dlsmem():
+def main_run_new_():
     t1 = time.time()
-    dlsmem_main(0, NULL)
+    new__main(0, NULL)
     t2 = time.time()
     print "Total elapsed time: %0.3e" % (t2-t1)
 
-def run_dlsmem(ics, double tf, int niter = 10000,
+def run_new_(ics, double tf, int niter = 10000,
                         int intermediate = 1, z = -1.0, dtarr = -999999):
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
@@ -765,15 +761,15 @@ def run_dlsmem(ics, double tf, int niter = 10000,
         j += 1
         
 
-    cdef dlsmem_data *data = dlsmem_setup_data(NULL, NULL)
-    cdef rhs_f f = calculate_rhs_dlsmem
-    cdef jac_f jf = calculate_jacobian_dlsmem
+    cdef new__data *data = new__setup_data(NULL, NULL)
+    cdef rhs_f f = calculate_rhs_new_
+    cdef jac_f jf = calculate_jacobian_new_
 
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
     # Now we manually evolve
-    #ttot = dengo_evolve_dlsmem(tf, dt, input, rtol, atol, dims, data)
+    #ttot = dengo_evolve_new_(tf, dt, input, rtol, atol, dims, data)
     data.current_z = z
     cdef double *t_now = <double *> malloc( sizeof(double) )
 
@@ -795,7 +791,7 @@ def run_dlsmem(ics, double tf, int niter = 10000,
 
 
     for iter in range(niter):
-        dt_local = dengo_evolve_dlsmem( dt0[0], dt[0], z, input, rtol, atol, dims, data, temp  )
+        dt_local = dengo_evolve_new_( dt0[0], dt[0], z, input, rtol, atol, dims, data, temp  )
         if dt_local > 0:
             status = 0
             # print( "{} th iterations at time {}".format(iter, dt_local))

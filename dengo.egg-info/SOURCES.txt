@@ -61,10 +61,8 @@ dengo/templates/cvdls/sundials_CVDls_run.pyx.template
 dengo/templates/cvdls/sundials_CVDls_run.pyxbld.template
 dengo/templates/cvdls/sundials_CVDls_run.pyxdep.template
 dengo/templates/cvdls_n/Makefile.template
-dengo/templates/cvdls_n/cccccc.C
 dengo/templates/cvdls_n/dengo_data_struct_main.C.template
 dengo/templates/cvdls_n/dengo_types.h.template
-dengo/templates/cvdls_n/openmp-initialize_cvode_solver.C
 dengo/templates/cvdls_n/sundials_CVDls.C.template
 dengo/templates/cvdls_n/sundials_CVDls.h.template
 dengo/templates/cvdls_n/sundials_CVDls_main.C.template

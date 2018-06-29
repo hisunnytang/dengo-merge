@@ -45,18 +45,18 @@ The generalized rate data type holders.
 
 
 
-#define MAX_NCELLS 1024
+#define MAX_NCELLS 1
 #define NSPECIES 10
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
 
  
 
-int dlsmem_main(int argc, char **argv);
+int new__main(int argc, char **argv);
 
 
 
-typedef struct dlsmem_data {
+typedef struct new__data {
     /* All of the network bins will be the same width */
     double dbin;
     double idbin;
@@ -183,10 +183,6 @@ typedef struct dlsmem_data {
     double cs_ceHI_ceHI[MAX_NCELLS];
     double dcs_ceHI_ceHI[MAX_NCELLS];
     
-    double c_cie_cooling_cieco[1024];
-    double cs_cie_cooling_cieco[MAX_NCELLS];
-    double dcs_cie_cooling_cieco[MAX_NCELLS];
-    
     double c_ciHeI_ciHeI[1024];
     double cs_ciHeI_ciHeI[MAX_NCELLS];
     double dcs_ciHeI_ciHeI[MAX_NCELLS];
@@ -287,18 +283,28 @@ typedef struct dlsmem_data {
 
     double scale[10];
     double inv_scale[10];
-} dlsmem_data;
+} new__data;
 
-dlsmem_data *dlsmem_setup_data(int *, char***);
-void dlsmem_read_rate_tables(dlsmem_data*);
-void dlsmem_read_cooling_tables(dlsmem_data*);
-void dlsmem_read_gamma(dlsmem_data*);
-void dlsmem_interpolate_gamma(dlsmem_data*, int );
+typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
+typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
 
-double dengo_evolve_dlsmem (double dtf, double &dt, double z,
+
+
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+        new__data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol);
+
+int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, new__data * data, N_Vector y, double reltol, N_Vector abstol );
+
+new__data *new__setup_data(int *, char***);
+void new__read_rate_tables(new__data*);
+void new__read_cooling_tables(new__data*);
+void new__read_gamma(new__data*);
+void new__interpolate_gamma(new__data*, int );
+
+double dengo_evolve_new_ (double dtf, double &dt, double z,
                                      double *input, double *rtol,
                                      double *atol, long long dims,
-                                     dlsmem_data *data, double *temp);
+                                     new__data *data, double *temp);
  
 
 
@@ -310,16 +316,16 @@ typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vect
 
 
 
-int calculate_jacobian_dlsmem( realtype t,
+int calculate_jacobian_new_( realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
-int calculate_rhs_dlsmem(realtype t, N_Vector y, N_Vector ydot, void *user_data);
+int calculate_rhs_new_(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, int nstrip, int nchem);
 void temperature_from_mass_density(double *input, int nstrip, int nchem, 
                                    double *strip_temperature);
 
-void dlsmem_calculate_temperature(dlsmem_data *data, double *input, int nstrip, int nchem);
+void new__calculate_temperature(new__data *data, double *input, int nstrip, int nchem);
 
 
 

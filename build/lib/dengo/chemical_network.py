@@ -312,9 +312,9 @@ class ChemicalNetwork(object):
                         + a4*sympy.exp( - (T0-a5)**2 / a6)\
                         + a7*sympy.exp( -(T0-a8)**2 / a9) \
                         + 5./3.
-                x = 6100.0/T
-                expx = sympy.exp(x)
-                gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1
+                #x = 6100.0/T
+                #expx = sympy.exp(x)
+                #gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1
 
                 return gammaH2_expr
             else:

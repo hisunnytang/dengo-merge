@@ -45,7 +45,7 @@ The generalized rate data type holders.
 
 
 
-#define MAX_NCELLS 1024
+#define MAX_NCELLS 1
 #define NSPECIES 10
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))

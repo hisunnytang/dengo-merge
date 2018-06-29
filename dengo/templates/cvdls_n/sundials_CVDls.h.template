@@ -45,7 +45,7 @@ The generalized rate data type holders.
 
 
 
-#define MAX_NCELLS 1024
+#define MAX_NCELLS 1
 #define NSPECIES {{network.required_species | length}}
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
@@ -122,6 +122,16 @@ typedef struct {{solver_name}}_data {
     double scale[{{network.required_species | length}}];
     double inv_scale[{{network.required_species | length}}];
 } {{ solver_name }}_data;
+
+typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
+typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
+
+
+
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+        {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol);
+
+int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data * data, N_Vector y, double reltol, N_Vector abstol );
 
 {{solver_name}}_data *{{solver_name}}_setup_data(int *, char***);
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);

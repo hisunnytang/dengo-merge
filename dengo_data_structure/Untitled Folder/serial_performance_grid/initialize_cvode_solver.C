@@ -58,10 +58,6 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, test_cvd
     
     int flag, i;
 
-    for (i=0; i<NEQ; i++) {
-        NV_Ith_S(y,i)   = 1.0;
-    }
-    
     flag = CVodeReInit( cvode_mem, 0.0, y);
     //if (check_flag( &flag, "CVodeReInit", 1)) return(1);
 
@@ -72,12 +68,14 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, test_cvd
     for ( i = 0; i < NEQ; i++){
        output[i] = NV_Ith_S(y, i);
     }
-
+    
+    /*
     if (flag == CV_TOO_MUCH_WORK){
-        /* The solver took mxstep internal steps but still could not reach tout */
+        // The solver took mxstep internal steps but still could not reach tout
         return 1;
     }
-    
+    */
+
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
@@ -110,19 +108,11 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac, double abstol, int NEQ,
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(NULL);
     
     
-    //
-    // Initialize y 
-    // Rescale the input variables to unity
-    //
-    double scale;
-    for (i=0; i<NEQ; i++) {
-        NV_Ith_S(y,i)   = 1.0;
-    }
     /* Allocate space for CVODES */
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
 
-    flag = CVodeSetMaxNumSteps(cvode_mem, 10000 );
+    flag = CVodeSetMaxNumSteps(cvode_mem, 5000 );
 
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */

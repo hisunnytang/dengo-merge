@@ -14,10 +14,6 @@
 
 #include "{{solver_name}}_solver.h"
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac, double abstol, int NEQ,
-                    {{solver_name}}_data *data , SUNLinearSolver LS, SUNMatrix A, N_Vector );
-int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data *, N_Vector);
-
 {{solver_name}}_data *{{solver_name}}_setup_data(
     int *NumberOfFields, char ***FieldNames)
 {
@@ -71,16 +67,24 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver
 }
 
 {% block entry_point %}
-int {{solver_name}}_main(int argc, char** argv)
+int {{solver_name}}_main(int argc, char** argv )
 {
     {{ solver_name }}_data *data = {{solver_name}}_setup_data(NULL, NULL);
 
     /* Initial conditions */
-
-    hid_t file_id = H5Fopen("{{ solver_name }}_initial_conditions.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    hid_t file_id;
+    if (argc < 2){
+    file_id = H5Fopen("{{ solver_name }}_initial_conditions.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
     if (file_id < 0) {fprintf(stderr, "Failed to open "
         "{{ solver_name }}_initial_conditions.h5 so dying.\n");
         return(1);}
+    } else {
+        file_id = H5Fopen( argv[1], H5F_ACC_RDONLY, H5P_DEFAULT);
+        if (file_id < 0) {fprintf(stderr, "Failed to open  your initial_conditions file so dying.\n");
+        return(1);}
+       
+            
+    }
 
     /* Allocate the correct number of cells */
     hsize_t dims; /* We have flat versus number of species */
@@ -121,10 +125,29 @@ int {{solver_name}}_main(int argc, char** argv)
     }
     i++;
     {% endfor %}
+    
+    double *density = (double *) malloc(dims *sizeof(double) );
+    H5LTread_dataset_double(file_id, "/density", density);
 
     H5Fclose(file_id);
+    
+    /*
+     * Use free fall time, not the time specified by 
+     * the network itself
+     */
 
-    double dtf = {{ network.stop_time }};
+
+    // double dtf = {{ network.stop_time }};
+    double dtf, t0;
+    t0 = 2.992e15;
+    dtf = t0 / sqrt(density[0]);
+    
+    // if the output time is specified,
+    // it overrides the freefall time
+    if (argc > 3){
+        dtf = atof( argv[3] ); 
+    }
+
     double dt = -1.0;
     double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
@@ -132,7 +155,13 @@ int {{solver_name}}_main(int argc, char** argv)
     ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
 
     /* Write results to HDF5 file */
-    file_id = H5Fcreate("{{ solver_name }}_solution.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+
+    if (argc < 3){
+        file_id = H5Fcreate("{{ solver_name }}_solution.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    } else{
+        file_id = H5Fcreate( argv[2], H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
+    }
+
     hsize_t dimsarr[1];
     dimsarr[0] = dims;
     i = 0;
@@ -157,6 +186,14 @@ int {{solver_name}}_main(int argc, char** argv)
     H5LTset_attribute_double(file_id, "/", "timestep", timestep, 1);
     H5Fclose(file_id);
     
+    free(temp);
+    free(tics);
+    free(ics);
+    free(data);
+    free(rtol);
+    free(atol);
+    free(input);
+
     return 0;
 }
 {% endblock %} {# entry_point #}
@@ -170,18 +207,20 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
 
     int N = {{network.required_species | length}};
+    double *mdensity = (double *) malloc (dims * N * sizeof(double));
 
     
     {%- if not network.input_is_number %}
     for (i = 0; i<dims; i++) {
-      j = i * N;
-      {%- for species in network.required_species | sort %}
+        j = i * N;
+        mdensity[i] = 0;
+        {%- for species in network.required_species | sort %}
         {%if species.name != "ge" %}
-          input[j] /= {{species.weight}} ;
-          atol[j] /= {{species.weight}} ;
+        mdensity[i] += input[j] ; 
+        input[j] /= {{species.weight}} ;
         {%endif%}
         j++;
-      {%endfor%}
+        {%endfor%}
     }
     {%- endif %}
     //ensure_electron_consistency(input, dims, N);
@@ -194,11 +233,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int siter = 0;
     double ttot = 0;
     double *scale = (double *) malloc(dims * N * sizeof(double));
-    double *prev = (double *) malloc(dims * N * sizeof(double));
     double *ttot_all = (double *) malloc( dims * sizeof(double) );
 
     for (i = 0; i < dims * N; i++) scale[i] = input[i];
-    for (i = 0; i < dims * N; i++) prev[i] = input[i];
    
     
     double floor_value = 1e-25;
@@ -206,33 +243,37 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
-    double abstol = 1.0e-6;
+    double reltol = 1.0e-4;
     void *cvode_mem;
     int MAX_ITERATION = 100; 
     double y[10];
     
     SUNLinearSolver LS;
     SUNMatrix A;
-    N_Vector y_vec;
+    N_Vector y_vec, abstol;
     
     y_vec = NULL;   
     LS = NULL;
     A  = NULL;
     
-    y_vec = N_VNew_Serial(N);
+    y_vec  = N_VNew_Serial(N);
+    abstol = N_VNew_Serial(N); 
 
     for (i=0; i<N; i++) {
-        NV_Ith_S(y_vec,i)   = 1.0;
+        NV_Ith_S(y_vec ,i)   = 1.0;
+        NV_Ith_S(abstol,i)   = 1.0;
         y[i] = 1.0;
     }
 
     A = SUNDenseMatrix(N, N);
     LS = SUNDenseLinearSolver(y_vec, A);
-    cvode_mem = setup_cvode_solver( f, jf, abstol, N, data, LS, A, y_vec);
+    cvode_mem = setup_cvode_solver( f, jf, N, data, LS, A, y_vec, reltol, abstol);
     
+    double h_density = mdensity[0];
     for (int d = 0; d < dims; d++){
         
         // copy array which can be passed to the solver
+        /*
         for (i = 0; i < N; i++){ 
             // this is being passed around 
             // passively by the "dengo_rate_data" 
@@ -240,16 +281,38 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             data->scale[i] = input[d*N + i];
             data->inv_scale[i] = 1.0 / input[d*N + i];
         }
+        */ 
+
         
-        // initialize a dt for the solver    
+        for (i = 0; i < N; i++){ 
+            /*
+            if ( i == 0  || i == 2){
+                data->scale[i] = mdensity[d]; //h_density;
+                data->inv_scale[i] = 1.0 / data->scale[i];
+            
+                NV_Ith_S(y_vec , i )   = input[ d*N+i ] * data->inv_scale[i];
+                NV_Ith_S(abstol, i )   = NV_Ith_S(y_vec , i ) * reltol * reltol;
+            
+                fprintf(stderr, "y_vec = %0.5g; abstol = %0.5g \n", NV_Ith_S(y_vec , i ), NV_Ith_S(abstol , i ));  
+            }
+            */
+            // else{
+                data->scale[i]     = input[d*N + i];
+                data->inv_scale[i] = 1.0 / data->scale[i];
+                NV_Ith_S(y_vec , i )   = input[ d*N+i ] * data->inv_scale[i];
+                NV_Ith_S(abstol, i )   = reltol * reltol ;
+            // }
+        }
+
+        // initialize a dt for the solver  
         dt = dtf;
         ttot = 0.0;
         siter = 0;
             
         while (ttot < dtf) { 
-            //fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
-            flag = cvode_solver( cvode_mem, y, N, &dt, data, y_vec);
+            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
             
+            flag = cvode_solver( cvode_mem, y, N, &dt, data, y_vec, reltol, abstol);
 
             for (i = 0; i < N; i++) {
                 if (y[i] < 0) {
@@ -262,17 +325,21 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
                 for (i = 0; i < N; i++){
                     data->scale[i] = y[i] * data->scale[i];
                     data->inv_scale[i] = 1.0/ data->scale[i];
-                    fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
+                    
+                    NV_Ith_S(y_vec , i )   = 1.0;
+                    NV_Ith_S(abstol, i )   = NV_Ith_S(y_vec, i) * reltol * reltol ;
+                    // fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
                 }
 
                 ttot += dt;
+                dt = dtf - ttot;
 
             } else{
                 dt /= 2.0;
+                dt = DMIN(dt * 1.1, dtf - ttot);
             }
 
-	        dt = DMIN(dt * 1.1, dtf - ttot);
-
+	        
             if (siter == MAX_ITERATION) break;
 
         
@@ -292,8 +359,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
     N_VDestroy(y_vec);
+    N_VDestroy(abstol);
     free(scale);
-    free(prev);
+    free(mdensity);
 
     {%-  if not network.input_is_number %}
     for (i = 0; i<dims; i++) {
@@ -301,7 +369,6 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
       {%- for species in network.required_species | sort %}
         {%if species.name != "ge" %}
         input[j] *= {{species.weight}};
-        atol[j] *= {{species.weight}};
         {%endif%}
         j++;
       {%endfor%}
@@ -391,35 +458,34 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     double {{species.name}};
     {%- endfor %}
     
-    /* define scale */
-    double scale;
-
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
+    
+    i = 0;
+    j = i * nchem;
+    
+    double *scale = data->scale;
     {%- for species in network.required_species | sort %}
-        scale = data->scale[j];
-        {{species.name}} = input[j]*scale;
-        j++;
+    {{species.name}} = input[j]*scale[j];
+    j++;
     {% endfor %}
-        density = {{network.print_mass_density()}};
+    density = {{network.print_mass_density()}};
         
     
-        {% if 'H2_1' in network.species_list() %}
+    {% if 'H2_1' in network.species_list() %}
         
-        // Initiate the "guess" temperature
-        T = data->Ts[i];
-        Tnew = T + 1.0;
-        double dge_dT;
-        double dge;
+    // Initiate the "guess" temperature
+    T = data->Ts[i];
+    Tnew = T + 1.0;
+    double dge_dT;
+    double dge;
 
-        {% for sp in network.interpolate_gamma_species_name | sort %}
+    {% for sp in network.interpolate_gamma_species_name | sort %}
 
-        double gamma{{sp}};
-        double dgamma{{sp}}_dT;
-        {% endfor %}
+    double gamma{{sp}};
+    double dgamma{{sp}}_dT;
+    {% endfor %}
         
-        double Tdiff = 1.0; 
-        while ( Tdiff > 0.1 ){
+    double Tdiff = 1.0; 
+    while ( Tdiff > 0.1 ){
         // We do Newton's Iteration to calculate the temperature
         // Since gammaH2 is dependent on the temperature too!
 
@@ -458,30 +524,29 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         
         Tdiff = fabs(T - Tnew);
         // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
-        }
+    }
         // fprintf(stderr,"---------------------\n");
-        data->Ts[i] = Tnew;
+    data->Ts[i] = Tnew;
 
 
         // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
-        {% else %}
-        data->Ts[i] = {{network.temperature_calculation()}};
-        {% endif %}
+    {% else %} {# if 'H2_1' in network.species_list() #}
+    data->Ts[i] = {{network.temperature_calculation()}};
+    {% endif %}
 
-        if (data->Ts[i] < data->bounds[0]) {
-            data->Ts[i] = data->bounds[0];
-        } else if (data->Ts[i] > data->bounds[1]) {
-            data->Ts[i] = data->bounds[1];
-        }
-        data->logTs[i] = log(data->Ts[i]);
-        data->invTs[i] = 1.0 / data->Ts[i];
-	    data->dTs_{{ network.energy_term.name }}[i] = 
-        {{ network.temperature_calculation(derivative=True) }};
+    if (data->Ts[i] < data->bounds[0]) {
+        data->Ts[i] = data->bounds[0];
+    } else if (data->Ts[i] > data->bounds[1]) {
+        data->Ts[i] = data->bounds[1];
+    }
+    data->logTs[i] = log(data->Ts[i]);
+    data->invTs[i] = 1.0 / data->Ts[i];
+	data->dTs_{{ network.energy_term.name }}[i] = 
+    {{ network.temperature_calculation(derivative=True) }};
         /*fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
                 i, data->Ts[i], density);*/
-    }
          
 }
 {% endblock %} {# calculate_temperature #}
@@ -504,22 +569,21 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     int no_photo = 0;
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
-    /*fprintf(stderr, "lb = % 0.16g, ub = % 0.16g\n", lb, ub);*/
-    for (i = 0; i < nstrip; i++) {
-        data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
-        if (data->bin_id[i] <= 0) {
-            data->bin_id[i] = 0;
-        } else if (data->bin_id[i] >= data->nbins) {
-            data->bin_id[i] = data->nbins - 1;
-        }
-        t1 = (lb + (bin_id    ) * data->dbin);
-        t2 = (lb + (bin_id + 1) * data->dbin);
-        data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
-        data->dT[i] = (t2 - t1);
-        /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
+
+    i = 0;
+    data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
+    if (data->bin_id[i] <= 0) {
+        data->bin_id[i] = 0;
+    } else if (data->bin_id[i] >= data->nbins) {
+        data->bin_id[i] = data->nbins - 1;
+    }
+    t1 = (lb + (bin_id    ) * data->dbin);
+    t2 = (lb + (bin_id + 1) * data->dbin);
+    data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
+    data->dT[i] = (t2 - t1);
+    /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
                 i, data->bin_id[i], data->dT[i], data->Ts[i],
                 data->logTs[i]);*/
-    }
     
     if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
         zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
@@ -535,55 +599,48 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     } else {
         no_photo = 1;
     }
+
+
+    bin_id = data->bin_id[i];
     {% for name, rate in network.reactions | dictsort %}
     {%- if 'pi' not in name %}
-    for (i = 0; i < nstrip; i++) {
-        bin_id = data->bin_id[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
             data->Tdef[i] * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[i] /= data->dT[i];
-	data->drs_{{name}}[i] *= data->invTs[i];
-    }
+        // data->drs_{{name}}[i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        // data->drs_{{name}}[i] /= data->dT[i];
+	// data->drs_{{name}}[i] *= data->invTs[i];
     {% else %}
-    for (i = 0; i < nstrip; i++) {
         if (no_photo) {
             data->rs_{{name}}[i] = 0.0;
             data->drs_{{name}}[i] = 0.0;
         } else {
             data->rs_{{name}}[i] = data->r_{{name}}[zbin_id] +
                 data->zdef * (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
-            data->drs_{{name}}[i] = (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
-            data->drs_{{name}}[i] /= data->dz;
+            // data->drs_{{name}}[i] = (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
+            // data->drs_{{name}}[i] /= data->dz;
         }
-        /*fprintf(stderr, "data->rs_{{name}} = %0.3e ; data->drs_{{name}} = %0.3e\n",
-                data->rs_{{name}}[i], data->drs_{{name}}[i]);*/
-    }
+    
     {% endif -%}
     {% endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     {%- if 'ph' not in name %}
-    for (i = 0; i < nstrip; i++) {
         bin_id = data->bin_id[i];
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
             data->Tdef[i] * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
-        data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);;
-        data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
-	data->dcs_{{name}}_{{name2}}[i] *= data->invTs[i];
-    }
+        // data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);;
+        // data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
+	// data->dcs_{{name}}_{{name2}}[i] *= data->invTs[i];
     {%- else %}
-    for (i = 0; i < nstrip; i++) {
         if (no_photo) {
             data->cs_{{name}}_{{name2}}[i] = 0.0;
-            data->dcs_{{name}}_{{name2}}[i] = 0.0;
+            // data->dcs_{{name}}_{{name2}}[i] = 0.0;
         } else {
             data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[zbin_id] +
                 data->zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
-            data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);;
-            data->dcs_{{name}}_{{name2}}[i] /= data->dz;
+            // data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);;
+            // data->dcs_{{name}}_{{name2}}[i] /= data->dz;
         }
-    }
     {%- endif -%}          
     {% endfor %}
     {% endfor %}
@@ -728,15 +785,9 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     
 
     int i, j;
-    j = 0;
-    /* change N_Vector back to an array */
-    double y_arr[ {{network.required_species | length }} ];
-    {%- for species in network.required_species | sort %}
-    y_arr[{{loop.index0}}] = NV_Ith_S(y , {{loop.index0 }});
-    {%- endfor %}
-
-    {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
-    {{solver_name}}_interpolate_rates(data, nstrip);
+    
+    // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
+    // {{solver_name}}_interpolate_rates(data, nstrip);
 
     /* Now We set up some temporaries */
 
@@ -744,13 +795,13 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}};
-    double *r{{name}} = data->drs_{{name}};
+    // double *r{{name}} = data->drs_{{name}};
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    // double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
 
@@ -765,14 +816,17 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     
     int jj;
     jj = 0;
-    double scale, scale1, inv_scale2;
+    double scale1, inv_scale2;
 
     j = 0;
     mdensity = 0.0;
     z = data->current_z;
+
+    double *scale     = data->scale;
+    double *inv_scale = data->inv_scale;
+
     {%- for species in network.required_species | sort %}
-    scale = data->scale[j];
-    {{species.name}} = NV_Ith_S( y, {{loop.index0 }}  )*scale;
+    {{species.name}} = NV_Ith_S( y, {{loop.index0 }}  )*data->scale[j];
     {%if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
     mdensity += {{species.name}} * {{species.weight}};
     {% endif %}
@@ -785,18 +839,18 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     i = 0;
     j = i * nchem * nchem;
 
-    {%- for s1 in network.required_species | sort %}
-    //
-    // Species: {{s1.name}}
-    //
-    {% set i_s1 = loop %}
     {%- for s2 in network.required_species | sort %}
-    // {{s2.name}} by {{s1.name}}
-    {% set i_s2 = loop%}
+    //
+    // Species: {{s2.name}}
+    //
+    {% set i_s2 = loop %}
+    {%- for s1 in network.required_species | sort %}
+    {% set i_s1 = loop%}
+    // {{s1.name}} by {{s2.name}}
     {{ network.print_jacobian_component(s2, s1, assign_to="IJth(J, {0}, {1} )".format( i_s2.index, i_s1.index ) ) }}
     
-    inv_scale2 = data->inv_scale[{{i_s2.index0}}];
-    scale1     = data->scale[{{i_s1.index0}}];
+    inv_scale2 = inv_scale[{{i_s2.index0}}];
+    scale1     = scale[{{i_s1.index0}}];
     IJth(J, {{i_s2.index}}, {{i_s1.index}}) *= inv_scale2*scale1;
 
     {% if s2.name == 'ge' %}
