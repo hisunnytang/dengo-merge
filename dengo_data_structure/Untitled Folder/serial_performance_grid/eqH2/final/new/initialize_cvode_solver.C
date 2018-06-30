@@ -21,6 +21,9 @@
 #include <new__solver.h>
 
 
+#include <cvode/cvode_spils.h>           /* access to CVSpils interface       */
+#include <sunlinsol/sunlinsol_spgmr.h>   /* access to SPGMR SUNLinearSolver   */
+
 
 /* Accessor macros */
 
@@ -47,8 +50,17 @@
 
 int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
+#ifndef CVSPILS
 int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J, 
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+#endif
+
+#ifdef CVSPILS
+int Jac(N_Vector v, N_Vector Jv, realtype t,
+             N_Vector y, N_Vector fy,
+             void *user_data, N_Vector tmp);
+#endif
+
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, new__data * data, N_Vector y , double reltol, N_Vector abstol){
@@ -111,7 +123,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     flag = CVodeSetUserData(cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1)) return(NULL);
         
-
+    #ifndef CVSPILS
     /* Call CVDlsSetLinearSolver to attach the matrix 
      * and linear solver to CVode */
     flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
@@ -120,7 +132,21 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     /* Set the user-supplied Jacobian routine Jac */
     flag = CVDlsSetJacFn(cvode_mem, Jac);
     if(check_flag(&flag, "CVDlsSetJacFn", 1)) return(NULL);
+    #endif 
+
+    #ifdef CVSPILS
+    LS = SUNSPGMR(y, PREC_NONE, 0);
+    if(check_flag(&flag, "SUNSPGMR", 1)) return(NULL);
     
+
+    flag = CVSpilsSetLinearSolver(cvode_mem, LS);
+    if(check_flag(&flag, "CVSpilsSetLinearSolver", 1)) return(NULL);
+    /* Set the JAcobian-times-vector function */
+    // flag = CVSpilsSetJacTimes(cvode_mem, NULL,Jac);
+    // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(NULL);
+ 
+    #endif
+
     return cvode_mem;
 
 }

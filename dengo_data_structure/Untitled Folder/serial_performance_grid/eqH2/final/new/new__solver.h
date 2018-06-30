@@ -285,9 +285,17 @@ typedef struct new__data {
     double inv_scale[10];
 } new__data;
 
-typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
-typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
 
+/* Declare ctype RHS and Jacobian */
+typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
+#ifndef CVSPILS
+typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
+#endif
+#ifdef CVSPILS
+typedef int(*jac_f)(N_Vector , N_Vector , realtype,
+             N_Vector, N_Vector,
+             void *user_data, N_Vector);
+#endif
 
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
@@ -308,17 +316,20 @@ double dengo_evolve_new_ (double dtf, double &dt, double z,
  
 
 
-/* Declare ctype RHS and Jacobian */
-typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
-typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
 
 
-
-
-
+#ifndef CVSPILS
 int calculate_jacobian_new_( realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+#endif
+
+#ifdef CVSPILS
+int calculate_JacTimesVec_new_
+            (N_Vector v, N_Vector Jv, realtype t,
+             N_Vector y, N_Vector fy,
+             void *user_data, N_Vector tmp);
+#endif
 
 int calculate_rhs_new_(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, int nstrip, int nchem);

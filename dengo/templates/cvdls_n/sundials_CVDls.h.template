@@ -123,9 +123,17 @@ typedef struct {{solver_name}}_data {
     double inv_scale[{{network.required_species | length}}];
 } {{ solver_name }}_data;
 
-typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
-typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
 
+/* Declare ctype RHS and Jacobian */
+typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
+#ifndef CVSPILS
+typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
+#endif
+#ifdef CVSPILS
+typedef int(*jac_f)(N_Vector , N_Vector , realtype,
+             N_Vector, N_Vector,
+             void *user_data, N_Vector);
+#endif
 
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
@@ -146,17 +154,20 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
 {% endblock %} {# data_struct_for_rates #}
 
 
-/* Declare ctype RHS and Jacobian */
-typedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * );
-typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vector, N_Vector, N_Vector);
-
-
 {% block function_declarations %}
 
-
+#ifndef CVSPILS
 int calculate_jacobian_{{solver_name}}( realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+#endif
+
+#ifdef CVSPILS
+int calculate_JacTimesVec_{{solver_name}}
+            (N_Vector v, N_Vector Jv, realtype t,
+             N_Vector y, N_Vector fy,
+             void *user_data, N_Vector tmp);
+#endif
 
 int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, int nstrip, int nchem);

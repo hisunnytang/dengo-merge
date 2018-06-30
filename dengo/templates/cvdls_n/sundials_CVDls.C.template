@@ -226,7 +226,15 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     //ensure_electron_consistency(input, dims, N);
 
     rhs_f f = calculate_rhs_{{solver_name}};
+
+    #ifndef CVSPILS
     jac_f jf = calculate_jacobian_{{solver_name}};
+    #endif
+    
+    #ifdef CVSPILS
+    jac_f jf = calculate_JacTimesVec_{{solver_name}};
+    #endif
+
     if (dt < 0) dt = dtf / 1e0;
     data->current_z = z;
     int niter = 0;
@@ -245,7 +253,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int flag;
     double reltol = 1.0e-4;
     void *cvode_mem;
-    int MAX_ITERATION = 100; 
+    int MAX_ITERATION = 1000; 
     double y[10];
     
     SUNLinearSolver LS;
@@ -316,6 +324,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
 
             for (i = 0; i < N; i++) {
                 if (y[i] < 0) {
+                    fprintf(stderr, "negative \n");
                     flag = 1;
                     break;
                 }
@@ -847,18 +856,18 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     {%- for s1 in network.required_species | sort %}
     {% set i_s1 = loop%}
     // {{s1.name}} by {{s2.name}}
-    {{ network.print_jacobian_component(s2, s1, assign_to="IJth(J, {0}, {1} )".format( i_s2.index, i_s1.index ) ) }}
+    {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D(J, {0}, {1} )".format( i_s2.index0, i_s1.index0 ) ) }}
     
     inv_scale2 = inv_scale[{{i_s2.index0}}];
     scale1     = scale[{{i_s1.index0}}];
-    IJth(J, {{i_s2.index}}, {{i_s1.index}}) *= inv_scale2*scale1;
+    SM_ELEMENT_D(J, {{i_s2.index0}}, {{i_s1.index0}}) *= inv_scale2*scale1;
 
     {% if s2.name == 'ge' %}
-    IJth(J, {{i_s2.index}}, {{i_s1.index}} ) *= inv_mdensity;
+    SM_ELEMENT_D(J, {{i_s2.index0}}, {{i_s1.index0}} ) *= inv_mdensity;
     {% endif %}
 
     {% if s1.name == 'ge' %}
-    IJth(J, {{i_s2.index}}, {{i_s1.index}} ) *= T{{network.energy_term.name}}[i];
+    SM_ELEMENT_D(J, {{i_s2.index0}}, {{i_s1.index0}} ) *= T{{network.energy_term.name}}[i];
     {% endif %}
     {%- endfor %}
     {% endfor %}
@@ -1094,3 +1103,105 @@ int read_init_data_to_dengo( dengo_field_data *field_data ){
 
 }
 {% endblock %}
+
+
+
+{% block calculate_JacTimesVec_sundials %}
+int calculate_JacTimesVec_{{solver_name}}
+            (N_Vector v, N_Vector Jv, realtype t,
+             N_Vector y, N_Vector fy,
+             void *user_data, N_Vector tmp)
+{
+    /* We iterate over all of the rates */
+    /* Calcuate temperature first */ 
+    int nstrip = 1;
+    int nchem = {{network.required_species | length }};
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
+    
+
+    int i, j;
+    j = 0;
+
+     /* change N_Vector back to an array */
+    double y_arr[ {{network.required_species | length }} ];
+    {%- for species in network.required_species | sort %}
+    y_arr[{{loop.index - 1}}] = Ith(y , {{loop.index }});
+    {%- endfor %}
+    // Abundances are scaled in the calculate temperature module
+    {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
+    {{solver_name}}_interpolate_rates(data, nstrip);
+    
+    /* Now We set up some temporaries */
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+    
+    /* Define the reaction rates */
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
+    double *r{{name}} = data->drs_{{name}};
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+    
+
+    double scale;
+    /* Define the species */
+    {%- for species in network.required_species | sort %}
+    double {{species.name}}, v{{loop.index-1}};
+    {%- endfor %}
+    
+    {%- for v in network.required_species | sort %}
+    scale = data->scale[{{loop.index - 1}}];
+    v{{loop.index-1}} = Ith( v, {{loop.index}} );
+    v{{loop.index-1}} *= scale;
+    {%- endfor %}
+
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity;
+    
+    int jj;
+    jj = 0;
+
+    j = i*nchem;
+    mdensity = 0.0;
+    z = data->current_z;
+    {%- for species in network.required_species | sort %}
+        // Rescale the Species abundance
+    scale = data->scale[j];
+    {{species.name}} = Ith( y, {{loop.index }}  )*scale;
+    {%if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
+    mdensity += {{species.name}};
+    {% endif %}
+    j++;
+    {% endfor %}
+
+
+    mdensity *= mh;
+        
+    j = 0;
+    {%- for s1 in network.required_species | sort %}
+    //
+    // Species: {{s1.name}}
+    //
+    {{ network.print_JacTimesVec_component(s1, assign_to="Ith(Jv, {0} )".format(loop.index) ) }}
+
+    scale = data->scale[{{loop.index - 1}}];
+    Ith(Jv, {{loop.index}}) /= scale;
+
+    {% if s1.name == "ge" %}
+    Ith(Jv, {{loop.index}}) /= mdensity;
+    {% endif %}
+    {%- endfor %}
+    return 0;
+}
+
+
+{% endblock %}
+
