@@ -172,6 +172,11 @@ class ChemicalNetwork(object):
             cie_fudge = self.cie_optical_depth_correction()
             eq = eq*cie_fudge
 
+        eq = eq.replace(
+                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
+
         return ccode(eq, assign_to = assign_to)
 
     def cie_optical_depth_correction(self):
@@ -366,6 +371,21 @@ class ChemicalNetwork(object):
                 dge_dT = dge_dT.subs({sym_fgamma: tmp})
                 dge_dT = dge_dT.subs({tmp : fgamma})
 
+                # substitute 1/ gamma - 1 with
+                # the expression _gamma{{sp}}_m1
+                _gamma_m1 = sympy.Symbol('_gamma%s_m1' %sp.name)
+                dge_dT = dge_dT.subs( {1/(fgamma - 1) : _gamma_m1})
+
+            gamma = sympy.Symbol('gamma')
+            _gamma_m1 = sympy.Symbol('_gamma_m1')
+            dge_dT = dge_dT.subs( { 1/ (gamma-1) : _gamma_m1 } )
+
+            # to unravel the algebric power
+            dge_dT = dge_dT.replace(
+                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
+
             return ccode(dge_dT)
         elif get_dge == True:
             T = sympy.Symbol('T')
@@ -378,8 +398,27 @@ class ChemicalNetwork(object):
                 dge = dge.subs({sym_fgamma: tmp})
                 dge = dge.subs({tmp: fgamma})
 
+                # substitute 1/ gamma - 1 with
+                # the expression _gamma{{sp}}_m1
+                _gamma_m1 = sympy.Symbol('_gamma%s_m1' %sp.name)
+                dge = dge.subs( {1/(fgamma - 1) : _gamma_m1})
+
+            gamma = sympy.Symbol('gamma')
+            _gamma_m1 = sympy.Symbol('_gamma_m1')
+            dge = dge.subs( { 1/ (gamma-1) : _gamma_m1 } )
+
+            # to unravel the algebric power
+            dge = dge.replace(
+                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
+
             return ccode(dge)
         else:
+            gamma = sympy.Symbol('gamma')
+            _gamma_m1 = sympy.Symbol('_gamma_m1')
+            function_eq = function_eq.subs( { 1/ (gamma-1) : _gamma_m1 } )
+
             return ccode(function_eq)
 
     # This function computes the total number density
@@ -494,6 +533,26 @@ class ChemicalNetwork(object):
         # read by the C++ code that is output by the template
         ofn = os.path.join(output_dir, "%s_tables.h5" % solver_name)
         f = h5py.File(ofn, "w")
+
+        # construct a 2d array of reaction rates
+        # reaction_rates[ T ][ k0i ]
+        all_rates = []
+        for rxn in sorted(self.reactions.values()):
+            data = rxn.coeff_fn(self).astype("float64")
+            all_rates.append(data)
+        all_rates = np.array(all_rates).transpose().flatten()
+        f.create_dataset("/all_reaction_rates" , data = all_rates)
+
+        # construct a 2d array of cooling rates
+        # cooling_rates [ T ][ cooling ]
+        all_cooling = []
+        for action in sorted(self.cooling_actions.values()):
+            for tab in sorted(action.tables):
+                data = action.tables[tab](self).astype("float64")
+                all_cooling.append(data)
+        all_cooling = np.array(all_cooling).transpose().flatten()
+        f.create_dataset("/all_cooling_rates", data= all_cooling)
+
         for rxn in sorted(self.reactions.values()):
             f.create_dataset("/%s" % rxn.name, data = rxn.coeff_fn(self).astype("float64"))
         for action in sorted(self.cooling_actions.values()):

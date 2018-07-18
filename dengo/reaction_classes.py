@@ -165,6 +165,14 @@ class Reaction(ComparableMixin):
             for ii in range(i):
                 #eq *= s.symbol[index_i]
                 eq *= s.symbol
+
+        # a little hacky here to unfold
+        # the algebraic power
+        # i.e. H_1**3 -> H_1*H_1*H_1
+        eq = eq.replace(
+                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
         return eq
 
 reaction = Reaction.create_reaction

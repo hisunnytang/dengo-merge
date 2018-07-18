@@ -142,7 +142,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     flag = CVSpilsSetLinearSolver(cvode_mem, LS);
     if(check_flag(&flag, "CVSpilsSetLinearSolver", 1)) return(NULL);
     /* Set the JAcobian-times-vector function */
-    // flag = CVSpilsSetJacTimes(cvode_mem, NULL,Jac);
+    flag = CVSpilsSetJacTimes(cvode_mem, NULL,Jac);
     // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(NULL);
  
     #endif

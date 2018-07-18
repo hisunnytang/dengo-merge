@@ -571,7 +571,7 @@ double dengo_evolve_new_ (double dtf, double &dt, double z, double *input,
         siter = 0;
             
         while (ttot < dtf) { 
-            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+            // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
             
             flag = cvode_solver( cvode_mem, y, N, &dt, data, y_vec, reltol, abstol);
 
@@ -608,7 +608,7 @@ double dengo_evolve_new_ (double dtf, double &dt, double z, double *input,
             siter++;
         } // while loop for each strip
         
-        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
+        // fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
         temp_array[ d ] = data->Ts[0];
         ttot_all[d] = ttot;
 
