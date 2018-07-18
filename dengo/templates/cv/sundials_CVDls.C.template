@@ -251,7 +251,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
-    double reltol = 1.0e-3;
+    double reltol = 1.0e-4;
     void *cvode_mem;
     int MAX_ITERATION = 1000; 
     double y[10];
@@ -286,7 +286,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             data->scale[i]     = input[d*N + i];
             data->inv_scale[i] = 1.0 / data->scale[i];
             NV_Ith_S(y_vec , i )   = 1.0;
-            NV_Ith_S(abstol, i )   = 1.0e-9;
+            NV_Ith_S(abstol, i )   = reltol*reltol;
         }
 
         // initialize a dt for the solver  
@@ -313,7 +313,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
                     data->inv_scale[i] = 1.0/ data->scale[i];
                     
                     NV_Ith_S(y_vec , i )   = 1.0;
-                    NV_Ith_S(abstol, i )   = 1.0e-9;
+                    NV_Ith_S(abstol, i )   = reltol*reltol;
                     // fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
                 }
 
@@ -544,8 +544,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     }
     data->logTs[i] = log(data->Ts[i]);
     data->invTs[i] = 1.0 / data->Ts[i];
-	data->dTs_{{ network.energy_term.name }}[i] = 
-    {{ network.temperature_calculation(derivative=True) }};
+	data->dTs_{{ network.energy_term.name }}[i] = 1.0 / dge_dT;
         /*fprintf(stderr, "T[%d] = % 0.16g, density = % 0.16g\n",
                 i, data->Ts[i], density);*/
 

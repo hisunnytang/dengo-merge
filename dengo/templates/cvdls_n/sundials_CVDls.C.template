@@ -958,11 +958,10 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     inv_scale = data->inv_scale[{{loop.index0}}];
     NV_Ith_S(ydot, {{loop.index0}}) *= inv_scale;
     
-    {#
     {% if species.name == "ge" %}
     NV_Ith_S(ydot, {{loop.index0}}) /= mdensity;
     {% endif %}
-    #}
+    
     //fprintf(stderr, "{{species.name}}: %0.5g\n", scale);
     //fprintf(stderr, "ydot = %0.5g \n", NV_Ith_S(ydot, {{loop.index0}}));
     {% endfor %}

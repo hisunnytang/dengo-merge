@@ -1,3 +1,0 @@
-#!/bin/bash
-rm -f a.out
-g++ __old_solver.C __old_solver_main.C BE_chem_solve.C -I. -lm -lstdc++ -lhdf5 -lhdf5_hl -g

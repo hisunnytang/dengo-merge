@@ -1,3 +1,0 @@
-#!/bin/bash
-rm -f a.out
-g++ test_bechem_cvdls_solver.C test_bechem_cvdls_solver_main.C BE_chem_solve.C -I. -lm -lstdc++ -lhdf5 -lhdf5_hl -O3 -g

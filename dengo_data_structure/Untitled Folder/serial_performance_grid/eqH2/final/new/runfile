@@ -1,3 +1,0 @@
-#!/bin/bash
-rm -f a.out
-gcc -DCVSPILS new__solver.C new__solver_main.C initialize_cvode_solver.C -I. -I/home/kwoksun2/cvode-3.1.0/instdir/include/ -lm -lstdc++ -lhdf5 -lhdf5_hl /home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_cvode.a /home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_nvecserial.a -O3
