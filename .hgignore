@@ -4,3 +4,4 @@ syntax: glob
 *.so*
 *.o
 output/*
+*.h5
