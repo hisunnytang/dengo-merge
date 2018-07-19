@@ -14,7 +14,7 @@ Dependencies:
     CHIANTI -- Atomic Database for astrophysical spectroscopy
     
         - Download from http://www.chiantidatabase.org/download/CHIANTI_7.1_data.tar.gz
-	- Place in unique directory before untarring (it doesn't have a containment folder)
+	    - Place in unique directory before untarring (it doesn't have a containment folder)
         - Need to set special environment variable, XUVTOP
             (example: 'setenv XUVTOP /path/to/CHIANTI' )
 
@@ -22,13 +22,15 @@ Dependencies:
 
         - Download from http://sourceforge.net/projects/chiantipy/
         - run 'python setup.py install' in ChiantiPy directory
+    
+    Sundials/CVode -- Suite of ODE solvers
+
+        - Download from https://computation.llnl.gov/projects/sundials/cvode
+        - and set the envirnoment variable
 
 
 
 
-TO-DO-LIST:
-- interfacing with gamer
-- compare the efficiency of direct linear solver and krylov method
-- solve for temperature with sundials/cvode internal rootfinder?
-- maybe an openmp version
+
+
 

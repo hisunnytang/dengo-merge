@@ -409,14 +409,14 @@ cdef extern from "sundials/sundials_dense.h":
 
 
 # NSPECIES here is N in the .C.template file
-DEF NSPECIES = {{network.required_species | length}}
+DEF NSPECIES = 10
 DEF MAX_NCELLS=1
 
-cdef extern from "{{solver_name}}_solver.h":
+cdef extern from "final__solver.h":
     cdef int _MAX_NCELLS  "MAX_NCELLS"
     cdef int _NSPECIES "NSPECIES"
 
-    ctypedef struct {{solver_name}}_data:
+    ctypedef struct final__data:
         double dbin
         double idbin
         double bounds[2]
@@ -435,19 +435,167 @@ cdef extern from "{{solver_name}}_solver.h":
         double Tdef[MAX_NCELLS]
         double dT[MAX_NCELLS]
         double logTs[MAX_NCELLS]
-        double dTs_{{ network.energy_term.name }}[MAX_NCELLS]
-        {%- for name, rate in network.reactions | dictsort %}
-        double r_{{name}}[{{ network.T | length }}]
-        double rs_{{name}}[MAX_NCELLS]
-        double drs_{{name}}[MAX_NCELLS]
-        {%- endfor %}
-        {%- for name, rate in network.cooling_actions | dictsort %}
-        {%- for name2 in rate.tables | sort %}
-        double c_{{name}}_{{name2}}[{{ network.T | length }}]
-        double cs_{{name}}_{{name2}}[MAX_NCELLS]
-        double dcs_{{name}}_{{name2}}[MAX_NCELLS]
-        {%- endfor %}
-        {% endfor %}
+        double dTs_ge[MAX_NCELLS]
+        double r_k01[1024]
+        double rs_k01[MAX_NCELLS]
+        double drs_k01[MAX_NCELLS]
+        double r_k02[1024]
+        double rs_k02[MAX_NCELLS]
+        double drs_k02[MAX_NCELLS]
+        double r_k03[1024]
+        double rs_k03[MAX_NCELLS]
+        double drs_k03[MAX_NCELLS]
+        double r_k04[1024]
+        double rs_k04[MAX_NCELLS]
+        double drs_k04[MAX_NCELLS]
+        double r_k05[1024]
+        double rs_k05[MAX_NCELLS]
+        double drs_k05[MAX_NCELLS]
+        double r_k06[1024]
+        double rs_k06[MAX_NCELLS]
+        double drs_k06[MAX_NCELLS]
+        double r_k07[1024]
+        double rs_k07[MAX_NCELLS]
+        double drs_k07[MAX_NCELLS]
+        double r_k08[1024]
+        double rs_k08[MAX_NCELLS]
+        double drs_k08[MAX_NCELLS]
+        double r_k09[1024]
+        double rs_k09[MAX_NCELLS]
+        double drs_k09[MAX_NCELLS]
+        double r_k10[1024]
+        double rs_k10[MAX_NCELLS]
+        double drs_k10[MAX_NCELLS]
+        double r_k11[1024]
+        double rs_k11[MAX_NCELLS]
+        double drs_k11[MAX_NCELLS]
+        double r_k12[1024]
+        double rs_k12[MAX_NCELLS]
+        double drs_k12[MAX_NCELLS]
+        double r_k13[1024]
+        double rs_k13[MAX_NCELLS]
+        double drs_k13[MAX_NCELLS]
+        double r_k14[1024]
+        double rs_k14[MAX_NCELLS]
+        double drs_k14[MAX_NCELLS]
+        double r_k15[1024]
+        double rs_k15[MAX_NCELLS]
+        double drs_k15[MAX_NCELLS]
+        double r_k16[1024]
+        double rs_k16[MAX_NCELLS]
+        double drs_k16[MAX_NCELLS]
+        double r_k17[1024]
+        double rs_k17[MAX_NCELLS]
+        double drs_k17[MAX_NCELLS]
+        double r_k18[1024]
+        double rs_k18[MAX_NCELLS]
+        double drs_k18[MAX_NCELLS]
+        double r_k19[1024]
+        double rs_k19[MAX_NCELLS]
+        double drs_k19[MAX_NCELLS]
+        double r_k21[1024]
+        double rs_k21[MAX_NCELLS]
+        double drs_k21[MAX_NCELLS]
+        double r_k22[1024]
+        double rs_k22[MAX_NCELLS]
+        double drs_k22[MAX_NCELLS]
+        double c_brem_brem[1024]
+        double cs_brem_brem[MAX_NCELLS]
+        double dcs_brem_brem[MAX_NCELLS]
+        
+        double c_ceHeI_ceHeI[1024]
+        double cs_ceHeI_ceHeI[MAX_NCELLS]
+        double dcs_ceHeI_ceHeI[MAX_NCELLS]
+        
+        double c_ceHeII_ceHeII[1024]
+        double cs_ceHeII_ceHeII[MAX_NCELLS]
+        double dcs_ceHeII_ceHeII[MAX_NCELLS]
+        
+        double c_ceHI_ceHI[1024]
+        double cs_ceHI_ceHI[MAX_NCELLS]
+        double dcs_ceHI_ceHI[MAX_NCELLS]
+        
+        double c_ciHeI_ciHeI[1024]
+        double cs_ciHeI_ciHeI[MAX_NCELLS]
+        double dcs_ciHeI_ciHeI[MAX_NCELLS]
+        
+        double c_ciHeII_ciHeII[1024]
+        double cs_ciHeII_ciHeII[MAX_NCELLS]
+        double dcs_ciHeII_ciHeII[MAX_NCELLS]
+        
+        double c_ciHeIS_ciHeIS[1024]
+        double cs_ciHeIS_ciHeIS[MAX_NCELLS]
+        double dcs_ciHeIS_ciHeIS[MAX_NCELLS]
+        
+        double c_ciHI_ciHI[1024]
+        double cs_ciHI_ciHI[MAX_NCELLS]
+        double dcs_ciHI_ciHI[MAX_NCELLS]
+        
+        double c_compton_comp_[1024]
+        double cs_compton_comp_[MAX_NCELLS]
+        double dcs_compton_comp_[MAX_NCELLS]
+        
+        double c_gammah_gammah[1024]
+        double cs_gammah_gammah[MAX_NCELLS]
+        double dcs_gammah_gammah[MAX_NCELLS]
+        
+        double c_gloverabel08_gael[1024]
+        double cs_gloverabel08_gael[MAX_NCELLS]
+        double dcs_gloverabel08_gael[MAX_NCELLS]
+        double c_gloverabel08_gaH2[1024]
+        double cs_gloverabel08_gaH2[MAX_NCELLS]
+        double dcs_gloverabel08_gaH2[MAX_NCELLS]
+        double c_gloverabel08_gaHe[1024]
+        double cs_gloverabel08_gaHe[MAX_NCELLS]
+        double dcs_gloverabel08_gaHe[MAX_NCELLS]
+        double c_gloverabel08_gaHI[1024]
+        double cs_gloverabel08_gaHI[MAX_NCELLS]
+        double dcs_gloverabel08_gaHI[MAX_NCELLS]
+        double c_gloverabel08_gaHp[1024]
+        double cs_gloverabel08_gaHp[MAX_NCELLS]
+        double dcs_gloverabel08_gaHp[MAX_NCELLS]
+        double c_gloverabel08_gphdl[1024]
+        double cs_gloverabel08_gphdl[MAX_NCELLS]
+        double dcs_gloverabel08_gphdl[MAX_NCELLS]
+        double c_gloverabel08_gpldl[1024]
+        double cs_gloverabel08_gpldl[MAX_NCELLS]
+        double dcs_gloverabel08_gpldl[MAX_NCELLS]
+        double c_gloverabel08_h2lte[1024]
+        double cs_gloverabel08_h2lte[MAX_NCELLS]
+        double dcs_gloverabel08_h2lte[MAX_NCELLS]
+        
+        double c_h2formation_h2mcool[1024]
+        double cs_h2formation_h2mcool[MAX_NCELLS]
+        double dcs_h2formation_h2mcool[MAX_NCELLS]
+        double c_h2formation_h2mheat[1024]
+        double cs_h2formation_h2mheat[MAX_NCELLS]
+        double dcs_h2formation_h2mheat[MAX_NCELLS]
+        double c_h2formation_ncrd1[1024]
+        double cs_h2formation_ncrd1[MAX_NCELLS]
+        double dcs_h2formation_ncrd1[MAX_NCELLS]
+        double c_h2formation_ncrd2[1024]
+        double cs_h2formation_ncrd2[MAX_NCELLS]
+        double dcs_h2formation_ncrd2[MAX_NCELLS]
+        double c_h2formation_ncrn[1024]
+        double cs_h2formation_ncrn[MAX_NCELLS]
+        double dcs_h2formation_ncrn[MAX_NCELLS]
+        
+        double c_reHeII1_reHeII1[1024]
+        double cs_reHeII1_reHeII1[MAX_NCELLS]
+        double dcs_reHeII1_reHeII1[MAX_NCELLS]
+        
+        double c_reHeII2_reHeII2[1024]
+        double cs_reHeII2_reHeII2[MAX_NCELLS]
+        double dcs_reHeII2_reHeII2[MAX_NCELLS]
+        
+        double c_reHeIII_reHeIII[1024]
+        double cs_reHeIII_reHeIII[MAX_NCELLS]
+        double dcs_reHeIII_reHeIII[MAX_NCELLS]
+        
+        double c_reHII_reHII[1024]
+        double cs_reHII_reHII[MAX_NCELLS]
+        double dcs_reHII_reHII[MAX_NCELLS]
+        
         int bin_id[MAX_NCELLS]
         int ncells
     
@@ -455,55 +603,80 @@ cdef extern from "{{solver_name}}_solver.h":
     ctypedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * )
     ctypedef int(*jac_f)( long int, realtype, N_Vector , N_Vector , DlsMat , void *, N_Vector, N_Vector, N_Vector)
 
-    int {{solver_name}}_main(int argc, char **argv)
-    {{solver_name}}_data *{{solver_name}}_setup_data(int *NumberOfFields,
+    int final__main(int argc, char **argv)
+    final__data *final__setup_data(int *NumberOfFields,
             char ***FieldNames)
-    void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
-    void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
-    void {{ solver_name }}_read_gamma({{solver_name}}_data*)
+    void final__read_rate_tables(final__data*)
+    void final__read_cooling_tables(final__data*)
+    void final__read_gamma(final__data*)
 
-    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+    double dengo_evolve_final_ (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
-                                         {{solver_name}}_data *data, double *temp)
+                                         final__data *data, double *temp)
 
     # Declare the Jacobian and RHS function
     
-    int calculate_jacobian_{{solver_name}}(long int N, realtype t,
+    int calculate_jacobian_final_(long int N, realtype t,
                    N_Vector y, N_Vector fy, DlsMat J, void *user_data,
                    N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
-    int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, 
+    int calculate_rhs_final_(realtype t, N_Vector y, 
                     N_Vector ydot, void *user_data);
     
-    void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double *input, int nstrip, int nchem);
+    void final__calculate_temperature(final__data *data, double *input, int nstrip, int nchem);
    
        
     int ensure_electron_consistency(double *input, int nstrip, int nchem);
     
 
-def main_run_{{solver_name}}():
+def main_run_final_():
     t1 = time.time()
-    {{solver_name}}_main(0, NULL)
+    final__main(0, NULL)
     t2 = time.time()
     print "Total elapsed time: %0.3e" % (t2-t1)
 
-def run_{{solver_name}}(ics, double tf, int niter = 10000,
+def run_final_(ics, double tf, int niter = 10000,
                         int intermediate = 1, z = -1.0, dtarr = -999999):
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
-    {%- for s in network.required_species | sort %}
-    cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
+    cdef np.ndarray[np.float64_t, ndim=1] H2_1_arr = ics["H2_1"]
     # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
-    {%- endfor %}
+    cdef np.ndarray[np.float64_t, ndim=2] H2_1_int
+    cdef np.ndarray[np.float64_t, ndim=1] H2_2_arr = ics["H2_2"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] H2_2_int
+    cdef np.ndarray[np.float64_t, ndim=1] H_1_arr = ics["H_1"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] H_1_int
+    cdef np.ndarray[np.float64_t, ndim=1] H_2_arr = ics["H_2"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] H_2_int
+    cdef np.ndarray[np.float64_t, ndim=1] H_m0_arr = ics["H_m0"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] H_m0_int
+    cdef np.ndarray[np.float64_t, ndim=1] He_1_arr = ics["He_1"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] He_1_int
+    cdef np.ndarray[np.float64_t, ndim=1] He_2_arr = ics["He_2"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] He_2_int
+    cdef np.ndarray[np.float64_t, ndim=1] He_3_arr = ics["He_3"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] He_3_int
+    cdef np.ndarray[np.float64_t, ndim=1] de_arr = ics["de"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] de_int
+    cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] ge_int
     cdef np.ndarray[np.float64_t, ndim=1] result_int
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
     cdef np.ndarray[np.float64_t, ndim=1] dt_int
 
     cdef int i, j, k, iter
-    cdef int dims = {{network.energy_term.name}}_arr.shape[0]
+    cdef int dims = ge_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
     cdef double *input = <double *> alloca(NTOT * sizeof(double))
     cdef double *prev = <double *> alloca(NTOT * sizeof(double))
@@ -519,9 +692,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     dt[0] = tf/float(niter)
 
     if intermediate == 1:
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_int = np.zeros((dims, niter), "float64")
-        {%- endfor %}
+        H2_1_int = np.zeros((dims, niter), "float64")
+        H2_2_int = np.zeros((dims, niter), "float64")
+        H_1_int = np.zeros((dims, niter), "float64")
+        H_2_int = np.zeros((dims, niter), "float64")
+        H_m0_int = np.zeros((dims, niter), "float64")
+        He_1_int = np.zeros((dims, niter), "float64")
+        He_2_int = np.zeros((dims, niter), "float64")
+        He_3_int = np.zeros((dims, niter), "float64")
+        de_int = np.zeros((dims, niter), "float64")
+        ge_int = np.zeros((dims, niter), "float64")
         temp_int = np.zeros((dims, niter), "float64")
         result_int = np.zeros(niter, "float64")
         t_int = np.zeros(niter, "float64")
@@ -529,24 +709,67 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     j = 0
     for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        input[j] = prev[j] = {{s.name}}_arr[i] 
+        input[j] = prev[j] = H2_1_arr[i] 
         atol[j] = input[j] * 1e-6
         rtol[j] = 1e-06
         scale[j] = input[j]
         j += 1
-        {%- endfor %}
+        input[j] = prev[j] = H2_2_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = H_1_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = H_2_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = H_m0_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = He_1_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = He_2_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = He_3_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = de_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = ge_arr[i] 
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-06
+        scale[j] = input[j]
+        j += 1
         
 
-    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
-    cdef rhs_f f = calculate_rhs_{{solver_name}}
-    cdef jac_f jf = calculate_jacobian_{{solver_name}}
+    cdef final__data *data = final__setup_data(NULL, NULL)
+    cdef rhs_f f = calculate_rhs_final_
+    cdef jac_f jf = calculate_jacobian_final_
 
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
     # Now we manually evolve
-    #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
+    #ttot = dengo_evolve_final_(tf, dt, input, rtol, atol, dims, data)
     data.current_z = z
     cdef double *t_now = <double *> malloc( sizeof(double) )
 
@@ -568,7 +791,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
 
     for iter in range(niter):
-        dt_local = dengo_evolve_{{solver_name}}( dt0[0], dt[0], z, input, rtol, atol, dims, data, temp  )
+        dt_local = dengo_evolve_final_( dt0[0], dt[0], z, input, rtol, atol, dims, data, temp  )
         if dt_local > 0:
             status = 0
             # print( "{} th iterations at time {}".format(iter, dt_local))
@@ -576,10 +799,26 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         j = 0; 
 
         for i in range(dims):
-            {%- for s in network.required_species | sort %}
-            {{s.name}}_int[i, iter] = input[j]
+            H2_1_int[i, iter] = input[j]
             j += 1
-            {%- endfor %}
+            H2_2_int[i, iter] = input[j]
+            j += 1
+            H_1_int[i, iter] = input[j]
+            j += 1
+            H_2_int[i, iter] = input[j]
+            j += 1
+            H_m0_int[i, iter] = input[j]
+            j += 1
+            He_1_int[i, iter] = input[j]
+            j += 1
+            He_2_int[i, iter] = input[j]
+            j += 1
+            He_3_int[i, iter] = input[j]
+            j += 1
+            de_int[i, iter] = input[j]
+            j += 1
+            ge_int[i, iter] = input[j]
+            j += 1
             temp_int[ i, iter ] = temp[i]
 
         if status == 0:
@@ -623,13 +862,27 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}
-    {%- for s in network.required_species | sort %}
-    {{s.name}}_arr = rv["{{s.name}}"] = np.zeros(dims, "float64")
-    {%- endfor %}
+    H2_1_arr = rv["H2_1"] = np.zeros(dims, "float64")
+    H2_2_arr = rv["H2_2"] = np.zeros(dims, "float64")
+    H_1_arr = rv["H_1"] = np.zeros(dims, "float64")
+    H_2_arr = rv["H_2"] = np.zeros(dims, "float64")
+    H_m0_arr = rv["H_m0"] = np.zeros(dims, "float64")
+    He_1_arr = rv["He_1"] = np.zeros(dims, "float64")
+    He_2_arr = rv["He_2"] = np.zeros(dims, "float64")
+    He_3_arr = rv["He_3"] = np.zeros(dims, "float64")
+    de_arr = rv["de"] = np.zeros(dims, "float64")
+    ge_arr = rv["ge"] = np.zeros(dims, "float64")
     if intermediate:
-        {%- for s in network.required_species | sort %}
-        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]
-        {%- endfor %}
+        rv_t["H2_1"] = H2_1_int[:niter]
+        rv_t["H2_2"] = H2_2_int[:niter]
+        rv_t["H_1"] = H_1_int[:niter]
+        rv_t["H_2"] = H_2_int[:niter]
+        rv_t["H_m0"] = H_m0_int[:niter]
+        rv_t["He_1"] = He_1_int[:niter]
+        rv_t["He_2"] = He_2_int[:niter]
+        rv_t["He_3"] = He_3_int[:niter]
+        rv_t["de"] = de_int[:niter]
+        rv_t["ge"] = ge_int[:niter]
         rv_t["successful"] = result_int.astype("bool")
         rv_t['T'] = temp_int
         rv_t['t'] = t_int
@@ -637,10 +890,26 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     j = 0
     for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_arr[i] = input[j] * {{s.weight}}
+        H2_1_arr[i] = input[j] * 2.01588
         j += 1
-        {%- endfor %}
+        H2_2_arr[i] = input[j] * 2.01588
+        j += 1
+        H_1_arr[i] = input[j] * 1.00794
+        j += 1
+        H_2_arr[i] = input[j] * 1.00794
+        j += 1
+        H_m0_arr[i] = input[j] * 1.00794
+        j += 1
+        He_1_arr[i] = input[j] * 4.002602
+        j += 1
+        He_2_arr[i] = input[j] * 4.002602
+        j += 1
+        He_3_arr[i] = input[j] * 4.002602
+        j += 1
+        de_arr[i] = input[j] * 1.0
+        j += 1
+        ge_arr[i] = input[j] * 1.0
+        j += 1
     return rv, rv_t
 
 cdef copy_array(double *input, double *output, int dims):

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for i in {1..256}
+do
+    python -W ignore test_accuracy.py -t "$i""_solution.h5" -s "$i""_accurate_solution.h5" 
+done
