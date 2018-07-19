@@ -1,3 +1,0 @@
-{{solver_name}}_solver.C
-{{solver_name}}_solver.h
-cvodes_solver_CVSpils.C
