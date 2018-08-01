@@ -76,6 +76,30 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, final__d
     for ( i = 0; i < NEQ; i++){
        output[i] = NV_Ith_S(y, i);
     }
+    
+    long int nniters;
+    flag = CVodeGetNumNonlinSolvIters( cvode_mem, &nniters);
+    fprintf(stderr, "nniters: %ld \n", nniters);
+
+    long int nliters;
+    flag = CVSpilsGetNumLinIters( cvode_mem, &nliters );
+    fprintf(stderr, "nliters: %ld \n", nliters);
+    
+    long int nsteps;
+    flag = CVodeGetNumSteps(cvode_mem, &nsteps);
+    fprintf(stderr, " nsteps: %ld \n", nsteps );
+    
+    long int nfevals;
+    flag = CVodeGetNumRhsEvals(cvode_mem, &nfevals);
+    fprintf(stderr, "nfevals: %ld \n", nfevals);
+    
+    realtype tolsfac;
+    flag = CVodeGetTolScaleFactor(cvode_mem, &tolsfac);
+    fprintf(stderr, "tolsfac: %0.5g \n", tolsfac);
+
+    long int njevals;
+    flag = CVDlsGetNumJacEvals(cvode_mem, &njevals);
+    fprintf(stderr, "njevals: %ld \n", njevals);
 
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times

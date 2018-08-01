@@ -77,6 +77,36 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver
        output[i] = NV_Ith_S(y, i);
     }
 
+
+    #ifdef PRINT_CVODE_STATS
+    long int nsteps, nfevals, nlinsetups, netfails;
+    int qlast, qcur;
+    realtype hinused, hlast, hcur, tcur;
+    flag = CVodeGetIntegratorStats(cvode_mem, &nsteps, &nfevals, &nlinsetups, &netfails, &qlast, &qcur, &hinused, &hlast, &hcur, &tcur);
+    
+    fprintf(stderr, "-----Printing Integrator Stats------- \n");
+    fprintf(stderr, "nsteps    : %ld \n", nsteps);
+    fprintf(stderr, "nfevals   : %ld \n", nfevals);
+    fprintf(stderr, "nlinsetups: %ld \n", nlinsetups);
+    fprintf(stderr, "netfails  : %ld \n", netfails);
+    
+    N_Vector ele, eweight;
+    ele = NULL;
+    eweight = NULL;
+    ele     = N_VNew_Serial( NEQ );
+    eweight = N_VNew_Serial( NEQ );
+
+    flag = CVodeGetEstLocalErrors(cvode_mem, ele);
+    flag = CVodeGetErrWeights(cvode_mem, eweight);
+    fprintf(stderr, "-----Printing Local Errors   ------- \n");    
+    for ( i = 0; i < NEQ; i++){
+        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) ); 
+        fprintf(stderr, "Error Weight      = %0.5g \n", NV_Ith_S(eweight, i) );
+        fprintf(stderr, "contributions to error test = %0.5g \n",  NV_Ith_S( ele, i) * NV_Ith_S(eweight, i) );
+        fprintf(stderr, "-------------------------------\n");
+    }
+    #endif
+    
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
@@ -117,7 +147,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
 
-    flag = CVodeSetMaxNumSteps(cvode_mem, 5000 );
+    flag = CVodeSetMaxNumSteps(cvode_mem, 1000 );
     flag = CVodeSetStabLimDet(cvode_mem, SUNTRUE);
 
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
@@ -150,6 +180,8 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(NULL);
  
     #endif
+    
+
 
     return cvode_mem;
 

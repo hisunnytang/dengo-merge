@@ -504,7 +504,7 @@ double dengo_evolve_final_ (double dtf, double &dt, double z, double *input,
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
-    double reltol = 1.0e-4;
+    double reltol = 1.0e-5;
     void *cvode_mem;
     int MAX_ITERATION = 1000; 
     double y[10];
@@ -531,7 +531,7 @@ double dengo_evolve_final_ (double dtf, double &dt, double z, double *input,
     cvode_mem = setup_cvode_solver( f, jf, N, data, LS, A, y_vec, reltol, abstol);
     
     double h_density = mdensity[0];
-    for (int d = 0; d < dims; d++){
+    for (int d = 0; d < 1; d++){
         
         
         for (i = 0; i < N; i++){ 
@@ -548,7 +548,7 @@ double dengo_evolve_final_ (double dtf, double &dt, double z, double *input,
         siter = 0;
             
         while (ttot < dtf) { 
-            //fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
             
             flag = cvode_solver( cvode_mem, y, N, &dt, data, y_vec, reltol, abstol);
 
@@ -1843,8 +1843,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 0, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by H2_1
     SM_ELEMENT_D(J, 0, 1 ) = k10*H_1 + k19*H_m0;
@@ -1852,8 +1850,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[0];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 0, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -1865,8 +1861,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 0, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by H2_1
     SM_ELEMENT_D(J, 0, 3 ) = -k11*H2_1;
@@ -1874,8 +1868,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[0];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 0, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -1887,8 +1879,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 0, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by H2_1
     SM_ELEMENT_D(J, 0, 5 ) = 0;
@@ -1896,8 +1886,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[0];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 0, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -1909,8 +1897,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 0, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by H2_1
     SM_ELEMENT_D(J, 0, 7 ) = 0;
@@ -1918,8 +1904,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[0];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 0, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -1931,8 +1915,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 0, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by H2_1
     SM_ELEMENT_D(J, 0, 9 ) = 0;
@@ -1941,10 +1923,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 0, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 0, 9 ) *= Tge[i];
     
     
     //
@@ -1960,8 +1938,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 1, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by H2_2
     SM_ELEMENT_D(J, 1, 1 ) = -k10*H_1 - k18*de - k19*H_m0;
@@ -1969,8 +1945,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[1];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 1, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -1982,8 +1956,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 1, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by H2_2
     SM_ELEMENT_D(J, 1, 3 ) = k09*H_1 + k11*H2_1 + k17*H_m0;
@@ -1991,8 +1963,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[1];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 1, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2004,8 +1974,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 1, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by H2_2
     SM_ELEMENT_D(J, 1, 5 ) = 0;
@@ -2013,8 +1981,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[1];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 1, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2026,8 +1992,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 1, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by H2_2
     SM_ELEMENT_D(J, 1, 7 ) = 0;
@@ -2035,8 +1999,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[1];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 1, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2048,8 +2010,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 1, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by H2_2
     SM_ELEMENT_D(J, 1, 9 ) = 0;
@@ -2058,10 +2018,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 1, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 1, 9 ) *= Tge[i];
     
     
     //
@@ -2077,8 +2033,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 2, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by H_1
     SM_ELEMENT_D(J, 2, 1 ) = -k10*H_1 + 2*k18*de + k19*H_m0;
@@ -2086,8 +2040,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[2];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 2, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2099,8 +2051,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 2, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by H_1
     SM_ELEMENT_D(J, 2, 3 ) = k02*de - k09*H_1 + k11*H2_1 + 2*k16*H_m0;
@@ -2108,8 +2058,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[2];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 2, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2121,8 +2069,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 2, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by H_1
     SM_ELEMENT_D(J, 2, 5 ) = 0;
@@ -2130,8 +2076,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[2];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 2, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2143,8 +2087,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 2, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by H_1
     SM_ELEMENT_D(J, 2, 7 ) = 0;
@@ -2152,8 +2094,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[2];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 2, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2165,8 +2105,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 2, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by H_1
     SM_ELEMENT_D(J, 2, 9 ) = 0;
@@ -2175,10 +2113,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 2, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 2, 9 ) *= Tge[i];
     
     
     //
@@ -2194,8 +2128,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 3, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by H_2
     SM_ELEMENT_D(J, 3, 1 ) = k10*H_1;
@@ -2203,8 +2135,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[3];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 3, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2216,8 +2146,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 3, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by H_2
     SM_ELEMENT_D(J, 3, 3 ) = -k02*de - k09*H_1 - k11*H2_1 - k16*H_m0 - k17*H_m0;
@@ -2225,8 +2153,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[3];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 3, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2238,8 +2164,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 3, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by H_2
     SM_ELEMENT_D(J, 3, 5 ) = 0;
@@ -2247,8 +2171,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[3];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 3, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2260,8 +2182,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 3, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by H_2
     SM_ELEMENT_D(J, 3, 7 ) = 0;
@@ -2269,8 +2189,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[3];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 3, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2282,8 +2200,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 3, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by H_2
     SM_ELEMENT_D(J, 3, 9 ) = 0;
@@ -2292,10 +2208,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 3, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 3, 9 ) *= Tge[i];
     
     
     //
@@ -2311,8 +2223,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 4, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by H_m0
     SM_ELEMENT_D(J, 4, 1 ) = -k19*H_m0;
@@ -2320,8 +2230,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[4];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 4, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2333,8 +2241,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 4, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by H_m0
     SM_ELEMENT_D(J, 4, 3 ) = -k16*H_m0 - k17*H_m0;
@@ -2342,8 +2248,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[4];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 4, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2355,8 +2259,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 4, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by H_m0
     SM_ELEMENT_D(J, 4, 5 ) = 0;
@@ -2364,8 +2266,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[4];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 4, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2377,8 +2277,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 4, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by H_m0
     SM_ELEMENT_D(J, 4, 7 ) = 0;
@@ -2386,8 +2284,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[4];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 4, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2399,8 +2295,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 4, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by H_m0
     SM_ELEMENT_D(J, 4, 9 ) = 0;
@@ -2409,10 +2303,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 4, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 4, 9 ) *= Tge[i];
     
     
     //
@@ -2428,8 +2318,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 5, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by He_1
     SM_ELEMENT_D(J, 5, 1 ) = 0;
@@ -2437,8 +2325,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[5];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 5, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2450,8 +2336,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 5, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by He_1
     SM_ELEMENT_D(J, 5, 3 ) = 0;
@@ -2459,8 +2343,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[5];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 5, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2472,8 +2354,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 5, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by He_1
     SM_ELEMENT_D(J, 5, 5 ) = -k03*de;
@@ -2481,8 +2361,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[5];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 5, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2494,8 +2372,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 5, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by He_1
     SM_ELEMENT_D(J, 5, 7 ) = 0;
@@ -2503,8 +2379,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[5];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 5, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2516,8 +2390,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 5, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by He_1
     SM_ELEMENT_D(J, 5, 9 ) = 0;
@@ -2526,10 +2398,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 5, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 5, 9 ) *= Tge[i];
     
     
     //
@@ -2545,8 +2413,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 6, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by He_2
     SM_ELEMENT_D(J, 6, 1 ) = 0;
@@ -2554,8 +2420,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[6];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 6, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2567,8 +2431,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 6, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by He_2
     SM_ELEMENT_D(J, 6, 3 ) = 0;
@@ -2576,8 +2438,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[6];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 6, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2589,8 +2449,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 6, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by He_2
     SM_ELEMENT_D(J, 6, 5 ) = k03*de;
@@ -2598,8 +2456,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[6];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 6, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2611,8 +2467,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 6, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by He_2
     SM_ELEMENT_D(J, 6, 7 ) = k06*de;
@@ -2620,8 +2474,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[6];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 6, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2633,8 +2485,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 6, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by He_2
     SM_ELEMENT_D(J, 6, 9 ) = 0;
@@ -2643,10 +2493,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 6, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 6, 9 ) *= Tge[i];
     
     
     //
@@ -2662,8 +2508,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 7, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by He_3
     SM_ELEMENT_D(J, 7, 1 ) = 0;
@@ -2671,8 +2515,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[7];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 7, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2684,8 +2526,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 7, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by He_3
     SM_ELEMENT_D(J, 7, 3 ) = 0;
@@ -2693,8 +2533,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[7];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 7, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2706,8 +2544,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 7, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by He_3
     SM_ELEMENT_D(J, 7, 5 ) = 0;
@@ -2715,8 +2551,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[7];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 7, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2728,8 +2562,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 7, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by He_3
     SM_ELEMENT_D(J, 7, 7 ) = -k06*de;
@@ -2737,8 +2569,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[7];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 7, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2750,8 +2580,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 7, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by He_3
     SM_ELEMENT_D(J, 7, 9 ) = 0;
@@ -2760,10 +2588,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 7, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 7, 9 ) *= Tge[i];
     
     
     //
@@ -2779,8 +2603,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 8, 0) *= inv_scale2*scale1;
 
     
-
-    
     
     // H2_2 by de
     SM_ELEMENT_D(J, 8, 1 ) = -k18*de;
@@ -2788,8 +2610,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[8];
     scale1     = scale[1];
     SM_ELEMENT_D(J, 8, 1) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2801,8 +2621,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 8, 2) *= inv_scale2*scale1;
 
     
-
-    
     
     // H_2 by de
     SM_ELEMENT_D(J, 8, 3 ) = -k02*de + k17*H_m0;
@@ -2810,8 +2628,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[8];
     scale1     = scale[3];
     SM_ELEMENT_D(J, 8, 3) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2823,8 +2639,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 8, 4) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_1 by de
     SM_ELEMENT_D(J, 8, 5 ) = k03*de;
@@ -2832,8 +2646,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[8];
     scale1     = scale[5];
     SM_ELEMENT_D(J, 8, 5) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2845,8 +2657,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 8, 6) *= inv_scale2*scale1;
 
     
-
-    
     
     // He_3 by de
     SM_ELEMENT_D(J, 8, 7 ) = -k06*de;
@@ -2854,8 +2664,6 @@ int calculate_jacobian_final_( realtype t,
     inv_scale2 = inv_scale[8];
     scale1     = scale[7];
     SM_ELEMENT_D(J, 8, 7) *= inv_scale2*scale1;
-
-    
 
     
     
@@ -2867,8 +2675,6 @@ int calculate_jacobian_final_( realtype t,
     SM_ELEMENT_D(J, 8, 8) *= inv_scale2*scale1;
 
     
-
-    
     
     // ge by de
     SM_ELEMENT_D(J, 8, 9 ) = 0;
@@ -2877,10 +2683,6 @@ int calculate_jacobian_final_( realtype t,
     scale1     = scale[9];
     SM_ELEMENT_D(J, 8, 9) *= inv_scale2*scale1;
 
-    
-
-    
-    SM_ELEMENT_D(J, 8, 9 ) *= Tge[i];
     
     
     //
@@ -2898,8 +2700,6 @@ int calculate_jacobian_final_( realtype t,
     
     SM_ELEMENT_D(J, 9, 0 ) *= inv_mdensity;
     
-
-    
     
     // H2_2 by ge
     SM_ELEMENT_D(J, 9, 1 ) = 0;
@@ -2910,8 +2710,6 @@ int calculate_jacobian_final_( realtype t,
 
     
     SM_ELEMENT_D(J, 9, 1 ) *= inv_mdensity;
-    
-
     
     
     // H_1 by ge
@@ -2924,8 +2722,6 @@ int calculate_jacobian_final_( realtype t,
     
     SM_ELEMENT_D(J, 9, 2 ) *= inv_mdensity;
     
-
-    
     
     // H_2 by ge
     SM_ELEMENT_D(J, 9, 3 ) = -H2_1*gloverabel08_gaHp*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - brem_brem*de - de*reHII_reHII;
@@ -2936,8 +2732,6 @@ int calculate_jacobian_final_( realtype t,
 
     
     SM_ELEMENT_D(J, 9, 3 ) *= inv_mdensity;
-    
-
     
     
     // H_m0 by ge
@@ -2950,8 +2744,6 @@ int calculate_jacobian_final_( realtype t,
     
     SM_ELEMENT_D(J, 9, 4 ) *= inv_mdensity;
     
-
-    
     
     // He_1 by ge
     SM_ELEMENT_D(J, 9, 5 ) = -H2_1*gloverabel08_gaHe*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - ciHeI_ciHeI*de;
@@ -2962,8 +2754,6 @@ int calculate_jacobian_final_( realtype t,
 
     
     SM_ELEMENT_D(J, 9, 5 ) *= inv_mdensity;
-    
-
     
     
     // He_2 by ge
@@ -2976,8 +2766,6 @@ int calculate_jacobian_final_( realtype t,
     
     SM_ELEMENT_D(J, 9, 6 ) *= inv_mdensity;
     
-
-    
     
     // He_3 by ge
     SM_ELEMENT_D(J, 9, 7 ) = -4.0*brem_brem*de - de*reHeIII_reHeIII;
@@ -2988,8 +2776,6 @@ int calculate_jacobian_final_( realtype t,
 
     
     SM_ELEMENT_D(J, 9, 7 ) *= inv_mdensity;
-    
-
     
     
     // de by ge
@@ -3002,8 +2788,6 @@ int calculate_jacobian_final_( realtype t,
     
     SM_ELEMENT_D(J, 9, 8 ) *= inv_mdensity;
     
-
-    
     
     // ge by ge
     SM_ELEMENT_D(J, 9, 9 ) = 0;
@@ -3014,10 +2798,6 @@ int calculate_jacobian_final_( realtype t,
 
     
     SM_ELEMENT_D(J, 9, 9 ) *= inv_mdensity;
-    
-
-    
-    SM_ELEMENT_D(J, 9, 9 ) *= Tge[i];
     
     
     
@@ -3789,104 +3569,119 @@ int calculate_JacTimesVec_final_
     /* Now We set up some temporaries */
     double *Tge = data->dTs_ge;
     
-    /* Define the reaction rates */
-    double *k01 = data->rs_k01;
-    double *rk01 = data->drs_k01;
-    double *k02 = data->rs_k02;
-    double *rk02 = data->drs_k02;
-    double *k03 = data->rs_k03;
-    double *rk03 = data->drs_k03;
-    double *k04 = data->rs_k04;
-    double *rk04 = data->drs_k04;
-    double *k05 = data->rs_k05;
-    double *rk05 = data->drs_k05;
-    double *k06 = data->rs_k06;
-    double *rk06 = data->drs_k06;
-    double *k07 = data->rs_k07;
-    double *rk07 = data->drs_k07;
-    double *k08 = data->rs_k08;
-    double *rk08 = data->drs_k08;
-    double *k09 = data->rs_k09;
-    double *rk09 = data->drs_k09;
-    double *k10 = data->rs_k10;
-    double *rk10 = data->drs_k10;
-    double *k11 = data->rs_k11;
-    double *rk11 = data->drs_k11;
-    double *k12 = data->rs_k12;
-    double *rk12 = data->drs_k12;
-    double *k13 = data->rs_k13;
-    double *rk13 = data->drs_k13;
-    double *k14 = data->rs_k14;
-    double *rk14 = data->drs_k14;
-    double *k15 = data->rs_k15;
-    double *rk15 = data->drs_k15;
-    double *k16 = data->rs_k16;
-    double *rk16 = data->drs_k16;
-    double *k17 = data->rs_k17;
-    double *rk17 = data->drs_k17;
-    double *k18 = data->rs_k18;
-    double *rk18 = data->drs_k18;
-    double *k19 = data->rs_k19;
-    double *rk19 = data->drs_k19;
-    double *k21 = data->rs_k21;
-    double *rk21 = data->drs_k21;
-    double *k22 = data->rs_k22;
-    double *rk22 = data->drs_k22;
-    double *brem_brem = data->cs_brem_brem;
-    double *rbrem_brem = data->dcs_brem_brem;
-    double *ceHeI_ceHeI = data->cs_ceHeI_ceHeI;
-    double *rceHeI_ceHeI = data->dcs_ceHeI_ceHeI;
-    double *ceHeII_ceHeII = data->cs_ceHeII_ceHeII;
-    double *rceHeII_ceHeII = data->dcs_ceHeII_ceHeII;
-    double *ceHI_ceHI = data->cs_ceHI_ceHI;
-    double *rceHI_ceHI = data->dcs_ceHI_ceHI;
-    double *ciHeI_ciHeI = data->cs_ciHeI_ciHeI;
-    double *rciHeI_ciHeI = data->dcs_ciHeI_ciHeI;
-    double *ciHeII_ciHeII = data->cs_ciHeII_ciHeII;
-    double *rciHeII_ciHeII = data->dcs_ciHeII_ciHeII;
-    double *ciHeIS_ciHeIS = data->cs_ciHeIS_ciHeIS;
-    double *rciHeIS_ciHeIS = data->dcs_ciHeIS_ciHeIS;
-    double *ciHI_ciHI = data->cs_ciHI_ciHI;
-    double *rciHI_ciHI = data->dcs_ciHI_ciHI;
-    double *compton_comp_ = data->cs_compton_comp_;
-    double *rcompton_comp_ = data->dcs_compton_comp_;
-    double *gammah_gammah = data->cs_gammah_gammah;
-    double *rgammah_gammah = data->dcs_gammah_gammah;
-    double *gloverabel08_gael = data->cs_gloverabel08_gael;
-    double *rgloverabel08_gael = data->dcs_gloverabel08_gael;
-    double *gloverabel08_gaH2 = data->cs_gloverabel08_gaH2;
-    double *rgloverabel08_gaH2 = data->dcs_gloverabel08_gaH2;
-    double *gloverabel08_gaHe = data->cs_gloverabel08_gaHe;
-    double *rgloverabel08_gaHe = data->dcs_gloverabel08_gaHe;
-    double *gloverabel08_gaHI = data->cs_gloverabel08_gaHI;
-    double *rgloverabel08_gaHI = data->dcs_gloverabel08_gaHI;
-    double *gloverabel08_gaHp = data->cs_gloverabel08_gaHp;
-    double *rgloverabel08_gaHp = data->dcs_gloverabel08_gaHp;
-    double *gloverabel08_gphdl = data->cs_gloverabel08_gphdl;
-    double *rgloverabel08_gphdl = data->dcs_gloverabel08_gphdl;
-    double *gloverabel08_gpldl = data->cs_gloverabel08_gpldl;
-    double *rgloverabel08_gpldl = data->dcs_gloverabel08_gpldl;
-    double *gloverabel08_h2lte = data->cs_gloverabel08_h2lte;
-    double *rgloverabel08_h2lte = data->dcs_gloverabel08_h2lte;
-    double *h2formation_h2mcool = data->cs_h2formation_h2mcool;
-    double *rh2formation_h2mcool = data->dcs_h2formation_h2mcool;
-    double *h2formation_h2mheat = data->cs_h2formation_h2mheat;
-    double *rh2formation_h2mheat = data->dcs_h2formation_h2mheat;
-    double *h2formation_ncrd1 = data->cs_h2formation_ncrd1;
-    double *rh2formation_ncrd1 = data->dcs_h2formation_ncrd1;
-    double *h2formation_ncrd2 = data->cs_h2formation_ncrd2;
-    double *rh2formation_ncrd2 = data->dcs_h2formation_ncrd2;
-    double *h2formation_ncrn = data->cs_h2formation_ncrn;
-    double *rh2formation_ncrn = data->dcs_h2formation_ncrn;
-    double *reHeII1_reHeII1 = data->cs_reHeII1_reHeII1;
-    double *rreHeII1_reHeII1 = data->dcs_reHeII1_reHeII1;
-    double *reHeII2_reHeII2 = data->cs_reHeII2_reHeII2;
-    double *rreHeII2_reHeII2 = data->dcs_reHeII2_reHeII2;
-    double *reHeIII_reHeIII = data->cs_reHeIII_reHeIII;
-    double *rreHeIII_reHeIII = data->dcs_reHeIII_reHeIII;
-    double *reHII_reHII = data->cs_reHII_reHII;
-    double *rreHII_reHII = data->dcs_reHII_reHII;
+    double *reaction_rates = data->interpolated_rates;
+    i = 0;
     
+    // k01
+    double k01 = reaction_rates[i];
+    i += 1;
+    
+    // k02
+    double k02 = reaction_rates[i];
+    i += 1;
+    
+    // k03
+    double k03 = reaction_rates[i];
+    i += 1;
+    
+    // k04
+    double k04 = reaction_rates[i];
+    i += 1;
+    
+    // k05
+    double k05 = reaction_rates[i];
+    i += 1;
+    
+    // k06
+    double k06 = reaction_rates[i];
+    i += 1;
+    
+    // k07
+    double k07 = reaction_rates[i];
+    i += 1;
+    
+    // k08
+    double k08 = reaction_rates[i];
+    i += 1;
+    
+    // k09
+    double k09 = reaction_rates[i];
+    i += 1;
+    
+    // k10
+    double k10 = reaction_rates[i];
+    i += 1;
+    
+    // k11
+    double k11 = reaction_rates[i];
+    i += 1;
+    
+    // k12
+    double k12 = reaction_rates[i];
+    i += 1;
+    
+    // k13
+    double k13 = reaction_rates[i];
+    i += 1;
+    
+    // k14
+    double k14 = reaction_rates[i];
+    i += 1;
+    
+    // k15
+    double k15 = reaction_rates[i];
+    i += 1;
+    
+    // k16
+    double k16 = reaction_rates[i];
+    i += 1;
+    
+    // k17
+    double k17 = reaction_rates[i];
+    i += 1;
+    
+    // k18
+    double k18 = reaction_rates[i];
+    i += 1;
+    
+    // k19
+    double k19 = reaction_rates[i];
+    i += 1;
+    
+    // k21
+    double k21 = reaction_rates[i];
+    i += 1;
+    
+    // k22
+    double k22 = reaction_rates[i];
+    i += 1;
+    double brem_brem = data->cs_brem_brem[0];
+    double ceHeI_ceHeI = data->cs_ceHeI_ceHeI[0];
+    double ceHeII_ceHeII = data->cs_ceHeII_ceHeII[0];
+    double ceHI_ceHI = data->cs_ceHI_ceHI[0];
+    double ciHeI_ciHeI = data->cs_ciHeI_ciHeI[0];
+    double ciHeII_ciHeII = data->cs_ciHeII_ciHeII[0];
+    double ciHeIS_ciHeIS = data->cs_ciHeIS_ciHeIS[0];
+    double ciHI_ciHI = data->cs_ciHI_ciHI[0];
+    double compton_comp_ = data->cs_compton_comp_[0];
+    double gammah_gammah = data->cs_gammah_gammah[0];
+    double gloverabel08_gael = data->cs_gloverabel08_gael[0];
+    double gloverabel08_gaH2 = data->cs_gloverabel08_gaH2[0];
+    double gloverabel08_gaHe = data->cs_gloverabel08_gaHe[0];
+    double gloverabel08_gaHI = data->cs_gloverabel08_gaHI[0];
+    double gloverabel08_gaHp = data->cs_gloverabel08_gaHp[0];
+    double gloverabel08_gphdl = data->cs_gloverabel08_gphdl[0];
+    double gloverabel08_gpldl = data->cs_gloverabel08_gpldl[0];
+    double gloverabel08_h2lte = data->cs_gloverabel08_h2lte[0];
+    double h2formation_h2mcool = data->cs_h2formation_h2mcool[0];
+    double h2formation_h2mheat = data->cs_h2formation_h2mheat[0];
+    double h2formation_ncrd1 = data->cs_h2formation_ncrd1[0];
+    double h2formation_ncrd2 = data->cs_h2formation_ncrd2[0];
+    double h2formation_ncrn = data->cs_h2formation_ncrn[0];
+    double reHeII1_reHeII1 = data->cs_reHeII1_reHeII1[0];
+    double reHeII2_reHeII2 = data->cs_reHeII2_reHeII2[0];
+    double reHeIII_reHeIII = data->cs_reHeIII_reHeIII[0];
+    double reHII_reHII = data->cs_reHII_reHII[0];
 
     double scale;
     /* Define the species */
@@ -3947,7 +3742,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     H2_1 = Ith( y, 1  )*scale;
     
-    mdensity += H2_1;
+    mdensity += H2_1 * 2.01588;
     
     j++;
     
@@ -3955,7 +3750,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     H2_2 = Ith( y, 2  )*scale;
     
-    mdensity += H2_2;
+    mdensity += H2_2 * 2.01588;
     
     j++;
     
@@ -3963,7 +3758,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     H_1 = Ith( y, 3  )*scale;
     
-    mdensity += H_1;
+    mdensity += H_1 * 1.00794;
     
     j++;
     
@@ -3971,7 +3766,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     H_2 = Ith( y, 4  )*scale;
     
-    mdensity += H_2;
+    mdensity += H_2 * 1.00794;
     
     j++;
     
@@ -3979,7 +3774,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     H_m0 = Ith( y, 5  )*scale;
     
-    mdensity += H_m0;
+    mdensity += H_m0 * 1.00794;
     
     j++;
     
@@ -3987,7 +3782,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     He_1 = Ith( y, 6  )*scale;
     
-    mdensity += He_1;
+    mdensity += He_1 * 4.002602;
     
     j++;
     
@@ -3995,7 +3790,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     He_2 = Ith( y, 7  )*scale;
     
-    mdensity += He_2;
+    mdensity += He_2 * 4.002602;
     
     j++;
     
@@ -4003,7 +3798,7 @@ int calculate_JacTimesVec_final_
     scale = data->scale[j];
     He_3 = Ith( y, 8  )*scale;
     
-    mdensity += He_3;
+    mdensity += He_3 * 4.002602;
     
     j++;
     
@@ -4027,7 +3822,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: H2_1
     //
-    Ith(Jv, 1 ) = -k11[i]*H2_1*v9 - k12[i]*H2_1*v8 + v0*(-k11[i]*H_2 - k12[i]*de - k13[i]*H_1 + k21[i]*H_1*H_1) + v1*(k10[i]*H_1 + k19[i]*H_m0) + v4*(k08[i]*H_1 + k19[i]*H2_2) + v7*(k08[i]*H_m0 + k10[i]*H2_2 - k13[i]*H2_1);
+    Ith(Jv, 1 ) = -k11*H2_1*v9 - k12*H2_1*v8 + v0*(-k11*H_2 - k12*de - k13*H_1 + k21*H_1*H_1) + v1*(k10*H_1 + k19*H_m0) + v4*(k08*H_1 + k19*H2_2) + v7*(k08*H_m0 + k10*H2_2 - k13*H2_1);
 
     scale = data->scale[0];
     Ith(Jv, 1) /= scale;
@@ -4036,7 +3831,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: H2_2
     //
-    Ith(Jv, 2 ) = k11[i]*H_2*v0 - k18[i]*H2_2*v8 + v1*(-k10[i]*H_1 - k18[i]*de - k19[i]*H_m0) + v4*(k17[i]*H_2 - k19[i]*H2_2) + v7*(k09[i]*H_2 - k10[i]*H2_2) + v9*(k09[i]*H_1 + k11[i]*H2_1 + k17[i]*H_m0);
+    Ith(Jv, 2 ) = k11*H_2*v0 - k18*H2_2*v8 + v1*(-k10*H_1 - k18*de - k19*H_m0) + v4*(k17*H_2 - k19*H2_2) + v7*(k09*H_2 - k10*H2_2) + v9*(k09*H_1 + k11*H2_1 + k17*H_m0);
 
     scale = data->scale[1];
     Ith(Jv, 2) /= scale;
@@ -4045,7 +3840,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: H_1
     //
-    Ith(Jv, 3 ) = v0*(k11[i]*H_2 + 2*k12[i]*de + 2*k13[i]*H_1 - 2*k21[i]*H_1*H_1) + v1*(-k10[i]*H_1 + 2*k18[i]*de + k19[i]*H_m0) + v4*(-k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + 2*k16[i]*H_2 + k19[i]*H2_2) + v7*(-k01[i]*de - k07[i]*de - k08[i]*H_m0 - k09[i]*H_2 - k10[i]*H2_2 + 2*k13[i]*H2_1 + k15[i]*H_m0) + v8*(-k01[i]*H_1 + k02[i]*H_2 - k07[i]*H_1 + 2*k12[i]*H2_1 + k14[i]*H_m0 + 2*k18[i]*H2_2) + v9*(k02[i]*de - k09[i]*H_1 + k11[i]*H2_1 + 2*k16[i]*H_m0);
+    Ith(Jv, 3 ) = v0*(k11*H_2 + 2*k12*de + 2*k13*H_1 - 2*k21*H_1*H_1) + v1*(-k10*H_1 + 2*k18*de + k19*H_m0) + v4*(-k08*H_1 + k14*de + k15*H_1 + 2*k16*H_2 + k19*H2_2) + v7*(-k01*de - k07*de - k08*H_m0 - k09*H_2 - k10*H2_2 + 2*k13*H2_1 + k15*H_m0) + v8*(-k01*H_1 + k02*H_2 - k07*H_1 + 2*k12*H2_1 + k14*H_m0 + 2*k18*H2_2) + v9*(k02*de - k09*H_1 + k11*H2_1 + 2*k16*H_m0);
 
     scale = data->scale[2];
     Ith(Jv, 3) /= scale;
@@ -4054,7 +3849,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: H_2
     //
-    Ith(Jv, 4 ) = k10[i]*H_1*v1 - k11[i]*H_2*v0 + v4*(-k16[i]*H_2 - k17[i]*H_2) + v7*(k01[i]*de - k09[i]*H_2 + k10[i]*H2_2) + v8*(k01[i]*H_1 - k02[i]*H_2) + v9*(-k02[i]*de - k09[i]*H_1 - k11[i]*H2_1 - k16[i]*H_m0 - k17[i]*H_m0);
+    Ith(Jv, 4 ) = k10*H_1*v1 - k11*H_2*v0 + v4*(-k16*H_2 - k17*H_2) + v7*(k01*de - k09*H_2 + k10*H2_2) + v8*(k01*H_1 - k02*H_2) + v9*(-k02*de - k09*H_1 - k11*H2_1 - k16*H_m0 - k17*H_m0);
 
     scale = data->scale[3];
     Ith(Jv, 4) /= scale;
@@ -4063,7 +3858,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: H_m0
     //
-    Ith(Jv, 5 ) = -k19[i]*H_m0*v1 + v4*(-k08[i]*H_1 - k14[i]*de - k15[i]*H_1 - k16[i]*H_2 - k17[i]*H_2 - k19[i]*H2_2) + v7*(k07[i]*de - k08[i]*H_m0 - k15[i]*H_m0) + v8*(k07[i]*H_1 - k14[i]*H_m0) + v9*(-k16[i]*H_m0 - k17[i]*H_m0);
+    Ith(Jv, 5 ) = -k19*H_m0*v1 + v4*(-k08*H_1 - k14*de - k15*H_1 - k16*H_2 - k17*H_2 - k19*H2_2) + v7*(k07*de - k08*H_m0 - k15*H_m0) + v8*(k07*H_1 - k14*H_m0) + v9*(-k16*H_m0 - k17*H_m0);
 
     scale = data->scale[4];
     Ith(Jv, 5) /= scale;
@@ -4072,7 +3867,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: He_1
     //
-    Ith(Jv, 6 ) = -k03[i]*de*v3 + k04[i]*de*v6 + v8*(-k03[i]*He_1 + k04[i]*He_2);
+    Ith(Jv, 6 ) = -k03*de*v3 + k04*de*v6 + v8*(-k03*He_1 + k04*He_2);
 
     scale = data->scale[5];
     Ith(Jv, 6) /= scale;
@@ -4081,7 +3876,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: He_2
     //
-    Ith(Jv, 7 ) = k03[i]*de*v3 + k06[i]*de*v5 + v6*(-k04[i]*de - k05[i]*de) + v8*(k03[i]*He_1 - k04[i]*He_2 - k05[i]*He_2 + k06[i]*He_3);
+    Ith(Jv, 7 ) = k03*de*v3 + k06*de*v5 + v6*(-k04*de - k05*de) + v8*(k03*He_1 - k04*He_2 - k05*He_2 + k06*He_3);
 
     scale = data->scale[6];
     Ith(Jv, 7) /= scale;
@@ -4090,7 +3885,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: He_3
     //
-    Ith(Jv, 8 ) = k05[i]*de*v6 - k06[i]*de*v5 + v8*(k05[i]*He_2 - k06[i]*He_3);
+    Ith(Jv, 8 ) = k05*de*v6 - k06*de*v5 + v8*(k05*He_2 - k06*He_3);
 
     scale = data->scale[7];
     Ith(Jv, 8) /= scale;
@@ -4099,7 +3894,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: de
     //
-    Ith(Jv, 9 ) = k03[i]*de*v3 - k06[i]*de*v5 - k18[i]*de*v1 + v4*(k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + k17[i]*H_2) + v6*(-k04[i]*de + k05[i]*de) + v7*(k01[i]*de - k07[i]*de + k08[i]*H_m0 + k15[i]*H_m0) + v8*(k01[i]*H_1 - k02[i]*H_2 + k03[i]*He_1 - k04[i]*He_2 + k05[i]*He_2 - k06[i]*He_3 - k07[i]*H_1 + k14[i]*H_m0 - k18[i]*H2_2) + v9*(-k02[i]*de + k17[i]*H_m0);
+    Ith(Jv, 9 ) = k03*de*v3 - k06*de*v5 - k18*de*v1 + v4*(k08*H_1 + k14*de + k15*H_1 + k17*H_2) + v6*(-k04*de + k05*de) + v7*(k01*de - k07*de + k08*H_m0 + k15*H_m0) + v8*(k01*H_1 - k02*H_2 + k03*He_1 - k04*He_2 + k05*He_2 - k06*He_3 - k07*H_1 + k14*H_m0 - k18*H2_2) + v9*(-k02*de + k17*H_m0);
 
     scale = data->scale[8];
     Ith(Jv, 9) /= scale;
@@ -4108,7 +3903,7 @@ int calculate_JacTimesVec_final_
     //
     // Species: ge
     //
-    Ith(Jv, 10 ) = v0*(-H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2))/mdensity + v3*(-H2_1*gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ciHeI_ciHeI[i]*de)/mdensity + v5*(-4.0*brem_brem[i]*de - de*reHeIII_reHeIII[i])/mdensity + v6*(-brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - de*reHeII1_reHeII1[i] - de*reHeII2_reHeII2[i])/mdensity + v7*(-H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) + 0.5*(-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0))/mdensity + v8*(-H2_1*gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - H_1*ceHI_ceHI[i] - H_1*ciHI_ciHI[i] - H_2*reHII_reHII[i] - He_1*ciHeI_ciHeI[i] - He_2*ceHeII_ceHeII[i] - 2*He_2*ceHeI_ceHeI[i]*de - He_2*ciHeII_ciHeII[i] - 2*He_2*ciHeIS_ciHeIS[i]*de - He_2*reHeII1_reHeII1[i] - He_2*reHeII2_reHeII2[i] - He_3*reHeIII_reHeIII[i] - brem_brem[i]*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73))/mdensity + v9*(-H2_1*gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - brem_brem[i]*de - de*reHII_reHII[i])/mdensity;
+    Ith(Jv, 10 ) = v0*(-H2_1*gloverabel08_gaH2*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - 0.5*H_1*h2formation_h2mcool*1.0/(h2formation_ncrn/(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1) + 1.0) - gloverabel08_h2lte/(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0) + 0.5*h2formation_ncrd2*h2formation_ncrn*pow(h2formation_ncrn/(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool + pow(H_1, 3)*h2formation_h2mheat)/pow(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1, 2))/mdensity + v3*(-H2_1*gloverabel08_gaHe*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - ciHeI_ciHeI*de)/mdensity + v5*(-4.0*brem_brem*de - de*reHeIII_reHeIII)/mdensity + v6*(-brem_brem*de - ceHeII_ceHeII*de - ceHeI_ceHeI*pow(de, 2) - ciHeII_ciHeII*de - ciHeIS_ciHeIS*pow(de, 2) - de*reHeII1_reHeII1 - de*reHeII2_reHeII2)/mdensity + v7*(-H2_1*gloverabel08_gaHI*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - ceHI_ceHI*de - ciHI_ciHI*de + 0.5*h2formation_ncrd1*h2formation_ncrn*pow(h2formation_ncrn/(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool + pow(H_1, 3)*h2formation_h2mheat)/pow(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1, 2) + 0.5*(-H2_1*h2formation_h2mcool + 3*pow(H_1, 2)*h2formation_h2mheat)*1.0/(h2formation_ncrn/(H2_1*h2formation_ncrd2 + H_1*h2formation_ncrd1) + 1.0))/mdensity + v8*(-H2_1*gloverabel08_gael*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - H_1*ceHI_ceHI - H_1*ciHI_ciHI - H_2*reHII_reHII - He_1*ciHeI_ciHeI - He_2*ceHeII_ceHeII - 2*He_2*ceHeI_ceHeI*de - He_2*ciHeII_ciHeII - 2*He_2*ciHeIS_ciHeIS*de - He_2*reHeII1_reHeII1 - He_2*reHeII2_reHeII2 - He_3*reHeIII_reHeIII - brem_brem*(H_2 + He_2 + 4.0*He_3) - compton_comp_*pow(z + 1.0, 4)*(T - 2.73*z - 2.73))/mdensity + v9*(-H2_1*gloverabel08_gaHp*pow(gloverabel08_h2lte, 2)/(pow(gloverabel08_h2lte/(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2 + H_1*gloverabel08_gaHI + H_2*gloverabel08_gaHp + He_1*gloverabel08_gaHe + de*gloverabel08_gael, 2)) - brem_brem*de - de*reHII_reHII)/mdensity;
 
     scale = data->scale[9];
     Ith(Jv, 10) /= scale;

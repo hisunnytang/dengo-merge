@@ -173,7 +173,7 @@ class ChemicalNetwork(object):
             eq = eq*cie_fudge
 
         eq = eq.replace(
-                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: x.is_Pow and x.exp >  0 and x.exp == sympy.Integer ,
                 lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
 
 
@@ -181,14 +181,13 @@ class ChemicalNetwork(object):
 
     def cie_optical_depth_correction(self):
         ciefudge = 1.0
-
         mdensity = sympy.Symbol('mdensity')
-        tau = ( mdensity/ 1.96e16 )**2.0
-        tau = sympy.Max( mdensity, 1e-5 )
+        tau = ( mdensity/ 3.3e-8 )**2.8
+        tau = sympy.Max( tau, 1e-5 )
         ciefudge = sympy.Min((1.0 - sympy.exp(-tau))/ tau, 1.0)
         return ciefudge
 
-    def print_jacobian_component(self, s1, s2, assign_to = None):
+    def print_jacobian_component(self, s1, s2, assign_to = None, print_zeros = True):
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation
                      for ca in sorted(self.cooling_actions))
@@ -203,7 +202,22 @@ class ChemicalNetwork(object):
                 codes.append(ccode(teq, assign_to = temp_name))
             codes.append(ccode(st[1], assign_to = assign_to))
             return "\n".join(codes)
-        return ccode(sympy.diff(st, s2.symbol), assign_to = assign_to)
+
+        eq = sympy.diff(st, s2.symbol)
+
+
+        if (self.cie_cooling == 1) and (s1.name == 'ge'):
+            cie_fudge = self.cie_optical_depth_correction()
+            eq = eq*cie_fudge
+
+        eq = eq.replace(
+                lambda x: x.is_Pow and x.exp > 0 and x.exp == sympy.Integer,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
+        if eq == sympy.sympify('0') and not print_zeros:
+            return
+
+        return ccode(eq , assign_to = assign_to)
 
 
     def print_JacTimesVec_component(self, s1, assign_to = None):
@@ -214,6 +228,12 @@ class ChemicalNetwork(object):
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation
                      for ca in sorted(self.cooling_actions))
+            if (self.cie_cooling == 1) and (s1.name == 'ge'):
+                cie_fudge = self.cie_optical_depth_correction()
+                st = st*cie_fudge
+
+
+
         else:
             st = self.species_total(s1)
         if assign_to is None:
@@ -231,7 +251,7 @@ class ChemicalNetwork(object):
         T_energy = sympy.Symbol("T{0}[i]".format(self.energy_term.name) )
 
         i = 0
-        for s2 in self.required_species:
+        for s2 in sorted(self.required_species):
 
             vec    = sympy.sympify("v{0}".format(i))
             newterm = sympy.diff(st,s2.symbol) * vec

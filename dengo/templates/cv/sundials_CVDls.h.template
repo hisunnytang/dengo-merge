@@ -44,8 +44,10 @@ The generalized rate data type holders.
 #define IJth(A,i,j) SM_ELEMENT_D(A,i-1,j-1) /* IJth numbers rows,cols 1..NEQ */
 
 
+#ifndef MAX_NCELLS
+#define MAX_NCELLS 8
+#endif
 
-#define MAX_NCELLS 1
 #define NSPECIES {{network.required_species | length}}
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
@@ -131,8 +133,13 @@ typedef struct {{solver_name}}_data {
     double _gamma{{sp}}_m1[MAX_NCELLS];
     {% endfor %}
 
-    double scale[{{network.required_species | length}}];
-    double inv_scale[{{network.required_species | length}}];
+    double scale[{{network.required_species | length}} * MAX_NCELLS ];
+    double inv_scale[{{network.required_species | length}} * MAX_NCELLS];
+    
+
+    int nstrip;
+    double mdensity[MAX_NCELLS];
+    double inv_mdensity[MAX_NCELLS];
 } {{ solver_name }}_data;
 
 
