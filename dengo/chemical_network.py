@@ -61,6 +61,7 @@ class ChemicalNetwork(object):
 
         self.threebody = 4
         self.cie_cooling = 1
+        self.include_binding_energy = 1
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -156,6 +157,20 @@ class ChemicalNetwork(object):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
 
+    def hydrogen_binding_energy_term( self ):
+        """This term accouts for the potential binding energy
+        in atomic and molecular Hydrogen
+        """
+        binding_energy =  7.177e-12 # in 4.48 eV ergs
+
+        H2_1 = sympy.Symbol("H2_1")
+        H2_2 = sympy.Symbol("H2_2")
+        H_1  = sympy.Symbol("H_1")
+        H_2  = sympy.Symbol("H_2")
+
+        binding_energy_term = binding_energy * (  0.5*H2_1 + 0.5*H2_2 + H_1 + H_2 )
+        return binding_energy_term
+
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
@@ -188,9 +203,21 @@ class ChemicalNetwork(object):
         return ciefudge
 
     def print_jacobian_component(self, s1, s2, assign_to = None, print_zeros = True):
+
+        if s2 == self.energy_term:
+            st = self.print_ccode(s1, assign_to = assign_to)
+            for k in self.reactions.keys():
+                k = str(k)
+                st = st.replace(k + "[i]", "r" + k + "[i]")
+            return st
+
+
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation
                      for ca in sorted(self.cooling_actions))
+            if self.include_binding_energy == 1:
+                st += self.hydrogen_binding_energy_term()
+
         else:
             st = self.species_total(s1)
         if assign_to is None:
@@ -206,7 +233,7 @@ class ChemicalNetwork(object):
         eq = sympy.diff(st, s2.symbol)
 
 
-        if (self.cie_cooling == 1) and (s1.name == 'ge'):
+        if (self.cie_cooling == 1) and s1 == self.energy_term:
             cie_fudge = self.cie_optical_depth_correction()
             eq = eq*cie_fudge
 
@@ -526,6 +553,16 @@ class ChemicalNetwork(object):
             solver_out = template_inst.render(**template_vars)
             with open(oname ,"w") as f:
                 f.write(solver_out)
+
+
+        # now we create a Makefile
+        iname = "cv/Makefile"
+        oname = os.path.join(output_dir, "Makefile")
+        template_inst = env.get_template(iname + ".template")
+        solver_out = template_inst.render(**template_vars)
+        with open(oname ,"w") as f:
+            f.write(solver_out)
+
 
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "solvers"))

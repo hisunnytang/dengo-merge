@@ -211,6 +211,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int N = {{network.required_species | length}};
     double *mdensity = (double *) malloc (dims * N * sizeof(double));
 
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {% endfor %}
     
     {%- if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
@@ -219,10 +222,15 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
         {%- for species in network.required_species | sort %}
         {%if species.name != "ge" %}
         mdensity[i] += input[j] ; 
-        input[j] /= {{species.weight}} ;
+        {{species.name}} = input[j] /= {{species.weight}};
+        {%endif%}
+        {%if (species.name == "ge") and (network.include_binding_energy == 1)%}
+        input[j] -= 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2);
+        input[j] += 7.177e-12 * ( H_1  + H_2 );
         {%endif%}
         j++;
         {%endfor%}
+        
     }
     {%- endif %}
     //ensure_electron_consistency(input, dims, N);
@@ -384,7 +392,12 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
       j = i * N;
       {%- for species in network.required_species | sort %}
       {%if species.name != "ge" %}
+      {{species.name}} = input[j];
       input[j] *= {{species.weight}};
+      {%endif%}
+      {%if (species.name == "ge") and (network.include_binding_energy == 1)%}
+      input[j] += 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2);
+      input[j] -= 7.177e-12 * ( H_1  + H_2 );
       {%endif%}
       j++;
       {%endfor%}
@@ -498,6 +511,11 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
         {% endfor %}
         
+        {% if network.include_binding_energy == 1%}       
+        ge += 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2 ) ;
+        ge -= 7.177e-12 * ( H_1 + H_2 );
+        {% endif %}
+
         density = {{network.print_mass_density()}};
         
     
@@ -633,6 +651,10 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         Tdef   = data->Tdef[i];
         data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
             Tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[i] /= data->dT[i];
+	    data->drs_{{name}}[i] *= data->invTs[i];
+
     }
     {% else %}
     for ( i = 0; i < nstrip; i++ ){
@@ -655,6 +677,9 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         Tdef   = data->Tdef[i];
         data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
             Tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
+	    data->dcs_{{name}}_{{name2}}[i] *= data->invTs[i];
     }
     {%- else %}
     for ( i = 0; i < nstrip; i++){
@@ -810,7 +835,30 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     int nchem = {{network.required_species | length }};
     int nstrip = data->nstrip;
     int i, j;
+
+    /* change N_Vector back to an array */
+    double y_arr[ {{network.required_species | length }} * nstrip ];
+    double *scale     = data->scale;
+    double *inv_scale = data->inv_scale;   
     
+    /*
+    for ( i = 0; i < nstrip; i++ ){
+        j = i * nchem;
+        {%- for species in network.required_species | sort %}
+        y_arr[j] = NV_Ith_S( y, j )*scale[j];
+        j++;
+        {%- endfor %}
+    }
+
+    int flag;
+    flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    {{solver_name}}_interpolate_rates(data, nstrip);
+    */
+
     // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
     // {{solver_name}}_interpolate_rates(data, nstrip);
 
@@ -821,11 +869,13 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}};
+    double *r{{name}}= data->drs_{{name}};
     {%- endfor %}
     
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
 
@@ -843,10 +893,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     j = 0;
     mdensity = 0.0;
     z = data->current_z;
-
-    double *scale     = data->scale;
-    double *inv_scale = data->inv_scale;
-    
+   
 
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
@@ -868,18 +915,37 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% set i_s1 = loop%}
         // {{s2.name}} by {{s1.name}}
         {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
-    {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
+        {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
         inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
+        {% if s1.name != "ge"%}
         scale1     = scale    [ j + {{i_s1.index0}}];
+        {% endif %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
+
         {% else %}
         // because the Jacobian is initialized to zeros by default
-        // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D(J, {0}, {1} )".format( i_s2.index0, i_s1.index0 ) ) }}
+        // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 )  ) }}
+        {% endif %}
+        
+
+        {% if s2.name == 'ge' and s1.name == 'ge'%}
+        // ad-hoc extra term of f_ge by ge
+        // considering ONLY the h2formation/ and continuum cooling
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) =  -H2_1*gloverabel08_h2lte[i]*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] +
+        H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] +
+        de*gloverabel08_gael[i]) + 1.0) - compton_comp_[i]*de*pow(z + 1.0, 4) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] +
+        H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         {% endif %}
 
         {% if s2.name == 'ge' %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
         {% endif %}
+ 	    {% if s1.name == 'ge' %}
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= T{{ network.energy_term.name }}[i];
+        {% endif %}
+       
+        
+
 
         {%- endfor %}
         {% endfor %}
@@ -967,6 +1033,11 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         {{network.print_ccode(species, assign_to="NV_Ith_S( ydot, j )" ) }}
         NV_Ith_S( ydot, j ) *= inv_scale[j];
         {% if species.name == "ge" %}
+        
+        {% if network.include_binding_energy == 1%}
+        NV_Ith_S( ydot, j ) -= 7.177e-12 * ( 0.5 * NV_Ith_S( ydot, 0) +  0.5 * NV_Ith_S( ydot, 1)  );
+        NV_Ith_S( ydot, j ) += 7.177e-12 * ( 0.5 * NV_Ith_S( ydot, 2) +  0.5 * NV_Ith_S( ydot, 3)  );
+        {% endif %}
         NV_Ith_S( ydot, j ) *= inv_mdensity;
         {% endif %}
         j++;

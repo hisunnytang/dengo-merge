@@ -1,40 +1,50 @@
-# paths
-CVODE_DIR = /home/kwoksun2/cvode-3.1.0/instdir
+# Makefile for running dengo 
+# again it is generated from template
 
 
-# declare variables
-CXX = g++ 
-LIBS = -lhdf5 -lhdf5_hl -lm -lstdc++
-INCLUDE = -I. -I$(CVODE_DIR)/include
-CXXFLAGS =  -fPIC -g
-OBJ = {{solver_name}}_solver.o {{solver_name}}_solver_main.o initialize_cvode_solver.o
 
-# we should make a big header files 
-# that has everything declared
-DEPS = dengo_types.h
+# print cvode statistics, i.e. number of evaluations
+#OPTIONS+= -DPRINT_CVODE_STATS 
 
-%.o: %.C
-	$(CXX) $(CXXFLAGS) -c -o $@ $< $(INCLUDE) 
 
-program: $(OBJ) 
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(CVODE_DIR)/lib/libsundials_cvode.a $(CVODE_DIR)/lib/libsundials_nvecserial.a $(LIBS) $(INCLUDE)
+# dengo currently supports two different solver modes from sundials
+# CVSPILS and CVDls
+# choose one from below, default: CVDLS
+# MAX_NCELLS: number of strip solved per solver call 
+
+# Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
+OPTIONS+= -DCVSPILS -DMAX_NCELLS=1024
+
+# Use the Dense Linear Solver interface (CVDLS)
+#OPTIONS+= -DMAX_NCELLS=1
+
+
+CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
+
+
+CVODE_LIBRARY_FILES  = $(CVODE_PATH)/lib/libsundials_nvecserial.a
+CVODE_LIBRARY_FILES += $(CVODE_PATH)/lib/libsundials_cvode.a
+
+CXX      = g++
+LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
+INCLUDE  = -I. -I$(CVODE_PATH)/include
+CFLAGS   =  -O3 -g
+
+
+OBJ = {{solver_name}}_solver.C {{solver_name}}_solver_main.C initialize_cvode_solver.C
+
+
+
+run_dengo: $(OBJ) 
+	$(CXX) $(CFLAGS) $(OPTIONS) -o $@ $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
 
 libdengo.so: $(OBJ) 
-	$(CXX) -shared -o $@ $^ $(CVODE_DIR)/lib/libsundials_cvode.a $(CVODE_DIR)/lib/libsundials_nvecserial.a $(LIBS) $(INCLUDE)
-
-dengo_struct: 
-	$(CXX) $(CXXFLAGS) -o dengo_struct dengo_data_struct_main.C {{solver_name}}_solver.o initialize_cvode_solver.o $(CVODE_DIR)/lib/libsundials_cvode.a $(CVODE_DIR)/lib/libsundials_nvecserial.a  $(LIBS) $(INCLUDE)
-
-dengo_mem:
-	$(CXX) $(CXXFLAGS) -c {{solver_name}}_solver.C $(INCLUDE)
-	$(CXX) $(CXXFLAGS) -c initialize_cvode_solver.C $(INCLUDE)
-	$(CXX) $(CXXFLAGS) -o dengo_mem dengo_data_struct_main.C cvdls_9species_solver_mem.o initialize_cvode_solver.o $(CVODE_DIR)/lib/libsundials_cvode.a $(CVODE_DIR)/lib/libsundials_nvecserial.a  $(LIBS) $(INCLUDE)
-
+	$(CXX) -shared -o $@ $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
 
 clean:
 	rm -f *.o
 	rm -f *.so
-	rm dengo_struct
+	rm -f run_dengo
 
 
 
