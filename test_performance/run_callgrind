@@ -1,0 +1,1 @@
+valgrind --tool=callgrind --simulate-cache=yes --dump-instr=yes --trace-jump=yes --simulate-wb=yes --cacheuse=yes ./a.out 

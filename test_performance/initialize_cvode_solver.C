@@ -76,47 +76,68 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, final__d
     for ( i = 0; i < NEQ; i++){
        output[i] = NV_Ith_S(y, i);
     }
-    
-    long int nniters;
-    flag = CVodeGetNumNonlinSolvIters( cvode_mem, &nniters);
-    fprintf(stderr, "nniters: %ld \n", nniters);
 
-    long int nliters;
-    flag = CVSpilsGetNumLinIters( cvode_mem, &nliters );
-    fprintf(stderr, "nliters: %ld \n", nliters);
-    
-    long int nsteps;
-    flag = CVodeGetNumSteps(cvode_mem, &nsteps);
-    fprintf(stderr, " nsteps: %ld \n", nsteps );
-    
-    long int nfevals;
-    flag = CVodeGetNumRhsEvals(cvode_mem, &nfevals);
-    fprintf(stderr, "nfevals: %ld \n", nfevals);
-    
-    realtype tolsfac;
-    flag = CVodeGetTolScaleFactor(cvode_mem, &tolsfac);
-    fprintf(stderr, "tolsfac: %0.5g \n", tolsfac);
 
-    long int njevals;
-    flag = CVDlsGetNumJacEvals(cvode_mem, &njevals);
-    fprintf(stderr, "njevals: %ld \n", njevals);
+    #ifdef PRINT_CVODE_STATS
+    long int nsteps, nfevals, nlinsetups, netfails;
+    int qlast, qcur;
+    realtype hinused, hlast, hcur, tcur;
+    flag = CVodeGetIntegratorStats(cvode_mem, &nsteps, &nfevals, &nlinsetups, &netfails, &qlast, &qcur, &hinused, &hlast, &hcur, &tcur);
+    
+    fprintf(stderr, "-----Printing Integrator Stats------- \n");
+    fprintf(stderr, "nsteps    : %ld \n", nsteps);
+    fprintf(stderr, "nfevals   : %ld \n", nfevals);
+    fprintf(stderr, "nlinsetups: %ld \n", nlinsetups);
+    fprintf(stderr, "netfails  : %ld \n", netfails);
+    
+    N_Vector ele, eweight;
+    ele = NULL;
+    eweight = NULL;
+    ele     = N_VNew_Serial( NEQ );
+    eweight = N_VNew_Serial( NEQ );
 
-    if (flag == CV_CONV_FAILURE){
-        /* Either convergence test failures occurred too many times
-         * during one internal time step, or with |h| = hmin
-         */
-        return 1;
-    } 
-    if (flag == CV_TOO_CLOSE){
-        /* The initial time t0 and the final time 
-         * tout are too close to each other
-         * and the user did not specify an 
-         * initial step size
-         */
-        return 1;
+    flag = CVodeGetEstLocalErrors(cvode_mem, ele);
+    flag = CVodeGetErrWeights(cvode_mem, eweight);
+    fprintf(stderr, "-----Printing Local Errors   ------- \n");    
+    for ( i = 0; i < NEQ; i++){
+        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) ); 
+        fprintf(stderr, "Error Weight      = %0.5g \n", NV_Ith_S(eweight, i) );
+        fprintf(stderr, "contributions to error test = %0.5g \n",  NV_Ith_S( ele, i) * NV_Ith_S(eweight, i) );
+        fprintf(stderr, "-------------------------------\n");
     }
+    #endif
+    
     
     if (flag < 0){
+
+    long int nsteps, nfevals, nlinsetups, netfails;
+    int qlast, qcur;
+    realtype hinused, hlast, hcur, tcur;
+    flag = CVodeGetIntegratorStats(cvode_mem, &nsteps, &nfevals, &nlinsetups, &netfails, &qlast, &qcur, &hinused, &hlast, &hcur, &tcur);
+    
+    fprintf(stderr, "-----Printing Integrator Stats------- \n");
+    fprintf(stderr, "nsteps    : %ld \n", nsteps);
+    fprintf(stderr, "nfevals   : %ld \n", nfevals);
+    fprintf(stderr, "nlinsetups: %ld \n", nlinsetups);
+    fprintf(stderr, "netfails  : %ld \n", netfails);
+    
+    N_Vector ele, eweight;
+    ele = NULL;
+    eweight = NULL;
+    ele     = N_VNew_Serial( NEQ );
+    eweight = N_VNew_Serial( NEQ );
+
+    flag = CVodeGetEstLocalErrors(cvode_mem, ele);
+    flag = CVodeGetErrWeights(cvode_mem, eweight);
+    fprintf(stderr, "-----Printing Local Errors   ------- \n");    
+    for ( i = 0; i < NEQ; i++){
+        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) ); 
+        fprintf(stderr, "Error Weight      = %0.5g \n", NV_Ith_S(eweight, i) );
+        fprintf(stderr, "contributions to error test = %0.5g \n",  NV_Ith_S( ele, i) * NV_Ith_S(eweight, i) );
+        fprintf(stderr, "-------------------------------\n");
+    }
+
+
         return 1;
     }
 
@@ -174,6 +195,8 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(NULL);
  
     #endif
+    
+
 
     return cvode_mem;
 

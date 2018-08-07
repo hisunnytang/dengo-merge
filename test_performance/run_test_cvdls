@@ -1,7 +1,7 @@
 #!/bin/bash
 
-rm -f a.out
-gcc final__solver.C final__solver_main.C initialize_cvode_solver.C -I. -I/home/kwoksun2/cvode-3.1.0/instdir/include/ -lm -lstdc++ -lhdf5 -lhdf5_hl /home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_cvode.a /home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_nvecserial.a -O3
+make clean
+make OPTIONS="-DMAX_NCELLS=1" 
 
 rm -rf cvdls_solution
 mkdir cvdls_solution
@@ -9,6 +9,6 @@ mkdir cvdls_solution
 for i in {1..256}
 do
     echo "$i th strip" 
-    time ./a.out input_data/"$i.h5" cvdls_solution/"$i""_solution.h5"
+    time ./run_dengo input_data/"$i.h5" cvdls_solution/"$i""_solution.h5"
     python -W ignore test_accuracy.py -t cvdls_solution/"$i""_solution.h5" -s accurate_solution/"$i"_accurate_solution.h5 
 done
