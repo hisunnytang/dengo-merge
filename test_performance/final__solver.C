@@ -2216,6 +2216,8 @@ int calculate_jacobian_final_( realtype t,
         SM_ELEMENT_D( J, j + 0, j + 9 ) = rk08[i]*H_1*H_m0 + rk10[i]*H2_2*H_1 - rk11[i]*H2_1*H_2 - rk12[i]*H2_1*de - rk13[i]*H2_1*H_1 + rk19[i]*H2_2*H_m0 + rk21[i]*H2_1*H_1*H_1 + rk22[i]*H_1*H_1*H_1;
         inv_scale2 = inv_scale[ j + 0];
         
+        scale1 = 1.0;
+        
         SM_ELEMENT_D( J, j + 0, j + 9) *= inv_scale2*scale1;
 
         
@@ -2375,6 +2377,8 @@ int calculate_jacobian_final_( realtype t,
         
         SM_ELEMENT_D( J, j + 1, j + 9 ) = rk09[i]*H_1*H_2 - rk10[i]*H2_2*H_1 + rk11[i]*H2_1*H_2 + rk17[i]*H_2*H_m0 - rk18[i]*H2_2*de - rk19[i]*H2_2*H_m0;
         inv_scale2 = inv_scale[ j + 1];
+        
+        scale1 = 1.0;
         
         SM_ELEMENT_D( J, j + 1, j + 9) *= inv_scale2*scale1;
 
@@ -2536,6 +2540,8 @@ int calculate_jacobian_final_( realtype t,
         SM_ELEMENT_D( J, j + 2, j + 9 ) = -rk01[i]*H_1*de + rk02[i]*H_2*de - rk07[i]*H_1*de - rk08[i]*H_1*H_m0 - rk09[i]*H_1*H_2 - rk10[i]*H2_2*H_1 + rk11[i]*H2_1*H_2 + 2*rk12[i]*H2_1*de + 2*rk13[i]*H2_1*H_1 + rk14[i]*H_m0*de + rk15[i]*H_1*H_m0 + 2*rk16[i]*H_2*H_m0 + 2*rk18[i]*H2_2*de + rk19[i]*H2_2*H_m0 - 2*rk21[i]*H2_1*H_1*H_1 - 2*rk22[i]*H_1*H_1*H_1;
         inv_scale2 = inv_scale[ j + 2];
         
+        scale1 = 1.0;
+        
         SM_ELEMENT_D( J, j + 2, j + 9) *= inv_scale2*scale1;
 
         
@@ -2696,6 +2702,8 @@ int calculate_jacobian_final_( realtype t,
         SM_ELEMENT_D( J, j + 3, j + 9 ) = rk01[i]*H_1*de - rk02[i]*H_2*de - rk09[i]*H_1*H_2 + rk10[i]*H2_2*H_1 - rk11[i]*H2_1*H_2 - rk16[i]*H_2*H_m0 - rk17[i]*H_2*H_m0;
         inv_scale2 = inv_scale[ j + 3];
         
+        scale1 = 1.0;
+        
         SM_ELEMENT_D( J, j + 3, j + 9) *= inv_scale2*scale1;
 
         
@@ -2851,6 +2859,8 @@ int calculate_jacobian_final_( realtype t,
         SM_ELEMENT_D( J, j + 4, j + 9 ) = rk07[i]*H_1*de - rk08[i]*H_1*H_m0 - rk14[i]*H_m0*de - rk15[i]*H_1*H_m0 - rk16[i]*H_2*H_m0 - rk17[i]*H_2*H_m0 - rk19[i]*H2_2*H_m0;
         inv_scale2 = inv_scale[ j + 4];
         
+        scale1 = 1.0;
+        
         SM_ELEMENT_D( J, j + 4, j + 9) *= inv_scale2*scale1;
 
         
@@ -2995,6 +3005,8 @@ int calculate_jacobian_final_( realtype t,
         
         SM_ELEMENT_D( J, j + 5, j + 9 ) = -rk03[i]*He_1*de + rk04[i]*He_2*de;
         inv_scale2 = inv_scale[ j + 5];
+        
+        scale1 = 1.0;
         
         SM_ELEMENT_D( J, j + 5, j + 9) *= inv_scale2*scale1;
 
@@ -3146,6 +3158,8 @@ int calculate_jacobian_final_( realtype t,
         SM_ELEMENT_D( J, j + 6, j + 9 ) = rk03[i]*He_1*de - rk04[i]*He_2*de - rk05[i]*He_2*de + rk06[i]*He_3*de;
         inv_scale2 = inv_scale[ j + 6];
         
+        scale1 = 1.0;
+        
         SM_ELEMENT_D( J, j + 6, j + 9) *= inv_scale2*scale1;
 
         
@@ -3290,6 +3304,8 @@ int calculate_jacobian_final_( realtype t,
         
         SM_ELEMENT_D( J, j + 7, j + 9 ) = rk05[i]*He_2*de - rk06[i]*He_3*de;
         inv_scale2 = inv_scale[ j + 7];
+        
+        scale1 = 1.0;
         
         SM_ELEMENT_D( J, j + 7, j + 9) *= inv_scale2*scale1;
 
@@ -3460,6 +3476,8 @@ int calculate_jacobian_final_( realtype t,
         
         SM_ELEMENT_D( J, j + 8, j + 9 ) = rk01[i]*H_1*de - rk02[i]*H_2*de + rk03[i]*He_1*de - rk04[i]*He_2*de + rk05[i]*He_2*de - rk06[i]*He_3*de - rk07[i]*H_1*de + rk08[i]*H_1*H_m0 + rk14[i]*H_m0*de + rk15[i]*H_1*H_m0 + rk17[i]*H_2*H_m0 - rk18[i]*H2_2*de;
         inv_scale2 = inv_scale[ j + 8];
+        
+        scale1 = 1.0;
         
         SM_ELEMENT_D( J, j + 8, j + 9) *= inv_scale2*scale1;
 
@@ -3643,6 +3661,8 @@ int calculate_jacobian_final_( realtype t,
         
         SM_ELEMENT_D( J, j + 9, j + 9 ) = (-H2_1*gloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*de - H_1*ciHI_ciHI[i]*de - H_2*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*de - He_2*ceHeII_ceHeII[i]*de - He_2*ceHeI_ceHeI[i]*pow(de, 2) - He_2*ciHeII_ciHeII[i]*de - He_2*ciHeIS_ciHeIS[i]*pow(de, 2) - He_2*de*reHeII1_reHeII1[i] - He_2*de*reHeII2_reHeII2[i] - He_3*de*reHeIII_reHeIII[i] - brem_brem[i]*de*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]))*fmin(1.00000000000000, (1.0 - exp(-fmax(1.00000000000000e-5, 8.87484891418606e+20*pow(mdensity, 2.8))))/fmax(1.00000000000000e-5, 8.87484891418606e+20*pow(mdensity, 2.8)));
         inv_scale2 = inv_scale[ j + 9];
+        
+        scale1 = 1.0;
         
         SM_ELEMENT_D( J, j + 9, j + 9) *= inv_scale2*scale1;
 

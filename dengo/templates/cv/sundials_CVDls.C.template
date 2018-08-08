@@ -919,6 +919,8 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
         {% if s1.name != "ge"%}
         scale1     = scale    [ j + {{i_s1.index0}}];
+        {% else %}
+        scale1 = 1.0;
         {% endif %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
 

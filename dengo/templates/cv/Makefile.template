@@ -39,7 +39,7 @@ run_dengo: $(OBJ)
 	$(CXX) $(CFLAGS) $(OPTIONS) -o $@ $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
 
 libdengo.so: $(OBJ) 
-	$(CXX) -shared -o $@ $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
+	$(CXX) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
 
 clean:
 	rm -f *.o
