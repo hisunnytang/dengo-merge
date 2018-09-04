@@ -168,7 +168,7 @@ class ChemicalNetwork(object):
         H_1  = sympy.Symbol("H_1")
         H_2  = sympy.Symbol("H_2")
 
-        binding_energy_term = binding_energy * (  0.5*H2_1 + 0.5*H2_2 + H_1 + H_2 )
+        binding_energy_term = binding_energy * ( 0.5* H_1 + 0.5* H_2 - H2_1 - H2_2 )
         return binding_energy_term
 
     def print_ccode(self, species, assign_to = None):
@@ -246,6 +246,51 @@ class ChemicalNetwork(object):
 
         return ccode(eq , assign_to = assign_to)
 
+    def get_sparse_matrix_component(self, sparse_type = "CSR", return_type = "component", assign_to = "data"  ):
+
+        k = 0
+        colvals     = []
+        all_comp    = []
+        rowptrs     = []
+        s1_list     = []
+        s2_list     = []
+        i1_list     = []
+        i2_list     = []
+
+        sp_list = list( sorted(self.required_species) )
+        s1_now  = sp_list[0]
+
+        for i1, s1 in enumerate(sp_list):
+            for i2, s2 in enumerate(sp_list):
+                jac_comp = self.print_jacobian_component(s1, s2, print_zeros = False, assign_to = "" )
+
+                if jac_comp:
+                    colvals.append( i2 )
+                    all_comp.append(jac_comp)
+
+                    s1_list.append(s1)
+                    s2_list.append(s2)
+
+                    i1_list.append(i1)
+                    i2_list.append(i2)
+
+                    if s1 == s1_now:
+                        rowptrs.append(k)
+                        if i1 < len(sp_list) - 1:
+                            s1_now = sp_list[i1 + 1]
+                        else:
+                            s1_now = None
+                    k += 1
+        # rowptrs.append(k)
+        if return_type == "component":
+            return zip(colvals, all_comp, s1_list, s2_list, range(k))
+        elif return_type == "indexptrs":
+            return rowptrs
+        elif return_type == "index":
+            return zip(i1_list, i2_list, range(k))
+
+
+
 
     def print_JacTimesVec_component(self, s1, assign_to = None):
         """
@@ -285,7 +330,7 @@ class ChemicalNetwork(object):
 
             if s1.name == "ge":
                 newterm /= mdensity
-            elif s2.name == "ge":
+            if s2.name == "ge":
                 newterm *= T_energy
 
             JtV_eq += newterm
@@ -556,7 +601,8 @@ class ChemicalNetwork(object):
 
 
         # now we create a Makefile
-        iname = "cv/Makefile"
+        temp_dir, _ = os.path.split(solver_template)
+        iname = os.path.join(temp_dir, "Makefile")
         oname = os.path.join(output_dir, "Makefile")
         template_inst = env.get_template(iname + ".template")
         solver_out = template_inst.render(**template_vars)

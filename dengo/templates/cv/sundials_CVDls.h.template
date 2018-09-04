@@ -25,6 +25,13 @@ The generalized rate data type holders.
 #include <sunlinsol/sunlinsol_dense.h> /* access to dense SUNLinearSolver      */
 #include <cvode/cvode_direct.h>        /* access to CVDls interface            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
+
+#ifdef CVKLU
+#include <sunmatrix/sunmatrix_sparse.h>
+#include <sunlinsol/sunlinsol_klu.h>
+#endif
+
+
 /* User-defined vector and matrix accessor macros: Ith, IJth */
 
 /* These macros are defined in order to write code which exactly matches
@@ -45,7 +52,7 @@ The generalized rate data type holders.
 
 
 #ifndef MAX_NCELLS
-#define MAX_NCELLS 8
+#define MAX_NCELLS 1
 #endif
 
 #define NSPECIES {{network.required_species | length}}
@@ -176,9 +183,17 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
 {% block function_declarations %}
 
 #ifndef CVSPILS
+#ifdef  CVKLU
+int calculate_sparse_jacobian_{{solver_name}}( realtype t,
+                                        N_Vector y, N_Vector fy,
+                                        SUNMatrix J, void *user_data,
+                                        N_Vector tmp1, N_Vector tmp2,
+                                        N_Vector tmp3);
+#else
 int calculate_jacobian_{{solver_name}}( realtype t,
                N_Vector y, N_Vector fy, SUNMatrix J, void *user_data,
                N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
+#endif
 #endif
 
 #ifdef CVSPILS

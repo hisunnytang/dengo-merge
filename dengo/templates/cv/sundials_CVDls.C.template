@@ -238,7 +238,11 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     rhs_f f = calculate_rhs_{{solver_name}};
 
     #ifndef CVSPILS
+    #ifdef  CVKLU
+    jac_f jf = calculate_sparse_jacobian_{{solver_name}};
+    #else
     jac_f jf = calculate_jacobian_{{solver_name}};
+    #endif
     #endif
     
     #ifdef CVSPILS
@@ -294,9 +298,15 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
         NV_Ith_S(abstol,i)   = 1.0;
         y[i] = 1.0;
     }
-
+    
+    #ifdef CVKLU
+    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * 64, CSR_MAT );
+    LS        = SUNKLU( y_vec, A);
+    #else
     A         = SUNDenseMatrix      ( v_size, v_size );
     LS        = SUNDenseLinearSolver( y_vec, A);
+    #endif
+    
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
     
 
@@ -917,11 +927,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
         {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
         inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
-        {% if s1.name != "ge"%}
         scale1     = scale    [ j + {{i_s1.index0}}];
-        {% else %}
-        scale1 = 1.0;
-        {% endif %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
 
         {% else %}
@@ -1297,5 +1303,141 @@ int calculate_JacTimesVec_{{solver_name}}
 }
 
 
+{% endblock %}
+
+{% block calculate_sparse_jacobian %}
+#ifdef CVKLU
+int calculate_sparse_jacobian_{{solver_name}}( realtype t,
+                                        N_Vector y, N_Vector fy,
+                                        SUNMatrix J, void *user_data,
+                                        N_Vector tmp1, N_Vector tmp2,
+                                        N_Vector tmp3)
+{
+    /* We iterate over all of the rates */
+    /* Calcuate temperature first */
+    
+
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
+    
+    int nchem = {{network.required_species | length }};
+    int nstrip = data->nstrip;
+    int i, j;
+
+    /* change N_Vector back to an array */
+    double y_arr[ {{network.required_species | length }} * nstrip ];
+    double *scale     = data->scale;
+    double *inv_scale = data->inv_scale;   
+    
+    /*
+    for ( i = 0; i < nstrip; i++ ){
+        j = i * nchem;
+        {%- for species in network.required_species | sort %}
+        y_arr[j] = NV_Ith_S( y, j )*scale[j];
+        j++;
+        {%- endfor %}
+    }
+
+    int flag;
+    flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    {{solver_name}}_interpolate_rates(data, nstrip);
+    */
+
+    // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
+    // {{solver_name}}_interpolate_rates(data, nstrip);
+
+    /* Now We set up some temporaries */
+    
+    // CSR is what we choose
+    sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(J);
+    sunindextype *colvals = SUNSparseMatrix_IndexValues(J);
+    realtype *matrix_data = SUNSparseMatrix_Data(J);
+    
+    SUNMatZero(J);
+   
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+
+
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}};
+    double *r{{name}}= data->drs_{{name}};
+    {%- endfor %}
+    
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity, inv_mdensity;
+    
+    double scale2, inv_scale1;
+
+    j = 0;
+    mdensity = 0.0;
+    z = data->current_z;
+   
+    int k = 0;
+    for ( i = 0; i < nstrip; i++ ){
+        j = i * nchem;
+        {%- for species in network.required_species | sort %}
+        {{species.name}} = NV_Ith_S( y, j )*scale[j];
+        j++;
+        {% endfor %}
+
+        mdensity = data->mdensity[i];
+        inv_mdensity = 1.0 / mdensity; 
+        
+        j = i * 64;
+        {% for colvals, jac_comp, s1, s2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="component", assign_to = "")%}
+        // {{s1.name}} by {{s2.name}}
+        colvals[j + {{k}}] = i * nchem + {{colvals}} ;
+        matrix_data[ j + {{k}} ] {{jac_comp}}
+        {% if s1.name == 'ge' and s2.name == 'ge'%}
+        // ad-hoc extra term of ge by ge
+        // considering ONLY the h2formation/ and continuum cooling
+        matrix_data[ j + {{k}}] =  -H2_1*gloverabel08_h2lte[i]*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] +
+        H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] +
+        de*gloverabel08_gael[i]) + 1.0) - compton_comp_[i]*de*pow(z + 1.0, 4) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] +
+        H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
+        {% endif %}
+        {% if s1.name == 'ge' %}
+        matrix_data[j + {{k}}] *= inv_mdensity;
+        {% endif %}
+ 	    {% if s2.name == 'ge' %}
+        matrix_data[ j + {{k}}] *= T{{ network.energy_term.name }}[i];
+        {% endif %}
+        {% endfor %}
+        
+        {% for rowptrs in network.get_sparse_matrix_component(sparse_type = "CSR", return_type = "indexptrs") %}
+        rowptrs[ i * nchem +  {{loop.index0}}] = i * 64 + {{rowptrs}};
+        {% endfor %}
+        
+        j = i * nchem;
+        {% for i1, i2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="index")%}
+        inv_scale1 = inv_scale[ j + {{i1}} ];
+        scale2     = scale    [ j + {{i2}} ];
+        matrix_data[ i * 64 + {{k}}]  *= inv_scale1*scale2; 
+        {% endfor %}
+
+
+    }
+
+    rowptrs[ i * nchem ] = i * 64 ;
+    return 0;
+}
+
+#endif
 {% endblock %}
 

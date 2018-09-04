@@ -16,4 +16,4 @@ def make_ext(modname, pyxfilename):
                         "{{solver_name}}_solver.C", "initialize_cvode_solver.C"],
                      include_dirs=[inc, ".", "/home/kwoksun2/cvode-3.1.0/instdir/include"],
                      library_dirs=[lib, "/home/kwoksun2/cvode-3.1.0/instdir/lib"],
-                     libraries=['m', 'hdf5', 'hdf5_hl', "stdc++"], extra_objects=["/home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_cvode.a", "/home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_nvecserial.a"], language="C++", extra_compile_args=["-w"])
+                     libraries=['m', 'hdf5', 'hdf5_hl', "stdc++"], extra_objects=["/home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_cvode.a", "/home/kwoksun2/cvode-3.1.0/instdir/lib/libsundials_nvecserial.a"], language="C++", extra_compile_args=["-w", "-DMAX_NCELLS=1"])
