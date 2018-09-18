@@ -60,8 +60,6 @@ class ChemicalNetwork(object):
         self.interpolate_gamma_species_name = set(['H2_1', 'H2_2'])
 
         self.threebody = 4
-        self.cie_cooling = 1
-        self.include_binding_energy = 1
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -157,45 +155,36 @@ class ChemicalNetwork(object):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
 
-    def hydrogen_binding_energy_term( self ):
-        """This term accouts for the potential binding energy
-        in atomic and molecular Hydrogen
-        """
-        binding_energy =  7.177e-12 # in 4.48 eV ergs
-
-        H2_1 = sympy.Symbol("H2_1")
-        H2_2 = sympy.Symbol("H2_2")
-        H_1  = sympy.Symbol("H_1")
-        H_2  = sympy.Symbol("H_2")
-
-        binding_energy_term = binding_energy * ( 0.5* H_1 + 0.5* H_2 - H2_1 - H2_2 )
-        return binding_energy_term
 
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None: assign_to = sympy.Symbol("d_%s[i]" % species.name)
         if species == self.energy_term:
             return self.print_cooling(assign_to)
-        return ccode(self.species_total(species), assign_to = assign_to)
+        eq = self.species_total(species)
+        eq = eq.replace(
+                lambda x: x.is_Pow and x.exp > 0,
+                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+
+
+        return ccode(eq , assign_to = assign_to)
+
+    def cie_optical_depth_approx(self):
+        return sympy.Symbol("cie_optical_depth_approx")
 
     def print_cooling(self, assign_to):
         eq = sympy.sympify("0")
         for term in self.cooling_actions:
-            eq += self.cooling_actions[term].equation
-
-        if self.cie_cooling == 1:
-            cie_fudge = self.cie_optical_depth_correction()
-            eq = eq*cie_fudge
-
-        eq = eq.replace(
-                lambda x: x.is_Pow and x.exp >  0 and x.exp == sympy.Integer ,
-                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
-
+            if term not in ['h2formation']:
+                # This is independent of the continuum optical depth
+                # from the CIE
+                eq += self.cooling_actions[term].equation * self.cie_optical_depth_approx()
+            else:
+                eq += self.cooling_actions[term].equation
 
         return ccode(eq, assign_to = assign_to)
 
     def cie_optical_depth_correction(self):
-        ciefudge = 1.0
         mdensity = sympy.Symbol('mdensity')
         tau = ( mdensity/ 3.3e-8 )**2.8
         tau = sympy.Max( tau, 1e-5 )
@@ -215,11 +204,10 @@ class ChemicalNetwork(object):
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation
                      for ca in sorted(self.cooling_actions))
-            if self.include_binding_energy == 1:
-                st += self.hydrogen_binding_energy_term()
-
         else:
             st = self.species_total(s1)
+
+
         if assign_to is None:
             assign_to = sympy.Symbol("d_%s_%s" % (s1.name, s2.name))
         if isinstance(st, (list, tuple)):
@@ -231,11 +219,6 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
 
         eq = sympy.diff(st, s2.symbol)
-
-
-        if (self.cie_cooling == 1) and s1 == self.energy_term:
-            cie_fudge = self.cie_optical_depth_correction()
-            eq = eq*cie_fudge
 
         eq = eq.replace(
                 lambda x: x.is_Pow and x.exp > 0 and x.exp == sympy.Integer,
@@ -300,11 +283,6 @@ class ChemicalNetwork(object):
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation
                      for ca in sorted(self.cooling_actions))
-            if (self.cie_cooling == 1) and (s1.name == 'ge'):
-                cie_fudge = self.cie_optical_depth_correction()
-                st = st*cie_fudge
-
-
 
         else:
             st = self.species_total(s1)

@@ -18,7 +18,7 @@
 #include <cvode/cvode_direct.h>        /* access to CVDls interface            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
 /* Define the data structures */
-#include <final__solver.h>
+#include <klu_solver.h>
 
 
 #include <cvode/cvode_spils.h>           /* access to CVSpils interface       */
@@ -63,7 +63,7 @@ int Jac(N_Vector v, N_Vector Jv, realtype t,
 
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
-int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, final__data * data, N_Vector y , double reltol, N_Vector abstol){
+int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, klu_data * data, N_Vector y , double reltol, N_Vector abstol){
     
     int flag, i;
 
@@ -107,9 +107,8 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, final__d
     }
     #endif
     
+     
     
-    if (flag < 0){
-
     long int nsteps, nfevals, nlinsetups, netfails;
     int qlast, qcur;
     realtype hinused, hlast, hcur, tcur;
@@ -121,32 +120,30 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, final__d
     fprintf(stderr, "nlinsetups: %ld \n", nlinsetups);
     fprintf(stderr, "netfails  : %ld \n", netfails);
     
-    N_Vector ele, eweight;
-    ele = NULL;
-    eweight = NULL;
-    ele     = N_VNew_Serial( NEQ );
-    eweight = N_VNew_Serial( NEQ );
 
-    flag = CVodeGetEstLocalErrors(cvode_mem, ele);
-    flag = CVodeGetErrWeights(cvode_mem, eweight);
-    fprintf(stderr, "-----Printing Local Errors   ------- \n");    
-    for ( i = 0; i < NEQ; i++){
-        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) ); 
-        fprintf(stderr, "Error Weight      = %0.5g \n", NV_Ith_S(eweight, i) );
-        fprintf(stderr, "contributions to error test = %0.5g \n",  NV_Ith_S( ele, i) * NV_Ith_S(eweight, i) );
-        fprintf(stderr, "-------------------------------\n");
-    }
+    long int njevals, nncfails, nniters;
+    flag = CVDlsGetNumJacEvals( cvode_mem, &njevals );
+    flag = CVodeGetNonlinSolvStats( cvode_mem, &nniters, &nncfails );
+
+    fprintf(stderr, "performance of newton iteration: (nniters / nsteps): %0.5g \n", (double) nniters / (double) nsteps  );
+    fprintf(stderr, "non linearity of the system. and quality of Jacobian: %0.5g \n ", (double) njevals / (double) nniters);
+    fprintf(stderr, "non linear convergence failed: %ld, and non linear iterations: %ld\n", nncfails, nniters);
+    fprintf(stderr, "njevals: %ld \n", njevals);
+    
 
 
-        return 1;
-    }
+    fprintf(stderr, "---------------------------------\n");
 
+
+
+
+   
     return 0;
 
 }
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
-        final__data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol){
+        klu_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol){
     
     void *cvode_mem;
     cvode_mem = NULL;
@@ -162,7 +159,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
 
-    flag = CVodeSetMaxNumSteps(cvode_mem, 5000 );
+    flag = CVodeSetMaxNumSteps(cvode_mem, 1000 );
     flag = CVodeSetStabLimDet(cvode_mem, SUNTRUE);
 
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);

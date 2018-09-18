@@ -169,9 +169,9 @@ class Reaction(ComparableMixin):
         # a little hacky here to unfold
         # the algebraic power
         # i.e. H_1**3 -> H_1*H_1*H_1
-        eq = eq.replace(
-                lambda x: x.is_Pow and x.exp > 0,
-                lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
+        #eq = eq.replace(
+        #        lambda x: x.is_Pow and x.exp > 0,
+        #        lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
 
         return eq
 

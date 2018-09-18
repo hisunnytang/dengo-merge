@@ -147,6 +147,14 @@ typedef struct {{solver_name}}_data {
     int nstrip;
     double mdensity[MAX_NCELLS];
     double inv_mdensity[MAX_NCELLS];
+
+    {% if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx[MAX_NCELLS];
+    {% endif %}
+    {% if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx[MAX_NCELLS];
+    {% endif %}
+
 } {{ solver_name }}_data;
 
 
@@ -172,6 +180,8 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_gamma({{solver_name}}_data*);
 void {{solver_name}}_interpolate_gamma({{solver_name}}_data*, int );
+
+void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip );
 
 double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *input, double *rtol,

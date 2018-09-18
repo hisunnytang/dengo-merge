@@ -163,7 +163,7 @@ def cool(eq):
 #@cooling_action("gloverabel08", "-(H2I*0.5)*gphdl/(1.0+gphdl1/galdl)")
 
 #@cooling_action("gloverabel08", "-(H2I)*gphdl/(1.0+gphdl/galdl)")
-@cooling_action("gloverabel08", "-(H2I)*h2lte/(1.0+h2lte/galdl) ")
+@cooling_action("gloverabel08", "- h2_optical_depth_approx *  (H2I)*h2lte/(1.0+h2lte/galdl) ")
 def cool(eq):
     @eq.table
     def gpldl(state):
@@ -355,6 +355,7 @@ def cool(eq):
 
 
     eq.temporary("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
+    eq.temporary("h2_optical_depth_approx", "h2_optical_depth_approx")
     # do we have gphdl right?
     #eq.temporary("gphdl1", "gphdl")
 
@@ -417,11 +418,9 @@ def h2formation(eq):
     # 1/2 account for the double counting of energy loss per hydrogen nuclei
     # cooling here is the energy loss/gain per H2 molecule formed
     eq.temporary("h2heatfrac", " (1.0 + ncrn / (HI * ncrd1 + H2I * ncrd2))**(-1.0)/2.0 " )
-    eq.temporary("nH", "nH")
 
 
-
-@cooling_action("cie_cooling", " - cieco * H2I * mdensity * mh")
+@cooling_action("cie_cooling", " - cieco * H2I * mdensity  * 2.01588")
 def cie_cooling(eq):
     @eq.table
     def cieco(state):
