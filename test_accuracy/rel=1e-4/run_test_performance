@@ -1,0 +1,20 @@
+#!/bin/bash
+
+make clean
+make OPTIONS="-DMAX_NCELLS=1024 -DCVKLU" 
+rm -rf error
+rm -rf stats
+rm -rf solution
+mkdir error
+mkdir stats
+mkdir solution
+
+for i in {1..1024}
+do
+    echo "$i th strip" 
+    { time ./run_dengo ../../testing_data/"$i"".h5" solution/"$i""_solution.h5" ; } &> stats/"$i""_stats.out" &
+    wait 
+    #python -W ignore test_accuracy.py -t solution/"$i""_solution.h5"  -s ../../testing_data/accurate_solution/"$i"_solution.h5 &> error/"$i""_error.out" & 
+done
+
+

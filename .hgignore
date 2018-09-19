@@ -13,4 +13,4 @@ test_performance/test_cvspils/*
 test_performance/test_cvdls/*
 */_dengo_temp/*
 dengo/templates/working/*
-
+*.out

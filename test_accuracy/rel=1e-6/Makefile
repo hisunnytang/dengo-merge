@@ -1,0 +1,115 @@
+# Makefile for running dengo 
+# again it is generated from template
+
+
+
+# print cvode statistics, i.e. number of evaluations
+#OPTIONS+= -DPRINT_CVODE_STATS 
+
+
+# dengo currently supports two different solver modes from sundials
+# CVSPILS and CVDls
+# choose one from below, default: CVDLS
+# MAX_NCELLS: number of strip solved per solver call 
+
+# Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
+#OPTIONS = -DCVSPILS -DMAX_NCELLS=1024
+
+# Use the Dense Linear Solver interface (CVDLS)
+#OPTIONS+= -DMAX_NCELLS=1
+
+# Use the Sparse KLU direct solver
+OPTIONS = -DCVKLU -DMAX_NCELLS=1
+
+CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
+
+
+CVODE_LIBRARY_FILES  = $(CVODE_PATH)/lib/libsundials_nvecserial.a
+CVODE_LIBRARY_FILES += $(CVODE_PATH)/lib/libsundials_cvode.a
+
+CXX      = g++
+LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
+INCLUDE  = -I. -I$(CVODE_PATH)/include
+
+
+OBJ = klu_solver.C klu_solver_main.C initialize_cvode_solver.C
+
+
+
+
+#------------------------------------------------------------------------
+# KLU part
+#
+
+# Taken from CVODE example makefile
+# -----------------------------------------------------------------
+# Programmer(s): Radu Serban @ LLNL
+#                David J. Gardner @ LLNL
+# -----------------------------------------------------------------
+# LLNS Copyright Start
+# Copyright (c) 2014, Lawrence Livermore National Security
+# This work was performed under the auspices of the U.S. Department 
+# of Energy by Lawrence Livermore National Laboratory in part under 
+# Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
+# Produced at the Lawrence Livermore National Laboratory.
+# All rights reserved.
+# For details, see the LICENSE file.
+# LLNS Copyright End
+# -----------------------------------------------------------------
+# Makefile for CVODE serial examples
+#
+# This file is generated from a template using variables
+# set at configuration time. It can be used as a template for
+# other user Makefiles.
+# -----------------------------------------------------------------
+
+SHELL = sh
+
+prefix       = /home/kwoksun2/cvode-3.1.0/instdir
+exec_prefix  = /home/kwoksun2/cvode-3.1.0/instdir
+includedir   = /home/kwoksun2/cvode-3.1.0/instdir/include
+libdir       = /home/kwoksun2/cvode-3.1.0/instdir/lib
+
+CPP      = /usr/bin/cc
+CPPFLAGS = -O3 -DNDEBUG -g
+CC       = /usr/bin/cc
+CFLAGS   = -O3 -DNDEBUG -g
+LDFLAGS  = 
+LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
+
+LINKFLAGS = -Wl,-rpath,/home/kwoksun2/cvode-3.1.0/instdir/lib
+
+
+TMP_INCS  = . ${includedir} 
+INCLUDES  = $(addprefix -I, ${TMP_INCS})
+
+# -----------------------------------------------------------------------------------------
+
+
+INCLUDES_KLU  = /home/kwoksun2/SuiteSparse/include
+LIBRARIES_KLU = -lsundials_sunlinsolklu   /home/kwoksun2/SuiteSparse/KLU/Lib/libklu.a /home/kwoksun2/SuiteSparse/AMD/Lib/libamd.a /home/kwoksun2/SuiteSparse/COLAMD/Lib/libcolamd.a /home/kwoksun2/SuiteSparse/BTF/Lib/libbtf.a /home/kwoksun2/SuiteSparse/SuiteSparse_config/libsuitesparseconfig.a
+LINKFLAGS_KLU = ${LINKFLAGS}:/home/kwoksun2/SuiteSparse/KLU/Lib
+LIBRARIES = -lsundials_cvode -lsundials_nvecserial ${LIBS}
+
+
+#------------------------------------------------------------------------
+
+
+ifneq (,$(findstring -DCVKLU, $(OPTIONS)))
+LIBRARIES += $(LIBRARIES_KLU)
+INCLUDES  += $(addprefix -I, $(INCLUDES_KLU) )
+LINKFLAGS := $(LINKFLAGS_KLU)
+endif
+
+run_dengo: $(OBJ) 
+	$(CXX) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
+
+libdengo.so: $(OBJ) 
+	$(CXX) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
+
+clean:
+	rm -f *.o
+	rm -f *.so
+	rm -f run_dengo
+
+

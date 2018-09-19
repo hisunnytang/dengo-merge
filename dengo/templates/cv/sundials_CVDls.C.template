@@ -196,6 +196,7 @@ int {{solver_name}}_main(int argc, char** argv )
     free(rtol);
     free(atol);
     free(input);
+    free(density);
 
     return 0;
 }
@@ -256,7 +257,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int flag;
     double reltol = 1.0e-4;
     void *cvode_mem;
-    int MAX_ITERATION = 10;
+    int MAX_ITERATION = 1000;
     double mh = 1.67e-24;
     int nstrip = data->nstrip;
 
@@ -310,7 +311,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             NV_Ith_S(abstol, i )   = reltol*reltol;
         }
         
-        setting_up_extra_variables(data, data->scale, dims);
+        setting_up_extra_variables(data, data->scale, nstrip);
         
         // initialize a dt for the solver  
         dt = dtf;
@@ -347,7 +348,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
 
                 ttot += dt;
                 // dt = dtf - ttot;
-                dt = DMIN(dt * 1.1, dtf - ttot);
+                dt = DMIN(dt * 2.0, dtf - ttot);
             
             } else{
                 dt /= 2.0;
@@ -420,6 +421,7 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
     
     H5Fclose(file_id);
 }
+
 
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
@@ -1091,10 +1093,10 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         // by the input units later
         // atol = input * rtol;
         // which again should be set by dengo
-        
+        // input in *mass density per mH* 
+
         {%- for species in network.required_species | sort %}
         input[j] = field_data->{{species.name}}_density[d];
-        input[j] /= {{species.weight}};
         atol[j] = input[j] * 1.0e-9;
         j++;
         {% endfor %}
@@ -1102,8 +1104,8 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
 
     double ttot;
     double z;
-
-    ttot = dengo_evolve_{{solver_name}}( dt, dt, z, input, rtol, atol, dims, data, temp );
+    
+    ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
 
     for ( int d = 0; d< dims; d++  ){
         j = d*N;
@@ -1113,7 +1115,7 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         // which again should be set by dengo
         
         {%- for species in network.required_species | sort %}
-        field_data->{{species.name}}_density[d] = input[j] * {{species.weight}};
+        field_data->{{species.name}}_density[d] = input[j];
         j++;
         {% endfor %}
     }
