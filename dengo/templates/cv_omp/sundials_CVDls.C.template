@@ -17,21 +17,25 @@
 {{solver_name}}_data *{{solver_name}}_setup_data(
     int *NumberOfFields, char ***FieldNames)
 {
-    int i;
+    int i, n;
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
     
     /* allocate space for the scale related pieces */
+    /*
     for (i = 0; i< {{network.required_species | length}} ; i++){
         data->scale[i] = 1.0;
         data->inv_scale[i] = 1.0;
     }
+    */
     
     data->nstrip = MAX_NCELLS;
     /*initialize temperature so it wont crash*/
     for ( i = 0; i < MAX_NCELLS; i++ ){
-        data->Ts[i] = 1000.0;
-        data->logTs[i] = log(1000.0);
+        for( n = 0; i < NTHREADS; n++ ){
+            data->Ts[n][i]    = 1000.0;
+            data->logTs[n][i] = log(1000.0);
+        }
     }
 
     /* Temperature-related pieces */
@@ -247,7 +251,6 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     data->current_z = z;
     int niter = 0;
     int siter = 0;
-    double ttot = 0;
     double *ttot_all = (double *) malloc( dims * sizeof(double) );
 
     double floor_value = 1e-25;
@@ -288,6 +291,27 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
         NV_Ith_S(abstol,i)   = 1.0;
         y[i] = 1.0;
     }
+     // these objects should be initialize once !!
+    // in each separate thread!!
+
+
+
+    double *internal_dt = (double *) malloc(ntimes * sizeof(double));
+    double *ttot = (double *) malloc(ntimes* sizeof(double));
+    int d;
+    int sum;
+    
+
+    int omp_get_thread_num();
+    int threadID;
+    #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec, data, abstol, reltol)
+    {
+    y_vec = NULL;
+    y_vec = N_VNew_Serial(v_size);
+    for ( i = 0; i < v_size; i++){
+        NV_Ith_S(y_vec , i) = 1.0;
+        y[i]                = 1.0;
+    }
     
     #ifdef CVKLU
     A         = SUNSparseMatrix      ( v_size, v_size, nstrip * 64, CSR_MAT );
@@ -300,28 +324,26 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
     
 
-
+    #pragma omp for private (sum, i, d, siter, y)
     for (int d = 0; d < ntimes; d++){
-        
+        threadID = omp_get_thread_num() 
         for (i = 0; i < v_size; i++){ 
-
-            data->scale[i]         = input[d*v_size + i];
-            data->inv_scale[i]     = 1.0 / data->scale[i];
+            data->scale[threadID][i]         = input[d*v_size + i];
+            data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
             NV_Ith_S(y_vec , i )   = 1.0;
-            NV_Ith_S(abstol, i )   = reltol*reltol;
         }
         
-        setting_up_extra_variables(data, data->scale, nstrip);
+        setting_up_extra_variables(data, data->scale[threadID], nstrip);
         
         // initialize a dt for the solver  
-        dt = dtf;
-        ttot = 0.0;
+        internal_dt[d] = dtf;
+        ttot[d] = 0.0;
         siter = 0;
             
-        while (ttot < dtf) { 
-            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+        while (ttot[d] < dtf) { 
+            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot[d] );
             
-            flag = cvode_solver( cvode_mem, y, N * nstrip , &dt, data, y_vec, reltol, abstol);
+            flag = cvode_solver( cvode_mem, y, N * nstrip , &internal_dt[d], data, y_vec, reltol, abstol);
 
             for (i = 0; i < v_size; i++) {
                 if (y[i] < 0) {
@@ -341,18 +363,18 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
                 // we reset the scale of each component 
                 // with the solution returned by the solver
                 for (i = 0; i < v_size; i++){
-                    data->scale[i] = y[i] * data->scale[i];
-                    data->inv_scale[i] = 1.0/ data->scale[i];
+                    data->scale[threadID][i] = y[i] * data->scale[threadID][i];
+                    data->inv_scale[threadID][i] = 1.0/ data->scale[threadID][i];
                     // fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
                 }
 
-                ttot += dt;
+                ttot[d] += internal_dt[d];
                 // dt = dtf - ttot;
-                dt = DMIN(dt * 2.0, dtf - ttot);
+                internal_dt[d] = DMIN(internal_dt[d] * 2.0, dtf - ttot[d]);
             
             } else{
-                dt /= 2.0;
-                dt = DMIN(dt * 1.1, dtf - ttot);
+                internal_dt[d] /= 2.0;
+                internal_dt[d] = DMIN(internal_dt[d] * 1.1, dtf - ttot[d]);
             }
 
 	        
@@ -362,27 +384,31 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             siter++;
         } // while loop for each strip
         
-        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
+        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot[d]);
 
         // re-calculate temperature at the final output
-        {{solver_name}}_calculate_temperature(data, data->scale, nstrip, N);
+        {{solver_name}}_calculate_temperature(data, data->scale[threadID], nstrip, N);
 
         for ( i = 0; i < nstrip; i ++){
-            temp_array[ d * nstrip + i ] = data->Ts[ i ];
-            ttot_all  [ d * nstrip + i ] = ttot;
+            temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
+            ttot_all  [ d * nstrip + i ] = ttot[d];
         }
 
         for (i = 0; i < v_size; i++){
-            input     [ d * v_size + i ] = data->scale[i] ;
+            input     [ d * v_size + i ] = data->scale[threadID][i] ;
         } // copy data back to the input array
     } // for d dims loop
-    
+
+    }
+
     // free all unused memory;
     CVodeFree(&cvode_mem);
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
+
+
 
     {%-  if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
@@ -497,7 +523,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     
     
     i = 0;
-
+    int threadID = omp_get_thread_num();
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
     
@@ -506,10 +532,6 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
         {% endfor %}
         
-        {% if network.include_binding_energy == 1%}       
-        ge += 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2 ) ;
-        ge -= 7.177e-12 * ( H_1 + H_2 );
-        {% endif %}
 
         density = {{network.print_mass_density()}};
         
@@ -517,7 +539,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         {% if 'H2_1' in network.species_list() %}
         
         // Initiate the "guess" temperature
-        T    = data->Ts[i];
+        T    = data->Ts[threadID][i];
         Tnew = T*1.1;
         
         Tdiff = Tnew - T;
@@ -527,12 +549,12 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
             // We do Newton's Iteration to calculate the temperature
             // Since gammaH2 is dependent on the temperature too!
 
-            T = data->Ts[i];
+            T = data->Ts[threadID][i];
         
             {{ solver_name }}_interpolate_gamma(data, i);
             {% for sp in network.interpolate_gamma_species_name | sort %}
-            gamma{{sp}} = data->gamma{{sp}}[i];
-            dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[i];
+            gamma{{sp}} = data->gamma{{sp}}[threadID][i];
+            dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[threadID][i];
             _gamma{{sp}}_m1 = 1.0 / (gamma{{sp}} - 1.0);
             // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
             {% endfor %}
@@ -548,7 +570,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
             dge = {{network.temperature_calculation(get_dge=True)}};
 
             Tnew = T - dge/dge_dT;
-            data->Ts[i] = Tnew;
+            data->Ts[threadID][i] = Tnew;
         
             Tdiff = fabs(T - Tnew);
             // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
@@ -559,24 +581,24 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
             }
         } // while loop
     
-        data->Ts[i] = Tnew;
+        data->Ts[threadID][i] = Tnew;
 
 
         // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
         {% else %} {# if 'H2_1' in network.species_list() #}
-        data->Ts[i] = {{network.temperature_calculation()}};
+        data->Ts[threadID][i] = {{network.temperature_calculation()}};
         {% endif %}
 
-        if (data->Ts[i] < data->bounds[0]) {
-            data->Ts[i] = data->bounds[0];
-        } else if (data->Ts[i] > data->bounds[1]) {
-            data->Ts[i] = data->bounds[1];
+        if (data->Ts[threadID][i] < data->bounds[0]) {
+            data->Ts[threadID][i] = data->bounds[0];
+        } else if (data->Ts[threadID][i] > data->bounds[1]) {
+            data->Ts[threadID][i] = data->bounds[1];
         }
-        data->logTs[i] = log(data->Ts[i]);
-        data->invTs[i] = 1.0 / data->Ts[i];
-	    data->dTs_{{ network.energy_term.name }}[i] = 1.0 / dge_dT;
+        data->logTs[threadID][i] = log(data->Ts[threadID][i]);
+        data->invTs[threadID][i] = 1.0 / data->Ts[threadID][i];
+	    data->dTs_{{ network.energy_term.name }}[threadID][i] = 1.0 / dge_dT;
 
     } // for i in nstrip loop
     return 0;
@@ -604,18 +626,18 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     lbz = log(data->z_bounds[0] + 1.0);
 
     i = 0;
-
+    int threadID = omp_get_thread_num();
     for ( i = 0; i < nstrip; i++ ){
-        data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
-        if (data->bin_id[i] <= 0) {
-            data->bin_id[i] = 0;
-        } else if (data->bin_id[i] >= data->nbins) {
-            data->bin_id[i] = data->nbins - 1;
+        data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
+        if (data->bin_id[threadID][i] <= 0) {
+            data->bin_id[threadID][i] = 0;
+        } else if (data->bin_id[threadID][i] >= data->nbins) {
+            data->bin_id[threadID][i] = data->nbins - 1;
         }
         t1 = (lb + (bin_id    ) * data->dbin);
         t2 = (lb + (bin_id + 1) * data->dbin);
-        data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
-        data->dT[i] = (t2 - t1);
+        data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
+        data->dT[threadID][i] = (t2 - t1);
         /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
                 i, data->bin_id[i], data->dT[i], data->Ts[i],
                 data->logTs[i]);*/
@@ -642,22 +664,22 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     {%- if 'pi' not in name %}
     
     for ( i = 0; i < nstrip; i++ ){
-        bin_id = data->bin_id[i];
-        Tdef   = data->Tdef[i];
-        data->rs_{{name}}[i] = data->r_{{name}}[bin_id] +
+        bin_id = data->bin_id[threadID][i];
+        Tdef   = data->Tdef[threadID][i];
+        data->rs_{{name}}[threadID][i] = data->r_{{name}}[bin_id] +
             Tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[i] /= data->dT[i];
-	    data->drs_{{name}}[i] *= data->invTs[i];
+        data->drs_{{name}}[threadID][i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[threadID][i] /= data->dT[threadID][i];
+	    data->drs_{{name}}[threadID][i] *= data->invTs[threadID][i];
 
     }
     {% else %}
     for ( i = 0; i < nstrip; i++ ){
         if (no_photo) {
-            data->rs_{{name}}[i] = 0.0;
-            data->drs_{{name}}[i] = 0.0;
+            data->rs_{{name}}[threadID][i] = 0.0;
+            data->drs_{{name}}[threadID][i] = 0.0;
         } else {
-        data->rs_{{name}}[i] = data->r_{{name}}[zbin_id] +
+        data->rs_{{name}}[threadID][i] = data->r_{{name}}[zbin_id] +
             zdef * (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
         }
     }
@@ -668,21 +690,21 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     {%- for name2 in rate.tables | sort %}
     {%- if 'ph' not in name %}
     for ( i = 0; i < nstrip; i++ ){
-        bin_id = data->bin_id[i];
-        Tdef   = data->Tdef[i];
-        data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[bin_id] +
+        bin_id = data->bin_id[threadID][i];
+        Tdef   = data->Tdef[threadID][i];
+        data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[bin_id] +
             Tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
-        data->dcs_{{name}}_{{name2}}[i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
-        data->dcs_{{name}}_{{name2}}[i] /= data->dT[i];
-	    data->dcs_{{name}}_{{name2}}[i] *= data->invTs[i];
+        data->dcs_{{name}}_{{name2}}[threadID][i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[threadID][i] /= data->dT[threadID][i];
+	    data->dcs_{{name}}_{{name2}}[threadID][i] *= data->invTs[threadID][i];
     }
     {%- else %}
     for ( i = 0; i < nstrip; i++){
         if (no_photo) {
-            data->cs_{{name}}_{{name2}}[i] = 0.0;
-            data->dcs_{{name}}_{{name2}}[i] = 0.0;
+            data->cs_{{name}}_{{name2}}[threadID][i] = 0.0;
+            data->dcs_{{name}}_{{name2}}[threadID][i] = 0.0;
         } else {
-            data->cs_{{name}}_{{name2}}[i] = data->c_{{name}}_{{name2}}[zbin_id] +
+            data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[zbin_id] +
                 zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
         }
     }
@@ -710,25 +732,26 @@ void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
     
-    data->bin_id[i] = bin_id = (int) (data->idbin * (data->logTs[i] - lb));
-    if (data->bin_id[i] <= 0) {
-        data->bin_id[i] = 0;
-    } else if (data->bin_id[i] >= data->nbins) {
-        data->bin_id[i] = data->nbins - 1;
+    int threadID = omp_get_thread_num();
+    data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
+    if (data->bin_id[threadID][i] <= 0) {
+        data->bin_id[threadID][i] = 0;
+    } else if (data->bin_id[threadID][i] >= data->nbins) {
+        data->bin_id[threadID][i] = data->nbins - 1;
     }
     t1 = (lb + (bin_id    ) * data->dbin);
     t2 = (lb + (bin_id + 1) * data->dbin);
-    data->Tdef[i] = (data->logTs[i] - t1)/(t2 - t1);
-    data->dT[i] = (t2 - t1);
+    data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
+    data->dT[threadID][i] = (t2 - t1);
 
     {% for sp in network.interpolate_gamma_species_name%}
     
-    bin_id = data->bin_id[i];
-    data->gamma{{sp}}[i] = data->g_gamma{{sp}}[bin_id] +
-        data->Tdef[i] * (data->g_gamma{{sp}}[bin_id+1] - data->g_gamma{{sp}}[bin_id]);
+    bin_id = data->bin_id[threadID][i];
+    data->gamma{{sp}}[threadID][i] = data->g_gamma{{sp}}[bin_id] +
+        data->Tdef[threadID][i] * (data->g_gamma{{sp}}[bin_id+1] - data->g_gamma{{sp}}[bin_id]);
 
-    data->dgamma{{sp}}_dT[i] = data->g_dgamma{{sp}}_dT[bin_id] +
-        data->Tdef[i] * (data->g_dgamma{{sp}}_dT[bin_id+1] 
+    data->dgamma{{sp}}_dT[threadID][i] = data->g_dgamma{{sp}}_dT[bin_id] +
+        data->Tdef[threadID][i] * (data->g_dgamma{{sp}}_dT[bin_id+1] 
         - data->g_dgamma{{sp}}_dT[bin_id]);
     {% endfor %}
        
@@ -827,14 +850,15 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
     
+    int threadID = omp_get_thread_num();
     int nchem = {{network.required_species | length }};
     int nstrip = data->nstrip;
     int i, j;
 
     /* change N_Vector back to an array */
     double y_arr[ {{network.required_species | length }} * nstrip ];
-    double *scale     = data->scale;
-    double *inv_scale = data->inv_scale;   
+    double *scale     = data->scale[threadID];
+    double *inv_scale = data->inv_scale[threadID];   
     
     /*
     for ( i = 0; i < nstrip; i++ ){
@@ -859,18 +883,18 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     /* Now We set up some temporaries */
 
-    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
 
 
     {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    double *r{{name}}= data->drs_{{name}};
+    double *{{name}} = data->rs_{{name}}[threadID];
+    double *r{{name}}= data->drs_{{name}}[threadID];
     {%- endfor %}
     
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}}[threadID];
     {%- endfor %}
     {%- endfor %}
 
@@ -902,13 +926,13 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         j++;
         {% endfor %}
 
-        mdensity = data->mdensity[i];
+        mdensity = data->mdensity[threadID][i];
         inv_mdensity = 1.0 / mdensity;
         {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx  = data->h2_optical_depth_approx[i];  
+        h2_optical_depth_approx  = data->h2_optical_depth_approx[threadID][i];  
         {% endif %}
         {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[i]; 
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i]; 
         {% endif %}
 
         j = i * nchem;
@@ -971,8 +995,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double {{species.name}};
     {% endfor %}
     
-    double *scale     = data->scale;
-    double *inv_scale = data->inv_scale;   
+    int threadID = omp_get_thread_num();
+    double *scale     = data->scale[threadID];
+    double *inv_scale = data->inv_scale[threadID];   
     
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
@@ -994,12 +1019,12 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     /* Now we set up some temporaries */
     
     {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
+    double *{{name}} = data->rs_{{name}}[threadID];
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
     {%- endfor %}
     {%- endfor %}
     
@@ -1019,15 +1044,15 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
    
     for ( i = 0; i < nstrip; i++ ){
         
-        T            = data->Ts[i];
+        T            = data->Ts[threadID][i];
         z            = data->current_z;
-        mdensity     = data->mdensity[i];
-        inv_mdensity = data->inv_mdensity[i];
+        mdensity     = data->mdensity[threadID][i];
+        inv_mdensity = data->inv_mdensity[threadID][i];
         {% if "gloverabel" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[i];
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
         {% endif %}
         {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[i];
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
         {% endif %}
 
         j = i * nchem;
@@ -1082,10 +1107,9 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
 
 
     double *input = (double *) malloc(dims * N * sizeof(double));
-    double *atol  = (double *) malloc(dims * N * sizeof(double));
-    double *rtol  = (double *) malloc(dims * N * sizeof(double));
     double *temp  = (double *) malloc(dims * sizeof(double) );
-    
+    double *atol;
+    double *rtol;
 
     for ( int d = 0; d< dims; d++  ){
         j = d*N;
@@ -1097,14 +1121,13 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
 
         {%- for species in network.required_species | sort %}
         input[j] = field_data->{{species.name}}_density[d];
-        atol[j] = input[j] * 1.0e-9;
         j++;
         {% endfor %}
     }
 
     double ttot;
     double z;
-    double dtf = 1.0; 
+    double dtf; 
     ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
 
     for ( int d = 0; d< dims; d++  ){
@@ -1119,7 +1142,12 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         j++;
         {% endfor %}
     }
-
+    
+    free(input);
+    //free(rtol);
+    //free(atol);
+    free(temp);
+    free(data);
 
 }
 
@@ -1189,8 +1217,8 @@ int read_init_data_to_dengo( dengo_field_data *field_data ){
     
     H5Fclose(file_id);
     free(input);
-    free(atol);
-    free(rtol);
+    //free(atol);
+    //free(rtol);
     free(ics);
     
     return 1;
@@ -1227,22 +1255,23 @@ int calculate_JacTimesVec_{{solver_name}}
     if (flag > 0){
         return 1;    
     }
-
+    
+    int threadID = omp_get_thread_num();
     {{solver_name}}_interpolate_rates(data, nstrip);
     
     /* Now We set up some temporaries */
-    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
     
     /* Define the reaction rates */
     {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    double *r{{name}} = data->drs_{{name}};
+    double *{{name}} = data->rs_{{name}}[threadID];
+    double *r{{name}} = data->drs_{{name}}[threadID];
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}}[threadID];
     {%- endfor %}
     {%- endfor %}
     
@@ -1257,7 +1286,7 @@ int calculate_JacTimesVec_{{solver_name}}
     {%- endfor %}
     
     {%- for v in network.required_species | sort %}
-    scale = data->scale[{{loop.index - 1}}];
+    scale = data->scale[threadID][{{loop.index - 1}}];
     v{{loop.index-1}} = Ith( v, {{loop.index}} );
     v{{loop.index-1}} *= scale;
     {%- endfor %}
@@ -1276,7 +1305,7 @@ int calculate_JacTimesVec_{{solver_name}}
     z = data->current_z;
     {%- for species in network.required_species | sort %}
         // Rescale the Species abundance
-    scale = data->scale[j];
+    scale = data->scale[threadID][j];
     {{species.name}} = Ith( y, {{loop.index }}  )*scale;
     {%if species.name != "ge" and species.name != "de" and species.name != "us_e_0" %}
     mdensity += {{species.name}};
@@ -1294,7 +1323,7 @@ int calculate_JacTimesVec_{{solver_name}}
     //
     {{ network.print_JacTimesVec_component(s1, assign_to="Ith(Jv, {0} )".format(loop.index) ) }}
 
-    scale = data->scale[{{loop.index - 1}}];
+    scale = data->scale[threadID][{{loop.index - 1}}];
     Ith(Jv, {{loop.index}}) /= scale;
 
     {% if s1.name == "ge" %}
@@ -1324,11 +1353,12 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     int nchem = {{network.required_species | length }};
     int nstrip = data->nstrip;
     int i, j;
-
+    
+    int threadID = omp_get_thread_num();
     /* change N_Vector back to an array */
     double y_arr[ {{network.required_species | length }} * nstrip ];
-    double *scale     = data->scale;
-    double *inv_scale = data->inv_scale;   
+    double *scale     = data->scale[threadID];
+    double *inv_scale = data->inv_scale[threadID];   
     {% if "gloverabel08" in network.cooling_actions %}
     double h2_optical_depth_approx;  
     {% endif %}
@@ -1366,18 +1396,18 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     
     SUNMatZero(J);
    
-    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
 
 
     {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    double *r{{name}}= data->drs_{{name}};
+    double *{{name}} = data->rs_{{name}}[threadID];
+    double *r{{name}}= data->drs_{{name}}[threadID];
     {%- endfor %}
     
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}}[threadID];
     {%- endfor %}
     {%- endfor %}
 
@@ -1404,12 +1434,16 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         j++;
         {% endfor %}
 
-        mdensity = data->mdensity[i];
+        mdensity = data->mdensity[threadID][i];
         inv_mdensity = 1.0 / mdensity; 
         {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[i];  
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];  
         {% endif %}
-       
+        
+        {% if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
+        {% endif %}
+
         j = i * 64;
         {% for colvals, jac_comp, s1, s2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="component", assign_to = "")%}
         // {{s1.name}} by {{s2.name}}
@@ -1453,30 +1487,32 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 {% block setting_up_extra_variables %}
 void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip ){
     
+    int threadID = omp_get_thread_num();
+
     int i, j;
     double mh = 1.67e-24;
     for ( i = 0; i < nstrip; i++){
-        data->mdensity[i] = 0;
+        data->mdensity[threadID][i] = 0;
         j = i * {{network.required_species | length}};
         {%- for species in network.required_species | sort %}
         {%if species.name not in ["ge", "de"] %}
         // species: {{species.name}}
-        data->mdensity[i] += input[j] * {{species.weight}}; 
+        data->mdensity[threadID][i] += input[j] * {{species.weight}}; 
         {%endif%}
         j ++;
         {%endfor%}
-        data->mdensity[i] *= mh;
-        data->inv_mdensity[i] = 1.0 / data->mdensity[i];
+        data->mdensity[threadID][i] *= mh;
+        data->inv_mdensity[threadID][i] = 1.0 / data->mdensity[threadID][i];
     }
 
     {% if "cie_cooling" in network.cooling_actions %}
     double mdensity, tau;
     for ( i = 0; i < nstrip; i++){
         
-        mdensity = data->mdensity[i];
+        mdensity = data->mdensity[threadID][i];
         tau      = pow( (mdensity / 3.3e-8 ), 2.8);
         tau      = fmax( tau, 1.0e-5 );
-        data->cie_optical_depth_approx[i] = 
+        data->cie_optical_depth_approx[threadID][i] = 
             fmin( 1.0, (1.0 - exp(-tau) ) / tau );
     }
     {% endif %}
@@ -1484,8 +1520,8 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
 
     {% if "gloverabel08" in network.cooling_actions %}
     for ( i = 0; i < nstrip; i++ ){
-        mdensity = data->mdensity[i];
-        data->h2_optical_depth_approx[i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+        mdensity = data->mdensity[threadID][i];
+        data->h2_optical_depth_approx[threadID][i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
     }
     {% endif %}
 

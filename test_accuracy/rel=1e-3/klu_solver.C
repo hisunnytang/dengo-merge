@@ -290,7 +290,7 @@ int klu_main(int argc, char** argv )
     double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
-    ttot = dengo_evolve_klu(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    ttot = dengo_evolve_klu(dtf, dt, z, input, dims, data, temp);
 
     /* Write results to HDF5 file */
 
@@ -414,7 +414,7 @@ int klu_main(int argc, char** argv )
 
 
 double dengo_evolve_klu (double dtf, double &dt, double z, double *input,
-            double *rtol, double *atol, long long dims, klu_data *data, double *temp_array ) {
+                         long long dims, klu_data *data, double *temp_array ) {
     int i, j;
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
@@ -4033,7 +4033,7 @@ klu_data *data, double dt ){
     double ttot;
     double z;
 
-    ttot = dengo_evolve_klu( dt, dt, z, input, rtol, atol, dims, data, temp );
+    ttot = dengo_evolve_klu( dt, dt, z, input, dims, data, temp );
 
     for ( int d = 0; d< dims; d++  ){
         j = d*N;

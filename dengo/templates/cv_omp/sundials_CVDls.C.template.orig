@@ -196,7 +196,6 @@ int {{solver_name}}_main(int argc, char** argv )
     free(rtol);
     free(atol);
     free(input);
-    free(density);
 
     return 0;
 }
@@ -210,21 +209,28 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
     int N = {{network.required_species | length}};
+    double *mdensity = (double *) malloc (dims * N * sizeof(double));
 
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {% endfor %}
     
-
     {%- if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
         j = i * N;
+        mdensity[i] = 0;
         {%- for species in network.required_species | sort %}
         {%if species.name != "ge" %}
+        mdensity[i] += input[j] ; 
         {{species.name}} = input[j] /= {{species.weight}};
+        {%endif%}
+        {%if (species.name == "ge") and (network.include_binding_energy == 1)%}
+        input[j] -= 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2);
+        input[j] += 7.177e-12 * ( H_1  + H_2 );
         {%endif%}
         j++;
         {%endfor%}
+        
     }
     {%- endif %}
     //ensure_electron_consistency(input, dims, N);
@@ -232,11 +238,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     rhs_f f = calculate_rhs_{{solver_name}};
 
     #ifndef CVSPILS
-    #ifdef  CVKLU
-    jac_f jf = calculate_sparse_jacobian_{{solver_name}};
-    #else
     jac_f jf = calculate_jacobian_{{solver_name}};
-    #endif
     #endif
     
     #ifdef CVSPILS
@@ -248,8 +250,12 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int niter = 0;
     int siter = 0;
     double ttot = 0;
+    double *scale = (double *) malloc(dims * N * sizeof(double));
     double *ttot_all = (double *) malloc( dims * sizeof(double) );
 
+    for (i = 0; i < dims * N; i++) scale[i] = input[i];
+   
+    
     double floor_value = 1e-25;
 
     // Initialize a CVODE object, memory spaces
@@ -257,7 +263,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     int flag;
     double reltol = 1.0e-4;
     void *cvode_mem;
-    int MAX_ITERATION = 1000;
+    int MAX_ITERATION = 10;
     double mh = 1.67e-24;
     int nstrip = data->nstrip;
 
@@ -274,7 +280,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
 
     int v_size = N * nstrip;
     int ntimes = dims / nstrip;
-    double y[10 * v_size];
+    double y[v_size];
     
     y_vec = NULL;   
     LS = NULL;
@@ -288,15 +294,9 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
         NV_Ith_S(abstol,i)   = 1.0;
         y[i] = 1.0;
     }
-    
-    #ifdef CVKLU
-    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * 64, CSR_MAT );
-    LS        = SUNKLU( y_vec, A);
-    #else
+
     A         = SUNDenseMatrix      ( v_size, v_size );
     LS        = SUNDenseLinearSolver( y_vec, A);
-    #endif
-    
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
     
 
@@ -311,15 +311,17 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             NV_Ith_S(abstol, i )   = reltol*reltol;
         }
         
-        setting_up_extra_variables(data, data->scale, nstrip);
-        
+        for ( j = 0; j < nstrip; j++){
+            data->mdensity[j]      = mdensity[ d*nstrip + j ] * mh;
+            data->inv_mdensity[j]  = 1.0 / data->mdensity[j];
+        }
         // initialize a dt for the solver  
         dt = dtf;
         ttot = 0.0;
         siter = 0;
             
         while (ttot < dtf) { 
-            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
+            //fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );
             
             flag = cvode_solver( cvode_mem, y, N * nstrip , &dt, data, y_vec, reltol, abstol);
 
@@ -347,9 +349,8 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
                 }
 
                 ttot += dt;
-                // dt = dtf - ttot;
-                dt = DMIN(dt * 2.0, dtf - ttot);
-            
+                dt = dtf - ttot;
+
             } else{
                 dt /= 2.0;
                 dt = DMIN(dt * 1.1, dtf - ttot);
@@ -362,7 +363,7 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
             siter++;
         } // while loop for each strip
         
-        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
+        //fprintf(stderr, "%d the strip = %0.5g\n", d, ttot);
 
         // re-calculate temperature at the final output
         {{solver_name}}_calculate_temperature(data, data->scale, nstrip, N);
@@ -383,6 +384,8 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     SUNMatDestroy(A);
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
+    free(scale);
+    free(mdensity);
 
     {%-  if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
@@ -391,6 +394,10 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
       {%if species.name != "ge" %}
       {{species.name}} = input[j];
       input[j] *= {{species.weight}};
+      {%endif%}
+      {%if (species.name == "ge") and (network.include_binding_energy == 1)%}
+      input[j] += 7.177e-12 * ( 0.5* H2_1 + 0.5* H2_2);
+      input[j] -= 7.177e-12 * ( H_1  + H_2 );
       {%endif%}
       j++;
       {%endfor%}
@@ -402,7 +409,6 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     for (int d = 0; d < dims; d++){
         if (ttot_all[d] < dt_final) dt_final = ttot_all[d];    
     }
-    fprintf(stderr, "fraction of completion: %0.5g\n", dt_final/dtf);
     free(ttot_all);
 
     return dt_final;
@@ -421,7 +427,6 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
     
     H5Fclose(file_id);
 }
-
 
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
@@ -882,18 +887,13 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     double mh = 1.67e-24;
     double mdensity, inv_mdensity;
-    {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
-    {% endif %}
-    {% if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx; 
-    {% endif %}
-  
+    
     double scale1, inv_scale2;
 
     j = 0;
     mdensity = 0.0;
     z = data->current_z;
+   
 
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
@@ -903,14 +903,8 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% endfor %}
 
         mdensity = data->mdensity[i];
-        inv_mdensity = 1.0 / mdensity;
-        {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx  = data->h2_optical_depth_approx[i];  
-        {% endif %}
-        {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[i]; 
-        {% endif %}
-
+        inv_mdensity = 1.0 / mdensity; 
+        
         j = i * nchem;
         {%- for s2 in network.required_species | sort %}
         //
@@ -923,29 +917,31 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
         {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
         inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
+        {% if s1.name != "ge"%}
         scale1     = scale    [ j + {{i_s1.index0}}];
+        {% else %}
+        scale1     = 1.0;
+        {% endif %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
 
         {% else %}
         // because the Jacobian is initialized to zeros by default
         // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 )  ) }}
         {% endif %}
-        
-
         {% if s2.name == 'ge' and s1.name == 'ge'%}
         // ad-hoc extra term of f_ge by ge
         // considering ONLY the h2formation/ and continuum cooling
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) =  -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) =  -H2_1*gloverabel08_h2lte[i]*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] +
+        H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] +
+        de*gloverabel08_gael[i]) + 1.0) - compton_comp_[i]*de*pow(z + 1.0, 4) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] +
+        H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         {% endif %}
-
         {% if s2.name == 'ge' %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
         {% endif %}
- 	    
-        {% if s1.name == 'ge' %}
+ 	    {% if s1.name == 'ge' %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= T{{ network.energy_term.name }}[i];
         {% endif %}
-
         {%- endfor %}
         {% endfor %}
     }
@@ -1002,13 +998,6 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
-    
-    {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;    
-    {% endif %}
-    {% if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx;
-    {% endif %}
 
     double z;
     double T;
@@ -1023,13 +1012,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         z            = data->current_z;
         mdensity     = data->mdensity[i];
         inv_mdensity = data->inv_mdensity[i];
-        {% if "gloverabel" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[i];
-        {% endif %}
-        {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[i];
-        {% endif %}
-
+        
         j = i * nchem;
         {%- for species in network.required_species | sort %}
         {{species.name}} = y_arr[j];
@@ -1045,6 +1028,11 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         {{network.print_ccode(species, assign_to="NV_Ith_S( ydot, j )" ) }}
         NV_Ith_S( ydot, j ) *= inv_scale[j];
         {% if species.name == "ge" %}
+        
+        {% if network.include_binding_energy == 1%}
+        NV_Ith_S( ydot, j ) -= 7.177e-12 * ( 0.5 * NV_Ith_S( ydot, 0) +  0.5 * NV_Ith_S( ydot, 1)  );
+        NV_Ith_S( ydot, j ) += 7.177e-12 * ( 0.5 * NV_Ith_S( ydot, 2) +  0.5 * NV_Ith_S( ydot, 3)  );
+        {% endif %}
         NV_Ith_S( ydot, j ) *= inv_mdensity;
         {% endif %}
         j++;
@@ -1093,10 +1081,10 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         // by the input units later
         // atol = input * rtol;
         // which again should be set by dengo
-        // input in *mass density per mH* 
-
+        
         {%- for species in network.required_species | sort %}
         input[j] = field_data->{{species.name}}_density[d];
+        input[j] /= {{species.weight}};
         atol[j] = input[j] * 1.0e-9;
         j++;
         {% endfor %}
@@ -1104,8 +1092,8 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
 
     double ttot;
     double z;
-    double dtf = 1.0; 
-    ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+
+    ttot = dengo_evolve_{{solver_name}}( dt, dt, z, input, rtol, atol, dims, data, temp );
 
     for ( int d = 0; d< dims; d++  ){
         j = d*N;
@@ -1115,7 +1103,7 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         // which again should be set by dengo
         
         {%- for species in network.required_species | sort %}
-        field_data->{{species.name}}_density[d] = input[j];
+        field_data->{{species.name}}_density[d] = input[j] * {{species.weight}};
         j++;
         {% endfor %}
     }
@@ -1246,9 +1234,6 @@ int calculate_JacTimesVec_{{solver_name}}
     {%- endfor %}
     {%- endfor %}
     
-    {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
-    {% endif %}
 
     double scale;
     /* Define the species */
@@ -1307,188 +1292,3 @@ int calculate_JacTimesVec_{{solver_name}}
 
 {% endblock %}
 
-{% block calculate_sparse_jacobian %}
-#ifdef CVKLU
-int calculate_sparse_jacobian_{{solver_name}}( realtype t,
-                                        N_Vector y, N_Vector fy,
-                                        SUNMatrix J, void *user_data,
-                                        N_Vector tmp1, N_Vector tmp2,
-                                        N_Vector tmp3)
-{
-    /* We iterate over all of the rates */
-    /* Calcuate temperature first */
-    
-
-    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
-    
-    int nchem = {{network.required_species | length }};
-    int nstrip = data->nstrip;
-    int i, j;
-
-    /* change N_Vector back to an array */
-    double y_arr[ {{network.required_species | length }} * nstrip ];
-    double *scale     = data->scale;
-    double *inv_scale = data->inv_scale;   
-    {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
-    {% endif %}
-    {% if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx;
-    {% endif %}
-
-    /*
-    for ( i = 0; i < nstrip; i++ ){
-        j = i * nchem;
-        {%- for species in network.required_species | sort %}
-        y_arr[j] = NV_Ith_S( y, j )*scale[j];
-        j++;
-        {%- endfor %}
-    }
-
-    int flag;
-    flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
-    if (flag > 0){
-        // check if the temperature failed to converged
-        return -1;    
-    }
-    {{solver_name}}_interpolate_rates(data, nstrip);
-    */
-
-    // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
-    // {{solver_name}}_interpolate_rates(data, nstrip);
-
-    /* Now We set up some temporaries */
-    
-    // CSR is what we choose
-    sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(J);
-    sunindextype *colvals = SUNSparseMatrix_IndexValues(J);
-    realtype *matrix_data = SUNSparseMatrix_Data(J);
-    
-    SUNMatZero(J);
-   
-    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }};
-
-
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}};
-    double *r{{name}}= data->drs_{{name}};
-    {%- endfor %}
-    
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}};
-    {%- endfor %}
-    {%- endfor %}
-
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    double z;
-    double T;
-
-    double mh = 1.67e-24;
-    double mdensity, inv_mdensity;
-    
-    double scale2, inv_scale1;
-
-    j = 0;
-    mdensity = 0.0;
-    z = data->current_z;
-   
-    int k = 0;
-    for ( i = 0; i < nstrip; i++ ){
-        j = i * nchem;
-        {%- for species in network.required_species | sort %}
-        {{species.name}} = NV_Ith_S( y, j )*scale[j];
-        j++;
-        {% endfor %}
-
-        mdensity = data->mdensity[i];
-        inv_mdensity = 1.0 / mdensity; 
-        {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[i];  
-        {% endif %}
-       
-        j = i * 64;
-        {% for colvals, jac_comp, s1, s2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="component", assign_to = "")%}
-        // {{s1.name}} by {{s2.name}}
-        colvals[j + {{k}}] = i * nchem + {{colvals}} ;
-        matrix_data[ j + {{k}} ] {{jac_comp}}
-        {% if s1.name == 'ge' and s2.name == 'ge'%}
-        // ad-hoc extra term of ge by ge
-        // considering ONLY the h2formation/ and continuum cooling
-        matrix_data[ j + {{k}}] = -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
-        {% endif %}
-        {% if s1.name == 'ge' %}
-        matrix_data[j + {{k}}] *= inv_mdensity;
-        {% endif %}
- 	    {% if s2.name == 'ge' %}
-        matrix_data[ j + {{k}}] *= T{{ network.energy_term.name }}[i];
-        {% endif %}
-        {% endfor %}
-        
-        {% for rowptrs in network.get_sparse_matrix_component(sparse_type = "CSR", return_type = "indexptrs") %}
-        rowptrs[ i * nchem +  {{loop.index0}}] = i * 64 + {{rowptrs}};
-        {% endfor %}
-        
-        j = i * nchem;
-        {% for i1, i2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="index")%}
-        inv_scale1 = inv_scale[ j + {{i1}} ];
-        scale2     = scale    [ j + {{i2}} ];
-        matrix_data[ i * 64 + {{k}}]  *= inv_scale1*scale2; 
-        {% endfor %}
-
-
-    }
-
-    rowptrs[ i * nchem ] = i * 64 ;
-    return 0;
-}
-
-#endif
-{% endblock %}
-
-
-{% block setting_up_extra_variables %}
-void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip ){
-    
-    int i, j;
-    double mh = 1.67e-24;
-    for ( i = 0; i < nstrip; i++){
-        data->mdensity[i] = 0;
-        j = i * {{network.required_species | length}};
-        {%- for species in network.required_species | sort %}
-        {%if species.name not in ["ge", "de"] %}
-        // species: {{species.name}}
-        data->mdensity[i] += input[j] * {{species.weight}}; 
-        {%endif%}
-        j ++;
-        {%endfor%}
-        data->mdensity[i] *= mh;
-        data->inv_mdensity[i] = 1.0 / data->mdensity[i];
-    }
-
-    {% if "cie_cooling" in network.cooling_actions %}
-    double mdensity, tau;
-    for ( i = 0; i < nstrip; i++){
-        
-        mdensity = data->mdensity[i];
-        tau      = pow( (mdensity / 3.3e-8 ), 2.8);
-        tau      = fmax( tau, 1.0e-5 );
-        data->cie_optical_depth_approx[i] = 
-            fmin( 1.0, (1.0 - exp(-tau) ) / tau );
-    }
-    {% endif %}
-
-
-    {% if "gloverabel08" in network.cooling_actions %}
-    for ( i = 0; i < nstrip; i++ ){
-        mdensity = data->mdensity[i];
-        data->h2_optical_depth_approx[i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
-    }
-    {% endif %}
-
-
-}
-{% endblock %}

@@ -354,8 +354,7 @@ void klu_interpolate_gamma(klu_data*, int );
 void setting_up_extra_variables( klu_data * data, double * input, int nstrip );
 
 double dengo_evolve_klu (double dtf, double &dt, double z,
-                                     double *input, double *rtol,
-                                     double *atol, long long dims,
+                                     double *input, long long dims,
                                      klu_data *data, double *temp);
  
 
