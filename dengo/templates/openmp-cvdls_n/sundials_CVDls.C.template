@@ -1104,12 +1104,9 @@ double dengo_evolve_{{solver_name}}_field_data (double dtf, double &dt, double z
 
     #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec)
     {
-        y_vec = NULL;
         y_vec = N_VNew_Serial(N);
         for ( i = 0; i < N; i++){
             NV_Ith_S(y_vec , i) = 1.0;
-            y[i]                = 1.0;
-            
         }
     A = SUNDenseMatrix(N, N);
     LS = SUNDenseLinearSolver(y_vec, A);
@@ -1188,7 +1185,8 @@ double dengo_evolve_{{solver_name}}_field_data (double dtf, double &dt, double z
     
     }
 
-
+    N_VDestroy(y_vec);
+    N_VDestroy(abstol);
 
     double min_dt = dtf;
     for (d = 0; d < dims; d++){

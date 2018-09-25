@@ -56,7 +56,7 @@ The generalized rate data type holders.
 #endif
 
 #ifndef NTHREADS
-#define NTHREADS 1
+#define NTHREADS 8
 #endif
 
 #define NSPECIES {{network.required_species | length}}
@@ -181,10 +181,14 @@ void {{solver_name}}_interpolate_gamma({{solver_name}}_data*, int );
 
 void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip );
 
-double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *input, double *rtol,
                                      double *atol, long long dims,
                                      {{solver_name}}_data *data, double *temp);
+
+double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
+                          double reltol,double *input, int v_size, int d, int start_idx, 
+                          int MAX_ITERATION, double dtf, {{solver_name}}_data *data );
 {% endblock %} {# data_struct_for_rates #}
 
 

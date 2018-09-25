@@ -19,21 +19,20 @@
 #OPTIONS+= -DMAX_NCELLS=1
 
 # Use the Sparse KLU direct solver
-OPTIONS = -DCVKLU -DMAX_NCELLS=1 -fopenmp
+OPTIONS = -DCVKLU -DMAX_NCELLS=256 -fopenmp -DNTHREADS=8
 
 CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
+SUITESPARSE_PATH = /home/kwoksun2/SuiteSparse
 
-
-CVODE_LIBRARY_FILES  = $(CVODE_PATH)/lib/libsundials_nvecserial.a
-CVODE_LIBRARY_FILES += $(CVODE_PATH)/lib/libsundials_cvode.a
-
-CXX      = g++
+CC      = gcc
 LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
 INCLUDE  = -I. -I$(CVODE_PATH)/include
 
+DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
 
-OBJ = {{solver_name}}_solver.C {{solver_name}}_solver_main.C initialize_cvode_solver.C
 
+OBJ = {{solver_name}}_solver.C initialize_cvode_solver.C
+TEST_OBJ = {{solver_name}}_solver_main.C
 
 
 
@@ -63,12 +62,15 @@ OBJ = {{solver_name}}_solver.C {{solver_name}}_solver_main.C initialize_cvode_so
 # other user Makefiles.
 # -----------------------------------------------------------------
 
+
+# LOOKS LIKE I NEED TO INCLUDE CVODE PATH IN LD_LIBRARY_PATH for it to work
+
+
 SHELL = sh
 
-prefix       = /home/kwoksun2/cvode-3.1.0/instdir
-exec_prefix  = /home/kwoksun2/cvode-3.1.0/instdir
-includedir   = /home/kwoksun2/cvode-3.1.0/instdir/include
-libdir       = /home/kwoksun2/cvode-3.1.0/instdir/lib
+exec_prefix  = $(CVODE_PATH)/instdir
+includedir   = $(CVODE_PATH)/include
+libdir       = $(CVODE_PATH)/lib
 
 CPP      = /usr/bin/cc
 CPPFLAGS = -O3 -DNDEBUG -g
@@ -77,7 +79,7 @@ CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
-LINKFLAGS = -Wl,-rpath,/home/kwoksun2/cvode-3.1.0/instdir/lib
+LINKFLAGS = -Wl,-rpath,$(libdir)
 
 
 TMP_INCS  = . ${includedir} 
@@ -86,9 +88,9 @@ INCLUDES  = $(addprefix -I, ${TMP_INCS})
 # -----------------------------------------------------------------------------------------
 
 
-INCLUDES_KLU  = /home/kwoksun2/SuiteSparse/include
-LIBRARIES_KLU = -lsundials_sunlinsolklu   /home/kwoksun2/SuiteSparse/KLU/Lib/libklu.a /home/kwoksun2/SuiteSparse/AMD/Lib/libamd.a /home/kwoksun2/SuiteSparse/COLAMD/Lib/libcolamd.a /home/kwoksun2/SuiteSparse/BTF/Lib/libbtf.a /home/kwoksun2/SuiteSparse/SuiteSparse_config/libsuitesparseconfig.a
-LINKFLAGS_KLU = ${LINKFLAGS}:/home/kwoksun2/SuiteSparse/KLU/Lib
+INCLUDES_KLU  = $(SUITESPARSE_PATH)/include
+LIBRARIES_KLU = -lsundials_sunlinsolklu   $(SUITESPARSE_PATH)/KLU/Lib/libklu.so $(SUITESPARSE_PATH)/AMD/Lib/libamd.so $(SUITESPARSE_PATH)/COLAMD/Lib/libcolamd.so $(SUITESPARSE_PATH)/BTF/Lib/libbtf.so $(SUITESPARSE_PATH)/SuiteSparse_config/libsuitesparseconfig.so
+LINKFLAGS_KLU = ${LINKFLAGS}:$(SUITESPARSE_PATH)/KLU/Lib
 LIBRARIES = -lsundials_cvode -lsundials_nvecserial ${LIBS}
 
 
@@ -101,16 +103,54 @@ INCLUDES  += $(addprefix -I, $(INCLUDES_KLU) )
 LINKFLAGS := $(LINKFLAGS_KLU)
 endif
 
-run_dengo: $(OBJ) 
-	$(CXX) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
+
+
+#------------------------------------------------------------------------
+# MAKE LIBDENGO BY DEFAULT
+# -----------------------------------------------------------------------
+#
+
+libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
+	mkdir -p $(DENGO_INSTALL_PATH)
+	mkdir -p $(DENGO_INSTALL_PATH)/lib
+	mkdir -p $(DENGO_INSTALL_PATH)/include
+	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
+	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
+	cp {{solver_name}}_solver.h $(DENGO_INSTALL_PATH)/include/
+
+run_dengo: {{solver_name}}_solver_main.C
+	$(CC) -o $@ $^ -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -L$(DENGO_INSTALL_PATH)/lib -ldengo
+
+test: run_dengo 
+	./run_dengo /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/testing_data/1.h5
+
+
+#run_dengo: $(OBJ) 
+#	$(CC) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
 
 libdengo.so: $(OBJ) 
-	$(CXX) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
+	$(CC) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
+
+
+#-----------------------------------------------------------------------
+# Implicit rules
+#-----------------------------------------------------------------------
+
+
+# Inhibit removing any *.o files after compiling
+
+.PRECIOUS: %.o %.lo %.C
+
+%.lo: %.C
+	  libtool --mode=compile --tag=CC $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
 
 clean:
 	rm -f *.o
 	rm -f *.so
 	rm -f run_dengo
+	rm -f libdengo.la
+	rm -f *.lo
+
 
 
 

@@ -17,22 +17,23 @@
 {{solver_name}}_data *{{solver_name}}_setup_data(
     int *NumberOfFields, char ***FieldNames)
 {
+
+    //-----------------------------------------------------
+    // Function : {{solver_name}}_setup_data
+    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    //-----------------------------------------------------
+
     int i, n;
 
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
     
     /* allocate space for the scale related pieces */
-    /*
-    for (i = 0; i< {{network.required_species | length}} ; i++){
-        data->scale[i] = 1.0;
-        data->inv_scale[i] = 1.0;
-    }
-    */
-    
+
+    // Number of cells to be solved in a batch 
     data->nstrip = MAX_NCELLS;
     /*initialize temperature so it wont crash*/
     for ( i = 0; i < MAX_NCELLS; i++ ){
-        for( n = 0; i < NTHREADS; n++ ){
+        for( n = 0; n < NTHREADS; n++ ){
             data->Ts[n][i]    = 1000.0;
             data->logTs[n][i] = log(1000.0);
         }
@@ -76,6 +77,20 @@
 {% block entry_point %}
 int {{solver_name}}_main(int argc, char** argv )
 {
+    //-----------------------------------------------------
+    // Function : {{solver_name}}_main
+    // Description: this will look for initial condition files from the CLI, 
+    //              evolve the ODE system to dtf specified from the CLI, (if not it's set to freefall time),
+    //              and write the result to {{solver_name}}_solution.h5 if output file name is not specified
+    // Parameter:   argv[1]   : initial condition file name (in hdf5 format)
+    //              argv[2]   : output file name (in hdf5 format)
+    //              argv[3]   : desired final time reached by solver (in seconds)
+    //
+    // Note:        Units of initial conditions/ output 
+    //              Baryons: mass density in a.m.u * cm^-3 ( 1mH = 1.00794 amu )
+    //              de     : number density of electrons in cm^-3 
+    //              ge     : internal energy per mass density of the cell (erg / g )
+    //-----------------------------------------------------
     {{ solver_name }}_data *data = {{solver_name}}_setup_data(NULL, NULL);
 
     /* Initial conditions */
@@ -138,12 +153,6 @@ int {{solver_name}}_main(int argc, char** argv )
 
     H5Fclose(file_id);
     
-    /*
-     * Use free fall time, not the time specified by 
-     * the network itself
-     */
-
-
     // double dtf = {{ network.stop_time }};
     double dtf, t0;
     t0 = 2.992e15;
@@ -159,7 +168,10 @@ int {{solver_name}}_main(int argc, char** argv )
     double z = -1.0;
     for (i = 0; i < dims * N; i++) input[i] = ics[i];
     double ttot;
-    ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    int flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    if (flag > 0){
+        fprintf(stderr, "solver failed, Time reached by the solver: %0.5g \n", dt);    
+    }
 
     /* Write results to HDF5 file */
 
@@ -208,8 +220,25 @@ int {{solver_name}}_main(int argc, char** argv )
 
 {% block main_evolution %}
 
-double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *input,
-            double *rtol, double *atol, long long dims, {{solver_name}}_data *data, double *temp_array ) {
+int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *input,
+            double *rtol, double *atol, long long dims, {{solver_name}}_data *data, double *temp_array ){
+
+    //-----------------------------------------------------
+    // Function     : dengo_evolve_{{solver_name}}
+    // Description  : Main ODE solver function in dengo
+    
+    // Parameter    :   dtf     : Desired time to be reached by the solver
+    //                  dt      : Pointer to the actual time reached by the solver
+    //                  z       : Current redshift
+    //                  input   : Array to store the initial value of each species, 
+    //                            it will be updated with the value at time dt
+    //                  rtol    : relative tolerance required for convergenece in each internal CVODE timesteps
+    //                  atol    : absolute tolerance required for convergence in each interanl CVODE timesteps
+    //                  dims    : dimension of the input array, i.e. no. of species * no. of cells
+    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations 
+    //                  temp_array: temperature of each cell by the end of the evolution
+    //                           
+    //-----------------------------------------------------
     int i, j;
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
@@ -274,10 +303,15 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     // ntimes: the number of times the CVode solver will be called
     // v_size: the size of the input vector for the solver
     //       : v_size = N * nstrip
+    // v_size_res: leftover strip that doesn't fit into a v_size batch
+    // N     : Number of species
+    
+    int v_size      = N * nstrip;
+    int ntimes      = dims / nstrip;
+    int nstrip_res  = dims % nstrip;
+    int v_size_res  = N * nstrip_res;
 
-    int v_size = N * nstrip;
-    int ntimes = dims / nstrip;
-    double y[10 * v_size];
+    double y[dims];
     
     y_vec = NULL;   
     LS = NULL;
@@ -287,16 +321,13 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     abstol = N_VNew_Serial( v_size ); 
 
     for (i = 0; i < v_size ; i++) {
-        NV_Ith_S(y_vec ,i)   = 1.0;
-        NV_Ith_S(abstol,i)   = 1.0;
-        y[i] = 1.0;
+        NV_Ith_S(abstol,i)   = reltol * reltol;
     }
      // these objects should be initialize once !!
     // in each separate thread!!
 
 
 
-    double *internal_dt = (double *) malloc(ntimes * sizeof(double));
     double *ttot = (double *) malloc(ntimes* sizeof(double));
     int d;
     int sum;
@@ -304,13 +335,11 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
 
     int omp_get_thread_num();
     int threadID;
-    #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec, data, abstol, reltol)
+    #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS)
     {
-    y_vec = NULL;
     y_vec = N_VNew_Serial(v_size);
     for ( i = 0; i < v_size; i++){
         NV_Ith_S(y_vec , i) = 1.0;
-        y[i]                = 1.0;
     }
     
     #ifdef CVKLU
@@ -323,92 +352,93 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
     
-
+    // d: d th path going into the solver
     #pragma omp for private (sum, i, d, siter, y)
     for (int d = 0; d < ntimes; d++){
-        threadID = omp_get_thread_num() 
-        for (i = 0; i < v_size; i++){ 
-            data->scale[threadID][i]         = input[d*v_size + i];
-            data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
-            NV_Ith_S(y_vec , i )   = 1.0;
-        }
-        
-        setting_up_extra_variables(data, data->scale[threadID], nstrip);
-        
-        // initialize a dt for the solver  
-        internal_dt[d] = dtf;
-        ttot[d] = 0.0;
-        siter = 0;
-            
-        while (ttot[d] < dtf) { 
-            fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot[d] );
-            
-            flag = cvode_solver( cvode_mem, y, N * nstrip , &internal_dt[d], data, y_vec, reltol, abstol);
-
-            for (i = 0; i < v_size; i++) {
-                if (y[i] < 0) {
-                    fprintf(stderr, "negative \n");
-                    flag = 1;
-                    break;
-                }
-            }
-            
-            for (i = 0; i < v_size ; i++){
-                NV_Ith_S(y_vec , i )   = 1.0;
-                NV_Ith_S(abstol, i )   = reltol*reltol;   
-            }
-
-            if (flag < 1){
-                // flag = 0 => success
-                // we reset the scale of each component 
-                // with the solution returned by the solver
-                for (i = 0; i < v_size; i++){
-                    data->scale[threadID][i] = y[i] * data->scale[threadID][i];
-                    data->inv_scale[threadID][i] = 1.0/ data->scale[threadID][i];
-                    // fprintf(stderr , "data->scale[%d] = %0.5g \n", i,y[i]);
-                }
-
-                ttot[d] += internal_dt[d];
-                // dt = dtf - ttot;
-                internal_dt[d] = DMIN(internal_dt[d] * 2.0, dtf - ttot[d]);
-            
-            } else{
-                internal_dt[d] /= 2.0;
-                internal_dt[d] = DMIN(internal_dt[d] * 1.1, dtf - ttot[d]);
-            }
-
-	        
-            if (siter == MAX_ITERATION) break;
-
-        
-            siter++;
-        } // while loop for each strip
-        
-        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot[d]);
+        threadID = omp_get_thread_num();
+        ttot[d] = evolve_in_batches( cvode_mem, y_vec, abstol, reltol, input, v_size, d, d*v_size, MAX_ITERATION, dtf, data );
 
         // re-calculate temperature at the final output
         {{solver_name}}_calculate_temperature(data, data->scale[threadID], nstrip, N);
+        
+        fprintf(stderr, "%d th strip from thread %d = %0.5g\n", d, threadID, ttot[d]);
 
         for ( i = 0; i < nstrip; i ++){
             temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
             ttot_all  [ d * nstrip + i ] = ttot[d];
         }
-
         for (i = 0; i < v_size; i++){
             input     [ d * v_size + i ] = data->scale[threadID][i] ;
         } // copy data back to the input array
     } // for d dims loop
-
-    }
-
-    // free all unused memory;
+    
     CVodeFree(&cvode_mem);
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
     N_VDestroy(y_vec);
+    
+    }
+
+    N_VDestroy(y_vec);
     N_VDestroy(abstol);
 
+    if ( v_size_res > 0 ){
+        threadID = omp_get_thread_num();
+        data->nstrip = nstrip_res;
+        d = ntimes;
+        
+        // free all unused memory;
 
+       
+        SUNLinearSolver LS;
+        SUNMatrix A;
+        N_Vector y_vec, abstol;
+     
+        y_vec = NULL;   
+        LS = NULL;
+        A  = NULL;
+    
+        y_vec  = N_VNew_Serial( v_size_res );
+        abstol = N_VNew_Serial( v_size_res ); 
+
+        for (i = 0; i < v_size_res; i++) {
+            NV_Ith_S(y_vec ,i)   = 1.0;
+            NV_Ith_S(abstol,i)   = reltol*reltol;
+        }
+       
+        #ifdef CVKLU
+        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * 64, CSR_MAT);
+        LS = SUNKLU(y_vec,A); 
+        #else
+        A  = SUNDenseMatrix(v_size_res, v_size_res);
+        LS = SUNDenseLinearSolver(y_vec, A);
+        #endif
+        
+        cvode_mem = setup_cvode_solver( f, jf, v_size_res, data, LS, A, y_vec, reltol, abstol );
+        ttot[d] = evolve_in_batches(cvode_mem, y_vec, abstol, reltol, input, v_size_res, d, d * v_size,  MAX_ITERATION, dtf, data);
+        {{solver_name}}_calculate_temperature(data, data->scale[threadID], nstrip, N);
+        for ( i = 0; i < nstrip_res; i ++){
+            ttot_all  [ d * nstrip + i ] = ttot[d];
+            temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
+        }
+       
+        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot[d]);
+        // copy data back to the input array
+        for (i = 0; i < v_size_res; i++){
+            input     [ d * v_size + i ] = data->scale[threadID][i] ;
+        } 
+        
+        // free all unused memory;
+        CVodeFree(&cvode_mem);
+        SUNLinSolFree(LS);
+        SUNMatDestroy(A);
+        N_VDestroy(y_vec);
+        N_VDestroy(abstol);    
+    }
+
+  
+
+    
 
     {%-  if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
@@ -428,12 +458,103 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     for (int d = 0; d < dims; d++){
         if (ttot_all[d] < dt_final) dt_final = ttot_all[d];    
     }
-    fprintf(stderr, "fraction of completion: %0.5g\n", dt_final/dtf);
-    free(ttot_all);
 
-    return dt_final;
+    fprintf(stderr, "Fraction of completion (dt / dtf): %0.5g\n", dt_final/dtf);
+    free(ttot_all);
+    free(ttot);
+
+    dt = dt_final;
+    if (dt_final < dtf) return 1;
+    return 0;
+
 }
 {% endblock %} {# main_evolution #}
+
+
+{% block evolve_in_batches %}
+double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
+                          double reltol,double *input, int v_size, int d, int start_idx, 
+                          int MAX_ITERATION, double dtf, {{solver_name}}_data *data ){ 
+    // Function   :     evolve_in_batches
+    // Description:     this would evolve the ODE system in bataches of size v_size
+    //                  and return the final time reached by the solver
+    //
+    // Parameter  :     cvode_mem   : CVODE memory object
+    //                  y_vec           : Array to store/relay the data to the CVODE solver                  
+    //                  abstol          : Array of absolute tolerance for each internal timestep
+    //                  reltol          : Relative tolerance requested for each internal timestep
+    //                  input           : Array to store the input number density/ energy of the species
+    //                  v_size          : Size of the ODE system, i.e. No. of Species * No. of Strips/cells
+    //                  d               : Batch count
+    //                  start_idx       : Index to the first element from "input" for the current batch
+    //                  MAX_ITERATION   : Maximum Call/retry to the CVODE solver
+    //                  dtf             : Desired final output time
+    //                  data            : {{solver_name}}_data object that stores rate/ temperature/ scale data
+    // Return    :      ttot            : final time reached by the solver
+
+    int i, siter, flag;
+    double dt, ttot;
+    double y[v_size];
+    int nstrip = data->nstrip;
+    int threadID = omp_get_thread_num();
+
+    for (i = 0; i < v_size; i++){ 
+        data->scale[threadID][i]         = input[ start_idx + i];
+        data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
+        NV_Ith_S(y_vec , i )   = 1.0;
+        NV_Ith_S(abstol, i )   = reltol*reltol;
+    }
+    
+    fprintf(stderr, "incoming strip size: %d \n", nstrip);
+    setting_up_extra_variables(data, data->scale[threadID], nstrip );
+        
+    // initialize a dt for the solver  
+    dt = dtf;
+    ttot = 0.0;
+    siter = 0;
+            
+    while (ttot < dtf) { 
+        fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );    
+        flag = cvode_solver( cvode_mem, y, v_size , &dt, data, y_vec, reltol, abstol);
+
+        for (i = 0; i < v_size; i++) {
+            if (y[i] < 0) {
+                fprintf(stderr, "negative \n");
+                flag = 1;
+                break;
+            }
+        }
+            
+        for (i = 0; i < v_size ; i++){
+            NV_Ith_S(y_vec , i )   = 1.0;
+            NV_Ith_S(abstol, i )   = reltol*reltol;   
+        }
+
+        if (flag < 1){
+        // flag = 0 => success
+        // we reset the scale of each component 
+        // with the solution returned by the solver
+        for (i = 0; i < v_size; i++){
+            data->scale[threadID][i] = y[i] * data->scale[threadID][i];
+            data->inv_scale[threadID][i] = 1.0/ data->scale[threadID][i];
+        }
+
+        ttot += dt;
+        dt = DMIN(dt * 2.0, dtf - ttot);
+        } else{
+            dt /= 2.0;
+            dt = DMIN(dt , dtf - ttot);
+        }
+        if (siter == MAX_ITERATION) break;
+        siter++;
+        } // while loop for each strip
+    
+    return ttot;
+}
+{% endblock evolve_in_batches%}
+
+
+
 
 {% block read_tables %}
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
