@@ -1,16 +1,14 @@
-#include "{{solver_name}}_solver.h"
+#include "cvklu_solver.h"
 
 int main(int argc, char **argv) {
-    {{solver_name}}_main(argc, argv);
+    //cvklu_main(argc, argv);
 
-
-    
     
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     
     int N = 64*64*64;
     field_data->ncells = N; 
-    double density = 1.0e0; // in cm^-3
+    double density = 1.0e3; // in cm^-3
     double T = 3000.0; // in K
     double mH, k, tiny;
 
@@ -18,7 +16,7 @@ int main(int argc, char **argv) {
     k  = 1.3806488e-16;
     tiny = 1.0e-20; 
     
-    density *= mH;
+//    density *= mH;
     
     code_units *units = (code_units *) malloc(sizeof(code_units));
     units->density_units = 1.0;
@@ -61,8 +59,11 @@ int main(int argc, char **argv) {
     field_data->de_density = de_density;
     field_data->ge_density = ge_density;
 
-    double dt = 299204.0 * 1.0e10 / sqrt(density / mH ) ;
+    double dt = 299204.0 * 1.0e10 / sqrt(density) ;
     fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
-    {{solver_name}}_solve_chemistry_dt( units, field_data, dt );
+    cvklu_solve_chemistry_dt( units, field_data, dt );
+
+
+    
 
 }

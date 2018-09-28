@@ -31,8 +31,8 @@ INCLUDE  = -I. -I$(CVODE_PATH)/include
 DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
 
 
-OBJ = {{solver_name}}_solver.C initialize_cvode_solver.C
-TEST_OBJ = {{solver_name}}_solver_main.C
+OBJ = cvklu_solver.C initialize_cvode_solver.C
+TEST_OBJ = cvklu_solver_main.C
 
 
 
@@ -74,7 +74,7 @@ libdir       = $(CVODE_PATH)/lib
 
 CPP      = /usr/bin/cc
 CPPFLAGS = -O3 -DNDEBUG -g
-CC       = /usr/bin/cc
+CC       = g++ #/usr/bin/cc
 CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
@@ -116,11 +116,11 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	mkdir -p $(DENGO_INSTALL_PATH)/include
 	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
 	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
-	cp {{solver_name}}_solver.h $(DENGO_INSTALL_PATH)/include/
+	cp cvklu_solver.h $(DENGO_INSTALL_PATH)/include/
 	cp dengo_types.h $(DENGO_INSTALL_PATH)/include/
 
-run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+run_dengo: cvklu_solver_main.C
+	g++ -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lhdf5
 
 test: run_dengo 
 	./run_dengo /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/testing_data/1.h5
@@ -130,7 +130,7 @@ test: run_dengo
 #	$(CC) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
 
 libdengo.so: $(OBJ) 
-	$(CC) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
+	$(CC) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE) -I$(INCLUDES_KLU) $(OPTIONS)
 
 
 #-----------------------------------------------------------------------
@@ -143,7 +143,7 @@ libdengo.so: $(OBJ)
 .PRECIOUS: %.o %.lo %.C
 
 %.lo: %.C
-	  libtool --mode=compile --tag=CC $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
+	  libtool --mode=compile --tag=CXX $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
 
 clean:
 	rm -f *.o
@@ -152,6 +152,5 @@ clean:
 	rm -f libdengo.la
 	rm -f *.lo
 	libtool --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
-
 
 

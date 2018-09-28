@@ -505,7 +505,6 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
         NV_Ith_S(abstol, i )   = reltol*reltol;
     }
     
-    fprintf(stderr, "incoming strip size: %d \n", nstrip);
     setting_up_extra_variables(data, data->scale[threadID], nstrip );
         
     // initialize a dt for the solver  
@@ -514,7 +513,7 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
     siter = 0;
             
     while (ttot < dtf) { 
-        fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );    
+        // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );    
         flag = cvode_solver( cvode_mem, y, v_size , &dt, data, y_vec, reltol, abstol);
 
         for (i = 0; i < v_size; i++) {
@@ -1206,10 +1205,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
 
 {% block solve_chemistry_dt %}
 
-int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data, 
-{{solver_name}}_data *data, double dt ){
+int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
     
-    int i, j;
+    int i, j, d;
     int N = {{network.required_species | length }};
     int dims = field_data->ncells; // total number of strips to be evaluated
 
@@ -1226,13 +1224,20 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
     // input[d*N + i] = field_data->HI_density[]
     //
 
+    {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL);
 
     double *input = (double *) malloc(dims * N * sizeof(double));
     double *temp  = (double *) malloc(dims * sizeof(double) );
     double *atol;
     double *rtol;
+    
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    
+    double m_amu = 1.66053904e-24;
 
-    for ( int d = 0; d< dims; d++  ){
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
         // by the input units later
@@ -1241,17 +1246,29 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         // input in *mass density per mH* 
 
         {%- for species in network.required_species | sort %}
-        input[j] = field_data->{{species.name}}_density[d];
+        input[j]  = field_data->{{species.name}}_density[d] ;
+        {% if species.name not in network.skip_weight %}
+        input[j] *= units->density_units / m_amu;
+        {% endif %}
+        {% if species == network.energy_term %}
+        input[j] *= UNIT_E_per_M;
+        {% endif %}
         j++;
         {% endfor %}
     }
+    
+    dt *= units->time_units;
 
-    double ttot;
+    int flag;
     double z;
-    double dtf; 
-    ttot = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    double dtf;
+    
+    dtf = dt;
 
-    for ( int d = 0; d< dims; d++  ){
+    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
         // by the input units later
@@ -1260,16 +1277,25 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
         
         {%- for species in network.required_species | sort %}
         field_data->{{species.name}}_density[d] = input[j];
+        {% if species.name not in network.skip_weight %}
+        field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
+        {% endif %}
+        {% if species.name == network.energy_term %}
+        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
+        {% endif %}
         j++;
         {% endfor %}
     }
     
     free(input);
-    //free(rtol);
-    //free(atol);
+    free(rtol);
+    free(atol);
     free(temp);
     free(data);
+    
+    if (flag > 0) return 1;
 
+    return 0;
 }
 
 

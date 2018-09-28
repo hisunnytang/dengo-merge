@@ -235,15 +235,20 @@ typedef struct
   int *grid_end;
   long int ncells;
   double grid_dx;
-    
+   
   // This should be updated dynamically 
   // with dengo
   double *density;
-
+    
+  // GAMMA
+  double Gamma;
   
   {%- for species in network.required_species | sort %}
   double *{{species.name}}_density;
   {% endfor %}
+   
+  // directory to the rate data
+  char *dengo_data_file;
 
 } dengo_field_data;
 

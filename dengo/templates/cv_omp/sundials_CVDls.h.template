@@ -189,6 +189,8 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
 double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
                           double reltol,double *input, int v_size, int d, int start_idx, 
                           int MAX_ITERATION, double dtf, {{solver_name}}_data *data );
+
+
 {% endblock %} {# data_struct_for_rates #}
 
 
@@ -228,13 +230,8 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
 typedef struct
 {
 
-  int grid_rank;
-  int *grid_dimension;
-  int *grid_start;
-  int *grid_end;
-  long int ncells;
-  double grid_dx;
-    
+  int nstrip;
+  int ncells; 
   // This should be updated dynamically 
   // with dengo
   double *density;
@@ -258,4 +255,6 @@ typedef struct
   double a_value;
 
 } code_units;
+
+int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt );
 

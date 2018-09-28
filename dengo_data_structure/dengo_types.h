@@ -25,11 +25,26 @@ typedef struct
   // This should be updated dynamically 
   // with dengo
   double *density;
-
+  double *H2_1_density;
   
-  {%- for species in network.required_species | sort %}
-  double *{{species.name}}_density;
-  {% endfor %}
+  double *H2_2_density;
+  
+  double *H_1_density;
+  
+  double *H_2_density;
+  
+  double *H_m0_density;
+  
+  double *He_1_density;
+  
+  double *He_2_density;
+  
+  double *He_3_density;
+  
+  double *de_density;
+  
+  double *ge_density;
+  
 
 } dengo_field_data;
 
@@ -45,4 +60,3 @@ typedef struct
   double a_value;
 
 } code_units;
-

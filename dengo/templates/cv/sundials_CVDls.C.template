@@ -1184,7 +1184,7 @@ int {{solver_name}}_solve_chemistry_dt( dengo_field_data *field_data,
     
     int i, j;
     int N = {{network.required_species | length }};
-    int dims = field_data->ncells; // total number of strips to be evaluated
+    int dims = field_data->nstrip; // total number of strips to be evaluated
 
 
     // turned the field data into a long chain of 
