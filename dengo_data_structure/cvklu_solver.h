@@ -52,7 +52,7 @@ The generalized rate data type holders.
 
 
 #ifndef MAX_NCELLS
-#define MAX_NCELLS 1
+#define MAX_NCELLS 1024
 #endif
 
 #ifndef NTHREADS
@@ -397,7 +397,7 @@ int cvklu_calculate_temperature(cvklu_data *data, double *input, int nstrip, int
 
 
 
-typedef struct
+typedef struct dengo_field_data
 {
 
   int nstrip;
@@ -428,7 +428,7 @@ typedef struct
 
 } dengo_field_data;
 
-typedef struct
+typedef struct code_units
 {
 
   int comoving_coordinates;
