@@ -13,7 +13,7 @@
 # MAX_NCELLS: number of strip solved per solver call 
 
 # Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
-#OPTIONS = -DCVSPILS -DMAX_NCELLS=1024
+#OPTIONS = -DCVSPILS -DMAX_NCELLS=1024 -fopenmp -DNTHREADS=8
 
 # Use the Dense Linear Solver interface (CVDLS)
 #OPTIONS+= -DMAX_NCELLS=1

@@ -428,7 +428,7 @@ int cvklu_main(int argc, char** argv )
 
 
 int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
-            double *rtol, double *atol, long long dims, cvklu_data *data, double *temp_array ){
+            double *rtol, double *atol, unsigned long dims, cvklu_data *data, double *temp_array ){
 
     //-----------------------------------------------------
     // Function     : dengo_evolve_cvklu
@@ -446,7 +446,7 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     //                  temp_array: temperature of each cell by the end of the evolution
     //                           
     //-----------------------------------------------------
-    int i, j;
+    unsigned long i, j;
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
     int N = 10;
@@ -566,8 +566,8 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     // v_size_res: leftover strip that doesn't fit into a v_size batch
     // N     : Number of species
     
-    int v_size      = N * nstrip;
-    int ntimes      = dims / nstrip;
+    int  v_size      = N * nstrip;
+    unsigned long  ntimes      = dims / nstrip;
     int nstrip_res  = dims % nstrip;
     int v_size_res  = N * nstrip_res;
 
@@ -610,18 +610,19 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     #endif
     
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
-    fprintf(stderr, "thread setting up solver %d \n", threadID);
 
     // d: d th path going into the solver
     #pragma omp for private (sum, i, d, siter, y, threadID) schedule(static, 1)
     for ( d = 0; d < ntimes; d++){
         threadID = omp_get_thread_num();
+
+
         ttot[d] = evolve_in_batches( cvode_mem, y_vec, abstol, reltol, input, v_size, d, d*v_size, MAX_ITERATION, dtf, data );
 
         // re-calculate temperature at the final output
         cvklu_calculate_temperature(data, data->scale[threadID], nstrip, N);
-        
-        //fprintf(stderr, "%d th strip from thread %d = %0.5g\n", d, threadID, ttot[d]);
+
+        fprintf(stderr, "%d th strip from thread %d = %0.5g at T = %0.5g K\n", d, threadID, ttot[d], data->Ts[threadID][0]);
         if (ttot[d] < dtf){
             fprintf(stderr, "FAILED FROM thread %d at ttot[%d] = %0.5g\n", threadID, d, ttot[d]);
         }
@@ -813,13 +814,20 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
         if ( input[start_idx + i] != input[start_idx + i] ){
         fprintf(stderr, "from %d, at start_idx: %d, i: %d = %0.5g \n", threadID, start_idx,  i, input[start_idx + i] );
         }
+        if (i < 10){
+            fprintf(stderr, "%d: input[%d] = %0.5g \n", threadID, i, data->scale[threadID][i]);
+        }
+
         data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
         NV_Ith_S(y_vec , i )   = 1.0;
         NV_Ith_S(abstol, i )   = reltol*reltol;
     }
     
     setting_up_extra_variables(data, data->scale[threadID], nstrip );
-        
+    
+    cvklu_calculate_temperature(data, data->scale[threadID], nstrip, 10);
+    fprintf(stderr, "initial temperature: data->Ts[%d][0] = %0.5g \n", threadID, data->Ts[threadID][0]);
+       
     // initialize a dt for the solver  
     dt = dtf;
     ttot = 0.0;
@@ -831,7 +839,7 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
 
         for (i = 0; i < v_size; i++) {
             if (y[i] < 0) {
-                fprintf(stderr, "negative \n");
+                fprintf(stderr, "negative at density: %0.5g, temperature: %0.5g \n", data->mdensity[threadID][i/10], data->Ts[threadID][i/10]);
                 flag = 1;
                 break;
             }
@@ -1134,7 +1142,7 @@ int cvklu_calculate_temperature(cvklu_data *data,
         data->Ts[threadID][i] = Tnew;
 
 
-        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+        //fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
         
@@ -4104,13 +4112,12 @@ int calculate_rhs_cvklu(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 
 int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
     
-    int i, j, d;
+    unsigned long int i, j, d, dims;
     int N = 10;
     
-    field_data->ncells = 262144;
-    int dims = field_data->ncells; // total number of strips to be evaluated
-
-    fprintf(stderr, "total ncells: %d \n", dims);
+    dims = field_data->nstrip; // total number of strips to be evaluated
+    
+    fprintf(stderr, "\n total ncells: %lu \n", dims);
     // turned the field data into a long chain of 
     // 1-D array
     //
@@ -4130,12 +4137,15 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
     double *atol;
     double *rtol;
     
+    
+    //fprintf(stderr, "\n size of input array: %lu \n", dims);
+   
     // code unit in terms of erg/g
     double UNIT_E_per_M = units->velocity_units * units->velocity_units;
     
     double m_amu = 1.66053904e-24;
 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
@@ -4214,7 +4224,7 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
     }
     
     dt *= units->time_units;
-
+    dt *= 1000.0;
     int flag;
     double z;
     double dtf;
@@ -4223,12 +4233,12 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
 
     for ( d = 0; d < dims* N; d++ ){
         if (input[d] != input[d] ){
-            fprintf(stderr, "error from the input array at %d \n ", d);
+            fprintf(stderr, "error from the input array at %lu \n ", d);
             return 1;
         }
     }
 
-    flag = dengo_evolve_cvklu(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    flag = dengo_evolve_cvklu(dt, dt, z, input, rtol, atol, dims, data, temp);
     
     #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
     for ( d = 0; d< dims; d++  ){
@@ -5983,8 +5993,8 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
         mdensity = data->mdensity[threadID][i];
         tau      = pow( (mdensity / 3.3e-8 ), 2.8);
         tau      = fmax( tau, 1.0e-5 );
-        data->cie_optical_depth_approx[threadID][i] = 
-            fmin( 1.0, (1.0 - exp(-tau) ) / tau );
+        data->cie_optical_depth_approx[threadID][i] = 1.0; 
+       //     fmin( 1.0, (1.0 - exp(-tau) ) / tau );
     }
     
 
@@ -5992,7 +6002,7 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
     
     for ( i = 0; i < nstrip; i++ ){
         mdensity = data->mdensity[threadID][i];
-        data->h2_optical_depth_approx[threadID][i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+        data->h2_optical_depth_approx[threadID][i] = 1.0;//  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
     }
     
 

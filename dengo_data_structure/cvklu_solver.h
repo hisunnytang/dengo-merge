@@ -353,7 +353,7 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
 
 int dengo_evolve_cvklu (double dtf, double &dt, double z,
                                      double *input, double *rtol,
-                                     double *atol, long long dims,
+                                     double *atol, unsigned long dims,
                                      cvklu_data *data, double *temp);
 
 double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
@@ -400,7 +400,7 @@ int cvklu_calculate_temperature(cvklu_data *data, double *input, int nstrip, int
 typedef struct dengo_field_data
 {
 
-  int nstrip;
+  unsigned long int nstrip;
   int ncells; 
   // This should be updated dynamically 
   // with dengo

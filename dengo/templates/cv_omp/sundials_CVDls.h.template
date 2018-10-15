@@ -52,7 +52,7 @@ The generalized rate data type holders.
 
 
 #ifndef MAX_NCELLS
-#define MAX_NCELLS 1
+#define MAX_NCELLS 1024
 #endif
 
 #ifndef NTHREADS
@@ -152,7 +152,8 @@ typedef struct {{solver_name}}_data {
     {% if "gloverabel08" in network.cooling_actions %}
     double h2_optical_depth_approx[NTHREADS][MAX_NCELLS];
     {% endif %}
-
+    
+    const char *dengo_data_file;
 } {{ solver_name }}_data;
 
 
@@ -183,7 +184,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
 
 int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *input, double *rtol,
-                                     double *atol, long long dims,
+                                     double *atol, unsigned long dims,
                                      {{solver_name}}_data *data, double *temp);
 
 double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
@@ -227,10 +228,10 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
 
 {% endblock %}
 
-typedef struct
+typedef struct dengo_field_data
 {
 
-  int nstrip;
+  unsigned long int nstrip;
   int ncells; 
   // This should be updated dynamically 
   // with dengo
@@ -240,10 +241,11 @@ typedef struct
   {%- for species in network.required_species | sort %}
   double *{{species.name}}_density;
   {% endfor %}
-
+  
+  const char *dengo_data_file;
 } dengo_field_data;
 
-typedef struct
+typedef struct code_units
 {
 
   int comoving_coordinates;

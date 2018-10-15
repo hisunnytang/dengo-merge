@@ -117,17 +117,13 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
 	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
 	cp {{solver_name}}_solver.h $(DENGO_INSTALL_PATH)/include/
-	cp dengo_types.h $(DENGO_INSTALL_PATH)/include/
+	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
 	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
-	./run_dengo /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/testing_data/1.h5
-
-
-#run_dengo: $(OBJ) 
-#	$(CC) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
+	./run_dengo
 
 libdengo.so: $(OBJ) 
 	$(CC) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)

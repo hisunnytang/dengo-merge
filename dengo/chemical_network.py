@@ -271,7 +271,8 @@ class ChemicalNetwork(object):
             return rowptrs
         elif return_type == "index":
             return zip(i1_list, i2_list, range(k))
-
+        elif return_type == "nsparse":
+            return k
 
 
 

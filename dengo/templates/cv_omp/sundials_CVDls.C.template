@@ -14,8 +14,7 @@
 
 #include "{{solver_name}}_solver.h"
 
-{{solver_name}}_data *{{solver_name}}_setup_data(
-    int *NumberOfFields, char ***FieldNames)
+{{solver_name}}_data *{{solver_name}}_setup_data( const char *FileLocation, int *NumberOfFields, char ***FieldNames)
 {
 
     //-----------------------------------------------------
@@ -24,9 +23,12 @@
     //-----------------------------------------------------
 
     int i, n;
-
+    
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
     
+    // point the module to look for {{solver_name}}_tables.h5
+    data->dengo_data_file = FileLocation;
+
     /* allocate space for the scale related pieces */
 
     // Number of cells to be solved in a batch 
@@ -54,13 +56,13 @@
     data->id_zbin = 1.0L / data->d_zbin;
     
     {{ solver_name }}_read_rate_tables(data);
-    fprintf(stderr, "Successfully read in rate tables.\n");
+    //fprintf(stderr, "Successfully read in rate tables.\n");
 
     {{ solver_name }}_read_cooling_tables(data);
-    fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    //fprintf(stderr, "Successfully read in cooling rate tables.\n");
     
     {{ solver_name }}_read_gamma(data);
-    fprintf(stderr, "Successfully read in gamma tables. \n");
+    //fprintf(stderr, "Successfully read in gamma tables. \n");
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
         NumberOfFields[0] = {{network.required_species | length}};
@@ -70,6 +72,9 @@
         FieldNames[0][i++] = strdup("{{s.name}}");
         {% endfor %}
     }
+
+    data->dengo_data_file = NULL;
+
     return data;
 
 }
@@ -91,7 +96,7 @@ int {{solver_name}}_main(int argc, char** argv )
     //              de     : number density of electrons in cm^-3 
     //              ge     : internal energy per mass density of the cell (erg / g )
     //-----------------------------------------------------
-    {{ solver_name }}_data *data = {{solver_name}}_setup_data(NULL, NULL);
+    {{ solver_name }}_data *data = {{solver_name}}_setup_data(NULL, NULL, NULL);
 
     /* Initial conditions */
     hid_t file_id;
@@ -221,7 +226,7 @@ int {{solver_name}}_main(int argc, char** argv )
 {% block main_evolution %}
 
 int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *input,
-            double *rtol, double *atol, long long dims, {{solver_name}}_data *data, double *temp_array ){
+            double *rtol, double *atol, unsigned long dims, {{solver_name}}_data *data, double *temp_array ){
 
     //-----------------------------------------------------
     // Function     : dengo_evolve_{{solver_name}}
@@ -239,7 +244,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     //                  temp_array: temperature of each cell by the end of the evolution
     //                           
     //-----------------------------------------------------
-    int i, j;
+    unsigned long i, j;
     hid_t file_id;
     /* fprintf(stderr, "  ncells = % 3i\n", (int) dims); */
     int N = {{network.required_species | length}};
@@ -280,7 +285,6 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     data->current_z = z;
     int niter = 0;
     int siter = 0;
-    double *ttot_all = (double *) malloc( dims * sizeof(double) );
 
     double floor_value = 1e-25;
 
@@ -289,7 +293,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int flag;
     double reltol = 1.0e-4;
     void *cvode_mem;
-    int MAX_ITERATION = 1000;
+    int MAX_ITERATION = 10;
     double mh = 1.67e-24;
     int nstrip = data->nstrip;
 
@@ -307,7 +311,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     // N     : Number of species
     
     int v_size      = N * nstrip;
-    int ntimes      = dims / nstrip;
+    unsigned long ntimes      = dims / nstrip;
     int nstrip_res  = dims % nstrip;
     int v_size_res  = N * nstrip_res;
 
@@ -328,10 +332,10 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
 
 
-    double *ttot = (double *) malloc(ntimes* sizeof(double));
+    double *ttot = (double *) malloc( (ntimes + 1)* sizeof(double));
     int d;
     int sum;
-    
+    int NSPARSE = {{network.get_sparse_matrix_component(return_type="nsparse")}}; // no. of sparse jacobian compoents
 
     int omp_get_thread_num();
     int threadID;
@@ -343,7 +347,8 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     }
     
     #ifdef CVKLU
-    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * 64, CSR_MAT );
+
+    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * NSPARSE, CSR_MAT );
     LS        = SUNKLU( y_vec, A);
     #else
     A         = SUNDenseMatrix      ( v_size, v_size );
@@ -353,7 +358,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
     
     // d: d th path going into the solver
-    #pragma omp for private (sum, i, d, siter, y)
+    #pragma omp for private (sum, i, d, siter, y, threadID) schedule(static, 1)
     for (int d = 0; d < ntimes; d++){
         threadID = omp_get_thread_num();
         ttot[d] = evolve_in_batches( cvode_mem, y_vec, abstol, reltol, input, v_size, d, d*v_size, MAX_ITERATION, dtf, data );
@@ -361,11 +366,13 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         // re-calculate temperature at the final output
         {{solver_name}}_calculate_temperature(data, data->scale[threadID], nstrip, N);
         
-        fprintf(stderr, "%d th strip from thread %d = %0.5g\n", d, threadID, ttot[d]);
+        // fprintf(stderr, "%d th strip from thread %d = %0.5g\n", d, threadID, ttot[d]);
+        if (ttot[d] < dtf){
+            fprintf(stderr, "FAILED FROM thread %d at ttot[%d] = %0.5g \n", threadID, d, ttot[d]);    
+        } 
 
         for ( i = 0; i < nstrip; i ++){
             temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
-            ttot_all  [ d * nstrip + i ] = ttot[d];
         }
         for (i = 0; i < v_size; i++){
             input     [ d * v_size + i ] = data->scale[threadID][i] ;
@@ -407,7 +414,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         }
        
         #ifdef CVKLU
-        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * 64, CSR_MAT);
+        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * NSPARSE, CSR_MAT);
         LS = SUNKLU(y_vec,A); 
         #else
         A  = SUNDenseMatrix(v_size_res, v_size_res);
@@ -418,7 +425,6 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         ttot[d] = evolve_in_batches(cvode_mem, y_vec, abstol, reltol, input, v_size_res, d, d * v_size,  MAX_ITERATION, dtf, data);
         {{solver_name}}_calculate_temperature(data, data->scale[threadID], nstrip, N);
         for ( i = 0; i < nstrip_res; i ++){
-            ttot_all  [ d * nstrip + i ] = ttot[d];
             temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
         }
        
@@ -434,6 +440,8 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         SUNMatDestroy(A);
         N_VDestroy(y_vec);
         N_VDestroy(abstol);    
+    } else{
+      ttot[ntimes] = dtf;      
     }
 
   
@@ -455,12 +463,11 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
     double dt_final = dtf;
     
-    for (int d = 0; d < dims; d++){
-        if (ttot_all[d] < dt_final) dt_final = ttot_all[d];    
+    for (int d = 0; d < (ntimes + 1); d++){
+        if (ttot[d] < dt_final) dt_final = ttot[d];    
     }
 
-    fprintf(stderr, "Fraction of completion (dt / dtf): %0.5g\n", dt_final/dtf);
-    free(ttot_all);
+    fprintf(stderr, "Fraction of completion (dt (%0.3g) / dtf): %0.3g\n", dt , dt_final/dtf);
     free(ttot);
 
     dt = dt_final;
@@ -558,7 +565,14 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
 {% block read_tables %}
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 {
-    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     
     {%- for name, rate in network.reactions | dictsort %}
@@ -572,7 +586,13 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 {
 
-    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
 
     {%- for name, rate in network.cooling_actions | dictsort %}
@@ -588,7 +608,14 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
 {
 
-    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+    
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     
 
@@ -1168,7 +1195,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         z            = data->current_z;
         mdensity     = data->mdensity[threadID][i];
         inv_mdensity = data->inv_mdensity[threadID][i];
-        {% if "gloverabel" in network.cooling_actions %}
+        {% if "gloverabel08" in network.cooling_actions %}
         h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
         {% endif %}
         {% if "cie_cooling" in network.cooling_actions %}
@@ -1207,9 +1234,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
 
 int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
     
-    int i, j, d;
+    unsigned long int i, j, d, dims;
     int N = {{network.required_species | length }};
-    int dims = field_data->ncells; // total number of strips to be evaluated
+    dims = field_data->ncells; // total number of strips to be evaluated
 
 
     // turned the field data into a long chain of 
@@ -1223,8 +1250,9 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
     // i.e.
     // input[d*N + i] = field_data->HI_density[]
     //
-
-    {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL);
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
 
     double *input = (double *) malloc(dims * N * sizeof(double));
     double *temp  = (double *) malloc(dims * sizeof(double) );
@@ -1236,18 +1264,18 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
     
     double m_amu = 1.66053904e-24;
 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
         // by the input units later
         // atol = input * rtol;
         // which again should be set by dengo
-        // input in *mass density per mH* 
-
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g) 
         {%- for species in network.required_species | sort %}
         input[j]  = field_data->{{species.name}}_density[d] ;
-        {% if species.name not in network.skip_weight %}
+        {% if species != network.energy_term %}
         input[j] *= units->density_units / m_amu;
         {% endif %}
         {% if species == network.energy_term %}
@@ -1257,17 +1285,20 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         {% endfor %}
     }
     
-    dt *= units->time_units;
-
     int flag;
     double z;
     double dtf;
     
+    // convert code time to seconds 
+    dt *= units->time_units;
     dtf = dt;
+    
+    // update the rate table location
+    data->dengo_data_file = field_data->dengo_data_file; 
 
     flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
     
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
@@ -1277,7 +1308,7 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         
         {%- for species in network.required_species | sort %}
         field_data->{{species.name}}_density[d] = input[j];
-        {% if species.name not in network.skip_weight %}
+        {% if species != network.energy_term %}
         field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
         {% endif %}
         {% if species.name == network.energy_term %}
@@ -1288,8 +1319,6 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
     }
     
     free(input);
-    free(rtol);
-    free(atol);
     free(temp);
     free(data);
     
@@ -1500,7 +1529,8 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     int nchem = {{network.required_species | length }};
     int nstrip = data->nstrip;
     int i, j;
-    
+    int NSPARSE = {{network.get_sparse_matrix_component( return_type = "nsparse" )}};
+
     int threadID = omp_get_thread_num();
     /* change N_Vector back to an array */
     double y_arr[ {{network.required_species | length }} * nstrip ];
@@ -1591,7 +1621,7 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
         {% endif %}
 
-        j = i * 64;
+        j = i * NSPARSE;
         {% for colvals, jac_comp, s1, s2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="component", assign_to = "")%}
         // {{s1.name}} by {{s2.name}}
         colvals[j + {{k}}] = i * nchem + {{colvals}} ;
@@ -1610,20 +1640,20 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         {% endfor %}
         
         {% for rowptrs in network.get_sparse_matrix_component(sparse_type = "CSR", return_type = "indexptrs") %}
-        rowptrs[ i * nchem +  {{loop.index0}}] = i * 64 + {{rowptrs}};
+        rowptrs[ i * nchem +  {{loop.index0}}] = i * NSPARSE + {{rowptrs}};
         {% endfor %}
         
         j = i * nchem;
         {% for i1, i2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="index")%}
         inv_scale1 = inv_scale[ j + {{i1}} ];
         scale2     = scale    [ j + {{i2}} ];
-        matrix_data[ i * 64 + {{k}}]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + {{k}}]  *= inv_scale1*scale2; 
         {% endfor %}
 
 
     }
 
-    rowptrs[ i * nchem ] = i * 64 ;
+    rowptrs[ i * nchem ] = i * NSPARSE ;
     return 0;
 }
 
