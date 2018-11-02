@@ -4145,7 +4145,7 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
     
     double m_amu = 1.66053904e-24;
 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static)
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 

@@ -394,7 +394,7 @@ class ChemicalNetwork(object):
 
                 return gammaH2_expr
             else:
-                gammaH2 = sympy.Symbol('gammaH2')
+                gammaH2 = sympy.Symbol('gamma%s' %sp_name)
                 return gammaH2
 
         else:
@@ -488,7 +488,18 @@ class ChemicalNetwork(object):
         else:
             gamma = sympy.Symbol('gamma')
             _gamma_m1 = sympy.Symbol('_gamma_m1')
+            tmp = sympy.Symbol('tmp')
+            T = sympy.Symbol('T')
+            for sp in self.interpolate_gamma_species:
+                # substitute the sympy function with sympy Symbols
+                sym_fgamma = sympy.Function('gamma%s' %sp.name)(T)
+                _fgamma_m1 = sympy.Symbol('_gamma%s_m1' %sp.name)
+                function_eq = function_eq.subs({ 1 / (sym_fgamma - 1) : tmp})
+                function_eq = function_eq.subs({tmp : _fgamma_m1})
+
             function_eq = function_eq.subs( { 1/ (gamma-1) : _gamma_m1 } )
+            gamma = sympy.Symbol('gamma')
+            _gamma_m1 = sympy.Symbol('_gamma_m1')
 
             return ccode(function_eq)
 

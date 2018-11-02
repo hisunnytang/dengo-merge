@@ -19,7 +19,7 @@
 #OPTIONS+= -DMAX_NCELLS=1
 
 # Use the Sparse KLU direct solver
-OPTIONS = -DCVKLU -DMAX_NCELLS=256 -fopenmp -DNTHREADS=8
+OPTIONS = -DCVKLU -DMAX_NCELLS=2048 -fopenmp -DNTHREADS=8
 
 CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
 SUITESPARSE_PATH = /home/kwoksun2/SuiteSparse

@@ -941,6 +941,7 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
 
 {% endblock %}
 
+{#
 {% block temperature_from_mass_density %}
 void temperature_from_mass_density(double *input, int nstrip,
                                    int nchem, double *strip_temperature)
@@ -982,7 +983,8 @@ void temperature_from_mass_density(double *input, int nstrip,
     }
          
 }
-{% endblock %} {# temperature_from_mass_density #}
+{% endblock temperature_from_mass_density %}
+#}
 
 {% block calculate_jacobian_sundials %}
 int calculate_jacobian_{{solver_name}}( realtype t,
@@ -1230,8 +1232,347 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     }
 {% endblock %}
 
-{% block solve_chemistry_dt %}
 
+{% block estimate_cooling_time %}
+int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data ){
+    
+    unsigned long int i, j, d, dims;
+    int nchem     = {{network.required_species | length }};
+    dims = field_data->ncells;
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+    
+    int nstrip      = data->nstrip;
+
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+    
+    double *input_batch;
+    double *cooling_time_batch;
+    
+//    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) 
+    for ( d = 0; d < ntimes; d++ ){
+        input_batch        = &input[d* nchem];
+        cooling_time_batch = &field_data->CoolingTime[d * nstrip];
+        {{solver_name}}_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip, data);
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes*nchem];
+        cooling_time_batch = &field_data->CoolingTime[d]; 
+        {{solver_name}}_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip_res, data );    
+    }
+
+    for (i = 0; i < dims; i++ ){
+        field_data->CoolingTime[i] /= units->time_units; 
+    }
+    
+    free(input);
+}
+{% endblock estimate_cooling_time %}
+
+
+{% block calculate_cooling_timescale %}
+int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, {{solver_name}}_data *data){
+    
+    int threadID = omp_get_thread_num(); 
+    /* Now we set up some temporaries */
+    
+    int flag;
+    int nchem = {{network.required_species | length}};
+    // calculate temperature and cooling rate
+    setting_up_extra_variables(data, input, nstrip );
+    flag = {{solver_name}}_calculate_temperature(data,  input , nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    {{solver_name}}_interpolate_rates(data, nstrip);
+    
+    {%- for sp in network.required_species %}
+    double {{sp.name}};
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    {%- endfor %}
+    {%- endfor %}
+    
+    {% if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx;    
+    {% endif %}
+    {% if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx;
+    {% endif %}
+    
+    double z;
+    double T;
+    double mdensity, inv_mdensity, dge_dt;
+
+    int i, j;   
+    for ( i = 0; i < nstrip; i++ ){
+        
+        T            = data->Ts[threadID][i];
+        z            = data->current_z;
+        mdensity     = data->mdensity[threadID][i];
+        inv_mdensity = data->inv_mdensity[threadID][i];
+        {% if "gloverabel08" in network.cooling_actions %}
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
+        {% endif %}
+        {% if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
+        {% endif %}
+
+        j = i * nchem;
+        {%- for species in network.required_species | sort %}
+        {{species.name}} = input[j];
+        j++;
+        {%- endfor %}
+    
+        //
+        // Species: ge
+        //
+        {{network.print_cooling( assign_to="dge_dt" ) }}
+        dge_dt *= inv_mdensity;
+        cooling_time[i] = fabs( ge / dge_dt);
+    
+    //fprintf(stderr, "----------------\n");
+    }
+}
+{% endblock calculate_cooling_timescale %}
+
+
+{% block dengo_calculate_pressure %}
+{% endblock dengo_calculate_pressure %}
+
+{% block dengo_calculate_temperature %}
+int dengo_calculate_temperature( code_units *units, dengo_field_data *field_data){
+    
+    unsigned long int i, j, d, dims;
+    int nchem     = {{network.required_species | length }};
+    dims = field_data->ncells;
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+    
+    int nstrip      = data->nstrip;
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+
+    double *input_batch;
+    double *cooling_time_batch;
+    double *gamma_eff_batch;
+
+    int threadID = omp_get_thread_num(); 
+    /* Now we set up some temporaries */
+
+    #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, threadID) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d < ntimes; d++ ){
+        threadID = omp_get_thread_num();
+
+        input_batch        = &input[d* nchem];
+        gamma_eff_batch    = &field_data->Gamma[d*nstrip];
+
+        setting_up_extra_variables( data, input_batch, nstrip );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip, nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+        for ( i = 0; i < nstrip; i++ ){
+            field_data->temperature[d*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes * nchem];
+        gamma_eff_batch    = &field_data->Gamma[ntimes*nstrip];
+        
+        setting_up_extra_variables( data, input_batch, nstrip_res );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip_res , nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+       
+        for ( i = 0; i < nstrip_res; i++ ){
+            field_data->temperature[ntimes*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+    
+    free(input);
+}
+
+{% endblock dengo_calculate_temperature%}
+
+
+{% block dengo_calculate_gamma %}
+int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double *input, int nstrip  ){
+    unsigned long int i, j, d, dims;
+    int nchem     = {{network.required_species | length }};
+    
+    {% for sp in network.required_species %}
+    double {{sp.name}};
+    {% endfor %}
+    
+    double gamma = 5.0/3.0;
+    {% for sp in network.interpolate_gamma_species_name | sort %}
+    double gamma{{sp}};
+    double dgamma{{sp}}_dT;
+    double _gamma{{sp}}_m1;
+    {% endfor %}
+    double n_gamma_m1, ndensity;
+    
+    int threadID = omp_get_thread_num();
+    // both temperature and gamma are updated before calling this
+    for (i = 0; i < nstrip; i++ ){
+        ndensity = 0;
+        j = i * nchem;
+        {% for sp in network.required_species %}
+        {{sp.name}} = input[j] / {{sp.weight}};
+        {% if sp != network.energy_term %}
+        ndensity += {{sp.name}};
+        {% endif %}
+        {% endfor %}
+        
+        {% for sp in network.interpolate_gamma_species_name | sort %}
+        gamma{{sp}} = data->gamma{{sp}}[threadID][i];
+        dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[threadID][i];
+        _gamma{{sp}}_m1 = 1.0 / (gamma{{sp}} - 1.0);
+        {% endfor %}
+      
+        n_gamma_m1 = {{network.gamma_factor()}};
+        gamma_eff[i] = ndensity / n_gamma_m1 + 1.0; 
+    }
+
+}
+{% endblock dengo_calculate_gamma %}
+
+{% block dengo_calculate_mean_molecular_weight %}
+int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *field_data ){
+    unsigned long int i, j, d, dims;
+    int nchem     = {{network.required_species | length }};
+    dims = field_data->ncells;
+    
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+    
+    {%- for sp in network.required_species %}
+    double {{sp.name}};
+    {% endfor %}
+    double ndensity, mdensity;
+
+    for (i = 0; i < dims; i++ ){
+        ndensity = 0.0;
+        mdensity = 0.0;
+        j = i * nchem;
+        {%- for sp in network.required_species | sort %}
+        // Species: {{sp.name}}
+        {% if sp.name not in network.skip_weight %} 
+        mdensity += input[j]; 
+        {% endif %}
+        {% if sp != network.energy_term %}
+        ndensity += input[j] /{{sp.weight}};
+        {%endif%}
+        j++;
+        {% endfor %}
+        field_data->MolecularWeight[i] = mdensity / ndensity;   
+    }
+    
+    free(input);
+}
+{% endblock dengo_calculate_mean_molecular_weight %}
+
+
+{% block flatten_dengo_field_data  %}
+int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input ){
+    
+    // Function   :    flatten_dengo_field_data
+    // Description:     Flatten the field_data object to a long chain of 1D 
+    //                  input array for the solver in cgs units
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+
+    unsigned long int i, j, d, dims;
+    int N = {{network.required_species | length }};
+    dims = field_data->ncells; // total number of strips to be evaluated
+    
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g) 
+        {%- for species in network.required_species | sort %}
+        input[j]  = field_data->{{species.name}}_density[d] ;
+        {% if species != network.energy_term %}
+        input[j] *= units->density_units / m_amu;
+        {% endif %}
+        {% if species == network.energy_term %}
+        input[j] *= UNIT_E_per_M;
+        {% endif %}
+        j++;
+        {% endfor %}
+    }
+    
+    return 0;
+}
+{% endblock flatten_dengo_field_data %}
+
+{% block reshape_to_dengo_field_data %}
+int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input ){
+    // Function   :     reshape_to_dengo_field_data
+    // Description:     reshape the 1d output array from solver to a dengo_field_data object  
+    //                  and covert them to code units 
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+
+    unsigned long int i, j, d, dims;
+    int N = {{network.required_species | length }};
+    dims = field_data->ncells; // total number of strips to be evaluated
+    
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+   
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+       
+        {%- for species in network.required_species | sort %}
+        field_data->{{species.name}}_density[d] = input[j];
+        {% if species != network.energy_term %}
+        field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
+        {% endif %}
+        {% if species == network.energy_term %}
+        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
+        {% endif %}
+        j++;
+        {% endfor %}
+    }
+   
+    return 0;
+}
+{% endblock reshape_to_dengo_field_data %}
+
+
+{% block solve_chemistry_dt %}
 int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
     
     unsigned long int i, j, d, dims;
@@ -1311,7 +1652,7 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         {% if species != network.energy_term %}
         field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
         {% endif %}
-        {% if species.name == network.energy_term %}
+        {% if species == network.energy_term %}
         field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
         {% endif %}
         j++;
