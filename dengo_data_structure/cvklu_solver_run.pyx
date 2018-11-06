@@ -2,6 +2,7 @@ cimport numpy as np
 import numpy as np
 import time
 from libc.stdlib cimport malloc, free
+from cpython cimport array
 
 cdef extern from "alloca.h":
     void *alloca(int)
@@ -416,6 +417,46 @@ cdef extern from "cvklu_solver.h":
     cdef int _MAX_NCELLS  "MAX_NCELLS"
     cdef int _NSPECIES "NSPECIES"
 
+    ctypedef struct dengo_field_data:
+        unsigned long int nstrip;
+        unsigned long int ncells;
+        double *H2_1_density;
+        
+        double *H2_2_density;
+        
+        double *H_1_density;
+        
+        double *H_2_density;
+        
+        double *H_m0_density;
+        
+        double *He_1_density;
+        
+        double *He_2_density;
+        
+        double *He_3_density;
+        
+        double *de_density;
+        
+        double *ge_density;
+        
+        double *density;
+        double *CoolingTime;
+        double *MolecularWeight;
+        double *temperature;
+        double *Gamma;
+        const char *dengo_data_file;
+    
+    ctypedef struct code_units:
+        int comoving_coordinates   
+        double density_units
+        double length_units
+        double time_units
+        double velocity_units
+        double a_units
+        double a_value
+
+
     ctypedef struct cvklu_data:
         double dbin
         double idbin
@@ -603,40 +644,17 @@ cdef extern from "cvklu_solver.h":
         int bin_id[MAX_NCELLS]
         int ncells
     
-    # Declare ctype RHS and Jacobian
-    ctypedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * )
-    ctypedef int(*jac_f)( long int, realtype, N_Vector , N_Vector , DlsMat , void *, N_Vector, N_Vector, N_Vector)
-
-    int cvklu_main(int argc, char **argv)
-    cvklu_data *cvklu_setup_data(int *NumberOfFields,
-            char ***FieldNames)
-    void cvklu_read_rate_tables(cvklu_data*)
-    void cvklu_read_cooling_tables(cvklu_data*)
-    void cvklu_read_gamma(cvklu_data*)
 
     double dengo_evolve_cvklu (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
                                          cvklu_data *data, double *temp)
-
-    # Declare the Jacobian and RHS function
-    
-    int calculate_jacobian_cvklu(long int N, realtype t,
-                   N_Vector y, N_Vector fy, DlsMat J, void *user_data,
-                   N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
-
-    int calculate_rhs_cvklu(realtype t, N_Vector y, 
-                    N_Vector ydot, void *user_data);
-    
-    void cvklu_calculate_temperature(cvklu_data *data, double *input, int nstrip, int nchem);
-   
-       
-    int ensure_electron_consistency(double *input, int nstrip, int nchem);
+    int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt)
     
 
 def main_run_cvklu():
     t1 = time.time()
-    cvklu_main(0, NULL)
+    #cvklu_main(0, NULL)
     t2 = time.time()
     print "Total elapsed time: %0.3e" % (t2-t1)
 
@@ -645,35 +663,66 @@ def run_cvklu(ics, double tf, int niter = 10000,
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
     cdef np.ndarray[np.float64_t, ndim=1] H2_1_arr = ics["H2_1"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not H2_1_arr.flags['C_CONTIGUOUS']:
+        H2_1_arr = np.ascontiguousarray( H2_1_arr )
+    cdef double[::1] H2_1_memview = H2_1_arr
     cdef np.ndarray[np.float64_t, ndim=2] H2_1_int
     cdef np.ndarray[np.float64_t, ndim=1] H2_2_arr = ics["H2_2"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not H2_2_arr.flags['C_CONTIGUOUS']:
+        H2_2_arr = np.ascontiguousarray( H2_2_arr )
+    cdef double[::1] H2_2_memview = H2_2_arr
     cdef np.ndarray[np.float64_t, ndim=2] H2_2_int
     cdef np.ndarray[np.float64_t, ndim=1] H_1_arr = ics["H_1"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not H_1_arr.flags['C_CONTIGUOUS']:
+        H_1_arr = np.ascontiguousarray( H_1_arr )
+    cdef double[::1] H_1_memview = H_1_arr
     cdef np.ndarray[np.float64_t, ndim=2] H_1_int
     cdef np.ndarray[np.float64_t, ndim=1] H_2_arr = ics["H_2"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not H_2_arr.flags['C_CONTIGUOUS']:
+        H_2_arr = np.ascontiguousarray( H_2_arr )
+    cdef double[::1] H_2_memview = H_2_arr
     cdef np.ndarray[np.float64_t, ndim=2] H_2_int
     cdef np.ndarray[np.float64_t, ndim=1] H_m0_arr = ics["H_m0"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not H_m0_arr.flags['C_CONTIGUOUS']:
+        H_m0_arr = np.ascontiguousarray( H_m0_arr )
+    cdef double[::1] H_m0_memview = H_m0_arr
     cdef np.ndarray[np.float64_t, ndim=2] H_m0_int
     cdef np.ndarray[np.float64_t, ndim=1] He_1_arr = ics["He_1"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not He_1_arr.flags['C_CONTIGUOUS']:
+        He_1_arr = np.ascontiguousarray( He_1_arr )
+    cdef double[::1] He_1_memview = He_1_arr
     cdef np.ndarray[np.float64_t, ndim=2] He_1_int
     cdef np.ndarray[np.float64_t, ndim=1] He_2_arr = ics["He_2"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not He_2_arr.flags['C_CONTIGUOUS']:
+        He_2_arr = np.ascontiguousarray( He_2_arr )
+    cdef double[::1] He_2_memview = He_2_arr
     cdef np.ndarray[np.float64_t, ndim=2] He_2_int
     cdef np.ndarray[np.float64_t, ndim=1] He_3_arr = ics["He_3"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not He_3_arr.flags['C_CONTIGUOUS']:
+        He_3_arr = np.ascontiguousarray( He_3_arr )
+    cdef double[::1] He_3_memview = He_3_arr
     cdef np.ndarray[np.float64_t, ndim=2] He_3_int
     cdef np.ndarray[np.float64_t, ndim=1] de_arr = ics["de"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not de_arr.flags['C_CONTIGUOUS']:
+        de_arr = np.ascontiguousarray( de_arr )
+    cdef double[::1] de_memview = de_arr
     cdef np.ndarray[np.float64_t, ndim=2] de_int
     cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
-    # All of the intermediate variables get declared, but not necessarily assigned
+    if not ge_arr.flags['C_CONTIGUOUS']:
+        ge_arr = np.ascontiguousarray( ge_arr )
+    cdef double[::1] ge_memview = ge_arr
     cdef np.ndarray[np.float64_t, ndim=2] ge_int
+    cdef np.ndarray[np.float64_t, ndim=1] CoolingTime;
+    cdef np.ndarray[np.float64_t, ndim=1] Gamma;
+    cdef np.ndarray[np.float64_t, ndim=1] Temperature;
+    cdef np.ndarray[np.float64_t, ndim=1] MolecularWeight;
+
+    cdef np.ndarray[np.float64_t, ndim=2] CoolingTime_int;
+    cdef np.ndarray[np.float64_t, ndim=2] Gamma_int;
+    cdef np.ndarray[np.float64_t, ndim=2] Temperature_int;
+    cdef np.ndarray[np.float64_t, ndim=2] MolecularWeight_int;
+
+
     cdef np.ndarray[np.float64_t, ndim=1] result_int
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
@@ -684,18 +733,54 @@ def run_cvklu(ics, double tf, int niter = 10000,
     cdef int NTOT = NSPECIES * dims
     cdef double *input = <double *> alloca(NTOT * sizeof(double))
     cdef double *prev = <double *> alloca(NTOT * sizeof(double))
-    cdef double *atol = <double *> alloca(NTOT * sizeof(double))
-    cdef double *rtol = <double *> alloca(NTOT * sizeof(double))
-    cdef double *scale = <double *> alloca(NTOT * sizeof(double))
-    cdef double *dt   = <double *> alloca( sizeof(double))
-    cdef double *ones = <double *> alloca(NTOT * sizeof(double))
+    
 
-    for i in range(NTOT):
-        ones[i] = 1.0
+    cdef dengo_field_data *field_data = <dengo_field_data *> malloc(sizeof(dengo_field_data));
+    cdef code_units       * units     = <code_units *> malloc(sizeof(code_units));
+    
+    units.density_units = 1.67e-24;
+    units.length_units  = 1.0;
+    units.time_units    = 1.0;
+    units.velocity_units = 1.0;
+    
+    CoolingTime = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
+    Gamma       = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
+    Temperature = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
+    MolecularWeight = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
+    cdef double[::1] ctime_memview = CoolingTime
+    cdef double[::1] gamma_memview = Gamma
+    cdef double[::1] temp_memview  = Temperature
+    cdef double[::1] mweight_memview = MolecularWeight
+    field_data.H2_1_density = &H2_1_memview[0];
+    
+    field_data.H2_2_density = &H2_2_memview[0];
+    
+    field_data.H_1_density = &H_1_memview[0];
+    
+    field_data.H_2_density = &H_2_memview[0];
+    
+    field_data.H_m0_density = &H_m0_memview[0];
+    
+    field_data.He_1_density = &He_1_memview[0];
+    
+    field_data.He_2_density = &He_2_memview[0];
+    
+    field_data.He_3_density = &He_3_memview[0];
+    
+    field_data.de_density = &de_memview[0];
+    
+    field_data.ge_density = &ge_memview[0];
+    
+    field_data.CoolingTime = &ctime_memview[0]
+    field_data.Gamma       = &gamma_memview[0]
+    field_data.temperature = &temp_memview[0]
+    field_data.MolecularWeight = &mweight_memview[0]
+    field_data.ncells  = dims;
 
-    dt[0] = tf/float(niter)
+
 
     if intermediate == 1:
+        # allocate memory for the intermediate results
         H2_1_int = np.zeros((dims, niter), "float64")
         H2_2_int = np.zeros((dims, niter), "float64")
         H_1_int = np.zeros((dims, niter), "float64")
@@ -706,6 +791,11 @@ def run_cvklu(ics, double tf, int niter = 10000,
         He_3_int = np.zeros((dims, niter), "float64")
         de_int = np.zeros((dims, niter), "float64")
         ge_int = np.zeros((dims, niter), "float64")
+        CoolingTime_int = np.zeros((dims, niter), "float64")
+        Gamma_int       = np.zeros((dims, niter), "float64")
+        Temperature_int = np.zeros((dims, niter), "float64")
+        MolecularWeight_int = np.zeros((dims, niter), "float64")
+
         temp_int = np.zeros((dims, niter), "float64")
         result_int = np.zeros(niter, "float64")
         t_int = np.zeros(niter, "float64")
@@ -714,67 +804,32 @@ def run_cvklu(ics, double tf, int niter = 10000,
     j = 0
     for i in range(dims):
         input[j] = prev[j] = H2_1_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = H2_2_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = H_1_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = H_2_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = H_m0_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = He_1_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = He_2_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = He_3_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = de_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         input[j] = prev[j] = ge_arr[i] 
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-06
-        scale[j] = input[j]
         j += 1
         
-
-    cdef cvklu_data *data = cvklu_setup_data(NULL, NULL)
-    cdef rhs_f f = calculate_rhs_cvklu
-    cdef jac_f jf = calculate_jacobian_cvklu
 
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_cvklu(tf, dt, input, rtol, atol, dims, data)
-    data.current_z = z
     cdef double *t_now = <double *> malloc( sizeof(double) )
 
     
@@ -785,74 +840,61 @@ def run_cvklu(ics, double tf, int niter = 10000,
 
     cdef int niter_cvodes = niter
     
-    cdef double dt_local;  
-    dt0 = dt
-    cdef double ttt = 0
-    # Initialize initial temperature
-    for i in range(dims):
-        data.Ts[i] = ics['T'][i]
-        print("initial  temperature: %.3E" %data.Ts[i])
-
+    cdef double dt  = tf / float(niter)
+    field_data.dengo_data_file = "cvklu_tables.h5"
 
     for iter in range(niter):
-        dt_local = dengo_evolve_cvklu( dt0[0], dt[0], z, input, rtol, atol, dims, data, temp  )
-        if dt_local > 0:
-            status = 0
-            # print( "{} th iterations at time {}".format(iter, dt_local))
-        
+        status = cvklu_solve_chemistry_dt( units, field_data, dt);
         j = 0; 
 
         for i in range(dims):
-            H2_1_int[i, iter] = input[j]
+            H2_1_int[i, iter] = field_data.H2_1_density[i]
             j += 1
-            H2_2_int[i, iter] = input[j]
+            H2_2_int[i, iter] = field_data.H2_2_density[i]
             j += 1
-            H_1_int[i, iter] = input[j]
+            H_1_int[i, iter] = field_data.H_1_density[i]
             j += 1
-            H_2_int[i, iter] = input[j]
+            H_2_int[i, iter] = field_data.H_2_density[i]
             j += 1
-            H_m0_int[i, iter] = input[j]
+            H_m0_int[i, iter] = field_data.H_m0_density[i]
             j += 1
-            He_1_int[i, iter] = input[j]
+            He_1_int[i, iter] = field_data.He_1_density[i]
             j += 1
-            He_2_int[i, iter] = input[j]
+            He_2_int[i, iter] = field_data.He_2_density[i]
             j += 1
-            He_3_int[i, iter] = input[j]
+            He_3_int[i, iter] = field_data.He_3_density[i]
             j += 1
-            de_int[i, iter] = input[j]
+            de_int[i, iter] = field_data.de_density[i]
             j += 1
-            ge_int[i, iter] = input[j]
+            ge_int[i, iter] = field_data.ge_density[i]
             j += 1
-            temp_int[ i, iter ] = temp[i]
+            temp_int[ i, iter ] = field_data.temperature[i]
 
         if status == 0:
             result_int[iter] = 1
-            ttot += dt_local
+            ttot += dt
         elif status == 1:
             result_int[iter] = 0
-            ttot += dt_local
 
         t_int[iter] = ttot
-        dt_int[iter] = dt_local
+        dt_int[iter] = dt
         
 
         if status == 0:
             if iter % 100 == 0:
-                print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt_local, ttot, tf)
+                print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf)
 
-            dt_local = 1.1*dt_local
+            dt = 1.1*dt
 
-            dt[0] = dt_local;
-            if tf - ttot < dt_local:
-                dt_local = tf - ttot
-                dt[0] = dt_local;
+            if tf - ttot < dt:
+                dt = tf - ttot
         elif status == 1:
-            dt[0] = dt_local/2.0;
+            dt /= 2.0;
             # copy_array(prev, input, NTOT)
             # Reset the scaling array to match the new values
             # copy_array(input, scale, NTOT)
-            if dt[0] < 1e-50 * tf:
-                print "dt too small (%0.3e / %0.3e) so breaking" % (dt[0], tf)
+            if dt < 1e-50 * tf:
+                print "dt too small (%0.3e / %0.3e) so breaking" % (dt, tf)
                 break
             continue
         if ttot >= tf: break
@@ -861,8 +903,8 @@ def run_cvklu(ics, double tf, int niter = 10000,
     free(dt_arr)
     free(ttot_arr)
     free(success_arr)
-    free(data)
-
+    free(field_data)
+    free(units)
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}

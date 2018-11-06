@@ -61,20 +61,13 @@ int main(int argc, char **argv) {
     fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
     {{solver_name}}_solve_chemistry_dt( units, field_data, dt );
     
-    dengo_estimate_cooling_time( units, field_data );
-    for (int i = 0; i < N; i++){
-        fprintf(stderr, "cooling time[%d] = %0.5g \n",i, field_data->CoolingTime[i]);
-    }
-
-    dengo_calculate_temperature( units, field_data );
-    for (int i = 0; i < N; i++){
-        fprintf(stderr, "gamma[%d] = %0.5g \n",i, field_data->Gamma[i]);
-    }
-    
-    dengo_calculate_mean_molecular_weight(units, field_data);
-    for (int i = 0; i < N; i++){
-        fprintf(stderr, "mmw[%d] = %0.5g \n",i, field_data->MolecularWeight[i]);
-    }
-
+    free(field_data);
+    {%- for species in network.required_species %}
+    free({{species.name}}_density);
+    {% endfor %}
+    free(cooling_time);
+    free(gamma);
+    free(temperature);
+    free(mean_molecular_weight);
 
 }

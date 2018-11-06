@@ -322,7 +322,8 @@ typedef struct cvklu_data {
     
     double h2_optical_depth_approx[NTHREADS][MAX_NCELLS];
     
-
+    
+    const char *dengo_data_file;
 } cvklu_data;
 
 
@@ -401,7 +402,7 @@ typedef struct dengo_field_data
 {
 
   unsigned long int nstrip;
-  int ncells; 
+  unsigned long int ncells; 
   // This should be updated dynamically 
   // with dengo
   double *density;
@@ -425,7 +426,13 @@ typedef struct dengo_field_data
   
   double *ge_density;
   
+    
+  double *CoolingTime;
+  double *MolecularWeight;
+  double *temperature;
+  double *Gamma;
 
+  const char *dengo_data_file;
 } dengo_field_data;
 
 typedef struct code_units
@@ -442,3 +449,13 @@ typedef struct code_units
 } code_units;
 
 int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt );
+
+int dengo_estimate_cooling_time( code_units* units, dengo_field_data * field_data );
+
+int cvklu_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, cvklu_data *data);
+int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input );
+int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input );
+
+int dengo_calculate_temperature( code_units*, dengo_field_data* );
+int dengo_calculate_gamma( double* gamma_eff, cvklu_data*, double*, int );
+int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );

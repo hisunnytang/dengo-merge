@@ -14,8 +14,7 @@
 
 #include "cvklu_solver.h"
 
-cvklu_data *cvklu_setup_data(
-    int *NumberOfFields, char ***FieldNames)
+cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, char ***FieldNames)
 {
 
     //-----------------------------------------------------
@@ -24,9 +23,12 @@ cvklu_data *cvklu_setup_data(
     //-----------------------------------------------------
 
     int i, n;
-
+    
     cvklu_data *data = (cvklu_data *) malloc(sizeof(cvklu_data));
     
+    // point the module to look for cvklu_tables.h5
+    data->dengo_data_file = FileLocation;
+
     /* allocate space for the scale related pieces */
 
     // Number of cells to be solved in a batch 
@@ -54,13 +56,13 @@ cvklu_data *cvklu_setup_data(
     data->id_zbin = 1.0L / data->d_zbin;
     
     cvklu_read_rate_tables(data);
-    fprintf(stderr, "Successfully read in rate tables.\n");
+    //fprintf(stderr, "Successfully read in rate tables.\n");
 
     cvklu_read_cooling_tables(data);
-    fprintf(stderr, "Successfully read in cooling rate tables.\n");
+    //fprintf(stderr, "Successfully read in cooling rate tables.\n");
     
     cvklu_read_gamma(data);
-    fprintf(stderr, "Successfully read in gamma tables. \n");
+    //fprintf(stderr, "Successfully read in gamma tables. \n");
 
     if (FieldNames != NULL && NumberOfFields != NULL) {
         NumberOfFields[0] = 10;
@@ -88,6 +90,9 @@ cvklu_data *cvklu_setup_data(
         FieldNames[0][i++] = strdup("ge");
         
     }
+
+    data->dengo_data_file = NULL;
+
     return data;
 
 }
@@ -109,7 +114,7 @@ int cvklu_main(int argc, char** argv )
     //              de     : number density of electrons in cm^-3 
     //              ge     : internal energy per mass density of the cell (erg / g )
     //-----------------------------------------------------
-    cvklu_data *data = cvklu_setup_data(NULL, NULL);
+    cvklu_data *data = cvklu_setup_data(NULL, NULL, NULL);
 
     /* Initial conditions */
     hid_t file_id;
@@ -566,8 +571,8 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     // v_size_res: leftover strip that doesn't fit into a v_size batch
     // N     : Number of species
     
-    int  v_size      = N * nstrip;
-    unsigned long  ntimes      = dims / nstrip;
+    int v_size      = N * nstrip;
+    unsigned long ntimes      = dims / nstrip;
     int nstrip_res  = dims % nstrip;
     int v_size_res  = N * nstrip_res;
 
@@ -588,13 +593,13 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
 
 
 
-    double *ttot = (double *) malloc( (ntimes + 1 )* sizeof(double));
+    double *ttot = (double *) malloc( (ntimes + 1)* sizeof(double));
     int d;
     int sum;
+    int NSPARSE = 64; // no. of sparse jacobian compoents
     
-    int omp_get_thread_num();
     int threadID;
-    #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS) 
+    #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS)
     {
     y_vec = N_VNew_Serial(v_size);
     for ( i = 0; i < v_size; i++){
@@ -602,7 +607,8 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     }
     
     #ifdef CVKLU
-    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * 64, CSR_MAT );
+
+    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * NSPARSE, CSR_MAT );
     LS        = SUNKLU( y_vec, A);
     #else
     A         = SUNDenseMatrix      ( v_size, v_size );
@@ -610,22 +616,24 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     #endif
     
     cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
-
+    
     // d: d th path going into the solver
     #pragma omp for private (sum, i, d, siter, y, threadID) schedule(static, 1)
-    for ( d = 0; d < ntimes; d++){
+    for (int d = 0; d < ntimes; d++){
+        #ifdef _OPENMP
         threadID = omp_get_thread_num();
-
-
+        #else
+        threadID = 0;
+        #endif
         ttot[d] = evolve_in_batches( cvode_mem, y_vec, abstol, reltol, input, v_size, d, d*v_size, MAX_ITERATION, dtf, data );
 
         // re-calculate temperature at the final output
         cvklu_calculate_temperature(data, data->scale[threadID], nstrip, N);
-
-        fprintf(stderr, "%d th strip from thread %d = %0.5g at T = %0.5g K\n", d, threadID, ttot[d], data->Ts[threadID][0]);
+        
+        // fprintf(stderr, "%d th strip from thread %d = %0.5g\n", d, threadID, ttot[d]);
         if (ttot[d] < dtf){
-            fprintf(stderr, "FAILED FROM thread %d at ttot[%d] = %0.5g\n", threadID, d, ttot[d]);
-        }
+            fprintf(stderr, "FAILED FROM thread %d at ttot[%d] = %0.5g \n", threadID, d, ttot[d]);    
+        } 
 
         for ( i = 0; i < nstrip; i ++){
             temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
@@ -638,18 +646,21 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     CVodeFree(&cvode_mem);
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
+    #ifdef _OPENMP
     N_VDestroy(y_vec);
-    
+    #endif
     }
 
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
 
     if ( v_size_res > 0 ){
-        
-        fprintf(stderr, "left behind one with %d strip! \n", v_size_res);
-        
+        #ifdef _OPENMP
         threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+
         data->nstrip = nstrip_res;
         d = ntimes;
         
@@ -673,7 +684,7 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
         }
        
         #ifdef CVKLU
-        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * 64, CSR_MAT);
+        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * NSPARSE, CSR_MAT);
         LS = SUNKLU(y_vec,A); 
         #else
         A  = SUNDenseMatrix(v_size_res, v_size_res);
@@ -699,11 +710,9 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
         SUNMatDestroy(A);
         N_VDestroy(y_vec);
         N_VDestroy(abstol);    
+    } else{
+      ttot[ntimes] = dtf;      
     }
-    else{
-        ttot[ntimes] = dtf;
-    }
-
     for (i = 0; i < dims; i++) {
       j = i * N;
       
@@ -767,11 +776,11 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
 
     double dt_final = dtf;
     
-    for ( d = 0; d < (ntimes + 1); d++){
+    for (int d = 0; d < (ntimes + 1); d++){
         if (ttot[d] < dt_final) dt_final = ttot[d];    
     }
 
-    fprintf(stderr, "Fraction of completion (dt (%0.3g) / dtf (%0.5g)): %0.5g\n",dt_final, dtf, dt_final/dtf);
+    fprintf(stderr, "Fraction of completion (dt (%0.3g) / dtf): %0.3g\n", dt , dt_final/dtf);
     free(ttot);
 
     dt = dt_final;
@@ -807,39 +816,33 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
     double dt, ttot;
     double y[v_size];
     int nstrip = data->nstrip;
-    int threadID = omp_get_thread_num();
 
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
     for (i = 0; i < v_size; i++){ 
         data->scale[threadID][i]         = input[ start_idx + i];
-        if ( input[start_idx + i] != input[start_idx + i] ){
-        fprintf(stderr, "from %d, at start_idx: %d, i: %d = %0.5g \n", threadID, start_idx,  i, input[start_idx + i] );
-        }
-        if (i < 10){
-            fprintf(stderr, "%d: input[%d] = %0.5g \n", threadID, i, data->scale[threadID][i]);
-        }
-
         data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
         NV_Ith_S(y_vec , i )   = 1.0;
         NV_Ith_S(abstol, i )   = reltol*reltol;
     }
     
     setting_up_extra_variables(data, data->scale[threadID], nstrip );
-    
-    cvklu_calculate_temperature(data, data->scale[threadID], nstrip, 10);
-    fprintf(stderr, "initial temperature: data->Ts[%d][0] = %0.5g \n", threadID, data->Ts[threadID][0]);
-       
+        
     // initialize a dt for the solver  
     dt = dtf;
     ttot = 0.0;
     siter = 0;
             
     while (ttot < dtf) { 
-        // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g, and my dt: %0.5g\n", d, siter, ttot, dt );    
+        // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g\n", d, siter, ttot );    
         flag = cvode_solver( cvode_mem, y, v_size , &dt, data, y_vec, reltol, abstol);
 
         for (i = 0; i < v_size; i++) {
             if (y[i] < 0) {
-                fprintf(stderr, "negative at density: %0.5g, temperature: %0.5g \n", data->mdensity[threadID][i/10], data->Ts[threadID][i/10]);
+                fprintf(stderr, "negative \n");
                 flag = 1;
                 break;
             }
@@ -868,7 +871,7 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
         if (siter == MAX_ITERATION) break;
         siter++;
         } // while loop for each strip
-    // fprintf(stderr, "%d th strip: %d iterations, time: %0.5g, and my dt: %0.5g\n", d, siter, ttot, dt ); 
+    
     return ttot;
 }
 
@@ -879,7 +882,14 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
 
 void cvklu_read_rate_tables(cvklu_data *data)
 {
-    hid_t file_id = H5Fopen("/home/kwoksun2/gamer-fork/bin/Grackle_Non_Equil/cvklu_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "cvklu_tables.h5";   
+    }
+
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     H5LTread_dataset_double(file_id, "/k01", data->r_k01);
     H5LTread_dataset_double(file_id, "/k02", data->r_k02);
@@ -910,7 +920,13 @@ void cvklu_read_rate_tables(cvklu_data *data)
 void cvklu_read_cooling_tables(cvklu_data *data)
 {
 
-    hid_t file_id = H5Fopen("/home/kwoksun2/gamer-fork/bin/Grackle_Non_Equil/cvklu_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "cvklu_tables.h5";   
+    }
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     H5LTread_dataset_double(file_id, "/brem_brem",
                             data->c_brem_brem);
@@ -975,7 +991,14 @@ void cvklu_read_cooling_tables(cvklu_data *data)
 void cvklu_read_gamma(cvklu_data *data)
 {
 
-    hid_t file_id = H5Fopen("/home/kwoksun2/gamer-fork/bin/Grackle_Non_Equil/cvklu_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "cvklu_tables.h5";   
+    }
+    
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     H5LTread_dataset_double(file_id, "/gammaH2_1",
                             data->g_gammaH2_1 );
@@ -1042,7 +1065,12 @@ int cvklu_calculate_temperature(cvklu_data *data,
     
     
     i = 0;
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else 
+    int threadID = 0;
+    #endif
+
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
         H2_1 = input[j];
@@ -1084,15 +1112,6 @@ int cvklu_calculate_temperature(cvklu_data *data,
         
         // Initiate the "guess" temperature
         T    = data->Ts[threadID][i];
-        if (T != T){
-            fprintf(stderr, "corropted at TID %d and %d strip ???\n", threadID, i);
-            data->Ts[threadID][i] = 1000.0;
-            T = 1000.0;
-            for ( int kk = i*10; kk < (i+1)*10; kk++ ){
-                fprintf(stderr, "input[%d] = %0.5g \n", kk, input[kk]);
-            }
-        }
-        
         Tnew = T*1.1;
         
         Tdiff = Tnew - T;
@@ -1142,7 +1161,7 @@ int cvklu_calculate_temperature(cvklu_data *data,
         data->Ts[threadID][i] = Tnew;
 
 
-        //fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
         
@@ -1182,7 +1201,12 @@ void cvklu_interpolate_rates(cvklu_data *data,
     lbz = log(data->z_bounds[0] + 1.0);
 
     i = 0;
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     for ( i = 0; i < nstrip; i++ ){
         data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
         if (data->bin_id[threadID][i] <= 0) {
@@ -1759,7 +1783,12 @@ void cvklu_interpolate_gamma(cvklu_data *data,
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
     if (data->bin_id[threadID][i] <= 0) {
         data->bin_id[threadID][i] = 0;
@@ -1886,123 +1915,6 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
 
 
 
-void temperature_from_mass_density(double *input, int nstrip,
-                                   int nchem, double *strip_temperature)
-{
-    int i, j;
-    double density;
-    double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
-    double mh = 1.67e-24;
-    double gamma = 5.e0/3.e0;
-    double _gamma_m1 = 1.0 / (gamma - 1.0);
-    
-    double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
-    	   	     		// this is a temporary solution
-    
-    double T =  1000.0; // THIS IS TEMPORARY!!! DELTETE!!
-
-    
-    double H2_1;
-    double H2_2;
-    double H_1;
-    double H_2;
-    double H_m0;
-    double He_1;
-    double He_2;
-    double He_3;
-    double de;
-    double ge;
-    
-    double scale;
-
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-        H2_1 = input[j];
-        
-        H2_1 /= 2.01588 * mh;
-        
-        /*fprintf(stderr, "H2_1[%d] = % 0.16g\n",
-                i, H2_1);*/
-        j++;
-    
-        H2_2 = input[j];
-        
-        H2_2 /= 2.01588 * mh;
-        
-        /*fprintf(stderr, "H2_2[%d] = % 0.16g\n",
-                i, H2_2);*/
-        j++;
-    
-        H_1 = input[j];
-        
-        H_1 /= 1.00794 * mh;
-        
-        /*fprintf(stderr, "H_1[%d] = % 0.16g\n",
-                i, H_1);*/
-        j++;
-    
-        H_2 = input[j];
-        
-        H_2 /= 1.00794 * mh;
-        
-        /*fprintf(stderr, "H_2[%d] = % 0.16g\n",
-                i, H_2);*/
-        j++;
-    
-        H_m0 = input[j];
-        
-        H_m0 /= 1.00794 * mh;
-        
-        /*fprintf(stderr, "H_m0[%d] = % 0.16g\n",
-                i, H_m0);*/
-        j++;
-    
-        He_1 = input[j];
-        
-        He_1 /= 4.002602 * mh;
-        
-        /*fprintf(stderr, "He_1[%d] = % 0.16g\n",
-                i, He_1);*/
-        j++;
-    
-        He_2 = input[j];
-        
-        He_2 /= 4.002602 * mh;
-        
-        /*fprintf(stderr, "He_2[%d] = % 0.16g\n",
-                i, He_2);*/
-        j++;
-    
-        He_3 = input[j];
-        
-        He_3 /= 4.002602 * mh;
-        
-        /*fprintf(stderr, "He_3[%d] = % 0.16g\n",
-                i, He_3);*/
-        j++;
-    
-        de = input[j];
-        
-        de /= 1.0 * mh;
-        
-        /*fprintf(stderr, "de[%d] = % 0.16g\n",
-                i, de);*/
-        j++;
-    
-        ge = input[j];
-        
-        /*fprintf(stderr, "ge[%d] = % 0.16g\n",
-                i, ge);*/
-        j++;
-    
-        density = 2.01588*H2_1 + 2.01588*H2_2 + 1.00794*H_1 + 1.00794*H_2 + 1.00794*H_m0 + 4.002602*He_1 + 4.002602*He_2 + 4.002602*He_3;
-        strip_temperature[i] = density*ge*mh/(kb*(H2_1/(gammaH2 - 1.0) + H2_2/(gammaH2 - 1.0) + H_1*_gamma_m1 + H_2*_gamma_m1 + H_m0*_gamma_m1 + He_1*_gamma_m1 + He_2*_gamma_m1 + He_3*_gamma_m1 + _gamma_m1*de));
-        if (strip_temperature[i] < 1.0)
-            strip_temperature[i] = 1.0;
-    }
-         
-}
- 
 
 
 int calculate_jacobian_cvklu( realtype t,
@@ -2017,7 +1929,12 @@ int calculate_jacobian_cvklu( realtype t,
 
     cvklu_data *data = (cvklu_data*)user_data; 
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     int nchem = 10;
     int nstrip = data->nstrip;
     int i, j;
@@ -3862,7 +3779,11 @@ int calculate_rhs_cvklu(realtype t, N_Vector y, N_Vector ydot, void *user_data)
     double ge;
     
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
     double *scale     = data->scale[threadID];
     double *inv_scale = data->inv_scale[threadID];   
     
@@ -3970,6 +3891,8 @@ int calculate_rhs_cvklu(realtype t, N_Vector y, N_Vector ydot, void *user_data)
         z            = data->current_z;
         mdensity     = data->mdensity[threadID][i];
         inv_mdensity = data->inv_mdensity[threadID][i];
+        
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
         
         
         cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
@@ -4110,49 +4033,505 @@ int calculate_rhs_cvklu(realtype t, N_Vector y, N_Vector ydot, void *user_data)
 
 
 
-int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
+int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data ){
     
     unsigned long int i, j, d, dims;
+    int nchem     = 10;
+    dims = field_data->ncells;
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    cvklu_data *data = cvklu_setup_data( FileLocation, NULL, NULL);
+    
+    int nstrip      = data->nstrip;
+
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+    
+    double *input_batch;
+    double *cooling_time_batch;
+    
+//    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) 
+    for ( d = 0; d < ntimes; d++ ){
+        input_batch        = &input[d* nchem];
+        cooling_time_batch = &field_data->CoolingTime[d * nstrip];
+        cvklu_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip, data);
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes*nchem];
+        cooling_time_batch = &field_data->CoolingTime[d]; 
+        cvklu_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip_res, data );    
+    }
+
+    for (i = 0; i < dims; i++ ){
+        field_data->CoolingTime[i] /= units->time_units; 
+    }
+    
+    free(input);
+    free(data);
+}
+
+
+
+
+int cvklu_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, cvklu_data *data){
+    
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num(); 
+    #else
+    int threadID = 0;
+    #endif
+
+    /* Now we set up some temporaries */
+    
+    int flag;
+    int nchem = 10;
+    // calculate temperature and cooling rate
+    setting_up_extra_variables(data, input, nstrip );
+    flag = cvklu_calculate_temperature(data,  input , nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    cvklu_interpolate_rates(data, nstrip);
+    double H2_1;
+    double H2_2;
+    double ge;
+    double He_1;
+    double H_m0;
+    double He_3;
+    double He_2;
+    double H_1;
+    double de;
+    double H_2;
+    double *brem_brem = data->cs_brem_brem[threadID];
+    double *ceHeI_ceHeI = data->cs_ceHeI_ceHeI[threadID];
+    double *ceHeII_ceHeII = data->cs_ceHeII_ceHeII[threadID];
+    double *ceHI_ceHI = data->cs_ceHI_ceHI[threadID];
+    double *cie_cooling_cieco = data->cs_cie_cooling_cieco[threadID];
+    double *ciHeI_ciHeI = data->cs_ciHeI_ciHeI[threadID];
+    double *ciHeII_ciHeII = data->cs_ciHeII_ciHeII[threadID];
+    double *ciHeIS_ciHeIS = data->cs_ciHeIS_ciHeIS[threadID];
+    double *ciHI_ciHI = data->cs_ciHI_ciHI[threadID];
+    double *compton_comp_ = data->cs_compton_comp_[threadID];
+    double *gammah_gammah = data->cs_gammah_gammah[threadID];
+    double *gloverabel08_gael = data->cs_gloverabel08_gael[threadID];
+    double *gloverabel08_gaH2 = data->cs_gloverabel08_gaH2[threadID];
+    double *gloverabel08_gaHe = data->cs_gloverabel08_gaHe[threadID];
+    double *gloverabel08_gaHI = data->cs_gloverabel08_gaHI[threadID];
+    double *gloverabel08_gaHp = data->cs_gloverabel08_gaHp[threadID];
+    double *gloverabel08_gphdl = data->cs_gloverabel08_gphdl[threadID];
+    double *gloverabel08_gpldl = data->cs_gloverabel08_gpldl[threadID];
+    double *gloverabel08_h2lte = data->cs_gloverabel08_h2lte[threadID];
+    double *h2formation_h2mcool = data->cs_h2formation_h2mcool[threadID];
+    double *h2formation_h2mheat = data->cs_h2formation_h2mheat[threadID];
+    double *h2formation_ncrd1 = data->cs_h2formation_ncrd1[threadID];
+    double *h2formation_ncrd2 = data->cs_h2formation_ncrd2[threadID];
+    double *h2formation_ncrn = data->cs_h2formation_ncrn[threadID];
+    double *reHeII1_reHeII1 = data->cs_reHeII1_reHeII1[threadID];
+    double *reHeII2_reHeII2 = data->cs_reHeII2_reHeII2[threadID];
+    double *reHeIII_reHeIII = data->cs_reHeIII_reHeIII[threadID];
+    double *reHII_reHII = data->cs_reHII_reHII[threadID];
+    
+    
+    double h2_optical_depth_approx;    
+    
+    
+    double cie_optical_depth_approx;
+    
+    
+    double z;
+    double T;
+    double mdensity, inv_mdensity, dge_dt;
+
+    int i, j;   
+    for ( i = 0; i < nstrip; i++ ){
+        
+        T            = data->Ts[threadID][i];
+        z            = data->current_z;
+        mdensity     = data->mdensity[threadID][i];
+        inv_mdensity = data->inv_mdensity[threadID][i];
+        
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
+        
+        
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
+        
+
+        j = i * nchem;
+        H2_1 = input[j];
+        j++;
+        H2_2 = input[j];
+        j++;
+        H_1 = input[j];
+        j++;
+        H_2 = input[j];
+        j++;
+        H_m0 = input[j];
+        j++;
+        He_1 = input[j];
+        j++;
+        He_2 = input[j];
+        j++;
+        He_3 = input[j];
+        j++;
+        de = input[j];
+        j++;
+        ge = input[j];
+        j++;
+    
+        //
+        // Species: ge
+        //
+        dge_dt = -2.01588*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+        dge_dt *= inv_mdensity;
+        cooling_time[i] = fabs( ge / dge_dt);
+    
+    //fprintf(stderr, "----------------\n");
+    }
+}
+
+
+
+
+
+
+
+int dengo_calculate_temperature( code_units *units, dengo_field_data *field_data){
+    
+    unsigned long int i, j, d, dims;
+    int nchem     = 10;
+    dims = field_data->ncells;
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    cvklu_data *data = cvklu_setup_data( FileLocation, NULL, NULL);
+    
+    int nstrip      = data->nstrip;
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+
+    double *input_batch;
+    double *cooling_time_batch;
+    double *gamma_eff_batch;
+
+    int threadID; 
+    /* Now we set up some temporaries */
+
+    #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, threadID) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d < ntimes; d++ ){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+        input_batch        = &input[d* nchem];
+        gamma_eff_batch    = &field_data->Gamma[d*nstrip];
+
+        setting_up_extra_variables( data, input_batch, nstrip );
+        cvklu_calculate_temperature(data,  input_batch , nstrip, nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+        for ( i = 0; i < nstrip; i++ ){
+            field_data->temperature[d*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes * nchem];
+        gamma_eff_batch    = &field_data->Gamma[ntimes*nstrip];
+        
+        setting_up_extra_variables( data, input_batch, nstrip_res );
+        cvklu_calculate_temperature(data,  input_batch , nstrip_res , nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+       
+        for ( i = 0; i < nstrip_res; i++ ){
+            field_data->temperature[ntimes*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+    
+    free(input);
+    free(data);
+}
+
+
+
+
+
+int dengo_calculate_gamma( double* gamma_eff, cvklu_data *data, double *input, int nstrip  ){
+    unsigned long int i, j, d, dims;
+    int nchem     = 10;
+    
+    
+    double H2_1;
+    
+    double H2_2;
+    
+    double ge;
+    
+    double He_1;
+    
+    double H_m0;
+    
+    double He_3;
+    
+    double He_2;
+    
+    double H_1;
+    
+    double de;
+    
+    double H_2;
+    
+    
+    double gamma = 5.0/3.0;
+    
+    double gammaH2_1;
+    double dgammaH2_1_dT;
+    double _gammaH2_1_m1;
+    
+    double gammaH2_2;
+    double dgammaH2_2_dT;
+    double _gammaH2_2_m1;
+    
+    double n_gamma_m1, ndensity;
+    
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
+    // both temperature and gamma are updated before calling this
+    for (i = 0; i < nstrip; i++ ){
+        ndensity = 0;
+        j = i * nchem;
+        
+        H2_1 = input[j] / 2.01588;
+        
+        ndensity += H2_1;
+        
+        
+        H2_2 = input[j] / 2.01588;
+        
+        ndensity += H2_2;
+        
+        
+        ge = input[j] / 1.0;
+        
+        
+        He_1 = input[j] / 4.002602;
+        
+        ndensity += He_1;
+        
+        
+        H_m0 = input[j] / 1.00794;
+        
+        ndensity += H_m0;
+        
+        
+        He_3 = input[j] / 4.002602;
+        
+        ndensity += He_3;
+        
+        
+        He_2 = input[j] / 4.002602;
+        
+        ndensity += He_2;
+        
+        
+        H_1 = input[j] / 1.00794;
+        
+        ndensity += H_1;
+        
+        
+        de = input[j] / 1.0;
+        
+        ndensity += de;
+        
+        
+        H_2 = input[j] / 1.00794;
+        
+        ndensity += H_2;
+        
+        
+        
+        
+        gammaH2_1 = data->gammaH2_1[threadID][i];
+        dgammaH2_1_dT = data->dgammaH2_1_dT[threadID][i];
+        _gammaH2_1_m1 = 1.0 / (gammaH2_1 - 1.0);
+        
+        gammaH2_2 = data->gammaH2_2[threadID][i];
+        dgammaH2_2_dT = data->dgammaH2_2_dT[threadID][i];
+        _gammaH2_2_m1 = 1.0 / (gammaH2_2 - 1.0);
+        
+      
+        n_gamma_m1 = H2_1/(gammaH2_1 - 1.0) + H2_2/(gammaH2_2 - 1.0) + H_1/(gamma - 1.0) + H_2/(gamma - 1.0) + H_m0/(gamma - 1.0) + He_1/(gamma - 1.0) + He_2/(gamma - 1.0) + He_3/(gamma - 1.0) + de/(gamma - 1.0);
+        gamma_eff[i] = ndensity / n_gamma_m1 + 1.0; 
+    }
+
+}
+
+
+
+int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *field_data ){
+    unsigned long int i, j, d, dims;
+    int nchem     = 10;
+    dims = field_data->ncells;
+    
+    
+    // flatten field_data entry to a 1d input array
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+    flatten_dengo_field_data( units, field_data, input );
+    double H2_1;
+    
+    double H2_2;
+    
+    double ge;
+    
+    double He_1;
+    
+    double H_m0;
+    
+    double He_3;
+    
+    double He_2;
+    
+    double H_1;
+    
+    double de;
+    
+    double H_2;
+    
+    double ndensity, mdensity;
+
+    for (i = 0; i < dims; i++ ){
+        ndensity = 0.0;
+        mdensity = 0.0;
+        j = i * nchem;
+        // Species: H2_1
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /2.01588;
+        
+        j++;
+        
+        // Species: H2_2
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /2.01588;
+        
+        j++;
+        
+        // Species: H_1
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /1.00794;
+        
+        j++;
+        
+        // Species: H_2
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /1.00794;
+        
+        j++;
+        
+        // Species: H_m0
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /1.00794;
+        
+        j++;
+        
+        // Species: He_1
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /4.002602;
+        
+        j++;
+        
+        // Species: He_2
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /4.002602;
+        
+        j++;
+        
+        // Species: He_3
+         
+        mdensity += input[j]; 
+        
+        
+        ndensity += input[j] /4.002602;
+        
+        j++;
+        
+        // Species: de
+        
+        
+        ndensity += input[j] /1.0;
+        
+        j++;
+        
+        // Species: ge
+        
+        
+        j++;
+        
+        field_data->MolecularWeight[i] = mdensity / ndensity;   
+    }
+    
+    free(input);
+}
+
+
+
+
+int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input ){
+    
+    // Function   :    flatten_dengo_field_data
+    // Description:     Flatten the field_data object to a long chain of 1D 
+    //                  input array for the solver in cgs units
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+
+    unsigned long int i, j, d, dims;
     int N = 10;
+    dims = field_data->ncells; // total number of strips to be evaluated
     
-    dims = field_data->nstrip; // total number of strips to be evaluated
-    
-    fprintf(stderr, "\n total ncells: %lu \n", dims);
-    // turned the field data into a long chain of 
-    // 1-D array
-    //
-    // N: number of species
-    // d: d th number of strip to be evalulated
-    // i: index for each species
-    //    should be in correct order and handled 
-    //    by dengo templates
-    // i.e.
-    // input[d*N + i] = field_data->HI_density[]
-    //
-
-    cvklu_data *data = cvklu_setup_data(NULL, NULL);
-
-    double *input = (double *) malloc(dims * N * sizeof(double));
-    double *temp  = (double *) malloc(dims * sizeof(double) );
-    double *atol;
-    double *rtol;
-    
-    
-    //fprintf(stderr, "\n size of input array: %lu \n", dims);
-   
     // code unit in terms of erg/g
     double UNIT_E_per_M = units->velocity_units * units->velocity_units;
-    
     double m_amu = 1.66053904e-24;
 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
-        // this should be the normalized 
-        // by the input units later
-        // atol = input * rtol;
-        // which again should be set by dengo
-        // input in *mass density per mH*
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g)
         input[j]  = field_data->H2_1_density[d] ;
         
         input[j] *= units->density_units / m_amu;
@@ -4210,7 +4589,9 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
         j++;
         
         input[j]  = field_data->de_density[d] ;
+        
         input[j] *= units->density_units / m_amu;
+        
         
         j++;
         
@@ -4223,24 +4604,238 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
         
     }
     
-    dt *= units->time_units;
-    dt *= 1000.0;
+    return 0;
+}
+
+
+
+int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input ){
+    // Function   :     reshape_to_dengo_field_data
+    // Description:     reshape the 1d output array from solver to a dengo_field_data object  
+    //                  and covert them to code units 
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+
+    unsigned long int i, j, d, dims;
+    int N = 10;
+    dims = field_data->ncells; // total number of strips to be evaluated
+    
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+   
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        field_data->H2_1_density[d] = input[j];
+        
+        field_data->H2_1_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->H2_2_density[d] = input[j];
+        
+        field_data->H2_2_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->H_1_density[d] = input[j];
+        
+        field_data->H_1_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->H_2_density[d] = input[j];
+        
+        field_data->H_2_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->H_m0_density[d] = input[j];
+        
+        field_data->H_m0_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->He_1_density[d] = input[j];
+        
+        field_data->He_1_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->He_2_density[d] = input[j];
+        
+        field_data->He_2_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->He_3_density[d] = input[j];
+        
+        field_data->He_3_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->de_density[d] = input[j];
+        
+        field_data->de_density[d] /= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        field_data->ge_density[d] = input[j];
+        
+        
+        field_data->ge_density[d] /= UNIT_E_per_M;
+        
+        j++;
+        
+    }
+   
+    return 0;
+}
+
+
+
+
+int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
+    
+    unsigned long int i, j, d, dims;
+    int N = 10;
+    dims = field_data->ncells; // total number of strips to be evaluated
+
+
+    // turned the field data into a long chain of 
+    // 1-D array
+    //
+    // N: number of species
+    // d: d th number of strip to be evalulated
+    // i: index for each species
+    //    should be in correct order and handled 
+    //    by dengo templates
+    // i.e.
+    // input[d*N + i] = field_data->HI_density[]
+    //
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    cvklu_data *data = cvklu_setup_data( FileLocation, NULL, NULL);
+
+    double *input = (double *) malloc(dims * N * sizeof(double));
+    double *temp  = (double *) malloc(dims * sizeof(double) );
+    double *atol;
+    double *rtol;
+    
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    
+    double m_amu = 1.66053904e-24;
+
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        // this should be the normalized 
+        // by the input units later
+        // atol = input * rtol;
+        // which again should be set by dengo
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g)
+        input[j]  = field_data->H2_1_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->H2_2_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->H_1_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->H_2_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->H_m0_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->He_1_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->He_2_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->He_3_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->de_density[d] ;
+        
+        input[j] *= units->density_units / m_amu;
+        
+        
+        j++;
+        
+        input[j]  = field_data->ge_density[d] ;
+        
+        
+        input[j] *= UNIT_E_per_M;
+        
+        j++;
+        
+    }
+    
     int flag;
     double z;
     double dtf;
     
+    // convert code time to seconds 
+    dt *= units->time_units;
     dtf = dt;
-
-    for ( d = 0; d < dims* N; d++ ){
-        if (input[d] != input[d] ){
-            fprintf(stderr, "error from the input array at %lu \n ", d);
-            return 1;
-        }
-    }
-
-    flag = dengo_evolve_cvklu(dt, dt, z, input, rtol, atol, dims, data, temp);
     
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS)
+    // update the rate table location
+    data->dengo_data_file = field_data->dengo_data_file; 
+
+    flag = dengo_evolve_cvklu(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d< dims; d++  ){
         j = d*N;
         // this should be the normalized 
@@ -4304,18 +4899,26 @@ int cvklu_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, d
         j++;
         
         field_data->de_density[d] = input[j];
+        
         field_data->de_density[d] /= units->density_units / m_amu;
+        
         
         j++;
         
-        field_data->ge_density[d] = input[j] / UNIT_E_per_M;;
+        field_data->ge_density[d] = input[j];
         
+        
+        field_data->ge_density[d] /= UNIT_E_per_M;
         
         j++;
         
     }
     
-    fprintf(stderr, "copying back !!!! \n");
+    dengo_estimate_cooling_time( units, field_data );
+    dengo_calculate_temperature(units, field_data);
+    dengo_calculate_mean_molecular_weight( units, field_data );
+
+
     free(input);
     free(temp);
     free(data);
@@ -4550,7 +5153,12 @@ int calculate_JacTimesVec_cvklu
         return 1;    
     }
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     cvklu_interpolate_rates(data, nstrip);
     
     /* Now We set up some temporaries */
@@ -4911,8 +5519,14 @@ int calculate_sparse_jacobian_cvklu( realtype t,
     int nchem = 10;
     int nstrip = data->nstrip;
     int i, j;
+    int NSPARSE = 64;
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+    
     /* change N_Vector back to an array */
     double y_arr[ 10 * nstrip ];
     double *scale     = data->scale[threadID];
@@ -5135,7 +5749,7 @@ int calculate_sparse_jacobian_cvklu( realtype t,
         cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
         
 
-        j = i * 64;
+        j = i * NSPARSE;
         
         // H2_1 by H2_1
         colvals[j + 0] = i * nchem + 0 ;
@@ -5627,290 +6241,290 @@ int calculate_sparse_jacobian_cvklu( realtype t,
         
         
         
-        rowptrs[ i * nchem +  0] = i * 64 + 0;
+        rowptrs[ i * nchem +  0] = i * NSPARSE + 0;
         
-        rowptrs[ i * nchem +  1] = i * 64 + 7;
+        rowptrs[ i * nchem +  1] = i * NSPARSE + 7;
         
-        rowptrs[ i * nchem +  2] = i * 64 + 14;
+        rowptrs[ i * nchem +  2] = i * NSPARSE + 14;
         
-        rowptrs[ i * nchem +  3] = i * 64 + 21;
+        rowptrs[ i * nchem +  3] = i * NSPARSE + 21;
         
-        rowptrs[ i * nchem +  4] = i * 64 + 28;
+        rowptrs[ i * nchem +  4] = i * NSPARSE + 28;
         
-        rowptrs[ i * nchem +  5] = i * 64 + 34;
+        rowptrs[ i * nchem +  5] = i * NSPARSE + 34;
         
-        rowptrs[ i * nchem +  6] = i * 64 + 38;
+        rowptrs[ i * nchem +  6] = i * NSPARSE + 38;
         
-        rowptrs[ i * nchem +  7] = i * 64 + 43;
+        rowptrs[ i * nchem +  7] = i * NSPARSE + 43;
         
-        rowptrs[ i * nchem +  8] = i * 64 + 47;
+        rowptrs[ i * nchem +  8] = i * NSPARSE + 47;
         
-        rowptrs[ i * nchem +  9] = i * 64 + 56;
+        rowptrs[ i * nchem +  9] = i * NSPARSE + 56;
         
         
         j = i * nchem;
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 0 ];
-        matrix_data[ i * 64 + 0]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 0]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 1]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 1]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 2]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 2]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 3]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 3]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 4]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 4]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 5]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 5]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 0 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 6]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 6]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 0 ];
-        matrix_data[ i * 64 + 7]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 7]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 8]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 8]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 9]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 9]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 10]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 10]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 11]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 11]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 12]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 12]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 1 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 13]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 13]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 0 ];
-        matrix_data[ i * 64 + 14]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 14]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 15]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 15]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 16]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 16]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 17]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 17]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 18]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 18]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 19]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 19]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 2 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 20]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 20]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 0 ];
-        matrix_data[ i * 64 + 21]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 21]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 22]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 22]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 23]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 23]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 24]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 24]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 25]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 25]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 26]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 26]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 3 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 27]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 27]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 28]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 28]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 29]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 29]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 30]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 30]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 31]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 31]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 32]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 32]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 4 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 33]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 33]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 5 ];
         scale2     = scale    [ j + 5 ];
-        matrix_data[ i * 64 + 34]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 34]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 5 ];
         scale2     = scale    [ j + 6 ];
-        matrix_data[ i * 64 + 35]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 35]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 5 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 36]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 36]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 5 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 37]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 37]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 6 ];
         scale2     = scale    [ j + 5 ];
-        matrix_data[ i * 64 + 38]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 38]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 6 ];
         scale2     = scale    [ j + 6 ];
-        matrix_data[ i * 64 + 39]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 39]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 6 ];
         scale2     = scale    [ j + 7 ];
-        matrix_data[ i * 64 + 40]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 40]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 6 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 41]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 41]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 6 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 42]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 42]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 7 ];
         scale2     = scale    [ j + 6 ];
-        matrix_data[ i * 64 + 43]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 43]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 7 ];
         scale2     = scale    [ j + 7 ];
-        matrix_data[ i * 64 + 44]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 44]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 7 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 45]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 45]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 7 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 46]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 46]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 1 ];
-        matrix_data[ i * 64 + 47]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 47]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 48]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 48]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 49]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 49]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 4 ];
-        matrix_data[ i * 64 + 50]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 50]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 5 ];
-        matrix_data[ i * 64 + 51]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 51]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 6 ];
-        matrix_data[ i * 64 + 52]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 52]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 7 ];
-        matrix_data[ i * 64 + 53]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 53]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 54]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 54]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 8 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 55]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 55]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 0 ];
-        matrix_data[ i * 64 + 56]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 56]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 2 ];
-        matrix_data[ i * 64 + 57]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 57]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 3 ];
-        matrix_data[ i * 64 + 58]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 58]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 5 ];
-        matrix_data[ i * 64 + 59]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 59]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 6 ];
-        matrix_data[ i * 64 + 60]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 60]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 7 ];
-        matrix_data[ i * 64 + 61]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 61]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 8 ];
-        matrix_data[ i * 64 + 62]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 62]  *= inv_scale1*scale2; 
         
         inv_scale1 = inv_scale[ j + 9 ];
         scale2     = scale    [ j + 9 ];
-        matrix_data[ i * 64 + 63]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + 63]  *= inv_scale1*scale2; 
         
 
 
     }
 
-    rowptrs[ i * nchem ] = i * 64 ;
+    rowptrs[ i * nchem ] = i * NSPARSE ;
     return 0;
 }
 
@@ -5921,7 +6535,11 @@ int calculate_sparse_jacobian_cvklu( realtype t,
 
 void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip ){
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
 
     int i, j;
     double mh = 1.67e-24;
@@ -5993,8 +6611,8 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
         mdensity = data->mdensity[threadID][i];
         tau      = pow( (mdensity / 3.3e-8 ), 2.8);
         tau      = fmax( tau, 1.0e-5 );
-        data->cie_optical_depth_approx[threadID][i] = 1.0; 
-       //     fmin( 1.0, (1.0 - exp(-tau) ) / tau );
+        data->cie_optical_depth_approx[threadID][i] = 
+            fmin( 1.0, (1.0 - exp(-tau) ) / tau );
     }
     
 
@@ -6002,7 +6620,7 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
     
     for ( i = 0; i < nstrip; i++ ){
         mdensity = data->mdensity[threadID][i];
-        data->h2_optical_depth_approx[threadID][i] = 1.0;//  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+        data->h2_optical_depth_approx[threadID][i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
     }
     
 

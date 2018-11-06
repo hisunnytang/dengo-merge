@@ -336,8 +336,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int d;
     int sum;
     int NSPARSE = {{network.get_sparse_matrix_component(return_type="nsparse")}}; // no. of sparse jacobian compoents
-
-    int omp_get_thread_num();
+    
     int threadID;
     #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS)
     {
@@ -360,7 +359,11 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     // d: d th path going into the solver
     #pragma omp for private (sum, i, d, siter, y, threadID) schedule(static, 1)
     for (int d = 0; d < ntimes; d++){
+        #ifdef _OPENMP
         threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
         ttot[d] = evolve_in_batches( cvode_mem, y_vec, abstol, reltol, input, v_size, d, d*v_size, MAX_ITERATION, dtf, data );
 
         // re-calculate temperature at the final output
@@ -382,15 +385,21 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     CVodeFree(&cvode_mem);
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
+    #ifdef _OPENMP
     N_VDestroy(y_vec);
-    
+    #endif
     }
 
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
 
     if ( v_size_res > 0 ){
+        #ifdef _OPENMP
         threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+
         data->nstrip = nstrip_res;
         d = ntimes;
         
@@ -503,8 +512,12 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
     double dt, ttot;
     double y[v_size];
     int nstrip = data->nstrip;
-    int threadID = omp_get_thread_num();
 
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
     for (i = 0; i < v_size; i++){ 
         data->scale[threadID][i]         = input[ start_idx + i];
         data->inv_scale[threadID][i]     = 1.0 / data->scale[threadID][i];
@@ -670,7 +683,12 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     
     
     i = 0;
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else 
+    int threadID = 0;
+    #endif
+
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
     
@@ -773,7 +791,12 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
     lbz = log(data->z_bounds[0] + 1.0);
 
     i = 0;
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     for ( i = 0; i < nstrip; i++ ){
         data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
         if (data->bin_id[threadID][i] <= 0) {
@@ -879,7 +902,12 @@ void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
     lb = log(data->bounds[0]);
     lbz = log(data->z_bounds[0] + 1.0);
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
     if (data->bin_id[threadID][i] <= 0) {
         data->bin_id[threadID][i] = 0;
@@ -999,7 +1027,12 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     int nchem = {{network.required_species | length }};
     int nstrip = data->nstrip;
     int i, j;
@@ -1144,7 +1177,11 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double {{species.name}};
     {% endfor %}
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
     double *scale     = data->scale[threadID];
     double *inv_scale = data->inv_scale[threadID];   
     
@@ -1273,6 +1310,7 @@ int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data
     }
     
     free(input);
+    free(data);
 }
 {% endblock estimate_cooling_time %}
 
@@ -1280,7 +1318,12 @@ int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data
 {% block calculate_cooling_timescale %}
 int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, {{solver_name}}_data *data){
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num(); 
+    #else
+    int threadID = 0;
+    #endif
+
     /* Now we set up some temporaries */
     
     int flag;
@@ -1373,13 +1416,16 @@ int dengo_calculate_temperature( code_units *units, dengo_field_data *field_data
     double *cooling_time_batch;
     double *gamma_eff_batch;
 
-    int threadID = omp_get_thread_num(); 
+    int threadID; 
     /* Now we set up some temporaries */
 
     #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, threadID) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d < ntimes; d++ ){
+        #ifdef _OPENMP
         threadID = omp_get_thread_num();
-
+        #else
+        threadID = 0;
+        #endif
         input_batch        = &input[d* nchem];
         gamma_eff_batch    = &field_data->Gamma[d*nstrip];
 
@@ -1405,6 +1451,7 @@ int dengo_calculate_temperature( code_units *units, dengo_field_data *field_data
     }
     
     free(input);
+    free(data);
 }
 
 {% endblock dengo_calculate_temperature%}
@@ -1427,7 +1474,12 @@ int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double
     {% endfor %}
     double n_gamma_m1, ndensity;
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     // both temperature and gamma are updated before calling this
     for (i = 0; i < nstrip; i++ ){
         ndensity = 0;
@@ -1659,6 +1711,11 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         {% endfor %}
     }
     
+    dengo_estimate_cooling_time( units, field_data );
+    dengo_calculate_temperature(units, field_data);
+    dengo_calculate_mean_molecular_weight( units, field_data );
+
+
     free(input);
     free(temp);
     free(data);
@@ -1773,7 +1830,12 @@ int calculate_JacTimesVec_{{solver_name}}
         return 1;    
     }
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
     {{solver_name}}_interpolate_rates(data, nstrip);
     
     /* Now We set up some temporaries */
@@ -1871,8 +1933,13 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     int nstrip = data->nstrip;
     int i, j;
     int NSPARSE = {{network.get_sparse_matrix_component( return_type = "nsparse" )}};
-
+    
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+    
     /* change N_Vector back to an array */
     double y_arr[ {{network.required_species | length }} * nstrip ];
     double *scale     = data->scale[threadID];
@@ -2005,7 +2072,11 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 {% block setting_up_extra_variables %}
 void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip ){
     
+    #ifdef _OPENMP
     int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
 
     int i, j;
     double mh = 1.67e-24;

@@ -7,64 +7,37 @@
 #OPTIONS+= -DPRINT_CVODE_STATS 
 
 
-# dengo currently supports two different solver modes from sundials
-# CVSPILS and CVDls
+# dengo currently supports 3 different solver modes from sundials
+# CVSPILS, CVDls, CVKLU
 # choose one from below, default: CVDLS
 # MAX_NCELLS: number of strip solved per solver call 
 
 # Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
-#OPTIONS = -DCVSPILS -DMAX_NCELLS=1024 -fopenmp -DNTHREADS=8
+#OPTIONS = -DCVSPILS -DMAX_NCELLS=1024
 
 # Use the Dense Linear Solver interface (CVDLS)
 #OPTIONS+= -DMAX_NCELLS=1
 
 # Use the Sparse KLU direct solver
-OPTIONS = -DCVKLU -DMAX_NCELLS=2048 -fopenmp -DNTHREADS=8
+OPTIONS = -DCVKLU -DMAX_NCELLS=256
 
+# Use OPENMP?
+OPTIONS += -fopenmp -DNTHREADS=8
+
+
+# INSTALL PATHS
 CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
 SUITESPARSE_PATH = /home/kwoksun2/SuiteSparse
+DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
 
 CC      = gcc
 LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
 INCLUDE  = -I. -I$(CVODE_PATH)/include
 
-DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
 
-
+# REQUIRED FILES
 OBJ = cvklu_solver.C initialize_cvode_solver.C
 TEST_OBJ = cvklu_solver_main.C
-
-
-
-#------------------------------------------------------------------------
-# KLU part
-#
-
-# Taken from CVODE example makefile
-# -----------------------------------------------------------------
-# Programmer(s): Radu Serban @ LLNL
-#                David J. Gardner @ LLNL
-# -----------------------------------------------------------------
-# LLNS Copyright Start
-# Copyright (c) 2014, Lawrence Livermore National Security
-# This work was performed under the auspices of the U.S. Department 
-# of Energy by Lawrence Livermore National Laboratory in part under 
-# Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
-# Produced at the Lawrence Livermore National Laboratory.
-# All rights reserved.
-# For details, see the LICENSE file.
-# LLNS Copyright End
-# -----------------------------------------------------------------
-# Makefile for CVODE serial examples
-#
-# This file is generated from a template using variables
-# set at configuration time. It can be used as a template for
-# other user Makefiles.
-# -----------------------------------------------------------------
-
-
-# LOOKS LIKE I NEED TO INCLUDE CVODE PATH IN LD_LIBRARY_PATH for it to work
-
 
 SHELL = sh
 
@@ -72,9 +45,6 @@ exec_prefix  = $(CVODE_PATH)/instdir
 includedir   = $(CVODE_PATH)/include
 libdir       = $(CVODE_PATH)/lib
 
-CPP      = /usr/bin/cc
-CPPFLAGS = -O3 -DNDEBUG -g
-CC       = g++ #/usr/bin/cc
 CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
@@ -85,8 +55,12 @@ LINKFLAGS = -Wl,-rpath,$(libdir)
 TMP_INCS  = . ${includedir} 
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
 
-# -----------------------------------------------------------------------------------------
+#------------------------------------------------------------------------
+# KLU part
+#
 
+# Taken from CVODE example makefile
+# LOOKS LIKE I NEED TO INCLUDE CVODE PATH IN LD_LIBRARY_PATH for it to work
 
 INCLUDES_KLU  = $(SUITESPARSE_PATH)/include
 LIBRARIES_KLU = -lsundials_sunlinsolklu   $(SUITESPARSE_PATH)/KLU/Lib/libklu.so $(SUITESPARSE_PATH)/AMD/Lib/libamd.so $(SUITESPARSE_PATH)/COLAMD/Lib/libcolamd.so $(SUITESPARSE_PATH)/BTF/Lib/libbtf.so $(SUITESPARSE_PATH)/SuiteSparse_config/libsuitesparseconfig.so
@@ -94,21 +68,19 @@ LINKFLAGS_KLU = ${LINKFLAGS}:$(SUITESPARSE_PATH)/KLU/Lib
 LIBRARIES = -lsundials_cvode -lsundials_nvecserial ${LIBS}
 
 
-#------------------------------------------------------------------------
-
-
 ifneq (,$(findstring -DCVKLU, $(OPTIONS)))
 LIBRARIES += $(LIBRARIES_KLU)
 INCLUDES  += $(addprefix -I, $(INCLUDES_KLU) )
 LINKFLAGS := $(LINKFLAGS_KLU)
 endif
+#------------------------------------------------------------------------
+
 
 
 
 #------------------------------------------------------------------------
 # MAKE LIBDENGO BY DEFAULT
 # -----------------------------------------------------------------------
-#
 
 libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	mkdir -p $(DENGO_INSTALL_PATH)
@@ -117,20 +89,14 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
 	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
 	cp cvklu_solver.h $(DENGO_INSTALL_PATH)/include/
-	cp dengo_types.h $(DENGO_INSTALL_PATH)/include/
+	cp cvklu_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: cvklu_solver_main.C
-	g++ -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lhdf5
+	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
-	./run_dengo /home/kwoksun2/dengo/dengo-project-dengo-ed14369817a2/testing_data/1.h5
+	./run_dengo
 
-
-#run_dengo: $(OBJ) 
-#	$(CC) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
-
-libdengo.so: $(OBJ) 
-	$(CC) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE) -I$(INCLUDES_KLU) $(OPTIONS)
 
 
 #-----------------------------------------------------------------------
@@ -143,7 +109,7 @@ libdengo.so: $(OBJ)
 .PRECIOUS: %.o %.lo %.C
 
 %.lo: %.C
-	  libtool --mode=compile --tag=CXX $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
+	  libtool --mode=compile --tag=CC $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
 
 clean:
 	rm -f *.o
