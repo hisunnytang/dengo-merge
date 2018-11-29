@@ -319,6 +319,10 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     {% if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
+    double gammaH2_1 = 7.0/5.0;
+    double gammaH2_2 = 7.0/5.0;
+    double _gamma_m1 = 5.0/2.0;
+
     double T,x, expx, Tnew;
     {% endif %}
     /* Calculate total density */
@@ -672,40 +676,3 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
 
 {% endblock %}
 
-{% block temperature_from_mass_density %}
-void temperature_from_mass_density(double *input, int nstrip,
-                                   int nchem, double *strip_temperature)
-{
-    int i, j;
-    double density;
-    double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
-    double mh = 1.67e-24;
-    double gamma = 5.e0/3.e0;
-    {% if 'H2_1' in network.species_list() %}
-    double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
-    	   	     		// this is a temporary solution
-    double T = 1000.0; //THIS IS TEMPORARY TOO!!!
-    {% endif %}
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-    {%- for species in network.required_species | sort %}
-        {{species.name}} = input[j];
-        {%if species.name != "ge" %}
-        {{species.name}} /= {{species.weight}} * mh;
-        {%endif%}
-        /*fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
-                i, {{species.name}});*/
-        j++;
-    {% endfor %}
-        density = {{network.print_mass_density()}};
-        strip_temperature[i] = {{ network.temperature_calculation() }};
-        if (strip_temperature[i] < 1.0)
-            strip_temperature[i] = 1.0;
-    }
-         
-}
-{% endblock %} {# temperature_from_mass_density #}

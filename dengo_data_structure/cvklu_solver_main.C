@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     
-    int N = 64*64;
+    int N = 256*32;
     field_data->ncells = N; 
     double density = 1.0e2; // in cm^-3
     double T = 2000.0; // in K

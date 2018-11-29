@@ -19,7 +19,7 @@
 #OPTIONS+= -DMAX_NCELLS=1
 
 # Use the Sparse KLU direct solver
-OPTIONS = -DCVKLU -DMAX_NCELLS=32
+OPTIONS = -DCVKLU -DMAX_NCELLS=256
 
 # Use OPENMP?
 OPTIONS += -fopenmp -DNTHREADS=8
@@ -36,8 +36,8 @@ INCLUDE  = -I. -I$(CVODE_PATH)/include
 
 
 # REQUIRED FILES
-OBJ = cvklu_solver.C initialize_cvode_solver.C
-TEST_OBJ = cvklu_solver_main.C
+OBJ = dengo_original_solver.C initialize_cvode_solver.C
+TEST_OBJ = dengo_original_solver_main.C
 
 SHELL = sh
 
@@ -88,10 +88,10 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	mkdir -p $(DENGO_INSTALL_PATH)/include
 	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
 	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
-	cp cvklu_solver.h $(DENGO_INSTALL_PATH)/include/
-	cp cvklu_tables.h5 $(DENGO_INSTALL_PATH)
+	cp dengo_original_solver.h $(DENGO_INSTALL_PATH)/include/
+	cp dengo_original_tables.h5 $(DENGO_INSTALL_PATH)
 
-run_dengo: cvklu_solver_main.C
+run_dengo: dengo_original_solver_main.C
 	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
