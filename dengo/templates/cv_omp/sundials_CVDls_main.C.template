@@ -1,8 +1,10 @@
 #include "{{solver_name}}_solver.h"
 
 int main(int argc, char **argv) {
-    //{{solver_name}}_main(argc, argv);
-
+    if (argc > 1){
+       {{solver_name}}_main(argc, argv);
+       return 0;
+    }
 
     
     
@@ -26,29 +28,29 @@ int main(int argc, char **argv) {
     units->time_units = 1.0;
     units->velocity_units = 1.0;
     
-    {% for species in network.required_species %}
+    {%- for species in network.required_species %}
     double *{{species.name}}_density = (double*) malloc(N * sizeof(double));
-    {% endfor %}
+    {%- endfor %}
     double *cooling_time = (double *) malloc( N * sizeof(double) );
     double *gamma = (double * ) malloc( N * sizeof(double) );
     double *temperature = (double *) malloc( N * sizeof(double) );
     double *mean_molecular_weight = (double *) malloc( N * sizeof(double) );
 
     for ( int i = 0; i < N; i++){
-        {% for species in network.required_species %}
+        {%- for species in network.required_species %}
         {% if species.name not in ["H2_1", "He_1", "H_1", "ge"] %}
         {{species.name}}_density[i] = tiny*density;
         {% endif %}
-        {% endfor %}
+        {%- endfor %}
         H2_1_density[i] = 1.0e-3 * density;
         H_1_density[i]  = 0.76   * density;
         He_1_density[i] = 0.24   * density;
         ge_density[i]   = 3.0/2.0 * k * T / mH;
     }
     
-    {% for species in network.required_species %}
+    {%- for species in network.required_species %}
     field_data->{{species.name}}_density = {{species.name}}_density;
-    {% endfor %}
+    {%- endfor %}
     field_data->CoolingTime     = cooling_time;
     field_data->Gamma           = gamma;
     field_data->temperature     = temperature;
@@ -64,7 +66,7 @@ int main(int argc, char **argv) {
     free(field_data);
     {%- for species in network.required_species %}
     free({{species.name}}_density);
-    {% endfor %}
+    {%- endfor %}
     free(cooling_time);
     free(gamma);
     free(temperature);

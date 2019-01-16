@@ -1,14 +1,16 @@
 #include "cvklu_solver.h"
 
 int main(int argc, char **argv) {
-    //cvklu_main(argc, argv);
-
+    if (argc > 1){
+       cvklu_main(argc, argv);
+       return 0;
+    }
 
     
     
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     
-    int N = 256*32;
+    int N = 64*64;
     field_data->ncells = N; 
     double density = 1.0e2; // in cm^-3
     double T = 2000.0; // in K
@@ -25,8 +27,6 @@ int main(int argc, char **argv) {
     units->length_units = 1.0;
     units->time_units = 1.0;
     units->velocity_units = 1.0;
-    
-    
     double *H2_1_density = (double*) malloc(N * sizeof(double));
     
     double *H2_2_density = (double*) malloc(N * sizeof(double));
@@ -53,7 +53,6 @@ int main(int argc, char **argv) {
     double *mean_molecular_weight = (double *) malloc( N * sizeof(double) );
 
     for ( int i = 0; i < N; i++){
-        
         
         
         
@@ -91,8 +90,6 @@ int main(int argc, char **argv) {
         He_1_density[i] = 0.24   * density;
         ge_density[i]   = 3.0/2.0 * k * T / mH;
     }
-    
-    
     field_data->H2_1_density = H2_1_density;
     
     field_data->H2_2_density = H2_2_density;

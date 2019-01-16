@@ -936,9 +936,9 @@ def run_cvklu(ics, double tf, int niter = 10000,
 
     j = 0
     for i in range(dims):
-        H2_1_arr[i] = input[j] * 2.01588
+        H2_1_arr[i] = input[j] * 2.0
         j += 1
-        H2_2_arr[i] = input[j] * 2.01588
+        H2_2_arr[i] = input[j] * 2.0
         j += 1
         H_1_arr[i] = input[j] * 1.00794
         j += 1

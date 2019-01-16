@@ -1,0 +1,17 @@
+syntax: glob
+*.pyc
+.*.swp
+*.so*
+*.lo
+*.o
+output/*
+*.h5
+*.so.reload*
+dengo_data_structure/*
+test_performance/playground/*
+test_performance/accurate_solution/*
+test_performance/test_cvspils/*
+test_performance/test_cvdls/*
+*/_dengo_temp/*
+dengo/templates/working/*
+*.out

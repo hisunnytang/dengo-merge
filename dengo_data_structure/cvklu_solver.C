@@ -478,12 +478,12 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
     for (i = 0; i < dims; i++) {
         j = i * N;
         
-        H2_1 = input[j] /= 2.01588;
+        H2_1 = input[j] /= 2.0;
         
         j++;
         
         
-        H2_2 = input[j] /= 2.01588;
+        H2_2 = input[j] /= 2.0;
         
         j++;
         
@@ -717,13 +717,13 @@ int dengo_evolve_cvklu (double dtf, double &dt, double z, double *input,
       j = i * N;
       
       H2_1 = input[j];
-      input[j] *= 2.01588;
+      input[j] *= 2.0;
       
       j++;
       
       
       H2_2 = input[j];
-      input[j] *= 2.01588;
+      input[j] *= 2.0;
       
       j++;
       
@@ -1105,7 +1105,7 @@ int cvklu_calculate_temperature(cvklu_data *data,
         
         
 
-        density = 2.01588*H2_1 + 2.01588*H2_2 + 1.00794*H_1 + 1.00794*H_2 + 1.00794*H_m0 + 4.002602*He_1 + 4.002602*He_2 + 4.002602*He_3;
+        density = 2.0*H2_1 + 2.0*H2_2 + 1.00794*H_1 + 1.00794*H_2 + 1.00794*H_m0 + 4.002602*He_1 + 4.002602*He_2 + 4.002602*He_3;
         
     
         
@@ -4313,12 +4313,12 @@ int dengo_calculate_gamma( double* gamma_eff, cvklu_data *data, double *input, i
         ndensity = 0;
         j = i * nchem;
         
-        H2_1 = input[j] / 2.01588;
+        H2_1 = input[j] / 2.0;
         
         ndensity += H2_1;
         
         
-        H2_2 = input[j] / 2.01588;
+        H2_2 = input[j] / 2.0;
         
         ndensity += H2_2;
         
@@ -4420,7 +4420,7 @@ int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *
         mdensity += input[j]; 
         
         
-        ndensity += input[j] /2.01588;
+        ndensity += input[j] /2.0;
         
         j++;
         
@@ -4429,7 +4429,7 @@ int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *
         mdensity += input[j]; 
         
         
-        ndensity += input[j] /2.01588;
+        ndensity += input[j] /2.0;
         
         j++;
         
@@ -6548,13 +6548,13 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
         j = i * 10;
         
         // species: H2_1
-        data->mdensity[threadID][i] += input[j] * 2.01588; 
+        data->mdensity[threadID][i] += input[j] * 2.0; 
         
         j ++;
         
         
         // species: H2_2
-        data->mdensity[threadID][i] += input[j] * 2.01588; 
+        data->mdensity[threadID][i] += input[j] * 2.0; 
         
         j ++;
         

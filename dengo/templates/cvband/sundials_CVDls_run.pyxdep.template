@@ -1,3 +1,0 @@
-{{solver_name}}_solver.C
-{{solver_name}}_solver.h
-initialize_cvode_solver.C
