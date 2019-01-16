@@ -133,8 +133,6 @@ class Reaction(ComparableMixin):
     def _cmpkey(self):
         return repr(self)
 
-
-
     def __repr__(self):
         a = "%s : " % self.name \
           + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] ) \
@@ -156,7 +154,6 @@ class Reaction(ComparableMixin):
         if species not in self.species: return 0
         nr = self.net_change(species.name)
         return nr * self.lhs_equation
-
     @property
     def lhs_equation(self):
         #eq = self.coeff_sym[index_i]
@@ -184,7 +181,6 @@ def chianti_rate(atom_name, sm1, s, sp1):
         raise RuntimeError
     de = species_registry['de']
     new_rates = []
-
     def ion_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
         ion.ionizRate()
@@ -230,7 +226,6 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         # NOTE: these rates do the interpolation as a function fo redshift
         f = h5py.File('input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
                       %(element_name, photo_background))
-
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
 
@@ -256,7 +251,6 @@ def ion_photoionization_rate(species, photo_background='HM12'):
 
             # convert back to linear
             vals = 10.0**vals
-
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code
@@ -309,7 +303,6 @@ class ChemicalSpecies(Species):
 
 class AtomicSpecies(ChemicalSpecies):
     def __init__(self, atom_name, free_electrons):
-
         num, weight, pn = periodic_table_by_name[atom_name]
         if free_electrons < 0:
             name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
@@ -347,7 +340,6 @@ class CoolingAction(object):
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
         ta_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.tables)
-
         self.table_symbols.update(ta_sym)
         #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
         tp_sym = dict((n, sympy.Symbol("%s" % (n))) for n in self.temporaries)
@@ -391,7 +383,6 @@ class CoolingAction(object):
 
     def temporary(self, name, eq):
         self.temporaries[name] = eq
-
     @classmethod
     def create_cooling_action(cls, name, equation):
         obj = cls(name, equation)
@@ -442,7 +433,6 @@ def ion_cooling_rate(species, atom_name):
 
             # convert back to linear
             vals = 10.0**vals
-
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code
@@ -513,7 +503,6 @@ def ion_photoheating_rate(species, photo_background='HM12'):
 
             # convert back to linear
             vals = 10.0**vals
-
         if end_method == 1:
             ### Gaussian falloff when values extend beyond table values ###
             # rename some variables to symplify code

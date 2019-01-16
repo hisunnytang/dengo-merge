@@ -27,10 +27,4 @@ Dependencies:
 
         - Download from https://computation.llnl.gov/projects/sundials/cvode
         - and set the envirnoment variable
-
-
-
-
-
-
-
+        - run 'python setup.py install' in ChiantiPy directory

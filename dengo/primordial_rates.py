@@ -41,10 +41,6 @@ def setup_primordial():
     HM = AtomicSpecies("H", -1.0)
     H2I = MolecularSpecies("H2", 2.0, 0.0)
     H2II = MolecularSpecies("H2", 2.0, 1.0)
-
-    H2I = MolecularSpecies("H2", 2.01588, 0.0)
-    H2II = MolecularSpecies("H2", 2.01588, 1.0)
-
     de = species_registry['de']
 
     # -- k01 --
@@ -328,7 +324,7 @@ def setup_primordial():
                       + 0.0000866396324309*state.logtev**6
                       - 0.00002585009680264*state.logtev**7
                       + 2.4555011970392e-6*state.logtev**8
-                      - 8.06838246118e-8*state.logtev**9)
+                     - 8.06838246118e-8*state.logtev**9)
         vals[_i2] = 2.56e-9*state.tev[_i2]**1.78186
         return vals
 

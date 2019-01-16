@@ -52,8 +52,6 @@ class ChemicalNetwork(object):
         self.stop_time = stop_time
         self.z_bounds = (0.0, 0.0)
 
-
-
         # create a list of species where gamma has to be
         # integrate / calculate separately
         self.interpolate_gamma_species = set([])
@@ -98,8 +96,6 @@ class ChemicalNetwork(object):
         self.reactions[reaction.name] = reaction
         reaction.coeff_sym.energy = self.energy_term
         print ("Adding reaction: %s" % reaction)
-
-
 
     def add_cooling(self, cooling_term, auto_add = True):
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
@@ -154,7 +150,6 @@ class ChemicalNetwork(object):
     def __iter__(self):
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
-
 
     def print_ccode(self, species, assign_to = None):
         #assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
@@ -219,7 +214,6 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
 
         eq = sympy.diff(st, s2.symbol)
-
         eq = eq.replace(
                 lambda x: x.is_Pow and x.exp > 0 and x.exp == sympy.Integer,
                 lambda x: sympy.Symbol('*'.join([x.base.name]*x.exp)) )
@@ -575,7 +569,6 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "templates"))
-
         template_vars = dict(network = self, solver_name = solver_name)
 
 
@@ -588,7 +581,6 @@ class ChemicalNetwork(object):
             solver_out = template_inst.render(**template_vars)
             with open(oname ,"w") as f:
                 f.write(solver_out)
-
 
         # now we create a Makefile
         temp_dir, _ = os.path.split(solver_template)
@@ -620,7 +612,6 @@ class ChemicalNetwork(object):
             src = pkgutil.get_data("dengo", os.path.join("templates", hfn))
             with open(os.path.join(output_dir, hfn), "w") as f:
                 f.write(src)
-
         # This writes out the rates for the species in the
         # chemical network to HDF5 files which can later be
         # read by the C++ code that is output by the template

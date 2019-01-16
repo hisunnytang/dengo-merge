@@ -116,7 +116,6 @@ for name in sorted(rv_int):
         rv_int[name] = rv_int[name][mask]
     else:
         rv_int[name] = rv_int[name][0, mask]
-
 skip = ('successful', 'dt', 't', 'ge')
 for n, v in sorted(rv_int.items()):
     if n in skip: continue

@@ -150,7 +150,6 @@ def cool(eq):
 def cool(eq):
     @eq.table
     def brem(state):
-
         # balck 1981 / Spitzer & Hart 1979
         vals = 1.43e-27*np.sqrt(state.T) \
              *(1.1+0.34*np.exp(-(5.5-np.log10(state.T))**2/3.0))
