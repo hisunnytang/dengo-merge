@@ -7,13 +7,13 @@ def make_ext(modname, pyxfilename):
     elif "YT_DEST" in os.environ:
         hdf5_dir = os.environ["YT_DEST"]
     else:
-        print "You need to set HDF5_DIR or YT_DEST in your environment."
+        print("You need to set HDF5_DIR or YT_DEST in your environment.")
         raise RuntimeError
     inc = os.path.join(hdf5_dir, "include")
     lib = os.path.join(hdf5_dir, "lib")
     return Extension(name=modname,
                      sources=[pyxfilename,
                         "{{solver_name}}_solver.C", "initialize_cvode_solver.C"],
-                     include_dirs=[inc, ".", "/home/kwoksun2/cvode-3.1.0/instdir/include"],
-                     library_dirs=[lib, "/home/kwoksun2/cvode-3.1.0/instdir/lib"],
+                     include_dirs=[inc, ".", "{{network._cvode_path}}/include"],
+                     library_dirs=[lib, "{{network._cvode_path}}/lib"],
                      libraries=['m', 'hdf5', 'hdf5_hl', "stdc++", "sundials_cvode", "sundials_nvecserial"], language="C++", extra_compile_args=["-w", "-DMAX_NCELLS=1", "-DCVDLS"])

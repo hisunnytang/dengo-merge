@@ -21,7 +21,7 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from reaction_classes import AtomicSpecies, chianti_rate, \
+from .reaction_classes import AtomicSpecies, chianti_rate, \
                              ion_cooling_rate, \
                              ion_photoionization_rate, \
                              ion_photoheating_rate, \

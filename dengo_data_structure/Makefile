@@ -28,12 +28,11 @@ OPTIONS += -fopenmp -DNTHREADS=8
 # INSTALL PATHS
 CVODE_PATH    = /home/kwoksun2/cvode-3.1.0/instdir
 SUITESPARSE_PATH = /home/kwoksun2/SuiteSparse
-DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
+DENGO_INSTALL_PATH = 
+HDF5_PATH = /home/kwoksun2/anaconda3
 
 CC      = gcc
 LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
-INCLUDE  = -I. -I$(CVODE_PATH)/include
-
 
 # REQUIRED FILES
 OBJ = cvklu_solver.C initialize_cvode_solver.C
@@ -42,8 +41,8 @@ TEST_OBJ = cvklu_solver_main.C
 SHELL = sh
 
 exec_prefix  = $(CVODE_PATH)/instdir
-includedir   = $(CVODE_PATH)/include
-libdir       = $(CVODE_PATH)/lib
+includedir   = $(CVODE_PATH)/include $(HDF5_PATH)/include
+libdir       = $(CVODE_PATH)/lib $(HDF5_PATH)/lib
 
 CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 

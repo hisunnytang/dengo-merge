@@ -655,10 +655,11 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     double gamma = 5.e0/3.e0;
     double _gamma_m1 = 1.0 / (gamma - 1);
 
+    double dge_dT;
+    
     {% if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
-    double dge_dT;
     double dge;
 
     {% for sp in network.interpolate_gamma_species_name | sort %}
@@ -700,7 +701,9 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
 
         density = {{network.print_mass_density()}};
         
-    
+        
+        // Requires iteration on the convergence of temperature
+        // since the gammaH2 is not fixed
         {% if 'H2_1' in network.species_list() %}
         
         // Initiate the "guess" temperature
@@ -749,7 +752,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         data->Ts[threadID][i] = Tnew;
 
 
-        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+        //fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
         {% else %} {# if 'H2_1' in network.species_list() #}
@@ -763,8 +766,9 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         }
         data->logTs[threadID][i] = log(data->Ts[threadID][i]);
         data->invTs[threadID][i] = 1.0 / data->Ts[threadID][i];
-	    data->dTs_{{ network.energy_term.name }}[threadID][i] = 1.0 / dge_dT;
 
+        dge_dT = {{network.temperature_calculation(derivative_dge_dT=True)}};
+	    data->dTs_{{ network.energy_term.name }}[threadID][i] = 1.0 / dge_dT;
     } // for i in nstrip loop
     return 0;
          
@@ -1138,12 +1142,13 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% endif %}
         
 
+/*
         {% if s2.name == 'ge' and s1.name == 'ge'%}
         // ad-hoc extra term of f_ge by ge
         // considering ONLY the h2formation/ and continuum cooling
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) =  -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         {% endif %}
-
+*/
         {% if s2.name == 'ge' %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
         {% endif %}
@@ -2034,17 +2039,22 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         // {{s1.name}} by {{s2.name}}
         colvals[j + {{k}}] = i * nchem + {{colvals}} ;
         matrix_data[ j + {{k}} ] {{jac_comp}}
+
+/*
         {% if s1.name == 'ge' and s2.name == 'ge'%}
         // ad-hoc extra term of f_ge by ge
         // considering ONLY the h2formation/ and continuum cooling
+        
         matrix_data[ j + {{k}}] = -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         {% endif %}
+*/
         {% if s1.name == 'ge' %}
         matrix_data[j + {{k}}] *= inv_mdensity;
         {% endif %}
  	    {% if s2.name == 'ge' %}
         matrix_data[ j + {{k}}] *= T{{ network.energy_term.name }}[i];
         {% endif %}
+        
         {% endfor %}
         
         {% for rowptrs in network.get_sparse_matrix_component(sparse_type = "CSR", return_type = "indexptrs") %}
@@ -2080,6 +2090,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
 
     int i, j;
     double mh = 1.67e-24;
+    double mdensity;
     for ( i = 0; i < nstrip; i++){
         data->mdensity[threadID][i] = 0;
         j = i * {{network.required_species | length}};
@@ -2095,7 +2106,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
     }
 
     {% if "cie_cooling" in network.cooling_actions %}
-    double mdensity, tau;
+    double tau;
     for ( i = 0; i < nstrip; i++){
         
         mdensity = data->mdensity[threadID][i];

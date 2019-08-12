@@ -656,7 +656,7 @@ def main_run_cvklu():
     t1 = time.time()
     #cvklu_main(0, NULL)
     t2 = time.time()
-    print "Total elapsed time: %0.3e" % (t2-t1)
+    print("Total elapsed time: %0.3e" % (t2-t1))
 
 def run_cvklu(ics, double tf, int niter = 10000,
                         int intermediate = 1, z = -1.0, dtarr = -999999):
@@ -882,7 +882,7 @@ def run_cvklu(ics, double tf, int niter = 10000,
 
         if status == 0:
             if iter % 100 == 0:
-                print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf)
+                print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
             dt = 1.1*dt
 
@@ -894,7 +894,7 @@ def run_cvklu(ics, double tf, int niter = 10000,
             # Reset the scaling array to match the new values
             # copy_array(input, scale, NTOT)
             if dt < 1e-50 * tf:
-                print "dt too small (%0.3e / %0.3e) so breaking" % (dt, tf)
+                print("dt too small (%0.3e / %0.3e) so breaking" % (dt, tf))
                 break
             continue
         if ttot >= tf: break
@@ -905,7 +905,7 @@ def run_cvklu(ics, double tf, int niter = 10000,
     free(success_arr)
     free(field_data)
     free(units)
-    print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
+    print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
 
     rv, rv_t = {}, {}
     H2_1_arr = rv["H2_1"] = np.zeros(dims, "float64")

@@ -34,11 +34,12 @@ from .periodic_table import \
 from .mixin import ComparableMixin
 
 try:
-    import chianti.core as ch
-    import chianti.util as chu
+    import ChiantiPy.core as ch
+    chu = 1 # temporary to avoid the check
+    #import ChiantiPy.util as chu
 except (ImportError, KeyError):
     ch = None
-    chu = None
+    #chu = None
 
 reaction_registry = {}
 cooling_registry = {}
@@ -193,7 +194,11 @@ def chianti_rate(atom_name, sm1, s, sp1):
         new_rates.append("%s_i" % s.name)
 
     def rec_rate(network):
+        print(ion_name, network.T)
         ion = ch.ion(ion_name, temperature = network.T)
+        # for some reason, the latest chiantipy
+        # failed to update the tempeature for fully ionized
+        ion.Temperature = network.T
         ion.recombRate()
         vals = ion.RecombRate['rate']
         return vals
@@ -224,7 +229,9 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+        f = h5py.File('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+                      %(element_name, photo_background))
+        print('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
                       %(element_name, photo_background))
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
@@ -334,6 +341,11 @@ class CoolingAction(object):
         self.temp_symbols = {}
         cooling_registry[name] = self # Register myself
 
+    # so that we can sort the coolingaction
+    def __gt__(self, other):
+        return self.name > other.name
+
+
     @property
     def equation(self):
         if self._eq is not None: return self._eq
@@ -368,14 +380,14 @@ class CoolingAction(object):
     @property
     def species(self):
         # self.equation
-        bad = set(self.temp_symbols.values() + self.table_symbols.values())
+        bad = set(self.temp_symbols.values()).update( set(self.table_symbols.values()) )
         species = set([])
         #for s in self.equation.atoms(sympy.IndexedBase):
         for s in self.equation.atoms(sympy.Symbol):
-            bad = set(self.temp_symbols.values() + self.table_symbols.values())
-
-            if s not in bad:
-                species.add(species_registry[str(s).replace("[i]","")])
+            bad = set(self.temp_symbols.values()).update( set(self.table_symbols.values()) )
+            if bad != None:
+                if s not in bad:
+                    species.add(species_registry[str(s).replace("[i]","")])
         return species
 
     def table(self, func):
@@ -475,7 +487,7 @@ def ion_photoheating_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
+        f = h5py.File('../input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
                                                                  photo_background))
 
         ### Intepolate values within table values ###

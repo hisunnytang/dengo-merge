@@ -50,7 +50,7 @@ class ChemicalNetwork(object):
         self.energy_term = species_registry["ge"]
         self.required_species.add(self.energy_term)
         self.stop_time = stop_time
-        self.z_bounds = (0.0, 0.0)
+        self.z_bounds = (0.0, 10.0)
 
         # create a list of species where gamma has to be
         # integrate / calculate separately
@@ -170,7 +170,7 @@ class ChemicalNetwork(object):
     def print_cooling(self, assign_to):
         eq = sympy.sympify("0")
         for term in self.cooling_actions:
-            if term not in ['h2formation']:
+            if term not in ['h2formation'] and "cie_cooling" in self.cooling_actions:
                 # This is independent of the continuum optical depth
                 # from the CIE
                 eq += self.cooling_actions[term].equation * self.cie_optical_depth_approx()
@@ -501,7 +501,7 @@ class ChemicalNetwork(object):
     def calculate_number_density(self, values, skip = ()):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
-        n = np.zeros_like(values.values()[0])
+        n = np.zeros_like(list(values.values())[0])
         for s in self.required_species:
             if s.name in self.skip_weight: continue
             n += values[s.name] / s.weight
@@ -511,7 +511,7 @@ class ChemicalNetwork(object):
     def calculate_free_electrons(self, values):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
-        n = np.zeros_like(values.values()[0])
+        n = np.zeros_like(list(values.values())[0])
         for s in self.required_species:
             if s.name in self.skip_weight: continue
             n += ( values[s.name] / s.weight ) * s.free_electrons
@@ -521,7 +521,7 @@ class ChemicalNetwork(object):
     def calculate_mass_density(self, values):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
-        n = np.zeros_like(values.values()[0])
+        n = np.zeros_like(list(values.values())[0])
         for s in self.required_species:
             if s.name in self.skip_weight: continue
             n += values[s.name] * s.weight
@@ -532,7 +532,7 @@ class ChemicalNetwork(object):
     def calculate_total_density(self, values):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
-        n = np.zeros_like(values.values()[0])
+        n = np.zeros_like(list(values.values())[0])
         for s in self.required_species:
             if s.name in self.skip_weight: continue
             n += values[s.name]
@@ -548,10 +548,37 @@ class ChemicalNetwork(object):
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
+                     library_path    = {},
                      output_dir = ".", init_values = None,
                      main_name = "main",
                      input_is_number = False):
         self.input_is_number = input_is_number
+
+        # with Dan suggestions, I have included the path to write the solver!
+
+        if "CVODE_PATH" in library_path:
+            self._cvode_path = library_path["CVODE_PATH"]
+        else:
+            print("Need to supply CVODE_PATH")
+            return
+
+        if  "HDF5_PATH" in library_path:
+            self._hdf5_path  = library_path["HDF5_PATH"]
+        else:
+            print("Need to supply HDF5_PATH")
+            return
+
+        if "SUITESPARSE_PATH" in library_path:
+            self._suitesparse_path = library_path["SUITESPARSE_PATH"]
+        else:
+            print("Need to supply SUITESPARSE_PATH")
+            return
+
+        if "DENGO_INSTALL_PATH" in library_path:
+            self._dengo_install_path = library_path["DENGO_INSTALL_PATH"]
+        else:
+            print("Need to supply SUITESPARSE_PATH")
+            return
 
         if not os.path.isdir(output_dir): os.makedirs(output_dir)
         # What we are handed here is:
@@ -625,7 +652,7 @@ class ChemicalNetwork(object):
             data = rxn.coeff_fn(self).astype("float64")
             all_rates.append(data)
         all_rates = np.array(all_rates).transpose().flatten()
-        f.create_dataset("/all_reaction_rates" , data = all_rates)
+        #f.create_dataset("/all_reaction_rates" , data = all_rates)
 
         # construct a 2d array of cooling rates
         # cooling_rates [ T ][ cooling ]
@@ -635,7 +662,7 @@ class ChemicalNetwork(object):
                 data = action.tables[tab](self).astype("float64")
                 all_cooling.append(data)
         all_cooling = np.array(all_cooling).transpose().flatten()
-        f.create_dataset("/all_cooling_rates", data= all_cooling)
+        #f.create_dataset("/all_cooling_rates", data= all_cooling)
 
         for rxn in sorted(self.reactions.values()):
             f.create_dataset("/%s" % rxn.name, data = rxn.coeff_fn(self).astype("float64"))

@@ -2,10 +2,16 @@ import numpy as np
 from dengo.chemical_network import \
     ChemicalNetwork, \
     reaction_registry, \
-    cooling_registry
+    cooling_registry, \
+    species_registry
+
 from dengo.ion_by_ion import setup_ionization
 from dengo.chemistry_constants import tiny, kboltz, mh
 import numpy as np
+from dengo.reaction_classes import AtomicSpecies
+import os
+
+os.environ["HDF5_DIR"] = '/home/kwoksun2/anaconda3'
 
 NCELLS = 1
 density = 1.0
@@ -16,11 +22,17 @@ X = 1e-8
 
 ion_by_ion = ChemicalNetwork(write_intermediate = False,
                              stop_time = 3.1557e13)
-ion_by_ion.add_species("de")
-ion_by_ion.add_species('H_1')
-ion_by_ion.add_species('H_2')
-ion_by_ion.add_species('He_1')
-ion_by_ion.add_species('He_2')
+HI = AtomicSpecies("H", 0.0)
+HII = AtomicSpecies("H", 1.0)
+HeI = AtomicSpecies("He", 0.0)
+HeII = AtomicSpecies("He", 1.0)
+de = species_registry['de']
+
+ion_by_ion.add_species(de)
+ion_by_ion.add_species(HI)
+ion_by_ion.add_species(HII)
+ion_by_ion.add_species(HeI)
+ion_by_ion.add_species(HeII)
 #ion_by_ion.add_species('O_1')
 #ion_by_ion.add_species('O_2')
 #ion_by_ion.add_species('O_3')
@@ -29,7 +41,7 @@ ion_by_ion.add_species('He_2')
 #ion_by_ion.add_species('O_6')
 
 for atom in ["H", "He", "O"]: #"C", "N", "O", "Ne", "Si"]:
-    s, c, r = setup_ionization(atom, photo_background="hm12")
+    s, c, r = setup_ionization(atom, photo_background="HM12")
     ion_by_ion.add_collection(s, c, r)
 
 # This defines the temperature range for the rate tables
@@ -48,7 +60,10 @@ init_values['T'] = temperature
 
 start_neutral = False
 
-import chianti.core as ch
+import ChiantiPy.core as ch
+
+for s in (ion_by_ion.required_species):
+    print(s, type(s))
 
 if start_neutral:
     for s in ion_by_ion.required_species:
@@ -74,8 +89,14 @@ else:
                 else:
                     ion_name = s.name.lower()
                     ion = ch.ion(ion_name, temperature=init_values['T'])
+                    print(ion_name)
                     ion.ioneqOne()
-                    ion_frac = ion.ioneqOne
+                    # this calcuate the equilirbium abundance @ T
+                    # however this attr is not defined for fully ionized species...
+                    # fix that later, take this as 1 for now first
+                    #ion_frac = ion.IoneqOne
+                    ion_frac = 1.0
+                    # ion.Abundance is the elemental abundance relative to hydrogen
                     init_values[s.name] = ion_frac * init_array * ion.Abundance
 
                 # in case something is negative or super small:
@@ -93,10 +114,24 @@ gamma = 5.0/3.0
 init_values['ge'] = ((temperature * number_density * kboltz)
                      / (init_values['density'] * mh * (gamma - 1)))
 
+
+# Write the initial conditions file
+# IF you need to use the Makefile, and c-library
+# you will have to specified the library_path
+library_path = {}
+library_path["CVODE_PATH"] = "/home/kwoksun2/cvode-3.1.0/instdir"
+library_path["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
+library_path["SUITESPARSE_PATH"] = "/home/kwoksun2/SuiteSparse"
+library_path["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install"
+
+
 # Write the initial conditions file
 ion_by_ion.write_solver("ion_by_ion", output_dir = ".",
                         init_values=init_values,
-                        input_is_number=False)
+                        input_is_number=False,
+                        solver_template = "cv_omp/sundials_CVDls",
+                        ode_solver_source = "initialize_cvode_solver.C",
+                        library_path = library_path)
 
 import pyximport
 pyximport.install(setup_args={"include_dirs":np.get_include()},

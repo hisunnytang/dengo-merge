@@ -50,7 +50,7 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
 
     /* Redshift-related pieces */
     data->z_bounds[0] = 0.0;
-    data->z_bounds[1] = 0.0;
+    data->z_bounds[1] = 10.0;
     data->n_zbins = 0 - 1;
     data->d_zbin = (log(data->z_bounds[1] + 1.0) - log(data->z_bounds[0] + 1.0)) / data->n_zbins;
     data->id_zbin = 1.0L / data->d_zbin;
@@ -293,7 +293,7 @@ int cvklu_main(int argc, char** argv )
 
     H5Fclose(file_id);
     
-    // double dtf = 299204917.32712233;
+    // double dtf = 2992049173.271223;
     double dtf, t0;
     t0 = 2.992e15;
     dtf = t0 / sqrt(density[0]);
@@ -1027,10 +1027,11 @@ int cvklu_calculate_temperature(cvklu_data *data,
     double gamma = 5.e0/3.e0;
     double _gamma_m1 = 1.0 / (gamma - 1);
 
+    double dge_dT;
+    
     
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
-    double dge_dT;
     double dge;
 
     
@@ -1105,9 +1106,11 @@ int cvklu_calculate_temperature(cvklu_data *data,
         
         
 
-        density = 2.0*H2_1 + 2.0*H2_2 + 1.00794*H_1 + 1.00794*H_2 + 1.00794*H_m0 + 4.002602*He_1 + 4.002602*He_2 + 4.002602*He_3;
+        density = 2.0*H2_1 + 2.0*H2_2 + 1.0079400000000001*H_1 + 1.0079400000000001*H_2 + 1.0079400000000001*H_m0 + 4.0026020000000004*He_1 + 4.0026020000000004*He_2 + 4.0026020000000004*He_3;
         
-    
+        
+        // Requires iteration on the convergence of temperature
+        // since the gammaH2 is not fixed
         
         
         // Initiate the "guess" temperature
@@ -1161,7 +1164,7 @@ int cvklu_calculate_temperature(cvklu_data *data,
         data->Ts[threadID][i] = Tnew;
 
 
-        // fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
+        //fprintf(stderr,"T : %0.5g, density : %0.5g, d_gammaH2: %0.5g \n", Tnew, density, gammaH2 - 7./5.);
 
 
         
@@ -1173,8 +1176,9 @@ int cvklu_calculate_temperature(cvklu_data *data,
         }
         data->logTs[threadID][i] = log(data->Ts[threadID][i]);
         data->invTs[threadID][i] = 1.0 / data->Ts[threadID][i];
-	    data->dTs_ge[threadID][i] = 1.0 / dge_dT;
 
+        dge_dT = T*kb*(-H2_1*_gammaH2_1_m1*_gammaH2_1_m1*dgammaH2_1_dT - H2_2*_gammaH2_2_m1*_gammaH2_2_m1*dgammaH2_2_dT)/(density*mh) + kb*(H2_1*_gammaH2_1_m1 + H2_2*_gammaH2_2_m1 + H_1*_gamma_m1 + H_2*_gamma_m1 + H_m0*_gamma_m1 + He_1*_gamma_m1 + He_2*_gamma_m1 + He_3*_gamma_m1 + _gamma_m1*de)/(density*mh);
+	    data->dTs_ge[threadID][i] = 1.0 / dge_dT;
     } // for i in nstrip loop
     return 0;
          
@@ -1803,21 +1807,21 @@ void cvklu_interpolate_gamma(cvklu_data *data,
     
     
     bin_id = data->bin_id[threadID][i];
-    data->gammaH2_2[threadID][i] = data->g_gammaH2_2[bin_id] +
-        data->Tdef[threadID][i] * (data->g_gammaH2_2[bin_id+1] - data->g_gammaH2_2[bin_id]);
-
-    data->dgammaH2_2_dT[threadID][i] = data->g_dgammaH2_2_dT[bin_id] +
-        data->Tdef[threadID][i] * (data->g_dgammaH2_2_dT[bin_id+1] 
-        - data->g_dgammaH2_2_dT[bin_id]);
-    
-    
-    bin_id = data->bin_id[threadID][i];
     data->gammaH2_1[threadID][i] = data->g_gammaH2_1[bin_id] +
         data->Tdef[threadID][i] * (data->g_gammaH2_1[bin_id+1] - data->g_gammaH2_1[bin_id]);
 
     data->dgammaH2_1_dT[threadID][i] = data->g_dgammaH2_1_dT[bin_id] +
         data->Tdef[threadID][i] * (data->g_dgammaH2_1_dT[bin_id+1] 
         - data->g_dgammaH2_1_dT[bin_id]);
+    
+    
+    bin_id = data->bin_id[threadID][i];
+    data->gammaH2_2[threadID][i] = data->g_gammaH2_2[bin_id] +
+        data->Tdef[threadID][i] * (data->g_gammaH2_2[bin_id+1] - data->g_gammaH2_2[bin_id]);
+
+    data->dgammaH2_2_dT[threadID][i] = data->g_dgammaH2_2_dT[bin_id] +
+        data->Tdef[threadID][i] * (data->g_dgammaH2_2_dT[bin_id+1] 
+        - data->g_dgammaH2_2_dT[bin_id]);
     
        
     }
@@ -2168,8 +2172,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2184,8 +2189,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2200,8 +2206,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2216,8 +2223,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2232,8 +2240,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2245,8 +2254,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2258,8 +2268,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2271,8 +2282,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2287,8 +2299,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2303,8 +2316,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2326,8 +2340,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2342,8 +2357,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2358,8 +2374,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2374,8 +2391,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2390,8 +2408,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2403,8 +2422,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2416,8 +2436,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2429,8 +2450,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2445,8 +2467,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2461,8 +2484,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2484,8 +2508,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2500,8 +2525,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2516,8 +2542,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2532,8 +2559,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2548,8 +2576,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2561,8 +2590,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2574,8 +2604,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2587,8 +2618,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2603,8 +2635,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2619,8 +2652,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2642,8 +2676,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2658,8 +2693,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2674,8 +2710,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2690,8 +2727,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2706,8 +2744,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2719,8 +2758,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2732,8 +2772,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2745,8 +2786,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2761,8 +2803,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2777,8 +2820,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2797,8 +2841,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2813,8 +2858,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2829,8 +2875,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2845,8 +2892,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2861,8 +2909,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2874,8 +2923,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2887,8 +2937,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2900,8 +2951,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2916,8 +2968,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2932,8 +2985,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2952,8 +3006,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2965,8 +3020,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2978,8 +3034,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -2991,8 +3048,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3004,8 +3062,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3020,8 +3079,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3036,8 +3096,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3049,8 +3110,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3065,8 +3127,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3081,8 +3144,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3101,8 +3165,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3114,8 +3179,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3127,8 +3193,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3140,8 +3207,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3153,8 +3221,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3169,8 +3238,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3185,8 +3255,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3201,8 +3272,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3217,8 +3289,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3233,8 +3306,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3253,8 +3327,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3266,8 +3341,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3279,8 +3355,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3292,8 +3369,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3305,8 +3383,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3318,8 +3397,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3334,8 +3414,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3350,8 +3431,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3366,8 +3448,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3382,8 +3465,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3402,8 +3486,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3418,8 +3503,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3434,8 +3520,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3450,8 +3537,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3466,8 +3554,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3482,8 +3571,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3498,8 +3588,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3514,8 +3605,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3530,8 +3622,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3546,8 +3639,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
  	    
         
@@ -3561,7 +3655,7 @@ int calculate_jacobian_cvklu( realtype t,
         
         // ge by H2_1
         
-        SM_ELEMENT_D( J, j + 9, j + 0 ) = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.01588*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2);
+        SM_ELEMENT_D( J, j + 9, j + 0 ) = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.0158800000000001*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2);
         inv_scale2 = inv_scale[ j + 9];
         scale1     = scale    [ j + 0];
         SM_ELEMENT_D( J, j + 9, j + 0) *= inv_scale2*scale1;
@@ -3569,8 +3663,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 0 ) *= inv_mdensity;
         
@@ -3584,8 +3679,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 1 ) *= inv_mdensity;
         
@@ -3602,8 +3698,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 2 ) *= inv_mdensity;
         
@@ -3620,8 +3717,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 3 ) *= inv_mdensity;
         
@@ -3635,8 +3733,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 4 ) *= inv_mdensity;
         
@@ -3653,8 +3752,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 5 ) *= inv_mdensity;
         
@@ -3671,8 +3771,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 6 ) *= inv_mdensity;
         
@@ -3689,8 +3790,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 7 ) *= inv_mdensity;
         
@@ -3707,8 +3809,9 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 8 ) *= inv_mdensity;
         
@@ -3717,7 +3820,7 @@ int calculate_jacobian_cvklu( realtype t,
         
         // ge by ge
         
-        SM_ELEMENT_D( J, j + 9, j + 9 ) = -2.01588*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+        SM_ELEMENT_D( J, j + 9, j + 9 ) = -2.0158800000000001*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
         inv_scale2 = inv_scale[ j + 9];
         scale1     = scale    [ j + 9];
         SM_ELEMENT_D( J, j + 9, j + 9) *= inv_scale2*scale1;
@@ -3725,12 +3828,13 @@ int calculate_jacobian_cvklu( realtype t,
         
         
 
+/*
         
         // ad-hoc extra term of f_ge by ge
         // considering ONLY the h2formation/ and continuum cooling
         SM_ELEMENT_D( J, j + 9, j + 9 ) =  -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         
-
+*/
         
         SM_ELEMENT_D( J, j + 9, j + 9 ) *= inv_mdensity;
         
@@ -4015,7 +4119,7 @@ int calculate_rhs_cvklu(realtype t, N_Vector y, N_Vector ydot, void *user_data)
         //
         // Species: ge
         //
-        NV_Ith_S( ydot, j ) = -2.01588*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+        NV_Ith_S( ydot, j ) = -2.0158800000000001*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
         NV_Ith_S( ydot, j ) *= inv_scale[j];
         
         NV_Ith_S( ydot, j ) *= inv_mdensity;
@@ -4098,16 +4202,16 @@ int cvklu_calculate_cooling_timescale( double *cooling_time, double *input, int 
         return -1;    
     }
     cvklu_interpolate_rates(data, nstrip);
-    double H2_1;
+    double H_m0;
     double H2_2;
+    double H_1;
+    double He_3;
+    double H_2;
+    double de;
+    double H2_1;
+    double He_2;
     double ge;
     double He_1;
-    double H_m0;
-    double He_3;
-    double He_2;
-    double H_1;
-    double de;
-    double H_2;
     double *brem_brem = data->cs_brem_brem[threadID];
     double *ceHeI_ceHeI = data->cs_ceHeI_ceHeI[threadID];
     double *ceHeII_ceHeII = data->cs_ceHeII_ceHeII[threadID];
@@ -4187,7 +4291,7 @@ int cvklu_calculate_cooling_timescale( double *cooling_time, double *input, int 
         //
         // Species: ge
         //
-        dge_dt = -2.01588*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+        dge_dt = -2.0158800000000001*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
         dge_dt *= inv_mdensity;
         cooling_time[i] = fabs( ge / dge_dt);
     
@@ -4269,25 +4373,25 @@ int dengo_calculate_gamma( double* gamma_eff, cvklu_data *data, double *input, i
     int nchem     = 10;
     
     
-    double H2_1;
+    double H_m0;
     
     double H2_2;
+    
+    double H_1;
+    
+    double He_3;
+    
+    double H_2;
+    
+    double de;
+    
+    double H2_1;
+    
+    double He_2;
     
     double ge;
     
     double He_1;
-    
-    double H_m0;
-    
-    double He_3;
-    
-    double He_2;
-    
-    double H_1;
-    
-    double de;
-    
-    double H_2;
     
     
     double gamma = 5.0/3.0;
@@ -4313,14 +4417,44 @@ int dengo_calculate_gamma( double* gamma_eff, cvklu_data *data, double *input, i
         ndensity = 0;
         j = i * nchem;
         
-        H2_1 = input[j] / 2.0;
+        H_m0 = input[j] / 1.00794;
         
-        ndensity += H2_1;
+        ndensity += H_m0;
         
         
         H2_2 = input[j] / 2.0;
         
         ndensity += H2_2;
+        
+        
+        H_1 = input[j] / 1.00794;
+        
+        ndensity += H_1;
+        
+        
+        He_3 = input[j] / 4.002602;
+        
+        ndensity += He_3;
+        
+        
+        H_2 = input[j] / 1.00794;
+        
+        ndensity += H_2;
+        
+        
+        de = input[j] / 1.0;
+        
+        ndensity += de;
+        
+        
+        H2_1 = input[j] / 2.0;
+        
+        ndensity += H2_1;
+        
+        
+        He_2 = input[j] / 4.002602;
+        
+        ndensity += He_2;
         
         
         ge = input[j] / 1.0;
@@ -4329,36 +4463,6 @@ int dengo_calculate_gamma( double* gamma_eff, cvklu_data *data, double *input, i
         He_1 = input[j] / 4.002602;
         
         ndensity += He_1;
-        
-        
-        H_m0 = input[j] / 1.00794;
-        
-        ndensity += H_m0;
-        
-        
-        He_3 = input[j] / 4.002602;
-        
-        ndensity += He_3;
-        
-        
-        He_2 = input[j] / 4.002602;
-        
-        ndensity += He_2;
-        
-        
-        H_1 = input[j] / 1.00794;
-        
-        ndensity += H_1;
-        
-        
-        de = input[j] / 1.0;
-        
-        ndensity += de;
-        
-        
-        H_2 = input[j] / 1.00794;
-        
-        ndensity += H_2;
         
         
         
@@ -4389,25 +4493,25 @@ int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *
     // flatten field_data entry to a 1d input array
     double *input = (double *) malloc( sizeof(double) * nchem * dims );
     flatten_dengo_field_data( units, field_data, input );
-    double H2_1;
+    double H_m0;
     
     double H2_2;
+    
+    double H_1;
+    
+    double He_3;
+    
+    double H_2;
+    
+    double de;
+    
+    double H2_1;
+    
+    double He_2;
     
     double ge;
     
     double He_1;
-    
-    double H_m0;
-    
-    double He_3;
-    
-    double He_2;
-    
-    double H_1;
-    
-    double de;
-    
-    double H_2;
     
     double ndensity, mdensity;
 
@@ -5488,7 +5592,7 @@ int calculate_JacTimesVec_cvklu
     //
     // Species: ge
     //
-    Ith(Jv, 10 ) = v0*(-H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.01588*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2))/mdensity + v2*(-H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) + 0.5*(-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0))/mdensity + v3*(-H2_1*gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - brem_brem[i]*de - de*reHII_reHII[i])/mdensity + v5*(-H2_1*gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ciHeI_ciHeI[i]*de)/mdensity + v6*(-brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - de*reHeII1_reHeII1[i] - de*reHeII2_reHeII2[i])/mdensity + v7*(-4.0*brem_brem[i]*de - de*reHeIII_reHeIII[i])/mdensity + v8*(-H2_1*gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - H_1*ceHI_ceHI[i] - H_1*ciHI_ciHI[i] - H_2*reHII_reHII[i] - He_1*ciHeI_ciHeI[i] - He_2*ceHeII_ceHeII[i] - 2*He_2*ceHeI_ceHeI[i]*de - He_2*ciHeII_ciHeII[i] - 2*He_2*ciHeIS_ciHeIS[i]*de - He_2*reHeII1_reHeII1[i] - He_2*reHeII2_reHeII2[i] - He_3*reHeIII_reHeIII[i] - brem_brem[i]*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73))/mdensity;
+    Ith(Jv, 10 ) = v0*(-H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.0158800000000001*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2))/mdensity + v2*(-H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) + 0.5*(-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0))/mdensity + v3*(-H2_1*gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - brem_brem[i]*de - de*reHII_reHII[i])/mdensity + v5*(-H2_1*gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ciHeI_ciHeI[i]*de)/mdensity + v6*(-brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - de*reHeII1_reHeII1[i] - de*reHeII2_reHeII2[i])/mdensity + v7*(-4.0*brem_brem[i]*de - de*reHeIII_reHeIII[i])/mdensity + v8*(-H2_1*gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - H_1*ceHI_ceHI[i] - H_1*ciHI_ciHI[i] - H_2*reHII_reHII[i] - He_1*ciHeI_ciHeI[i] - He_2*ceHeII_ceHeII[i] - 2*He_2*ceHeI_ceHeI[i]*de - He_2*ciHeII_ciHeII[i] - 2*He_2*ciHeIS_ciHeIS[i]*de - He_2*reHeII1_reHeII1[i] - He_2*reHeII2_reHeII2[i] - He_3*reHeIII_reHeIII[i] - brem_brem[i]*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73))/mdensity;
 
     scale = data->scale[threadID][9];
     Ith(Jv, 10) /= scale;
@@ -5754,489 +5858,746 @@ int calculate_sparse_jacobian_cvklu( realtype t,
         // H2_1 by H2_1
         colvals[j + 0] = i * nchem + 0 ;
         matrix_data[ j + 0 ] = -k11[i]*H_2 - k12[i]*de - k13[i]*H_1 + k21[i]*pow(H_1, 2);
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by H2_2
         colvals[j + 1] = i * nchem + 1 ;
         matrix_data[ j + 1 ] = k10[i]*H_1 + k19[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by H_1
         colvals[j + 2] = i * nchem + 2 ;
         matrix_data[ j + 2 ] = k08[i]*H_m0 + k10[i]*H2_2 - k13[i]*H2_1 + 2*k21[i]*H2_1*H_1 + 3*k22[i]*pow(H_1, 2);
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by H_2
         colvals[j + 3] = i * nchem + 3 ;
         matrix_data[ j + 3 ] = -k11[i]*H2_1;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by H_m0
         colvals[j + 4] = i * nchem + 4 ;
         matrix_data[ j + 4 ] = k08[i]*H_1 + k19[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by de
         colvals[j + 5] = i * nchem + 8 ;
         matrix_data[ j + 5 ] = -k12[i]*H2_1;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_1 by ge
         colvals[j + 6] = i * nchem + 9 ;
         matrix_data[ j + 6 ] = rk08[i]*H_1*H_m0 + rk10[i]*H2_2*H_1 - rk11[i]*H2_1*H_2 - rk12[i]*H2_1*de - rk13[i]*H2_1*H_1 + rk19[i]*H2_2*H_m0 + rk21[i]*H2_1*H_1*H_1 + rk22[i]*H_1*H_1*H_1;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 6] *= Tge[i];
         
         
+        
         // H2_2 by H2_1
         colvals[j + 7] = i * nchem + 0 ;
         matrix_data[ j + 7 ] = k11[i]*H_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by H2_2
         colvals[j + 8] = i * nchem + 1 ;
         matrix_data[ j + 8 ] = -k10[i]*H_1 - k18[i]*de - k19[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by H_1
         colvals[j + 9] = i * nchem + 2 ;
         matrix_data[ j + 9 ] = k09[i]*H_2 - k10[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by H_2
         colvals[j + 10] = i * nchem + 3 ;
         matrix_data[ j + 10 ] = k09[i]*H_1 + k11[i]*H2_1 + k17[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by H_m0
         colvals[j + 11] = i * nchem + 4 ;
         matrix_data[ j + 11 ] = k17[i]*H_2 - k19[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by de
         colvals[j + 12] = i * nchem + 8 ;
         matrix_data[ j + 12 ] = -k18[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H2_2 by ge
         colvals[j + 13] = i * nchem + 9 ;
         matrix_data[ j + 13 ] = rk09[i]*H_1*H_2 - rk10[i]*H2_2*H_1 + rk11[i]*H2_1*H_2 + rk17[i]*H_2*H_m0 - rk18[i]*H2_2*de - rk19[i]*H2_2*H_m0;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 13] *= Tge[i];
         
         
+        
         // H_1 by H2_1
         colvals[j + 14] = i * nchem + 0 ;
         matrix_data[ j + 14 ] = k11[i]*H_2 + 2*k12[i]*de + 2*k13[i]*H_1 - 2*k21[i]*pow(H_1, 2);
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by H2_2
         colvals[j + 15] = i * nchem + 1 ;
         matrix_data[ j + 15 ] = -k10[i]*H_1 + 2*k18[i]*de + k19[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by H_1
         colvals[j + 16] = i * nchem + 2 ;
         matrix_data[ j + 16 ] = -k01[i]*de - k07[i]*de - k08[i]*H_m0 - k09[i]*H_2 - k10[i]*H2_2 + 2*k13[i]*H2_1 + k15[i]*H_m0 - 4*k21[i]*H2_1*H_1 - 6*k22[i]*pow(H_1, 2);
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by H_2
         colvals[j + 17] = i * nchem + 3 ;
         matrix_data[ j + 17 ] = k02[i]*de - k09[i]*H_1 + k11[i]*H2_1 + 2*k16[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by H_m0
         colvals[j + 18] = i * nchem + 4 ;
         matrix_data[ j + 18 ] = -k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + 2*k16[i]*H_2 + k19[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by de
         colvals[j + 19] = i * nchem + 8 ;
         matrix_data[ j + 19 ] = -k01[i]*H_1 + k02[i]*H_2 - k07[i]*H_1 + 2*k12[i]*H2_1 + k14[i]*H_m0 + 2*k18[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_1 by ge
         colvals[j + 20] = i * nchem + 9 ;
         matrix_data[ j + 20 ] = -rk01[i]*H_1*de + rk02[i]*H_2*de - rk07[i]*H_1*de - rk08[i]*H_1*H_m0 - rk09[i]*H_1*H_2 - rk10[i]*H2_2*H_1 + rk11[i]*H2_1*H_2 + 2*rk12[i]*H2_1*de + 2*rk13[i]*H2_1*H_1 + rk14[i]*H_m0*de + rk15[i]*H_1*H_m0 + 2*rk16[i]*H_2*H_m0 + 2*rk18[i]*H2_2*de + rk19[i]*H2_2*H_m0 - 2*rk21[i]*H2_1*H_1*H_1 - 2*rk22[i]*H_1*H_1*H_1;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 20] *= Tge[i];
         
         
+        
         // H_2 by H2_1
         colvals[j + 21] = i * nchem + 0 ;
         matrix_data[ j + 21 ] = -k11[i]*H_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by H2_2
         colvals[j + 22] = i * nchem + 1 ;
         matrix_data[ j + 22 ] = k10[i]*H_1;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by H_1
         colvals[j + 23] = i * nchem + 2 ;
         matrix_data[ j + 23 ] = k01[i]*de - k09[i]*H_2 + k10[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by H_2
         colvals[j + 24] = i * nchem + 3 ;
         matrix_data[ j + 24 ] = -k02[i]*de - k09[i]*H_1 - k11[i]*H2_1 - k16[i]*H_m0 - k17[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by H_m0
         colvals[j + 25] = i * nchem + 4 ;
         matrix_data[ j + 25 ] = -k16[i]*H_2 - k17[i]*H_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by de
         colvals[j + 26] = i * nchem + 8 ;
         matrix_data[ j + 26 ] = k01[i]*H_1 - k02[i]*H_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_2 by ge
         colvals[j + 27] = i * nchem + 9 ;
         matrix_data[ j + 27 ] = rk01[i]*H_1*de - rk02[i]*H_2*de - rk09[i]*H_1*H_2 + rk10[i]*H2_2*H_1 - rk11[i]*H2_1*H_2 - rk16[i]*H_2*H_m0 - rk17[i]*H_2*H_m0;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 27] *= Tge[i];
         
         
+        
         // H_m0 by H2_2
         colvals[j + 28] = i * nchem + 1 ;
         matrix_data[ j + 28 ] = -k19[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_m0 by H_1
         colvals[j + 29] = i * nchem + 2 ;
         matrix_data[ j + 29 ] = k07[i]*de - k08[i]*H_m0 - k15[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_m0 by H_2
         colvals[j + 30] = i * nchem + 3 ;
         matrix_data[ j + 30 ] = -k16[i]*H_m0 - k17[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_m0 by H_m0
         colvals[j + 31] = i * nchem + 4 ;
         matrix_data[ j + 31 ] = -k08[i]*H_1 - k14[i]*de - k15[i]*H_1 - k16[i]*H_2 - k17[i]*H_2 - k19[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // H_m0 by de
         colvals[j + 32] = i * nchem + 8 ;
         matrix_data[ j + 32 ] = k07[i]*H_1 - k14[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // H_m0 by ge
         colvals[j + 33] = i * nchem + 9 ;
         matrix_data[ j + 33 ] = rk07[i]*H_1*de - rk08[i]*H_1*H_m0 - rk14[i]*H_m0*de - rk15[i]*H_1*H_m0 - rk16[i]*H_2*H_m0 - rk17[i]*H_2*H_m0 - rk19[i]*H2_2*H_m0;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 33] *= Tge[i];
         
         
+        
         // He_1 by He_1
         colvals[j + 34] = i * nchem + 5 ;
         matrix_data[ j + 34 ] = -k03[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_1 by He_2
         colvals[j + 35] = i * nchem + 6 ;
         matrix_data[ j + 35 ] = k04[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_1 by de
         colvals[j + 36] = i * nchem + 8 ;
         matrix_data[ j + 36 ] = -k03[i]*He_1 + k04[i]*He_2;
+
+/*
         
+*/
         
  	    
+        
         
         // He_1 by ge
         colvals[j + 37] = i * nchem + 9 ;
         matrix_data[ j + 37 ] = -rk03[i]*He_1*de + rk04[i]*He_2*de;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 37] *= Tge[i];
         
         
+        
         // He_2 by He_1
         colvals[j + 38] = i * nchem + 5 ;
         matrix_data[ j + 38 ] = k03[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_2 by He_2
         colvals[j + 39] = i * nchem + 6 ;
         matrix_data[ j + 39 ] = -k04[i]*de - k05[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_2 by He_3
         colvals[j + 40] = i * nchem + 7 ;
         matrix_data[ j + 40 ] = k06[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_2 by de
         colvals[j + 41] = i * nchem + 8 ;
         matrix_data[ j + 41 ] = k03[i]*He_1 - k04[i]*He_2 - k05[i]*He_2 + k06[i]*He_3;
+
+/*
         
+*/
         
  	    
+        
         
         // He_2 by ge
         colvals[j + 42] = i * nchem + 9 ;
         matrix_data[ j + 42 ] = rk03[i]*He_1*de - rk04[i]*He_2*de - rk05[i]*He_2*de + rk06[i]*He_3*de;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 42] *= Tge[i];
         
         
+        
         // He_3 by He_2
         colvals[j + 43] = i * nchem + 6 ;
         matrix_data[ j + 43 ] = k05[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_3 by He_3
         colvals[j + 44] = i * nchem + 7 ;
         matrix_data[ j + 44 ] = -k06[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // He_3 by de
         colvals[j + 45] = i * nchem + 8 ;
         matrix_data[ j + 45 ] = k05[i]*He_2 - k06[i]*He_3;
+
+/*
         
+*/
         
  	    
+        
         
         // He_3 by ge
         colvals[j + 46] = i * nchem + 9 ;
         matrix_data[ j + 46 ] = rk05[i]*He_2*de - rk06[i]*He_3*de;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 46] *= Tge[i];
         
         
+        
         // de by H2_2
         colvals[j + 47] = i * nchem + 1 ;
         matrix_data[ j + 47 ] = -k18[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // de by H_1
         colvals[j + 48] = i * nchem + 2 ;
         matrix_data[ j + 48 ] = k01[i]*de - k07[i]*de + k08[i]*H_m0 + k15[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // de by H_2
         colvals[j + 49] = i * nchem + 3 ;
         matrix_data[ j + 49 ] = -k02[i]*de + k17[i]*H_m0;
+
+/*
         
+*/
         
  	    
+        
         
         // de by H_m0
         colvals[j + 50] = i * nchem + 4 ;
         matrix_data[ j + 50 ] = k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + k17[i]*H_2;
+
+/*
         
+*/
         
  	    
+        
         
         // de by He_1
         colvals[j + 51] = i * nchem + 5 ;
         matrix_data[ j + 51 ] = k03[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // de by He_2
         colvals[j + 52] = i * nchem + 6 ;
         matrix_data[ j + 52 ] = -k04[i]*de + k05[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // de by He_3
         colvals[j + 53] = i * nchem + 7 ;
         matrix_data[ j + 53 ] = -k06[i]*de;
+
+/*
         
+*/
         
  	    
+        
         
         // de by de
         colvals[j + 54] = i * nchem + 8 ;
         matrix_data[ j + 54 ] = k01[i]*H_1 - k02[i]*H_2 + k03[i]*He_1 - k04[i]*He_2 + k05[i]*He_2 - k06[i]*He_3 - k07[i]*H_1 + k14[i]*H_m0 - k18[i]*H2_2;
+
+/*
         
+*/
         
  	    
+        
         
         // de by ge
         colvals[j + 55] = i * nchem + 9 ;
         matrix_data[ j + 55 ] = rk01[i]*H_1*de - rk02[i]*H_2*de + rk03[i]*He_1*de - rk04[i]*He_2*de + rk05[i]*He_2*de - rk06[i]*He_3*de - rk07[i]*H_1*de + rk08[i]*H_1*H_m0 + rk14[i]*H_m0*de + rk15[i]*H_1*H_m0 + rk17[i]*H_2*H_m0 - rk18[i]*H2_2*de;
+
+/*
         
+*/
         
  	    
         matrix_data[ j + 55] *= Tge[i];
         
         
+        
         // ge by H2_1
         colvals[j + 56] = i * nchem + 0 ;
-        matrix_data[ j + 56 ] = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.01588*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2);
+        matrix_data[ j + 56 ] = -H2_1*gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - 0.5*H_1*h2formation_h2mcool[i]*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0) - 2.0158800000000001*cie_cooling_cieco[i]*mdensity - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2);
+
+/*
         
+*/
         
         matrix_data[j + 56] *= inv_mdensity;
         
  	    
         
+        
         // ge by H_1
         colvals[j + 57] = i * nchem + 2 ;
         matrix_data[ j + 57 ] = -H2_1*gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ceHI_ceHI[i]*de - ciHI_ciHI[i]*de + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) + 0.5*(-H2_1*h2formation_h2mcool[i] + 3*pow(H_1, 2)*h2formation_h2mheat[i])*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0);
+
+/*
         
+*/
         
         matrix_data[j + 57] *= inv_mdensity;
         
  	    
         
+        
         // ge by H_2
         colvals[j + 58] = i * nchem + 3 ;
         matrix_data[ j + 58 ] = -H2_1*gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - brem_brem[i]*de - de*reHII_reHII[i];
+
+/*
         
+*/
         
         matrix_data[j + 58] *= inv_mdensity;
         
  	    
         
+        
         // ge by He_1
         colvals[j + 59] = i * nchem + 5 ;
         matrix_data[ j + 59 ] = -H2_1*gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - ciHeI_ciHeI[i]*de;
+
+/*
         
+*/
         
         matrix_data[j + 59] *= inv_mdensity;
         
  	    
         
+        
         // ge by He_2
         colvals[j + 60] = i * nchem + 6 ;
         matrix_data[ j + 60 ] = -brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - de*reHeII1_reHeII1[i] - de*reHeII2_reHeII2[i];
+
+/*
         
+*/
         
         matrix_data[j + 60] *= inv_mdensity;
         
  	    
         
+        
         // ge by He_3
         colvals[j + 61] = i * nchem + 7 ;
         matrix_data[ j + 61 ] = -4.0*brem_brem[i]*de - de*reHeIII_reHeIII[i];
+
+/*
         
+*/
         
         matrix_data[j + 61] *= inv_mdensity;
         
  	    
         
+        
         // ge by de
         colvals[j + 62] = i * nchem + 8 ;
         matrix_data[ j + 62 ] = -H2_1*gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2)*pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2)) - H_1*ceHI_ceHI[i] - H_1*ciHI_ciHI[i] - H_2*reHII_reHII[i] - He_1*ciHeI_ciHeI[i] - He_2*ceHeII_ceHeII[i] - 2*He_2*ceHeI_ceHeI[i]*de - He_2*ciHeII_ciHeII[i] - 2*He_2*ciHeIS_ciHeIS[i]*de - He_2*reHeII1_reHeII1[i] - He_2*reHeII2_reHeII2[i] - He_3*reHeIII_reHeIII[i] - brem_brem[i]*(H_2 + He_2 + 4.0*He_3) - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73);
+
+/*
         
+*/
         
         matrix_data[j + 62] *= inv_mdensity;
         
  	    
         
+        
         // ge by ge
         colvals[j + 63] = i * nchem + 9 ;
-        matrix_data[ j + 63 ] = -2.01588*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+        matrix_data[ j + 63 ] = -2.0158800000000001*H2_1*cie_cooling_cieco[i]*cie_optical_depth_approx*mdensity - H2_1*cie_optical_depth_approx*gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) - H_1*ceHI_ceHI[i]*cie_optical_depth_approx*de - H_1*ciHI_ciHI[i]*cie_optical_depth_approx*de - H_2*cie_optical_depth_approx*de*reHII_reHII[i] - He_1*ciHeI_ciHeI[i]*cie_optical_depth_approx*de - He_2*ceHeII_ceHeII[i]*cie_optical_depth_approx*de - He_2*ceHeI_ceHeI[i]*cie_optical_depth_approx*pow(de, 2) - He_2*ciHeII_ciHeII[i]*cie_optical_depth_approx*de - He_2*ciHeIS_ciHeIS[i]*cie_optical_depth_approx*pow(de, 2) - He_2*cie_optical_depth_approx*de*reHeII1_reHeII1[i] - He_2*cie_optical_depth_approx*de*reHeII2_reHeII2[i] - He_3*cie_optical_depth_approx*de*reHeIII_reHeIII[i] - brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - cie_optical_depth_approx*compton_comp_[i]*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i]);
+
+/*
         
-        // ad-hoc extra term of ge by ge
+        // ad-hoc extra term of f_ge by ge
         // considering ONLY the h2formation/ and continuum cooling
+        
         matrix_data[ j + 63] = -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         
+*/
         
         matrix_data[j + 63] *= inv_mdensity;
         
  	    
         matrix_data[ j + 63] *= Tge[i];
+        
         
         
         
@@ -6543,6 +6904,7 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
 
     int i, j;
     double mh = 1.67e-24;
+    double mdensity;
     for ( i = 0; i < nstrip; i++){
         data->mdensity[threadID][i] = 0;
         j = i * 10;
@@ -6605,7 +6967,7 @@ void setting_up_extra_variables( cvklu_data * data, double * input, int nstrip )
     }
 
     
-    double mdensity, tau;
+    double tau;
     for ( i = 0; i < nstrip; i++){
         
         mdensity = data->mdensity[threadID][i];

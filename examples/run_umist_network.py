@@ -7,11 +7,14 @@ import dengo.umist_rates
 from dengo.get_rates import setup_umist_species, setup_umist_reactions
 from dengo.chemistry_constants import tiny, kboltz, mh
 
-NCELLS = 4
-density = 1.0
+import os
+os.environ['HDF5_DIR'] = '/home/kwoksun2/anaconda2/'
+
+NCELLS = 1
+density = 1.0e0
 temperature = np.logspace(1, 3, NCELLS)
-temperature[:] = 1e2
-X = 1e-3
+temperature[:] = 1e3
+X = 1e-2
 
 umist = ChemicalNetwork()
 umist.skip_weight += ("us_e_0",)
@@ -30,7 +33,7 @@ added_species = set([])
 
 for name, weight in desired_species:
     s, c, r = setup_umist_species(name, weight)
-    print "ADDED", s
+    print("ADDED", s)
     added_species.update(s)
     umist.add_collection(s, c, r)
 # Add ionic species by hand, since we need correct atomic weights
@@ -46,7 +49,7 @@ init_values['us_H_1']     = init_array * X
 init_values['us_H2_1']     = init_array * X
 init_values['us_e_0']      = init_array * 0.0
 
-print init_values
+print(init_values)
 #print sorted(umist.reactions.values())
 
 for species in umist.required_species:
@@ -69,12 +72,17 @@ init_values['T'] = temperature
 gamma = 5.0/3.0
 init_values['ge'] = ((temperature * number_density * kboltz)
                      / (init_values['density'] * mh * (gamma - 1)))
+
+print(init_values)
+
+
 import pdb; pdb.set_trace()
 
 #import pdb; pdb.set_trace()
 
 # Write the initial conditions file
-umist.write_solver("umist", output_dir = ".")
+umist.write_solver("umist", output_dir = ".", solver_template = "cv_omp/sundials_CVDls",ode_solver_source = "initialize_cvode_solver.C")
+
 
 import pyximport
 pyximport.install(setup_args={"include_dirs":np.get_include()},
@@ -83,7 +91,8 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 umist_solver_run = pyximport.load_module("umist_solver_run",
                             "umist_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-rv, rv_int = umist_solver_run.run_umist(init_values, 1e16)
+rv, rv_int = umist_solver_run.run_umist(init_values, 1e2, niter = 1e1)
+
 import pylab
 pylab.clf()
 
@@ -93,7 +102,7 @@ for name in sorted(rv_int):
         rv_int[name] = rv_int[name][mask]
     else:
         rv_int[name] = rv_int[name][0, mask]
-    
+
 skip = ('successful', 'dt', 't', 'ge')
 for n, v in sorted(rv_int.items()):
     if n in skip: continue

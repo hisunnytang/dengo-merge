@@ -4,7 +4,7 @@ import numpy as np
 import re
 import os
 
-from reaction_classes import \
+from .reaction_classes import \
     reaction, \
     AtomicSpecies, \
     ChemicalSpecies, \
@@ -12,7 +12,7 @@ from reaction_classes import \
     registry_setup, \
     species_registry
 
-from umist_rates import umist_rates
+from .umist_rates import umist_rates
 
 def _get_species(sn):
     species_name = "us_%s" % (sn)
@@ -57,19 +57,19 @@ def _create_reaction(rline):
             # rate coefficient with units cm^3 / s
             _i1 = (state.T < T_upper) & (state.T > T_lower)
             _i2 = ~_i1
-            vals = a*(state.T**b)*(np.exp(-g / state.T)) 
+            vals = a*(state.T**b)*(np.exp(-g / state.T))
             vals[_i2] = 0.0
             return vals
 
 @registry_setup
 def setup_umist_species(species_symbol, atomic_weight):
-    
+
     species_name = "us_%s" % (species_symbol)
     free_electrons = species_name.count('+')-species_name.count('-')
     species_name = species_name.replace("-", "").replace("+", "")
     my_sym = MolecularSpecies(species_name, atomic_weight, free_electrons,
                               species_symbol)
-    
+
 
 @registry_setup
 def setup_umist_reactions(allowed_species):

@@ -56,7 +56,7 @@ int main(int argc, char **argv) {
     field_data->temperature     = temperature;
     field_data->MolecularWeight = mean_molecular_weight;
 
-    const char *fileloc = "/home/kwoksun2/dengo_install/{{solver_name}}_tables.h5";
+    const char *fileloc = "{{network._dengo_install_path}}/{{solver_name}}_tables.h5";
     field_data->dengo_data_file = fileloc;
 
     double dt = 299204.0 * 1.0e10 / sqrt(density / mH ) ;
