@@ -76,13 +76,24 @@ count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
 
 class ReactionCoefficient(sympy.Symbol):
+    #TODO: the functional derivatives
+    # sympy.diff() of the sum/ mul of the combination of `ReacionCoefficient` class
+    # gives zeros....
     def _eval_derivative(self, s):
-        if s == self.energy:
+        if s == self.energy.name:
             return sympy.Symbol("r%s" % self)
         else:
             return super(ReactionCoefficient, self)._eval_derivative(s)
 
-    energy = None
+    def diff(self, s):
+        if s == self.energy:
+            return sympy.Symbol("r%s" %self)
+
+    @property
+    def free_symbols(self):
+        return super().free_symbols.union(set([self.energy]))
+
+    energy = sympy.simplify("ge")
 
 class Reaction(ComparableMixin):
     def __init__(self, name, coeff_fn, left_side, right_side):
