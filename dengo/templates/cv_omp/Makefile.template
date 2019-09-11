@@ -24,12 +24,15 @@ OPTIONS = -DCVKLU -DMAX_NCELLS=256
 # Use OPENMP?
 OPTIONS += -fopenmp -DNTHREADS=8
 
+# Scale input to 1
+OPTIONS += -DSCALE_INPUT
 
 # INSTALL PATHS
 CVODE_PATH    = {{network._cvode_path}}
 SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
 HDF5_PATH = {{network._hdf5_path}}
+LIBTOOL   = /usr/bin/libtool
 
 CC      = gcc
 LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
@@ -48,11 +51,11 @@ CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
-LINKFLAGS = -Wl,-rpath,$(libdir)
-
+LINKFLAGS = -Wl,-rpath,$(CVODE_PATH)/lib:$(HDF5_PATH)/lib
 
 TMP_INCS  = . ${includedir} 
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
+LIBDIR    = $(addprefix -L, ${libdir})
 
 #------------------------------------------------------------------------
 # KLU part
@@ -85,13 +88,13 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	mkdir -p $(DENGO_INSTALL_PATH)
 	mkdir -p $(DENGO_INSTALL_PATH)/lib
 	mkdir -p $(DENGO_INSTALL_PATH)/include
-	libtool --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
-	libtool --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
+	$(LIBTOOL) --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBDIR} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
+	$(LIBTOOL) --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
 	cp {{solver_name}}_solver.h $(DENGO_INSTALL_PATH)/include/
 	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
 	./run_dengo
@@ -108,7 +111,7 @@ test: run_dengo
 .PRECIOUS: %.o %.lo %.C
 
 %.lo: %.C
-	  libtool --mode=compile --tag=CC $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
+	  $(LIBTOOL) --mode=compile --tag=CC $(CC) -c $(OPTIONS) $(CFLAGS) $(LDFLAGS) $(INCLUDES) $*.C
 
 clean:
 	rm -f *.o
