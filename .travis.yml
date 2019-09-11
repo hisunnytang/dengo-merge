@@ -2,6 +2,10 @@ language: python
 python:
     - "3.6"
 
+before_install:
+    - ./install-suitesparse.sh
+    - ./install-cvode3.1.sh
+    - ./install-chiantipy.sh
 # command to install dependencies
 install:
     - pip install -r requirements.txt
@@ -10,8 +14,4 @@ install:
 script:
     - pytest
 
-before_install:
-    - ./install-suitesparse.sh
-    - ./install-cvode3.1.sh
-    - ./install-chiantipy.sh
 
