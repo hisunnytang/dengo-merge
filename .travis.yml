@@ -1,0 +1,17 @@
+language: python
+python:
+    - "3.6"
+
+# command to install dependencies
+install:
+    - pip install -r requirements.txt
+
+# command to run tests
+script:
+    - pytest
+
+before_install:
+    - ./install-suitesparse.sh
+    - ./install-cvode3.1.sh
+    - ./install-chiantipy.sh
+
