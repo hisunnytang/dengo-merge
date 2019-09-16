@@ -6,6 +6,7 @@ before_install:
     - ./install-suitesparse.sh
     - ./install-cvode3.1.sh
     - ./install-chiantipy.sh
+    - ./install-grackle.sh
 # command to install dependencies
 install:
     - pip install -r requirements.txt
