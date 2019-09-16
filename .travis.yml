@@ -3,6 +3,7 @@ python:
     - "3.6"
 
 before_install:
+    - sudo apt-get install gfortran
     - ./install-suitesparse.sh
     - ./install-cvode3.1.sh
     - ./install-chiantipy.sh
