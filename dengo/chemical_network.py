@@ -94,7 +94,6 @@ class ChemicalNetwork(object):
                 if s not in self.required_species:
                     raise RuntimeError
         self.reactions[reaction.name] = reaction
-        reaction.coeff_sym.energy = self.energy_term
         print ("Adding reaction: %s" % reaction)
 
     def add_cooling(self, cooling_term, auto_add = True):
@@ -187,14 +186,6 @@ class ChemicalNetwork(object):
         return ciefudge
 
     def print_jacobian_component(self, s1, s2, assign_to = None, print_zeros = True):
-
-        if s2 == self.energy_term:
-            st = self.print_ccode(s1, assign_to = assign_to)
-            for k in self.reactions.keys():
-                k = str(k)
-                st = st.replace(k + "[i]", "r" + k + "[i]")
-            return st
-
 
         if s1 == self.energy_term:
             st = sum(self.cooling_actions[ca].equation

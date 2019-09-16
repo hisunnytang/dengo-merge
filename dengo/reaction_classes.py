@@ -79,21 +79,31 @@ class ReactionCoefficient(sympy.Symbol):
     #TODO: the functional derivatives
     # sympy.diff() of the sum/ mul of the combination of `ReacionCoefficient` class
     # gives zeros....
+    energy = sympy.simplify("ge")
+
     def _eval_derivative(self, s):
-        if s == self.energy.name:
+        if s == self.energy:
             return sympy.Symbol("r%s" % self)
         else:
             return super(ReactionCoefficient, self)._eval_derivative(s)
 
+    def _eval_derivative_n_times(self, s, n):
+        if n == 1:
+            return self._eval_derivative(s)
+        else:
+            return 0
+
+
     def diff(self, s):
         if s == self.energy:
             return sympy.Symbol("r%s" %self)
+        else:
+            return super(ReactionCoefficient, self).diff(s)
 
     @property
     def free_symbols(self):
         return super().free_symbols.union(set([self.energy]))
 
-    energy = sympy.simplify("ge")
 
 class Reaction(ComparableMixin):
     def __init__(self, name, coeff_fn, left_side, right_side):
@@ -356,15 +366,19 @@ class CoolingAction(object):
     def __gt__(self, other):
         return self.name > other.name
 
-
     @property
     def equation(self):
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
-        ta_sym = dict((n, sympy.Symbol("%s_%s[i]" % (self.name, n))) for n in self.tables)
+
+        # instead of using sympy symbols, we declare
+
+        ta_sym = dict((n, ReactionCoefficient("%s_%s[i]" % (self.name, n))) for n in self.tables)
         self.table_symbols.update(ta_sym)
         #tp_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.temporaries))
+
+        # temporaries are in fact function of of the tables...
         tp_sym = dict((n, sympy.Symbol("%s" % (n))) for n in self.temporaries)
         self.temp_symbols.update(tp_sym)
 
