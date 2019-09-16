@@ -8,7 +8,7 @@ export BLAS="-L/home/travis/build/hisunnytang/dengo-merge/suitesparse/OpenBLAS/I
 cd SuiteSparse_config && make && cd ../
 cd AMD && make && cd ../
 cd CAMD && make && cd ../
-cd metis-5.1.0 && make && cd ../
+cd metis-5.1.0 && make config && make && cd ../
 cd COLAMD && make && cd ../
 cd BTF && make && cd ../
 cd KLU && make
