@@ -1,6 +1,6 @@
 set -ex
 tar -xvzf cvode-3.1.0.tar.gz
-cd cvode-3.1.0 && mkdir builddir
+cd cvode-3.1.0 && rm -rf builddir && mkdir builddir
 cd builddir
 cvode_inst="${TRAVIS_BUILD_DIR}/cvode_instdir"
 suitesparse_inst="${TRAVIS_BUILD_DIR}/suitesparse"
