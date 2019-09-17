@@ -12,7 +12,7 @@ cd AMD && make && cd ../
 cd CAMD && make && cd ../
 cd CCOLAMD && make && cd ../
 suitesparse_inst="${TRAVIS_BUILD_DIR}/suitesparse"
-cd metis-5.1.0 && make config prefix=$suitesparse && make && make install && cd ../
+cd metis-5.1.0 && make config prefix=$suitesparse_inst && make && make install && cd ../
 cd COLAMD && make && cd ../
 cd BTF && make && cd ../
 cd KLU && make
