@@ -2,15 +2,17 @@ set -ex
 git clone https://github.com/jluttine/suitesparse.git
 cd suitesparse
 git clone https://github.com/xianyi/OpenBLAS.git
-cd OpenBLAS && make && make install PREFIX="/home/travis/build/hisunnytang/dengo-merge/suitesparse/OpenBLAS/Install"
+openblas_inst="${TRAVIS_BUILD_DIR}/suitesparse/OpenBLAS/Install"
+cd OpenBLAS && make && make install PREFIX=$openblas_inst
 cd ../
 export LAPACK=""
-export BLAS="-L/home/travis/build/hisunnytang/dengo-merge/suitesparse/OpenBLAS/Install/lib -lopenblas"
+export BLAS="-L${openblas_inst}/lib -lopenblas"
 cd SuiteSparse_config && make && cd ../
 cd AMD && make && cd ../
 cd CAMD && make && cd ../
 cd CCOLAMD && make && cd ../
-cd metis-5.1.0 && make config && make && cd ../
+suitesparse_inst="${TRAVIS_BUILD_DIR}/suitesparse"
+cd metis-5.1.0 && make config prefix=$suitesparse && make && make install && cd ../
 cd COLAMD && make && cd ../
 cd BTF && make && cd ../
 cd KLU && make
