@@ -115,8 +115,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     for i in range(dims):
         {%- for s in network.required_species | sort %}
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
-        atol[j] = input[j] * 1e-12
-        rtol[j] = 1e-12
+        atol[j] = input[j] * 1e-6
+        rtol[j] = 1e-6
         scale[j] = input[j]
         j += 1
         {%- endfor %}

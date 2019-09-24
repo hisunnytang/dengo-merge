@@ -80,6 +80,15 @@ typedef struct {{ solver_name }}_data_ {
     {% endfor %}
     int bin_id[MAX_NCELLS];
     int ncells;
+
+    double mdensity[MAX_NCELLS];
+    double inv_mdensity[MAX_NCELLS];
+    {% if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx[MAX_NCELLS];
+    {% endif %}
+    {% if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx[MAX_NCELLS];
+    {% endif %}
 } {{ solver_name }}_data;
 
 {{solver_name}}_data *{{solver_name}}_setup_data(int *, char***);
@@ -106,6 +115,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
 void ensure_electron_consistency(double *input, int nstrip, int nchem);
 void temperature_from_mass_density(double *input, int nstrip, int nchem, 
                                    double *strip_temperature);
-
+void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip );
+    
 {% endblock %} {# function_declarations #}
 

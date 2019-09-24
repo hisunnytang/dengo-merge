@@ -187,6 +187,10 @@ double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *i
     double *gu = (double *) alloca(N*dims*sizeof(double));
     double *Ju = (double *) alloca(N*N*dims*sizeof(double));
     double floor_value = 1e-25;
+
+    // setting up extra temporary variables
+    setting_up_extra_variables(data, scale, dims);
+
     while (ttot < dtf) {
         int rv = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, N,
                                scale, (void *) data, u0, s, gu, Ju);
@@ -516,14 +520,31 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     double z;
     double T;
 
+    {%- if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx;    
+    {% endif %}
+    {%- if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx;
+    {% endif %}
+
+
     double mh = 1.67e-24;
-    double mdensity;
+    double mdensity, inv_mdensity;
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
         mdensity = 0.0;
         T = data->Ts[i];
         z = data->current_z;
-    {%- for species in network.required_species | sort %}
+
+        {%- if "gloverabel08" in network.cooling_actions %}
+        h2_optical_depth_approx = data->h2_optical_depth_approx[i];
+        {% endif %}
+        {%- if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[i];
+        {% endif %}
+
+
+	{%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
         {%if species.name != "ge" and species.name != "de" 
              and species.name != "us_e_0" %}
@@ -536,7 +557,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
           {{species.name}} = 1e-20;
         }
         j++;
-    {% endfor %}
+    	{% endfor %}
 
 
         {%- if "H2_1" in network.species_list() %}
@@ -546,7 +567,7 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
 
         mdensity *= mh;
         j = i * nchem;
-    {%- for species in network.required_species | sort %}
+    	{%- for species in network.required_species | sort %}
         // 
         // Species: {{species.name}}
         // 
@@ -591,7 +612,14 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     double T;
 
     double mh = 1.67e-24;
-    double mdensity;
+    double mdensity, inv_mdensity;
+    {% if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx;  
+    {% endif %}
+    {% if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx; 
+    {% endif %}
+
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
         mdensity = 0.0;
@@ -603,6 +631,16 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
              and species.name != "us_e_0" %}
         mdensity += {{species.name}};
 	{%endif%}
+
+        {%- if "gloverabel08" in network.cooling_actions %}
+        h2_optical_depth_approx = data->h2_optical_depth_approx[i];
+        {% endif %}
+        {%- if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[i];
+        {% endif %}
+
+
+
         if ({{species.name}} < 0.0) {
             fprintf(stderr, "JNegative[%d][{{species.name}}] = % 0.16g [%d]\n",
                     i, {{species.name}}, j);
@@ -676,3 +714,47 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
 
 {% endblock %}
 
+
+{% block setting_up_extra_variables %}
+void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip ){
+    
+    int i, j;
+    double mh = 1.67e-24;
+    double mdensity;
+    for ( i = 0; i < nstrip; i++){
+        data->mdensity[i] = 0;
+        j = i * {{network.required_species | length}};
+        {%- for species in network.required_species | sort %}
+        {%- if species.name not in ["ge", "de"] %}
+        // species: {{species.name}}
+        data->mdensity[i] += input[j] * {{species.weight}}; 
+        {%- endif%}
+        j++;
+        {%- endfor%}
+        data->mdensity[i] *= mh;
+        data->inv_mdensity[i] = 1.0 / data->mdensity[i];
+    }
+
+    {% if "cie_cooling" in network.cooling_actions %}
+    double tau;
+    for ( i = 0; i < nstrip; i++){
+        
+        mdensity = data->mdensity[i];
+        tau      = pow( (mdensity / 3.3e-8 ), 2.8);
+        tau      = fmax( tau, 1.0e-5 );
+        data->cie_optical_depth_approx[i] = 
+            fmin( 1.0, (1.0 - exp(-tau) ) / tau );
+    }
+    {% endif %}
+
+
+    {% if "gloverabel08" in network.cooling_actions %}
+    for ( i = 0; i < nstrip; i++ ){
+        mdensity = data->mdensity[i];
+        data->h2_optical_depth_approx[i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+    }
+    {% endif %}
+
+
+}
+{% endblock %}
