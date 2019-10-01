@@ -215,7 +215,6 @@ def chianti_rate(atom_name, sm1, s, sp1):
         new_rates.append("%s_i" % s.name)
 
     def rec_rate(network):
-        print(ion_name, network.T)
         ion = ch.ion(ion_name, temperature = network.T)
         # for some reason, the latest chiantipy
         # failed to update the tempeature for fully ionized

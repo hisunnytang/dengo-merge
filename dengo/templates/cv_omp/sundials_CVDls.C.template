@@ -285,7 +285,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int niter = 0;
     int siter = 0;
 
-    double floor_value = 1e-25;
+    double floor_value = 1e-20;
 
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
@@ -325,7 +325,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     double *atol_ptr = N_VGetArrayPointer(abstol);
 
     for (i = 0; i < v_size ; i++) {
-        atol_ptr[i]   = floor_value; // atol[i];
+        atol_ptr[i]   = atol[i];
     }
     // these objects should be initialize once !!
     // in each separate thread!!
@@ -336,6 +336,12 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int NSPARSE = {{network.get_sparse_matrix_component(return_type="nsparse")}}; // no. of sparse jacobian compoents
     
     int threadID;
+
+    // this routine is also called from the cythonized routine too
+    // where MAX_NCELLS > input strip length
+    // to avoid error message, we will catch it here
+    if (ntimes > 0){
+
     #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS)
     {
     y_vec = N_VNew_Serial(v_size);
@@ -386,6 +392,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     N_VDestroy(y_vec);
     #endif
     }
+    } // if (ntimes > 0)
 
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
@@ -419,7 +426,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
         for (i = 0; i < v_size_res; i++) {
             yvec_ptr[i]   = 1.0;
-            atol_ptr[i]   = floor_value;
+            atol_ptr[i]   = atol[i];
         }
        
         #ifdef CVKLU
@@ -437,7 +444,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
             temp_array[ d * nstrip + i ] = data->Ts[threadID][i];
         }
        
-        fprintf(stderr, "%d the strip = %0.5g\n", d, ttot[d]);
+        //fprintf(stderr, "%d th strip = %0.5g\n", d, ttot[d]);
         
         // free all unused memory;
         CVodeFree(&cvode_mem);
@@ -468,7 +475,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         if (ttot[d] < dt_final) dt_final = ttot[d];    
     }
 
-    fprintf(stderr, "Fraction of completion (dt (%0.3g) / dtf (%0.3g)): %0.3g\n", dt, dt_final, dt_final/dtf);
+    // fprintf(stderr, "Fraction of completion (dt (%0.3g) / dtf (%0.3g)): %0.3g\n", dt, dt_final, dt_final/dtf);
     free(ttot);
 
     dt = dt_final;
@@ -523,13 +530,12 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
         scale[i]      = input[ start_idx + i];
         inv_scale[i]  = 1.0 / scale[i];
         yvec_ptr[i]   = 1.0;
-        atol_ptr[i]   = reltol*reltol;
+        atol_ptr[i]   = atol_ptr[i]*inv_scale[i];
     }
     setting_up_extra_variables(data, data->scale[threadID], nstrip );
     #else
     for (i = 0; i < v_size; i++){ 
         yvec_ptr[i]   = input[ start_idx + i];
-        atol_ptr[i]   = 1.0e-10;
     }
     setting_up_extra_variables(data, yvec_ptr, nstrip );
     #endif
@@ -545,9 +551,16 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
 
         for (i = 0; i < v_size; i++) {
             if (y[i] < 0) {
-                fprintf(stderr, "negative \n");
-                flag = 1;
-                break;
+		    // this catches negatives values smaller than the abstol
+		    // and replaces them
+		    // need to check the convergence of this approach
+		    if (y[i] + atol_ptr[i] > 0 ){
+			    y[i] = atol_ptr[i];	
+		    } else{
+		    	fprintf(stderr, "negative \n");
+			flag = 1;
+                	break;
+		}
             }
         }
             
@@ -1156,16 +1169,12 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% endif %}
         
 
-        {%- if s2.name == 'ge' and s1.name == 'ge'%}
-        // ad-hoc extra term of f_ge by ge
-        // considering ONLY the h2formation/ and continuum cooling
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) =  -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
         #ifdef SCALE_INPUT
         inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
         scale1     = scale    [ j + {{i_s1.index0}}];
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
         #endif
-        {%- endif %}
+
         {%- if s2.name == 'ge' %}
         SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
         {%- endif %}
@@ -1650,7 +1659,7 @@ int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data
 
 
 {% block solve_chemistry_dt %}
-int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt ){
+int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* reltol, double* abstol, double dt ){
     
     unsigned long int i, j, d, dims;
     int N = {{network.required_species | length }};
@@ -1681,9 +1690,6 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
     double UNIT_E_per_M = units->velocity_units * units->velocity_units;
     double m_amu = 1.66053904e-24;
 
-    // relative tolerance
-    double reltol = 1.0e-5;
-    rtol[0] = reltol;
 
     #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
     for ( d = 0; d< dims; d++  ){
@@ -1702,10 +1708,15 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         {%- if species == network.energy_term %}
         input[j] *= UNIT_E_per_M;
         {%- endif %}
-        atol[j] = input[j] * reltol * reltol;
         j++;
         {%- endfor %}
     }
+
+    /*
+    for (int i = 0; i < N; i++){
+    	fprintf(stderr, "input[%d] = %0.5g\n", i, input[i] );
+    }
+    */
     
     int flag;
     double z;
@@ -1718,7 +1729,7 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
     // update the rate table location
     data->dengo_data_file = field_data->dengo_data_file; 
 
-    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, reltol, abstol, dims, data, temp);
     
     #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d< dims; d++  ){
@@ -2070,11 +2081,6 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         colvals[j + {{k}}] = i * nchem + {{colvals}} ;
         matrix_data[ j + {{k}} ] {{jac_comp}}
 
-        {%- if s1.name == 'ge' and s2.name == 'ge'%}
-        // ad-hoc extra term of f_ge by ge
-        // considering ONLY the h2formation/ and continuum cooling
-        matrix_data[ j + {{k}}] = -H2_1*gloverabel08_h2lte[i]*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i], 2) - rgloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]))/pow(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(H2_1*gloverabel08_gaH2[i] + H_1*gloverabel08_gaHI[i] + H_2*gloverabel08_gaHp[i] + He_1*gloverabel08_gaHe[i] + de*gloverabel08_gael[i]) + 1.0) + 0.5*pow(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0, -2.0)*(-H2_1*H_1*h2formation_h2mcool[i] + pow(H_1, 3)*h2formation_h2mheat[i])*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i], 2) - 1.0*rh2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i])) + 0.5*1.0/(h2formation_ncrn[i]/(H2_1*h2formation_ncrd2[i] + H_1*h2formation_ncrd1[i]) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
-        {%- endif %}
         {% if s1.name == 'ge' %}
         matrix_data[j + {{k}}] *= inv_mdensity;
         {%- endif %}

@@ -20,6 +20,7 @@ License:
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
+
 import numpy as np
 from .chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
@@ -169,6 +170,7 @@ class ChemicalNetwork(object):
     def print_cooling(self, assign_to):
         eq = sympy.sympify("0")
         for term in self.cooling_actions:
+            # TODO: make it a more general check case?
             if term not in ['h2formation'] and "cie_cooling" in self.cooling_actions:
                 # This is independent of the continuum optical depth
                 # from the CIE
@@ -539,37 +541,41 @@ class ChemicalNetwork(object):
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
                      ode_solver_source = "BE_chem_solve.C",
-                     library_path    = {},
                      output_dir = ".", init_values = None,
                      main_name = "main",
                      input_is_number = False):
         self.input_is_number = input_is_number
 
         # with Dan suggestions, I have included the path to write the solver!
+        # please specify the environ path!
 
-        if "CVODE_PATH" in library_path:
-            self._cvode_path = library_path["CVODE_PATH"]
-        else:
-            print("Need to supply CVODE_PATH")
-            return
-
-        if  "HDF5_PATH" in library_path:
-            self._hdf5_path  = library_path["HDF5_PATH"]
+        # Only HDF5_PATH and DENGO_INSTALL_PATH is needed for
+        # running dengo, but then it can only be coupled with the 1st order BDF solver
+        if  "HDF5_PATH" in os.environ:
+            self._hdf5_path  = os.environ["HDF5_PATH"]
         else:
             print("Need to supply HDF5_PATH")
             return
 
-        if "SUITESPARSE_PATH" in library_path:
-            self._suitesparse_path = library_path["SUITESPARSE_PATH"]
+        if "DENGO_INSTALL_PATH" in os.environ:
+            self._dengo_install_path = os.environ["DENGO_INSTALL_PATH"]
         else:
-            print("Need to supply SUITESPARSE_PATH")
+            print("Need to supply DENGO_INSTALL_PATH")
             return
 
-        if "DENGO_INSTALL_PATH" in library_path:
-            self._dengo_install_path = library_path["DENGO_INSTALL_PATH"]
+        # CVODE is optional, but recommended for performance boost
+        if "CVODE_PATH" in os.environ:
+            self._cvode_path = os.environ["CVODE_PATH"]
+            # SuiteSpare is optional as well
+            if "SUITESPARSE_PATH" in os.environ:
+                self._suitesparse_path = os.environ["SUITESPARSE_PATH"]
+            else:
+                print("Need to supply SUITESPARSE_PATH if CVODE is compiled with KLU")
         else:
-            print("Need to supply SUITESPARSE_PATH")
-            return
+            print("Need to supply CVODE_PATH")
+            print("OR: You can choose to use the first order BDF solver that comes with dengo")
+            print("In that case, please set ode_solver_source to 'BE_chem_solve.C'")
+            print("and solver_template to 'rates_and_rate_tables'. ")
 
         if not os.path.isdir(output_dir): os.makedirs(output_dir)
         # What we are handed here is:
@@ -601,14 +607,17 @@ class ChemicalNetwork(object):
                 f.write(solver_out)
 
         # now we create a Makefile
-        temp_dir, _ = os.path.split(solver_template)
-        iname = os.path.join(temp_dir, "Makefile")
-        oname = os.path.join(output_dir, "Makefile")
-        template_inst = env.get_template(iname + ".template")
-        solver_out = template_inst.render(**template_vars)
-        with open(oname ,"w") as f:
-            f.write(solver_out)
-
+        try:
+           temp_dir, _ = os.path.split(solver_template)
+           iname = os.path.join(temp_dir, "Makefile")
+           oname = os.path.join(output_dir, "Makefile")
+           template_inst = env.get_template(iname + ".template")
+           solver_out = template_inst.render(**template_vars)
+           with open(oname ,"w") as f:
+               f.write(solver_out)
+        except:
+            print("This does not have a Makefile.template")
+            pass
 
         env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
                 loader = jinja2.PackageLoader("dengo", "solvers"))

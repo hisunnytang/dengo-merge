@@ -79,7 +79,7 @@ def main_run_{{solver_name}}():
     print "Total elapsed time: %0.3e" % (t2-t1)
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000,
-                        int intermediate = 1, z = -1.0):
+                        int intermediate = 1, z = -1.0, reltol=1.0e-5, floor_value=1.0e-20):
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
     {%- for s in network.required_species | sort %}
@@ -115,8 +115,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     for i in range(dims):
         {%- for s in network.required_species | sort %}
         input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
-        atol[j] = input[j] * 1e-6
-        rtol[j] = 1e-6
+        atol[j] = input[j] * reltol
+        rtol[j] = reltol
         scale[j] = input[j]
         j += 1
         {%- endfor %}

@@ -2,6 +2,7 @@ cimport numpy as np
 import numpy as np
 import time
 from libc.stdlib cimport malloc, free
+from libcpp cimport bool
 from cpython cimport array
 
 cdef extern from "alloca.h":
@@ -474,13 +475,12 @@ cdef extern from "{{solver_name}}_solver.h":
         {% endfor %}
         int bin_id[MAX_NCELLS]
         int ncells
-    
 
     double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
                                          {{solver_name}}_data *data, double *temp)
-    int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt)
+    int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double* atol, double dt)
     int {{solver_name}}_main(int argc, char **argv);
 
 
@@ -492,8 +492,9 @@ def main_run_{{solver_name}}():
     print("Total elapsed time: %0.3e" % (t2-t1))
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000,
-                        int intermediate = 1, z = -1.0, dtarr = -999999):
-    assert(_MAX_NCELLS == MAX_NCELLS)
+                        int intermediate = 1, float z = -1.0, bool adaptive_step = True,
+			float reltol = 1.0e-5, float floor_value = 1.0e-20):
+    #assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
     {%- for s in network.required_species | sort %}
     cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
@@ -512,7 +513,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef np.ndarray[np.float64_t, ndim=2] Temperature_int;
     cdef np.ndarray[np.float64_t, ndim=2] MolecularWeight_int;
 
-
     cdef np.ndarray[np.float64_t, ndim=1] result_int
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
@@ -521,18 +521,15 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int i, j, k, iter
     cdef int dims = {{network.energy_term.name}}_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
-    cdef double *input = <double *> alloca(NTOT * sizeof(double))
-    cdef double *prev = <double *> alloca(NTOT * sizeof(double))
-    
+    cdef double *input = <double *> malloc(NTOT * sizeof(double))
+    cdef double *prev = <double *> malloc(NTOT * sizeof(double))
 
     cdef dengo_field_data *field_data = <dengo_field_data *> malloc(sizeof(dengo_field_data));
     cdef code_units       * units     = <code_units *> malloc(sizeof(code_units));
-    
     units.density_units = 1.67e-24;
     units.length_units  = 1.0;
     units.time_units    = 1.0;
     units.velocity_units = 1.0;
-    
     CoolingTime = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
     Gamma       = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
     Temperature = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
@@ -541,18 +538,17 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double[::1] gamma_memview = Gamma
     cdef double[::1] temp_memview  = Temperature
     cdef double[::1] mweight_memview = MolecularWeight
-   
-        
     {%- for species in network.required_species | sort %}
     field_data.{{species.name}}_density = &{{species.name}}_memview[0];
-    {% endfor %}
+    {%- endfor %}
     field_data.CoolingTime = &ctime_memview[0]
     field_data.Gamma       = &gamma_memview[0]
     field_data.temperature = &temp_memview[0]
     field_data.MolecularWeight = &mweight_memview[0]
     field_data.ncells  = dims;
 
-
+    cdef np.ndarray[np.float64_t, ndim=1] atol = np.ones( (NTOT) )*floor_value*reltol
+    cdef np.ndarray[np.float64_t, ndim=1] rtol = np.array([reltol])
 
     if intermediate == 1:
         # allocate memory for the intermediate results
@@ -572,10 +568,9 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     j = 0
     for i in range(dims):
         {%- for s in network.required_species | sort %}
-        input[j] = prev[j] = {{s.name}}_arr[i] 
+        input[j] = prev[j] = {{s.name}}_arr[i]
         j += 1
         {%- endfor %}
-        
 
     cdef double ttot = 0.0
     cdef int status
@@ -583,21 +578,18 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
     cdef double *t_now = <double *> malloc( sizeof(double) )
-
-    
     cdef double *dt_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *success_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *ttot_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *temp = <double *> malloc(sizeof(double) * niter)
 
     cdef int niter_cvodes = niter
-    
     cdef double dt  = tf / float(niter)
     field_data.dengo_data_file = "{{solver_name}}_tables.h5"
 
     for iter in range(niter):
-        status = {{solver_name}}_solve_chemistry_dt( units, field_data, dt);
-        j = 0; 
+        status = {{solver_name}}_solve_chemistry_dt( units, field_data, <double *> rtol.data , <double *> atol.data, dt);
+        j = 0;
 
         for i in range(dims):
             {%- for s in network.required_species | sort %}
@@ -614,13 +606,13 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
         t_int[iter] = ttot
         dt_int[iter] = dt
-        
 
         if status == 0:
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
-            dt = 1.1*dt
+            if adaptive_step: 
+                 dt *= 1.1
 
             if tf - ttot < dt:
                 dt = tf - ttot
@@ -634,7 +626,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
                 break
             continue
         if ttot >= tf: break
-    
 
     free(dt_arr)
     free(ttot_arr)

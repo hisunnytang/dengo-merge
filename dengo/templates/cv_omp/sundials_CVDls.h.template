@@ -263,7 +263,7 @@ typedef struct code_units
 
 } code_units;
 
-int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double dt );
+int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double *atol, double dt );
 
 int dengo_estimate_cooling_time( code_units* units, dengo_field_data * field_data );
 

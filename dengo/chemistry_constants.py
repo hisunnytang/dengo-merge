@@ -24,6 +24,7 @@ License:
 # Handy constants
 
 tevk = 1.1605e4
-tiny = 1e-30
+tiny = 1e-20
 mh = 1.67e-24
 kboltz = 1.380e-16
+G = 6.674e-8

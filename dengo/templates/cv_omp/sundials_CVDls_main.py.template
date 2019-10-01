@@ -1,7 +1,18 @@
 import numpy
 import pyximport
+import os
+
+# write the solver for various network
+
+# test the cython intallation
+os.environ["HDF5_DIR"] = {{network._hdf5_path}}
 pyximport.install(setup_args={"include_dirs":numpy.get_include()},
                   reload_support=True)
 
 import {{solver_name}}_solver_run
+
+# this runs the `{{solver_name}}_main` function in the {{solver_name}}_solver
+# reading the {{solver_name}}_initial_conditions.h5
 {{solver_name}}_solver_run.main_run_{{solver_name}}()
+
+# test the run_{{solver_name}}(init, )
