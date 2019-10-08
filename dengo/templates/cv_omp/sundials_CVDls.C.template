@@ -669,11 +669,11 @@ void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
     /* Allocate the correct number of rate tables */
     
 
-    {%- for sp in network.interpolate_gamma_species_name | sort %}
-    H5LTread_dataset_double(file_id, "/gamma{{sp}}",
-                            data->g_gamma{{sp}} );
-    H5LTread_dataset_double(file_id, "/dgamma{{sp}}_dT",
-                            data->g_dgamma{{sp}}_dT );   
+    {%- for sp in network.interpolate_gamma_species | sort %}
+    H5LTread_dataset_double(file_id, "/gamma{{sp.name}}",
+                            data->g_gamma{{sp.name}} );
+    H5LTread_dataset_double(file_id, "/dgamma{{sp.name}}_dT",
+                            data->g_dgamma{{sp.name}}_dT );   
     {% endfor %}
 
     H5Fclose(file_id);
@@ -697,10 +697,10 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     {%- if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     double dge;
-    {%- for sp in network.interpolate_gamma_species_name | sort %}
-    double gamma{{sp}};
-    double dgamma{{sp}}_dT;
-    double _gamma{{sp}}_m1;
+    {%- for sp in network.interpolate_gamma_species | sort %}
+    double gamma{{sp.name}};
+    double dgamma{{sp.name}}_dT;
+    double _gamma{{sp.name}}_m1;
     {%- endfor %}
         
     double Tdiff = 1.0;
@@ -746,10 +746,10 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
             T = data->Ts[threadID][i];
         
             {{ solver_name }}_interpolate_gamma(data, i);
-            {% for sp in network.interpolate_gamma_species_name | sort %}
-            gamma{{sp}} = data->gamma{{sp}}[threadID][i];
-            dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[threadID][i];
-            _gamma{{sp}}_m1 = 1.0 / (gamma{{sp}} - 1.0);
+            {% for sp in network.interpolate_gamma_species | sort %}
+            gamma{{sp.name}} = data->gamma{{sp.name}}[threadID][i];
+            dgamma{{sp.name}}_dT = data->dgamma{{sp.name}}_dT[threadID][i];
+            _gamma{{sp.name}}_m1 = 1.0 / (gamma{{sp.name}} - 1.0);
             // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
             {% endfor %}
        
@@ -949,15 +949,15 @@ void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
     data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
     data->dT[threadID][i] = (t2 - t1);
 
-    {% for sp in network.interpolate_gamma_species_name%}
+    {% for sp in network.interpolate_gamma_species%}
     
     bin_id = data->bin_id[threadID][i];
-    data->gamma{{sp}}[threadID][i] = data->g_gamma{{sp}}[bin_id] +
-        data->Tdef[threadID][i] * (data->g_gamma{{sp}}[bin_id+1] - data->g_gamma{{sp}}[bin_id]);
+    data->gamma{{sp.name}}[threadID][i] = data->g_gamma{{sp.name}}[bin_id] +
+        data->Tdef[threadID][i] * (data->g_gamma{{sp.name}}[bin_id+1] - data->g_gamma{{sp.name}}[bin_id]);
 
-    data->dgamma{{sp}}_dT[threadID][i] = data->g_dgamma{{sp}}_dT[bin_id] +
-        data->Tdef[threadID][i] * (data->g_dgamma{{sp}}_dT[bin_id+1] 
-        - data->g_dgamma{{sp}}_dT[bin_id]);
+    data->dgamma{{sp.name}}_dT[threadID][i] = data->g_dgamma{{sp.name}}_dT[bin_id] +
+        data->Tdef[threadID][i] * (data->g_dgamma{{sp.name}}_dT[bin_id+1] 
+        - data->g_dgamma{{sp.name}}_dT[bin_id]);
     {% endfor %}
        
     }
@@ -1501,10 +1501,10 @@ int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double
     {% endfor %}
     
     double gamma = 5.0/3.0;
-    {% for sp in network.interpolate_gamma_species_name | sort %}
-    double gamma{{sp}};
-    double dgamma{{sp}}_dT;
-    double _gamma{{sp}}_m1;
+    {% for sp in network.interpolate_gamma_species | sort %}
+    double gamma{{sp.name}};
+    double dgamma{{sp.name}}_dT;
+    double _gamma{{sp.name}}_m1;
     {% endfor %}
     double n_gamma_m1, ndensity;
     
@@ -1525,10 +1525,10 @@ int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double
         {%- endif %}
         {%- endfor %}
         
-        {%- for sp in network.interpolate_gamma_species_name | sort %}
-        gamma{{sp}} = data->gamma{{sp}}[threadID][i];
-        dgamma{{sp}}_dT = data->dgamma{{sp}}_dT[threadID][i];
-        _gamma{{sp}}_m1 = 1.0 / (gamma{{sp}} - 1.0);
+        {%- for sp in network.interpolate_gamma_species | sort %}
+        gamma{{sp.name}} = data->gamma{{sp.name}}[threadID][i];
+        dgamma{{sp.name}}_dT = data->dgamma{{sp.name}}_dT[threadID][i];
+        _gamma{{sp.name}}_m1 = 1.0 / (gamma{{sp.name}} - 1.0);
         {%- endfor %}
       
         n_gamma_m1 = {{network.gamma_factor()}};
