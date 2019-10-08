@@ -95,12 +95,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int i, j, k, iter
     cdef int dims = {{network.energy_term.name}}_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
-    cdef double *input = <double *> alloca(NTOT * sizeof(double))
-    cdef double *prev = <double *> alloca(NTOT * sizeof(double))
-    cdef double *atol = <double *> alloca(NTOT * sizeof(double))
-    cdef double *rtol = <double *> alloca(NTOT * sizeof(double))
-    cdef double *scale = <double *> alloca(NTOT * sizeof(double))
-    cdef double v
+    cdef double *input = <double *> malloc(NTOT * sizeof(double))
+    cdef double *prev = <double *> malloc(NTOT * sizeof(double))
+    cdef double *atol = <double *> malloc(NTOT * sizeof(double))
+    cdef double *rtol = <double *> malloc(NTOT * sizeof(double))
+    cdef double *scale = <double *> malloc(NTOT * sizeof(double))
 
     if intermediate == 1:
         {%- for s in network.required_species | sort %}
@@ -180,7 +179,12 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     free(s)
     free(gu)
     free(Ju)
-
+    free(input)
+    free(prev)
+    free(atol)
+    free(rtol)
+    free(scale)
+    free(data)
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}

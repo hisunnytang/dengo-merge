@@ -627,11 +627,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             continue
         if ttot >= tf: break
 
+    free(input)
+    free(prev)
+    free(t_now)
+    free(temp)
     free(dt_arr)
     free(ttot_arr)
     free(success_arr)
     free(field_data)
     free(units)
+
     print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
 
     rv, rv_t = {}, {}
@@ -650,7 +655,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     j = 0
     for i in range(dims):
         {%- for s in network.required_species | sort %}
-        {{s.name}}_arr[i] = input[j] * {{s.weight}}
+        {{s.name}}_arr[i] = input[j] #* {{s.weight}}
         j += 1
         {%- endfor %}
     return rv, rv_t
