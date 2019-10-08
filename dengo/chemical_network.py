@@ -230,7 +230,10 @@ class ChemicalNetwork(object):
         sp_list = list( sorted(self.required_species) )
         s1_now  = sp_list[0]
 
+        # getting rowptrs is a little tricky....
+        # its the counter
         for i1, s1 in enumerate(sp_list):
+            rowptrs.append(k)
             for i2, s2 in enumerate(sp_list):
                 jac_comp = self.print_jacobian_component(s1, s2, print_zeros = False, assign_to = "" )
 
@@ -244,12 +247,12 @@ class ChemicalNetwork(object):
                     i1_list.append(i1)
                     i2_list.append(i2)
 
-                    if s1 == s1_now:
-                        rowptrs.append(k)
-                        if i1 < len(sp_list) - 1:
-                            s1_now = sp_list[i1 + 1]
-                        else:
-                            s1_now = None
+                    #if s1 == s1_now:
+                    #    rowptrs.append(k)
+                    #    if i1 < len(sp_list) - 1:
+                    #        s1_now = sp_list[i1 + 1]
+                    #   else:
+                    #        s1_now = None
                     k += 1
         # rowptrs.append(k)
         if return_type == "component":
