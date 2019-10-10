@@ -600,7 +600,7 @@ class ChemicalNetwork(object):
 
 
         for suffix in (".C", "_main.C", ".h", "_run.pyx", "_run.pyxbld",
-                       "_run.pyxdep", "_main.py"):
+                       "_run.pyxdep", "_run.pxd", "_main.py"):
             iname = "%s%s" % (solver_template, suffix)
             oname = os.path.join(output_dir,
                             "%s_solver%s" % (solver_name, suffix))
