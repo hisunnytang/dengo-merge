@@ -1,19 +1,28 @@
 language: python
 python:
-    - "3.6"
+    - "3.7"
+
+envs:
+  DENGO_INSTALL_PATH=$(TRAVIS_BUILD_DIR)/dengo_install
+  CVODE_PATH=$(TRAVIS_BUILD_DIR)/cvode-3.1.0/instdir
+  HDF5_PATH=$(TRAVIS_BUILD_DIR)/hdf5_install
+  SUITESPARSE_PATH=$(TRAVIS_BUILD_DIR)/SuiteSparse
 
 before_install:
     - sudo apt-get install gfortran
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBlas/Install
     - ./install-suitesparse.sh
     - ./install-cvode3.1.sh
     - ./install-chiantipy.sh
+    - ./install-hdf5.sh
 #    - ./install-grackle.sh
 # command to install dependencies
 install:
     - pip install -r requirements.txt
+    - pip install h5py
     - pip install -e .
 # command to run tests
 script:
-    - py.test
+    - py.test examples/test/
 
 
