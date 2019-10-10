@@ -1158,11 +1158,6 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         // {{s2.name}} by {{s1.name}}
         {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
         {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
-        #ifdef SCALE_INPUT
-        inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
-        scale1     = scale    [ j + {{i_s1.index0}}];
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
-        #endif
         {% else %}
         // because the Jacobian is initialized to zeros by default
         // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 )  ) }}
@@ -1749,10 +1744,11 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
         {%- endif %}
         j++;
         {%- endfor %}
+	field_data->temperature[d] = temp[d];
     }
     
     dengo_estimate_cooling_time( units, field_data );
-    dengo_calculate_temperature(units, field_data);
+    //dengo_calculate_temperature(units, field_data);
     dengo_calculate_mean_molecular_weight( units, field_data );
 
 
@@ -2145,8 +2141,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
         mdensity = data->mdensity[threadID][i];
         tau      = pow( (mdensity / 3.3e-8 ), 2.8);
         tau      = fmax( tau, 1.0e-5 );
-        data->cie_optical_depth_approx[threadID][i] = 
-            fmin( 1.0, (1.0 - exp(-tau) ) / tau );
+	data->cie_optical_depth_approx[threadID][i] = fmin( 1.0, (1.0 - exp(-tau) ) / tau );
     }
     {% endif %}
 
@@ -2154,7 +2149,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
     {% if "gloverabel08" in network.cooling_actions %}
     for ( i = 0; i < nstrip; i++ ){
         mdensity = data->mdensity[threadID][i];
-        data->h2_optical_depth_approx[threadID][i] =  fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+        data->h2_optical_depth_approx[threadID][i] = fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
     }
     {% endif %}
 
