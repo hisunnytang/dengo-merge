@@ -11,10 +11,10 @@ envs:
 before_install:
     - sudo apt-get install gfortran
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBlas/Install
-    - ./install-suitesparse.sh
-    - ./install-cvode3.1.sh
-    - ./install-chiantipy.sh
-    - ./install-hdf5.sh
+    - ./install-suitesparse.sh &> suitesparse_install.out
+    - ./install-cvode3.1.sh &> cvode_install.out
+    - ./install-chiantipy.sh &> chiantipy_install.out
+    - ./install-hdf5.sh &> hdf5_install.out 
 #    - ./install-grackle.sh
 # command to install dependencies
 install:
