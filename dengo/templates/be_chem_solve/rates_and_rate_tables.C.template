@@ -320,12 +320,12 @@ void {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
     double mh = 1.67e-24;
     double gamma = 5.e0/3.e0;
+    double _gamma_m1 = 1./ (gamma - 1.);
     {% if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     	   	     		// this is a temporary solution
     double gammaH2_1 = 7.0/5.0;
     double gammaH2_2 = 7.0/5.0;
-    double _gamma_m1 = 5.0/2.0;
 
     double T,x, expx, Tnew;
     {% endif %}
