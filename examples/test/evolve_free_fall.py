@@ -474,7 +474,7 @@ def run_dengo_freefall(update_options):
     all_data['force_factor'] = []
 
     import h5py
-    dir_ff_grackle = "/home/kwoksun2/grackle-git/src/python/examples/freefall.h5"
+    dir_ff_grackle = "../freefall_solution/freefall.h5"
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_init = convert_from_grackle_to_dengo(fdata)
@@ -531,21 +531,20 @@ def run_dengo_freefall(update_options):
     for k, v in all_data.items():
         all_data[k] = np.array(v)
     save_obj(all_data, 'freefall_dengo')
+    os.chdir("../")
 
-
-def compare_dengo_grackle():
+def compare_dengo_grackle(solver_dir):
 
     # load in the results from dengo
     import h5py
-    dir_ff_grackle = "/home/kwoksun2/grackle-git/src/python/examples/freefall.h5"
+    dir_ff_grackle = "freefall_solution/freefall.h5"
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_results = convert_from_grackle_to_dengo(fdata, init=False)
     f.close()
     print(grackle_results)
 
-    output_dir = "test_dir"
-    dengo_results = load_obj("freefall_dengo")
+    dengo_results = load_obj("{}/freefall_dengo".format(solver_dir))
 
     for k, v in dengo_results.items():
         dengo_results[k] = np.array(v)

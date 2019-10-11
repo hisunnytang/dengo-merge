@@ -14,13 +14,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import copy
 import pytest
+from utilities import setup_solver_options, write_network, run_solver, set_env_variables
 
 matplotlib.use("Agg")
-
-def set_env_variables(var, path):
-    if var not in os.environ:
-        os.environ[var] = path
-
 
 set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
 set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
@@ -40,32 +36,8 @@ predator0 = 2.0
 prey0 = 2.0
 
 
-@pytest.fixture
-def init_values(request):
-    print(request.param)
-    setup_predator_prey(*request.param)
-    cN = write_predator_prey_model(write_file=True)
-    yield write_initial_conditions(cN)
-
-
-@pytest.fixture
-def setup_solver_options(update_options={}):
-    solver_options = {"output_dir": "./{}".format(output_dir),
-                      "solver_name": "primordial",
-                      "use_omp": False,
-                      "use_cvode": False,
-                      "use_suitesparse": False,
-                      "niters": 1e3,
-                      "NCELLS": 128,
-                      "reltol": 1.0e-6}
-    solver_options.update(update_options)
-    return solver_options
-
-
-
 @registry_setup
-def setup_predator_prey(alpha, beta, gamma, delta):
-
+def setup_predator_prey_rates():
     predator = ChemicalSpecies("predator", 1.0)
     dead_predator = ChemicalSpecies("dead_predator", 1.0)
     prey = ChemicalSpecies("prey", 1.0)
@@ -88,7 +60,10 @@ def setup_predator_prey(alpha, beta, gamma, delta):
         return gamma * np.ones_like(state.T)
 
 
-def write_predator_prey_model(write_file=True):
+
+@pytest.fixture
+def setup_predator_prey_network():
+    setup_predator_prey_rates()
     cN = ChemicalNetwork()
     cN.add_reaction("exp_growth_prey")
     cN.add_reaction("predation")
@@ -96,6 +71,10 @@ def write_predator_prey_model(write_file=True):
 
     # this shouldnt be compulsory...
     cN.init_temperature((1e0, 1e8))
+    return cN
+
+
+def write_predator_prey_model(write_file=True):
     init_values = write_initial_conditions(cN)
     if write_file:
         cN.write_solver(solver_name, output_dir=output_dir,
@@ -213,24 +192,49 @@ def conserved_variables(results, filename=None, make_plot=True):
         plt.savefig(filename)
 
 
-def TestConvergence(init_values, rtol_array):
+def TestConvergence(init_values, rtol_array, setup_solver_options):
     f, ax = plt.subplots()
     init = copy.deepcopy(init_values)
     for reltol in rtol_array:
-        results = run_model(init, reltol=reltol, make_plot=False)
+        setup_solver_options["reltol"] = reltol
+        results = run_solver(init, setup_solver_options, make_plot=False, dtf = 100.0)
         v0, vt = conserved_variables(results, make_plot=False)
         ax.semilogy(np.abs((vt - v0)/v0),
                     label="rtol = {0:0.1e}".format(reltol))
     ax.legend()
     f.savefig("prey_predator_convergence.png")
 
+#@pytest.fixture
+#def init_values(request):
+#    print(request.param)
+#    setup_predator_prey(*request.param)
+#    cN = write_predator_prey_model(write_file=True)
+#    yield write_initial_conditions(cN)
+#
 
-@pytest.mark.parametrize(
-    "init_values",
-    ([alpha,beta,gamma,delta],),
-    indirect=True
-)
-def test_prey_predator(init_values):
-    results = run_model(init_values)
+
+
+
+@pytest.mark.parametrize('setup_solver_options',
+                         ({"use_omp": False, "use_cvode": False,
+                           "use_suitesparse": False,
+                           "output_dir": "be_chem_solve"},
+                          {"use_omp": False, "use_cvode": True,
+                           "use_suitesparse": False,
+                           "output_dir": "cvode_dls"},
+                          {"use_omp": True, "use_cvode": True,
+                           "use_suitesparse": True,
+                           "output_dir": "cvode_klu"}),
+                         indirect=True)
+def test_prey_predator(setup_predator_prey_network, setup_solver_options):
+    print(setup_predator_prey_network)
+    print(setup_solver_options)
+    setup_solver_options["solver_name"] = solver_name
+    write_network(setup_predator_prey_network,
+                  setup_solver_options)
+    init_values = write_initial_conditions(setup_predator_prey_network)
+    os.chdir(setup_solver_options["output_dir"])
+    results = run_solver(init_values, setup_solver_options, make_plot=False, dtf = 100.0)
     phase_plot(results)
-    TestConvergence(init_values, rtol_array=np.logspace(-8, -3, 6))
+    TestConvergence(init_values, rtol_array=np.logspace(-8, -3, 6), setup_solver_options = setup_solver_options)
+    os.chdir("../")
