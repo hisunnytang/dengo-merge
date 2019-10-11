@@ -13,15 +13,20 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pytest
 
-# this is required to compiled cython
-os.environ["HDF5_DIR"] = "/home/kwoksun2/anaconda3"
-# this is to fill in relative path in the templates
-os.environ["CVODE_PATH"] = "/home/kwoksun2/cvode-3.1.0/instdir"
-os.environ["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
-os.environ["SUITESPARSE_PATH"] = "/home/kwoksun2/SuiteSparse"
-os.environ["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install"
 
-output_dir = "./test_primordial"
+def set_env_variables(var, path):
+    if var not in os.environ:
+        os.environ[var] = path
+
+
+set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
+set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
+set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+
+output_dir = "test_primordial"
+
 
 @pytest.fixture
 def setup_primordial_network():
@@ -175,6 +180,7 @@ def run_solver(init_values, solver_options, make_plot=True):
     solver_dir = solver_options["output_dir"]
     niters = solver_options["niters"]
     reltol = solver_options["reltol"]
+    print(os.system("pwd"))
     pyximport.install(setup_args={"include_dirs": np.get_include()},
                       reload_support=True, inplace=True)
 
@@ -215,12 +221,25 @@ def run_solver(init_values, solver_options, make_plot=True):
             return rv_int
 
 
+@pytest.mark.parametrize(
+    'setup_solver_options',
+    ({"use_omp": False, "use_cvode": False, "use_suitesparse": False},
+     {"use_omp": False, "use_cvode": True, "use_suitesparse": False},
+     {"use_omp": True, "use_cvode": True, "use_suitesparse": True}),
+    indirect=True)
 def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
     """Change number of iteration to check if the results converges
     """
-    density = 1.0e10
+    write_network(
+        setup_primordial_network,
+        solver_options=setup_solver_options)
+
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    os.chdir(output_dir)
+    density = 1.0e0
     temperature = 2000.0
-    h2frac = 1.0e-3
+    h2frac = 1.0e-5
     NCELLS = 1
 
     rtol_array = np.logspace(-9, -4, 6)
@@ -254,12 +273,13 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
         error = np.abs((v[1:] - v[0]) / v[0])
         ax.loglog(rtol_array[1:], error, label=k)
     ax.plot(rtol_array, rtol_array, ls='--', color='k')
-    ax.set_ylim(1.0e-9, 1e-2)
-    ax.set_xlim(1.0e-8, 1.0e-4)
+    #ax.set_ylim(1.0e-9, 1e-2)
+    #ax.set_xlim(1.0e-8, 1.0e-4)
     ax.set_xlabel("Relative Tolerance of the Solver")
     ax.set_ylabel("Fractional Differnce to rtol =1e-9")
     ax.legend(loc="best", fontsize="xx-small")
     f.savefig("primordial_tolerance_convergence.png")
+    os.chdir("../")
 
 
 def test_iteration_convergence(init_values, solver_options):
@@ -297,7 +317,9 @@ def TestConservation(cN, results, density):
 
 
 def run_grid(network, solver_options, density, temperature, h2frac):
-    return
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    os.chdir(output_dir)
     NCELLS = solver_options["NCELLS"]
     perror = []
     start = True
@@ -340,7 +362,7 @@ def main(density, temperature, h2frac,
                          "reltol": 1.0e-6}):
     NCELLS = solver_options["NCELLS"]
 
-    network = setup_primorial_network()
+    network = setup_primordial_network()
     write_network(network, solver_options=solver_options)
     init_values = setup_initial_conditions(
         network, density, temperature, h2frac, NCELLS)
@@ -387,7 +409,7 @@ def runtime_ncells(setup_primordial_network, setup_solver_options):
         end = timer()
         print("ncells = {:d}, with {:0.2e} s\n".format(
                   ncells, (end - start) / ncells))
-        # TestConservation(network, results, density)
+        TestConservation(setup_primordial_network, rv_int, density)
 
 # },
 
@@ -399,9 +421,11 @@ def runtime_ncells(setup_primordial_network, setup_solver_options):
      {"use_omp": True, "use_cvode": True, "use_suitesparse": True}),
     indirect=True)
 def test_different_solvers(setup_primordial_network, setup_solver_options):
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
     os.chdir(output_dir)
     runtime_ncells(setup_primordial_network, setup_solver_options)
-    os.chdir(output_dir)
+    os.chdir("../")
     return
 
 
@@ -442,7 +466,3 @@ def test_run_grid(setup_primordial_network, setup_solver_options, nd, nT, nf):
             cbar = plt.colorbar(im, cax=cax)
     fig.tight_layout()
     fig.savefig("primordial_error_rate.png")
-
-
-if __name__ == "__main__":
-    test_primordial_suite()

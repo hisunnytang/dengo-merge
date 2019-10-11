@@ -17,14 +17,19 @@ import pytest
 
 matplotlib.use("Agg")
 
+def set_env_variables(var, path):
+    if var not in os.environ:
+        os.environ[var] = path
 
-os.environ["HDF5_DIR"] = "/home/kwoksun2/anaconda3"
-os.environ["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
-os.environ["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install/"
-os.environ["CVODE_PATH"] = "/home/kwoksun2/cvode_instdir/"
+
+set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
+set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
+set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
 
 solver_name = "predator_prey"
-output_dir = "./temp_prey_predator"
+output_dir = "temp_prey_predator"
 
 alpha = 2./3.
 beta = 4./3.
@@ -39,9 +44,22 @@ prey0 = 2.0
 def init_values(request):
     print(request.param)
     setup_predator_prey(*request.param)
-    cN = write_predator_prey_model(write_file=False)
+    cN = write_predator_prey_model(write_file=True)
     yield write_initial_conditions(cN)
 
+
+@pytest.fixture
+def setup_solver_options(update_options={}):
+    solver_options = {"output_dir": "./{}".format(output_dir),
+                      "solver_name": "primordial",
+                      "use_omp": False,
+                      "use_cvode": False,
+                      "use_suitesparse": False,
+                      "niters": 1e3,
+                      "NCELLS": 128,
+                      "reltol": 1.0e-6}
+    solver_options.update(update_options)
+    return solver_options
 
 
 
@@ -105,6 +123,9 @@ def write_initial_conditions(cN):
 
 
 def run_model(init_values, reltol=1.0e-5, make_plot=True, dtf=5.0e1):
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    os.chdir(output_dir)
     print(os.getcwd())
     pyximport.install(setup_args={"include_dirs": np.get_include()},
                       reload_support=True, inplace=True, language_level=3)
@@ -140,6 +161,7 @@ def run_model(init_values, reltol=1.0e-5, make_plot=True, dtf=5.0e1):
         plt.xlabel("time [s]")
         plt.legend(loc='best', fontsize='small')
         plt.savefig("prey_predator.png")
+    os.chdir("../")
     return rv_int
 
 
@@ -209,7 +231,6 @@ def TestConvergence(init_values, rtol_array):
     indirect=True
 )
 def test_prey_predator(init_values):
-    os.chdir(output_dir)
     results = run_model(init_values)
     phase_plot(results)
     TestConvergence(init_values, rtol_array=np.logspace(-8, -3, 6))

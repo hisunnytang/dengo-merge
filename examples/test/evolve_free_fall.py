@@ -303,7 +303,7 @@ def update_initial_condition(
     current_pressure = calculate_pressure(init, primordial)
     pressure_array = numpy.append(pressure_array, current_pressure)
 
-    include_pressure =False
+    include_pressure = False
     if include_pressure:
         force_factor = calculate_collapse_factor(pressure_array, density_array)
     else:
@@ -410,13 +410,13 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
             dengo_name = ele + '_' + str(charge)
             if ele == 'H':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v #/ 1.00794
+                    grackle_dict[key])/u.amu_cgs.v  # / 1.00794
             elif ele == 'He':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v #/ 4.002602
+                    grackle_dict[key])/u.amu_cgs.v  # / 4.002602
             elif ele == 'H2':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v #/ 1.00794 / 2.0
+                    grackle_dict[key])/u.amu_cgs.v  # / 1.00794 / 2.0
         elif 'M' in key:
             ele = key.split('M')[0]
             dengo_name = ele + '_' + str("m0")
@@ -429,43 +429,23 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
             dengo_dict[dengo_name] = numpy.array(grackle_dict[key])/u.amu_cgs.v
     return dengo_dict
 
-# if __name__ == "__main__":
 
-
-def run_dengo_freefall():
+def run_dengo_freefall(update_options):
+    solver_options={"output_dir": "test_again",
+                                       "solver_name": "test_freefall",
+                                       "use_omp": True,
+                                       "use_cvode": True,
+                                       "use_suitesparse": True,
+                                       "niters": 1,
+                                       "NCELLS": 1,
+                                       "reltol": 1e-5}
+    solver_options.update(update_options)
     # Initial conditions
     temperature = 20000.0  # K
     density = 1.0e-1  # cm^-3
     h2frac = 1.0e-3
-    solver_options = {"output_dir": ".",
-                      "solver_name": "primordial",
-                      "use_omp": False,
-                      "use_cvode": False,
-                      "use_suitesparse": False,
-                      "niters": 1,
-                      "NCELLS": 1,
-                      "reltol": 1e-5}
 
-   # test the cvode-KLU solver
-#   solver_options["use_omp"] = True
-#    solver_options["use_cvode"] = True
-#    solver_options["use_suitesparse"] = True
-#   solver_options["niters"] = True
-
-    solver_options["use_omp"] = True
-    solver_options["use_cvode"] = True
-    solver_options["use_suitesparse"] = True
-    solver_options["niters"] = 1
-    solver_options["output_dir"] = "temp_freefall"
-
-    if os.path.exists(solver_options["output_dir"]):
-        print("{} path exists".format(solver_options["output_dir"]))
-        os.chdir(solver_options["output_dir"])
-        return
     solver_name = solver_options["solver_name"]
-    niters = solver_options["niters"]
-    reltol = solver_options["reltol"]
-
     network = setup_primordial_network()
     write_network(network, solver_options=solver_options)
     os.chdir(solver_options["output_dir"])
@@ -494,7 +474,7 @@ def run_dengo_freefall():
     all_data['force_factor'] = []
 
     import h5py
-    dir_ff_grackle = "/home/kwoksun2/grackle/src/python/examples/freefall.h5"
+    dir_ff_grackle = "/home/kwoksun2/grackle-git/src/python/examples/freefall.h5"
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_init = convert_from_grackle_to_dengo(fdata)
@@ -519,10 +499,9 @@ def run_dengo_freefall():
     while current_density < final_density:
 
         # keep track of time in here
-
         new_init = generate_init_from_results(rv_int, network, new_init)
         init, pressure_array, density_array, dt, force_factor = update_initial_condition(
-            new_init, network, pressure_array, density_array, safety_factor=1.0e-3)
+            new_init, network, pressure_array, density_array, safety_factor=1.0e-2)
         #print("\t time on generating init = {}".format(toc - tic))
         tic = time.time()
         rv, rv_int = chemistry_run.run_primordial(
@@ -536,13 +515,12 @@ def run_dengo_freefall():
             if key not in ['density']:
                 data = rv_int[key][0][flag][-1]
                 all_data[key].append(data)
-                #print(key, data)
 
         all_data['force_factor'].append(float(force_factor))
         current_density = density_array[-1]
         if count % 500 == 0:
             current_time = time.time()
-            print("Time Lapsed: {}".format(current_time - time0 ))
+            print("Time Lapsed: {}".format(current_time - time0))
             print("density = {0:.2E}, percentage: {1:0.2g}".format(
                 current_density, current_density/final_density))
         count += 1
@@ -573,12 +551,26 @@ def compare_dengo_grackle():
         dengo_results[k] = np.array(v)
 
     f, ax = plt.subplots()
-    ax.loglog(grackle_results["density"], grackle_results["T"], label="grackle", color = "C0" )
-    ax.loglog(dengo_results["density"][1:], dengo_results["T"], label="dengo", color='C0', ls = '--' )
+    ax.loglog(
+        grackle_results["density"],
+        grackle_results["T"],
+        label="grackle",
+        color="C0")
+    ax.loglog(
+        dengo_results["density"][1:],
+        dengo_results["T"],
+        label="dengo", color='C0', ls='--')
     ax.legend()
     ax2 = ax.twinx()
-    ax2.loglog(grackle_results["density"], grackle_results["H2_1"]/ (grackle_results["H_1"] + grackle_results["H2_1"]), color = "C1")
-    ax2.loglog(dengo_results["density"][1:], dengo_results["H2_1"]/ (dengo_results["H_1"] + dengo_results["H2_1"]), color = "C1", ls ='--' )
+    ax2.loglog(
+        grackle_results["density"],
+        grackle_results["H2_1"] /
+        (grackle_results["H_1"] + grackle_results["H2_1"]),
+        color="C1")
+    ax2.loglog(dengo_results["density"][1:],
+               dengo_results["H2_1"] /
+               (dengo_results["H_1"] + dengo_results["H2_1"]),
+               color="C1", ls='--')
 
     f.savefig("grackle_dengo_comparison.png")
 
