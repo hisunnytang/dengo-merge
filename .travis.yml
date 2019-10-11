@@ -15,15 +15,17 @@ before_install:
     - ./install-cvode3.1.sh &> cvode_install.out
     - ./install-chiantipy.sh &> chiantipy_install.out
     - ./install-hdf5.sh &> hdf5_install.out 
+    - ./install-yt.sh &> yt_install.out
 #    - ./install-grackle.sh
 # command to install dependencies
 install:
     - pip install -r requirements.txt
     - pip install h5py
     - pip install sympy
+    - pip install yt
     - pip install -e .
 # command to run tests
 script:
-    - py.test examples/test/
+    - pytest -v examples/test/
 
 
