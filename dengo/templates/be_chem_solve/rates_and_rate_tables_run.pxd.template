@@ -1,0 +1,64 @@
+DEF MAX_NCELLS = 1
+DEF NSPECIES = {{network.required_species | length}}
+cdef extern from "{{solver_name}}_solver.h":
+    cdef int _MAX_NCELLS  "MAX_NCELLS"
+    cdef int _NSPECIES "NSPECIES"
+    ctypedef struct {{solver_name}}_data:
+        double dbin
+        double idbin
+        double bounds[2]
+        int nbins
+
+        double d_zbin
+        double id_zbin
+        double z_bounds[2]
+        int n_zbins
+
+        double current_z
+        double zdef
+        double dz
+
+        double Ts[MAX_NCELLS]
+        double Tdef[MAX_NCELLS]
+        double dT[MAX_NCELLS]
+        double logTs[MAX_NCELLS]
+        double dTs_{{ network.energy_term.name }}[MAX_NCELLS]
+        {%- for name, rate in network.reactions | dictsort %}
+        double r_{{name}}[{{ network.T | length }}]
+        double rs_{{name}}[MAX_NCELLS]
+        double drs_{{name}}[MAX_NCELLS]
+        {%- endfor %}
+        {%- for name, rate in network.cooling_actions | dictsort %}
+        {%- for name2 in rate.tables | sort %}
+        double c_{{name}}_{{name2}}[{{ network.T | length }}]
+        double cs_{{name}}_{{name2}}[MAX_NCELLS]
+        double dcs_{{name}}_{{name2}}[MAX_NCELLS]
+        {%- endfor %}
+        {% endfor %}
+        int bin_id[MAX_NCELLS]
+        int ncells
+
+    ctypedef int(*rhs_f)(double *, double *, int, int, void *)
+    ctypedef int(*jac_f)(double *, double *, int, int, void *)
+
+    int {{solver_name}}_main(int argc, char **argv)
+    {{solver_name}}_data *{{solver_name}}_setup_data(int *NumberOfFields,
+            char ***FieldNames)
+    void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
+    void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
+    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+                                         double *input, double *rtol,
+                                         double *atol, int dims,
+                                         {{solver_name}}_data *data)
+    int BE_chem_solve(rhs_f f, jac_f J,
+		    double *u, double dt, double *rtol, 
+                    double *atol, int nstrip, int nchem, 
+		    double *scaling, void *sdata, double *u0, double *s,
+            double *gu, double *Ju
+           )
+    int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
+            int nstrip, int nchem, void *sdata)
+    int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
+                      int nchem, void *sdata)
+    int ensure_electron_consistency(double *input, int nstrip, int nchem)
+
