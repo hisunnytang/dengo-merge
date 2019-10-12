@@ -2,7 +2,7 @@ set -ex
 git clone https://github.com/jluttine/suitesparse.git
 cd suitesparse
 git clone https://github.com/xianyi/OpenBLAS.git
-openblas_inst="${TRAVIS_BUILD_DIR}/suitesparse/OpenBLAS/Install"
+openblas_inst="${TRAVIS_BUILD_DIR}/suitesparse/OpenBLAS"
 cd OpenBLAS && make && make install PREFIX=$openblas_inst
 cd ../
 export LAPACK=""
