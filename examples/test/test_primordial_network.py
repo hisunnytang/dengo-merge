@@ -16,6 +16,7 @@ from utilities import setup_primordial_network, setup_solver_options, write_netw
 
 
 output_dir = "test_primordial"
+pytest_dir = os.getcwd()
 
 
 @pytest.mark.parametrize('setup_solver_options',
@@ -32,6 +33,7 @@ output_dir = "test_primordial"
 def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
     """Change number of iteration to check if the results converges
     """
+    os.chdir(pytest_dir)
     write_network(
         setup_primordial_network,
         solver_options=setup_solver_options)
@@ -52,7 +54,7 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
         setup_solver_options["reltol"] = r
         init_values = setup_initial_conditions(
             setup_primordial_network, density, temperature, h2frac, NCELLS)
-        r = run_solver(init_values, setup_solver_options, make_plot=False)
+        r = run_solver(init_values, setup_solver_options, make_plot=False, intermediate=False)
         if start:
             for k, v in r.items():
                 if k in skip:
@@ -129,6 +131,7 @@ def run_grid(network, solver_options, density, temperature, h2frac):
                 r = run_solver(
                     init_values,
                     solver_options=solver_options,
+                    intermediate = False,
                     make_plot=False)
                 perror.append(
                     TestConservation(
@@ -241,6 +244,7 @@ def test_different_solvers(setup_primordial_network, setup_solver_options):
 @pytest.mark.parametrize(('nd', 'nT', 'nf'),
                          ([16, 16, 3],))
 def test_run_grid(setup_primordial_network, setup_solver_options, nd, nT, nf):
+    os.chdir(pytest_dir)
     # test on grid of initial conditions
     density_array = np.logspace(0, 15, nd)
     temp_array = np.logspace(2, 3.7,  nT)

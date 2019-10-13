@@ -14,7 +14,9 @@ import matplotlib
 import matplotlib.pyplot as plt
 import copy
 import pytest
-from utilities import setup_solver_options, write_network, run_solver, set_env_variables
+import h5py
+from utilities import setup_solver_options, write_network,\
+    run_solver, set_env_variables, run_c_solver, write_init_to_file
 
 matplotlib.use("Agg")
 
@@ -26,6 +28,8 @@ set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
 
 solver_name = "predator_prey"
 output_dir = "temp_prey_predator"
+
+pytest_dir = os.getcwd()
 
 alpha = 2./3.
 beta = 4./3.
@@ -60,7 +64,6 @@ def setup_predator_prey_rates():
         return gamma * np.ones_like(state.T)
 
 
-
 @pytest.fixture
 def setup_predator_prey_network():
     setup_predator_prey_rates()
@@ -72,33 +75,6 @@ def setup_predator_prey_network():
     # this shouldnt be compulsory...
     cN.init_temperature((1e0, 1e8))
     return cN
-
-
-def write_predator_prey_model(write_file=True):
-    init_values = write_initial_conditions(cN)
-    if write_file:
-        cN.write_solver(solver_name, output_dir=output_dir,
-                        solver_template="cv_omp/sundials_CVDls",
-                        ode_solver_source="initialize_cvode_solver.C",
-                        init_values = init_values)
-    return cN
-
-
-def write_initial_conditions(cN):
-    init_values = {}
-    N = 1
-
-    init_values["predator"] = np.ones((N)) * predator0
-    init_values["prey"] = np.ones((N)) * prey0
-
-    init_values["dead_predator"] = np.ones((N)) * 0.0
-    init_values["dead_prey"] = np.ones((N)) * 0.0
-
-    init_values['density'] = cN.calculate_total_density(init_values)
-    init_values['ge'] = np.ones((N)) * 10.0
-
-    return init_values
-
 
 
 def run_model(init_values, reltol=1.0e-5, make_plot=True, dtf=5.0e1):
@@ -197,23 +173,37 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
     init = copy.deepcopy(init_values)
     for reltol in rtol_array:
         setup_solver_options["reltol"] = reltol
-        results = run_solver(init, setup_solver_options, make_plot=False, dtf = 100.0)
+        results = run_solver(
+            init,
+            setup_solver_options,
+            make_plot=False,
+            dtf=10.0)
         v0, vt = conserved_variables(results, make_plot=False)
+        ones = np.ones_like(vt)
+        # this shows the tolerance level of the solver
+        np.testing.assert_array_almost_equal(ones, vt/v0, decimal=2)
         ax.semilogy(np.abs((vt - v0)/v0),
                     label="rtol = {0:0.1e}".format(reltol))
     ax.legend()
     f.savefig("prey_predator_convergence.png")
 
-#@pytest.fixture
-#def init_values(request):
-#    print(request.param)
-#    setup_predator_prey(*request.param)
-#    cN = write_predator_prey_model(write_file=True)
-#    yield write_initial_conditions(cN)
-#
+def check_output_conservation(solver_options):
+    solver_name = solver_options["solver_name"]
+    solver_dir = solver_options["output_dir"]
+    os.chdir(solver_dir)
 
+    fn = "{}_sol.h5".format(solver_name)
+    outfile = h5py.File(fn,'r')
+    results = {}
+    for k in outfile.keys():
+        results[k] = outfile[k].value
+    v0, vt = conserved_variables(results, make_plot=False)
+    ones = np.ones_like(vt)
+    np.testing.assert_array_almost_equal(ones, vt/v0, decimal=2)
 
+    outfile.close()
 
+    os.chdir("../")
 
 @pytest.mark.parametrize('setup_solver_options',
                          ({"use_omp": False, "use_cvode": False,
@@ -227,14 +217,82 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
                            "output_dir": "cvode_klu"}),
                          indirect=True)
 def test_prey_predator(setup_predator_prey_network, setup_solver_options):
-    print(setup_predator_prey_network)
-    print(setup_solver_options)
     setup_solver_options["solver_name"] = solver_name
     write_network(setup_predator_prey_network,
                   setup_solver_options)
     init_values = write_initial_conditions(setup_predator_prey_network)
+
+    os.chdir(pytest_dir)
     os.chdir(setup_solver_options["output_dir"])
-    results = run_solver(init_values, setup_solver_options, make_plot=False, dtf = 100.0)
+    results = run_solver(
+        init_values,
+        setup_solver_options,
+        make_plot=False,
+        dtf=10.0)
     phase_plot(results)
-    TestConvergence(init_values, rtol_array=np.logspace(-8, -3, 6), setup_solver_options = setup_solver_options)
     os.chdir("../")
+
+
+#@pytest.mark.xfail(reason="relative level of the tolerance?")
+@pytest.mark.parametrize(
+    'setup_solver_options',
+    (pytest.param(
+         {"use_omp": False, "use_cvode": False, "use_suitesparse": False,
+          "output_dir": "be_chem_solve"},
+         marks=pytest.mark.xfail(
+             reason="BE_chem_solve is unstable to stiff equations?")),
+     {"use_omp": False, "use_cvode": True, "use_suitesparse": False,
+      "output_dir": "cvode_dls"},
+     {"use_omp": True, "use_cvode": True, "use_suitesparse": True,
+      "output_dir": "cvode_klu"}),
+    indirect=True)
+def test_prey_predator_convergence(
+        setup_predator_prey_network, setup_solver_options):
+    init_values = write_initial_conditions(setup_predator_prey_network)
+    setup_solver_options["solver_name"] = solver_name
+    #
+    os.chdir(pytest_dir)
+    os.chdir(setup_solver_options["output_dir"])
+    results = run_solver(
+        init_values,
+        setup_solver_options,
+        make_plot=False,
+        dtf=10.0)
+    phase_plot(results)
+    TestConvergence(
+        init_values, rtol_array=np.logspace(-8, -4, 5),
+        setup_solver_options=setup_solver_options)
+    os.chdir("../")
+
+
+@pytest.mark.last
+@pytest.mark.parametrize('setup_solver_options',
+                         ({"use_omp": False, "use_cvode": True,
+                           "use_suitesparse": False,
+                           "output_dir": "cvode_dls"},
+                          {"use_omp": True, "use_cvode": True,
+                           "use_suitesparse": True,
+                           "output_dir": "cvode_klu"}),
+                         indirect=True)
+def test_c_solver(setup_predator_prey_network, setup_solver_options):
+    setup_solver_options["solver_name"] = "prey_predator"
+    init_values = write_initial_conditions(setup_predator_prey_network)
+
+    os.chdir(pytest_dir)
+    write_init_to_file(init_values, setup_solver_options)
+    run_c_solver(setup_solver_options)
+    check_output_conservation(setup_solver_options)
+
+def write_initial_conditions(cN, N=1024):
+    init_values = {}
+
+    init_values["predator"] = np.ones((N)) * predator0
+    init_values["prey"] = np.ones((N)) * prey0
+
+    init_values["dead_predator"] = np.ones((N)) * 1.0e-4
+    init_values["dead_prey"] = np.ones((N)) * 1.0e-4
+
+    init_values['density'] = cN.calculate_total_density(init_values)
+    init_values['ge'] = np.ones((N)) * 10.0
+
+    return init_values

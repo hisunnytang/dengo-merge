@@ -16,6 +16,7 @@ import pyximport
 import sys
 import matplotlib.pyplot as plt
 import pytest
+import h5py
 
 def set_env_variables(var, path):
     if var not in os.environ:
@@ -27,6 +28,7 @@ set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
 set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
 set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
 set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+
 
 def freefall_time(density):
     return 1.0 / np.sqrt(G*mh*density)
@@ -169,8 +171,10 @@ def write_network(network, solver_options={"output_dir": "test_dir",
         return
 
 
-def run_solver(init_values, solver_options, dtf=None, make_plot=True, intermediate=True):
+def run_solver(init_values, solver_options, dtf=None,
+               make_plot=True, intermediate=True):
 
+    print(os.getcwd())
     solver_name = solver_options["solver_name"]
     solver_dir = solver_options["output_dir"]
     niters = solver_options["niters"]
@@ -219,3 +223,30 @@ def run_solver(init_values, solver_options, dtf=None, make_plot=True, intermedia
         except BaseException:
             return rv_int
 
+
+def run_c_solver(solver_options, dt=100.0):
+    solver_dir = solver_options["output_dir"]
+    solver_name = solver_options["solver_name"]
+    os.chdir(solver_dir)
+
+    os.system("make clean")
+    os.system("make")
+    os.system("make test")
+    out = os.system(
+        "./run_dengo {}_ic.h5 {}_sol.h5 {}".format(solver_name, solver_name, dt))
+    print(out)
+    os.chdir("../")
+
+
+def write_init_to_file(init_values, solver_options):
+    solver_name = solver_options["solver_name"]
+    os.chdir(solver_options["output_dir"])
+    print(solver_options["output_dir"])
+    print(os.getcwd())
+    icname = "{}_ic.h5".format(solver_name)
+    f = h5py.File(icname, "w")
+    for k, v in init_values.items():
+        print(k,v)
+        f.create_dataset(k, data=v)
+    f.close()
+    os.chdir("../")
