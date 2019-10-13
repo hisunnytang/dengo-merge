@@ -13,6 +13,11 @@ envs:
 before_install:
     - sudo apt-get install gfortran
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBLAS
+    - export DENGO_INSTALL_PATH=$TRAVIS_BUILD_DIR/dengo_install
+    - export CVODE_PATH=$TRAVIS_BUILD_DIR/cvode-3.1.0/instdir
+    - export HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
+    - export SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/SuiteSparse
+    - export HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
     - ./install-suitesparse.sh 
     - ./install-cvode3.1.sh &> cvode_install.out
     - ./install-chiantipy.sh &> chiantipy_install.out
@@ -31,6 +36,7 @@ script:
     - echo $SUITESPARSE_PATH
     - echo $HDF5_PATH
     - echo $DENGO_INSTALL_PATH
+    - echo $LD_LIBRARY_PATH
     - pytest -v examples/test/
 
 
