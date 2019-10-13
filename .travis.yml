@@ -4,11 +4,11 @@ python:
 
 envs:
   global:
-    - DENGO_INSTALL_PATH=$(TRAVIS_BUILD_DIR)/dengo_install
-    - CVODE_PATH=$(TRAVIS_BUILD_DIR)/cvode-3.1.0/instdir
-    - HDF5_PATH=$(TRAVIS_BUILD_DIR)/hdf5_install
-    - SUITESPARSE_PATH=$(TRAVIS_BUILD_DIR)/SuiteSparse
-    - HDF5_DIR=$(TRAVIS_BUILD_DIR)/hdf5_install
+    - DENGO_INSTALL_PATH=$TRAVIS_BUILD_DIR/dengo_install
+    - CVODE_PATH=$TRAVIS_BUILD_DIR/cvode-3.1.0/instdir
+    - HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
+    - SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/SuiteSparse
+    - HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
 
 before_install:
     - sudo apt-get install gfortran
