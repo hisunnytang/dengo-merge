@@ -5,7 +5,11 @@ int main(int argc, char **argv) {
        {{solver_name}}_main(argc, argv);
        return 0;
     }
+}
 
+/*
+// Sample on how to use dengo with primordial chemistry
+int main(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 64*64;
     field_data->ncells = N; 
@@ -86,3 +90,4 @@ int main(int argc, char **argv) {
     free(abstol);
     free(reltol);
 }
+*/
