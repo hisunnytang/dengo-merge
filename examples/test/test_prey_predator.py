@@ -1,10 +1,7 @@
 import numpy as np
-from dengo.chemistry_constants import tevk, tiny, mh
 from dengo.reaction_classes import \
     reaction, \
-    AtomicSpecies, \
     ChemicalSpecies, \
-    MolecularSpecies, \
     registry_setup, \
     species_registry
 from dengo.chemical_network import ChemicalNetwork
@@ -20,22 +17,36 @@ from utilities import setup_solver_options, write_network,\
 
 matplotlib.use("Agg")
 
-set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
-set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
-set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
-set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+# note that these are not persistent at all!
+
+if "TRAVIS_BUILD_DIR" not in os.environ:
+    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+    set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse/Install")
+    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+else:
+    # then we assume that the libraries are installed relative to the dengo
+    # path, so the below paths are the relative default install path
+    set_env_variables("HDF5_DIR", "hdf5_install")
+    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "hdf5_install")
+    set_env_variables("SUITESPARSE_PATH", "suitesparse")
+    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
+
+
 
 solver_name = "predator_prey"
 output_dir = "temp_prey_predator"
-
 pytest_dir = os.getcwd()
 
+# parameters for the prey-predator model
 alpha = 2./3.
 beta = 4./3.
 gamma = 1.0
 delta = 1.0
 
+# initial conditions
 predator0 = 2.0
 prey0 = 2.0
 

@@ -16,14 +16,7 @@ import pyximport
 import sys
 import matplotlib.pyplot as plt
 
-# this is required to compiled cython
-os.environ["HDF5_DIR"] = "/home/kwoksun2/anaconda3"
-# this is to fill in relative path in the templates
-os.environ["CVODE_PATH"] = "/home/kwoksun2/cvode-3.1.0/instdir"
-os.environ["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
-os.environ["SUITESPARSE_PATH"] = "/home/kwoksun2/SuiteSparse"
-os.environ["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install"
-
+pytest_dir = os.getcwd()
 
 def setup_primordial_network():
     """Initial a ChemicalNetwork object
@@ -431,7 +424,7 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
 
 
 def run_dengo_freefall(update_options):
-    solver_options={"output_dir": "test_again",
+    solver_options={"output_dir": "temp_freefall",
                                        "solver_name": "test_freefall",
                                        "use_omp": True,
                                        "use_cvode": True,
@@ -448,6 +441,8 @@ def run_dengo_freefall(update_options):
     solver_name = solver_options["solver_name"]
     network = setup_primordial_network()
     write_network(network, solver_options=solver_options)
+
+    os.chdir(pytest_dir)
     os.chdir(solver_options["output_dir"])
     pyximport.install(setup_args={"include_dirs": np.get_include()},
                       reload_support=True, inplace=True)
@@ -573,6 +568,15 @@ def compare_dengo_grackle(solver_dir):
 
     f.savefig("grackle_dengo_comparison.png")
 
+
+    h2frac_dengo = dengo_results["H2_1"] / (dengo_results["H_1"] + dengo_results["H2_1"])
+    h2frac_grackle = grackle_results["H2_1"] / (grackle_results["H_1"] + grackle_results["H2_1"])
+
+
+    ones = np.ones_like(h2frac_grackle)
+    # within 10 % error
+    np.testing.assert_array_almost_equal(ones, h2frac_dengo[1:]/ h2frac_grackle, decimal = 1)
+    np.testing.assert_array_almost_equal(ones, dengo_results["T"][1:]/ grackle_results["T"], decimal = 1)
 
 if __name__ == "__main__":
     run_dengo_freefall()

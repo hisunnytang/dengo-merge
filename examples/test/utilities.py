@@ -19,15 +19,21 @@ import pytest
 import h5py
 
 def set_env_variables(var, path):
-    if var not in os.environ:
+    """Set the environoment path for the use of dengo,
+       and this is only set within the code running time, not persistent
+       if `dengo_path` is set, then we use the `path` is taken as relative to dengo_path
+       else an absolute path is expected
+    Args:
+        var: env name
+        path: absolute/ relative path to respective libraray
+    """
+    if "TRAVIS_BUILD_DIR" in os.environ and "DENGO_PATH" not in os.environ:
+        # if we are in travis, the dengo_path is the travis build dir
+        os.environ["DENGO_PATH"] =  os.path.abspath("../../")
+    if "DENGO_PATH" in os.environ:
+        os.environ[var] = os.path.join(os.environ["DENGO_PATH"], path)
+    else:
         os.environ[var] = path
-
-
-set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
-set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
-set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
-set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
 
 
 def freefall_time(density):

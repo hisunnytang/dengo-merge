@@ -12,11 +12,33 @@ import pylab
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pytest
-from utilities import setup_primordial_network, setup_solver_options, write_network, setup_initial_conditions, run_solver,freefall_time
+from utilities import setup_primordial_network, setup_solver_options,\
+    write_network, setup_initial_conditions, run_solver,freefall_time, \
+    set_env_variables
 
 
 output_dir = "test_primordial"
 pytest_dir = os.getcwd()
+
+os.environ["DENGO_PATH"] = "/home/kwoksun2/"
+
+if "TRAVIS_BUILD_DIR" not in os.environ:
+    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+    set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse/Install")
+    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+else:
+    # then we assume that the libraries are installed relative to the dengo
+    # path, so the below paths are the relative default install path
+    set_env_variables("HDF5_DIR", "hdf5_install")
+    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "hdf5_install")
+    set_env_variables("SUITESPARSE_PATH", "suitesparse")
+    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
+
+
+
 
 
 @pytest.mark.parametrize('setup_solver_options',
