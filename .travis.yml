@@ -7,17 +7,20 @@ envs:
     - DENGO_INSTALL_PATH=$TRAVIS_BUILD_DIR/dengo_install
     - CVODE_PATH=$TRAVIS_BUILD_DIR/cvode-3.1.0/instdir
     - HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
-    - SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/SuiteSparse
+    - SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/suitesparse
     - HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
 
 before_install:
     - sudo apt-get install gfortran
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBLAS
     - export DENGO_INSTALL_PATH=$TRAVIS_BUILD_DIR/dengo_install
     - export CVODE_PATH=$TRAVIS_BUILD_DIR/cvode-3.1.0/instdir
     - export HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
-    - export SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/SuiteSparse
+    - export SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/suitesparse
     - export HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBLAS
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SUITESPARSE_PATH
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CVODE_PATH
     - ./install-suitesparse.sh 
     - ./install-cvode3.1.sh &> cvode_install.out
     - ./install-chiantipy.sh &> chiantipy_install.out

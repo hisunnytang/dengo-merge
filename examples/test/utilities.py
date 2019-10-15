@@ -27,6 +27,8 @@ def set_env_variables(var, path):
         var: env name
         path: absolute/ relative path to respective libraray
     """
+    if var in os.environ:
+        return
     if "TRAVIS_BUILD_DIR" in os.environ and "DENGO_PATH" not in os.environ:
         # if we are in travis, the dengo_path is the travis build dir
         os.environ["DENGO_PATH"] =  os.path.abspath("../../")
