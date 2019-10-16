@@ -12,13 +12,21 @@ import pyximport
 import os
 import pylab
 
-# this is required to compiled cython
-os.environ["HDF5_DIR"] = "/home/kwoksun2/anaconda3"
-# this is to fill in relative path in the templates
-os.environ["CVODE_PATH"] = "/home/kwoksun2/cvode-3.1.0/instdir"
-os.environ["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
-os.environ["SUITESPARSE_PATH"] = "/home/kwoksun2/SuiteSparse"
-os.environ["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install"
+
+if "TRAVIS_BUILD_DIR" not in os.environ:
+    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+    set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse/Install")
+    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+else:
+    # then we assume that the libraries are installed relative to the dengo
+    # path, so the below paths are the relative default install path
+    set_env_variables("HDF5_DIR", "hdf5_install")
+    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
+    set_env_variables("HDF5_PATH", "hdf5_install")
+    set_env_variables("SUITESPARSE_PATH", "suitesparse")
+    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
 
 # this would register all the reaction defined in primodial_rates!
 # such that these reaction are set up and can be founnd in reaction registry and species registry
