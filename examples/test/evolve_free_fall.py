@@ -469,6 +469,8 @@ def run_dengo_freefall(update_options):
     all_data['force_factor'] = []
 
     import h5py
+    print("os.getcwd()")
+    print(os.getcwd())
     dir_ff_grackle = "../freefall_solution/freefall.h5"
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
