@@ -27,6 +27,7 @@ def set_env_variables(var, path):
         var: env name
         path: absolute/ relative path to respective libraray
     """
+    # if the env variables is defined, then we should not redefine it
     if var in os.environ:
         return
     if "TRAVIS_BUILD_DIR" in os.environ and "DENGO_PATH" not in os.environ:

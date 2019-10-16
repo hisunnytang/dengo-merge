@@ -26,7 +26,7 @@ if "TRAVIS_BUILD_DIR" not in os.environ:
     set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
     set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
     set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse/Install")
+    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
     set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
 else:
     # then we assume that the libraries are installed relative to the dengo
@@ -138,9 +138,10 @@ def TestConservation(cN, results, density):
 
 
 def run_grid(network, solver_options, density, temperature, h2frac):
-    if not os.path.exists(output_dir):
-        os.mkdir(output_dir)
-    os.chdir(output_dir)
+    os.chdir(pytest_dir)
+    os.chdir(solver_options["output_dir"])
+    print("run_grid")
+    print(os.getcwd())
     NCELLS = solver_options["NCELLS"]
     perror = []
     start = True
