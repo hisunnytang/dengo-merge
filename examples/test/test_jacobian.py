@@ -11,7 +11,7 @@ import dengo.primordial_rates, dengo.primordial_cooling
 import pyximport
 import os
 import pylab
-
+from utilities import set_env_variables
 
 if "TRAVIS_BUILD_DIR" not in os.environ:
     set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
