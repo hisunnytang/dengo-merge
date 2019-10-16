@@ -17,10 +17,10 @@ before_install:
     - export HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
     - export SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/suitesparse
     - export HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$TRAVIS_BUILD_DIR/suitesparse/OpenBLAS
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SUITESPARSE_PATH/OpenBLAS
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SUITESPARSE_PATH
-    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CVODE_PATH
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SUITESPARSE_PATH/lib
+    - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CVODE_PATH/lib
     - ./install-suitesparse.sh 
     - ./install-cvode3.1.sh &> cvode_install.out
     - ./install-chiantipy.sh &> chiantipy_install.out
