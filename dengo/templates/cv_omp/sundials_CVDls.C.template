@@ -1728,7 +1728,7 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
     // update the rate table location
     data->dengo_data_file = field_data->dengo_data_file; 
 
-    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, reltol, atol, dims, data, temp);
+    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
     
     #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d< dims; d++  ){
