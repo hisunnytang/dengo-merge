@@ -1653,6 +1653,124 @@ int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data
 {% endblock reshape_to_dengo_field_data %}
 
 
+{% block solve_chemistry%}
+int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_data, double dt ){
+    // to use this, reltol and floor_value must be specified through 
+    // dengo_field_data 
+    unsigned long int i, j, d, dims;
+    int N = {{network.required_species | length }};
+    dims = field_data->ncells; // total number of strips to be evaluated
+
+
+    // turned the field data into a long chain of 
+    // 1-D array
+    //
+    // N: number of species
+    // d: d th number of strip to be evalulated
+    // i: index for each species
+    //    should be in correct order and handled 
+    //    by dengo templates
+    // i.e.
+    // input[d*N + i] = field_data->HI_density[]
+    //
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+
+    double *input = (double *) malloc(dims * N * sizeof(double));
+    double *temp  = (double *) malloc(dims * sizeof(double) );
+    double *atol  = (double *) malloc(dims * N * sizeof(double));
+    double *rtol  = (double *) malloc(sizeof(double));
+    
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+
+    rtol[0]            = field_data->reltol;
+    double floor_value = field_data->floor_value;
+
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        // this should be the normalized 
+        // by the input units later
+        // atol = input * rtol;
+        // which again should be set by dengo
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g) 
+        {%- for species in network.required_species | sort %}
+        input[j]  = field_data->{{species.name}}_density[d] ;
+        {%- if species != network.energy_term %}
+        input[j] *= units->density_units / m_amu;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        input[j] *= UNIT_E_per_M;
+        {%- endif %}
+	atol[j] = floor_value;
+        j++;
+        {%- endfor %}
+    }
+
+    /*
+    for (int i = 0; i < N; i++){
+    	fprintf(stderr, "input[%d] = %0.5g\n", i, input[i] );
+    }
+    */
+    
+    int flag;
+    double z;
+    double dtf;
+    
+    // convert code time to seconds 
+    dt *= units->time_units;
+    dtf = dt;
+    
+    // update the rate table location
+    data->dengo_data_file = field_data->dengo_data_file; 
+
+    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, reltol, atol, dims, data, temp);
+    
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        // this should be the normalized 
+        // by the input units later
+        // atol = input * rtol;
+        // which again should be set by dengo
+        
+        {%- for species in network.required_species | sort %}
+        field_data->{{species.name}}_density[d] = input[j];
+        {%- if species != network.energy_term %}
+        field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
+        {%- endif %}
+        j++;
+        {%- endfor %}
+	field_data->temperature[d] = temp[d];
+    }
+    
+    dengo_estimate_cooling_time( units, field_data );
+    //dengo_calculate_temperature(units, field_data);
+    dengo_calculate_mean_molecular_weight( units, field_data );
+
+
+    free(input);
+    free(temp);
+    free(data);
+    free(atol);
+    free(rtol);
+
+    if (flag > 0) return 1;
+
+    return 0;
+}
+
+
+{% endblock %}
+
+
 {% block solve_chemistry_dt %}
 int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* reltol, double* abstol, double dt ){
     

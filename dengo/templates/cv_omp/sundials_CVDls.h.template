@@ -233,6 +233,9 @@ typedef struct dengo_field_data
 
   unsigned long int nstrip;
   unsigned long int ncells; 
+  // let's just pass them passively through field_data
+  double reltol;
+  double floor_value;
   // This should be updated dynamically 
   // with dengo
   double *density;
@@ -263,6 +266,8 @@ typedef struct code_units
 
 } code_units;
 
+// we can call this and pass reltol and floor_value to solve_chemistry
+int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_data, double dt );
 int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double *atol, double dt );
 
 int dengo_estimate_cooling_time( code_units* units, dengo_field_data * field_data );
