@@ -23,7 +23,7 @@ def make_ext(modname, pyxfilename):
 		ss_path = os.environ["SUITESPARSE_PATH"]
 		ss_inc_dir = os.path.join( ss_path, "include" )
 		ss_lib_dir = os.path.join( ss_path, "lib" )
-		compile_flags += ["-DCVKLU", "-DMAX_NCELLS=256"]
+		compile_flags += ["-DCVKLU", "-DMAX_NCELLS=256", "-DSCALE_INPUT"]
 		include_paths += [ss_inc_dir]
 		library_paths += [ss_lib_dir]
 		libraries += ["sundials_sunlinsolklu"]

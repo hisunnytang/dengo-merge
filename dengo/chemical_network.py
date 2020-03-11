@@ -59,6 +59,7 @@ class ChemicalNetwork(object):
         self.interpolate_gamma_species_name = set(['H2_1', 'H2_2'])
 
         self.threebody = 4
+        self.equilibrium_species = set()
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -68,9 +69,29 @@ class ChemicalNetwork(object):
         for r in reaction_names:
             self.add_reaction(r, False)
 
+    def set_equilibrium_species(self, species):
+        sp = species_registry.get(species, species)
+        self.equilibrium_species.add(sp)
+
+    def update_ode_species(self):
+        """this refers to the set of species that our ODE solver solves
+        """
+        self.ode_species = self.required_species.copy()
+        for s in self.equilibrium_species:
+            self.ode_species.remove(s)
+
+    def solve_equilibrium_abundance(self, species):
+        """write the equilibrium abundance of species sp
+        """
+        from sympy.solvers import solve
+        eq = self.species_total(species)
+        equil_sol = solve(eq, species)
+        return ccode(equil_sol[0], assign_to = species)
+
     def add_species(self, species):
         sp = species_registry.get(species, species)
         self.required_species.add(sp)
+
 
     def add_reaction(self, reaction, auto_add = True):
         reaction = reaction_registry.get(reaction, reaction)
@@ -227,7 +248,8 @@ class ChemicalNetwork(object):
         i1_list     = []
         i2_list     = []
 
-        sp_list = list( sorted(self.required_species) )
+        #sp_list = list( sorted(self.required_species) )
+        sp_list = list( sorted(self.ode_species) )
         s1_now  = sp_list[0]
 
         # getting rowptrs is a little tricky....
@@ -548,6 +570,7 @@ class ChemicalNetwork(object):
                      main_name = "main",
                      input_is_number = False):
         self.input_is_number = input_is_number
+        self.update_ode_species()
 
         # with Dan suggestions, I have included the path to write the solver!
         # please specify the environ path!
