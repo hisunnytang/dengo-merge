@@ -541,7 +541,13 @@ def compare_dengo_grackle(solver_dir):
 
     # load in the results from dengo
     import h5py
-    dir_ff_grackle = "freefall_solution/freefall.h5"
+    dir_ff_grackle = "examples/test/freefall_solution/freefall.h5"
+    if "TRAVIS_BUILD_DIR"  in os.environ:
+        dir_ff_grackle = os.path.join(os.environ["TRAVIS_BUILD_DIR"],
+                                      dir_ff_grackle)
+    else:
+        dir_ff_grackle = os.path.join(os.environ["DENGO_PATH"],
+                                      dir_ff_grackle)
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_results = convert_from_grackle_to_dengo(fdata, init=False)
