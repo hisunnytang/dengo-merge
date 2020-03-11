@@ -350,7 +350,6 @@ def update_initial_condition(
 def generate_init_from_results(rv_int, primordial, old_init):
     flag = rv_int['successful']
     init = {}
-    print(rv_int)
     for sp in primordial.required_species:
         init[sp.name] = rv_int[sp.name][0][flag][-1]  # *sp.weight
     density = old_init['density']
@@ -552,7 +551,6 @@ def compare_dengo_grackle(solver_dir):
     fdata = f['data']
     grackle_results = convert_from_grackle_to_dengo(fdata, init=False)
     f.close()
-    print(grackle_results)
 
     dengo_results = load_obj("{}/freefall_dengo".format(solver_dir))
 
