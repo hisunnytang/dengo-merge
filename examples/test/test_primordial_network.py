@@ -15,8 +15,6 @@ import pytest
 from utilities import setup_primordial_network, setup_solver_options,\
     write_network, setup_initial_conditions, run_solver,freefall_time, \
     set_env_variables
-import seaborn as sns
-#sns.set_palette(sns.color_palette("tab20", 20))
 
 output_dir = "test_primordial"
 pytest_dir = os.getcwd()
