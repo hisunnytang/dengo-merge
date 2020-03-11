@@ -41,7 +41,7 @@ def setup_solver_options(update_options={}):
 def test_freefall(setup_solver_options):
 
     if "TRAVIS_BUILD_DIR" not in os.environ:
-        os.environ["DENGO_PATH"] = "/home/kwoksun2/"
+        os.environ["DENGO_PATH"] = "/home/kwoksun2/dengo-git"
 
     # if you install it through the install scripts
     set_env_variables("HDF5_DIR", "hdf5_install")
@@ -55,7 +55,15 @@ def test_freefall(setup_solver_options):
     compare_dengo_grackle(setup_solver_options["output_dir"])
 
 def main():
-   run_dengo_freefall(so)
+    solver_options = {"output_dir": "temp_freefall",
+                      "solver_name": "primordial",
+                      "use_omp": False,
+                      "use_cvode": False,
+                      "use_suitesparse": False,
+                      "niters": 1,
+                      "NCELLS": 1,
+                      "reltol": 1.0e-6}
+    run_dengo_freefall(solver_options)
 
 if __name__ == "__main__":
     main()

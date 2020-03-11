@@ -23,7 +23,7 @@ if "TRAVIS_BUILD_DIR" not in os.environ:
     set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
     set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
     set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse/Install")
+    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/dengo-git/suitesparse")
     set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
 else:
     # then we assume that the libraries are installed relative to the dengo

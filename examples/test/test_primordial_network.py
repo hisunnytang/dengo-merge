@@ -15,7 +15,8 @@ import pytest
 from utilities import setup_primordial_network, setup_solver_options,\
     write_network, setup_initial_conditions, run_solver,freefall_time, \
     set_env_variables
-
+import seaborn as sns
+#sns.set_palette(sns.color_palette("tab20", 20))
 
 output_dir = "test_primordial"
 pytest_dir = os.getcwd()
@@ -64,12 +65,12 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
     os.chdir(output_dir)
-    density = 1.0e0
-    temperature = 2000.0
-    h2frac = 1.0e-5
+    density = 1.0e8
+    temperature = 1000.0
+    h2frac = 1.0e-4
     NCELLS = 1
 
-    rtol_array = np.logspace(-9, -4, 6)
+    rtol_array = np.logspace(-8, -4, 5)
     start = True
     skip = ('successful', 'dt', 't')
     for r in rtol_array:
@@ -98,6 +99,8 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
         # and compare it to the rest to see if it converges
         v = np.array(v)
         error = np.abs((v[1:] - v[0]) / v[0])
+        if (error - rtol_array[1:]).sum() > 0.0:
+            print(k)
         ax.loglog(rtol_array[1:], error, label=k)
     ax.plot(rtol_array, rtol_array, ls='--', color='k')
     #ax.set_ylim(1.0e-9, 1e-2)

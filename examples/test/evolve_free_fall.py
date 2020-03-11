@@ -350,6 +350,7 @@ def update_initial_condition(
 def generate_init_from_results(rv_int, primordial, old_init):
     flag = rv_int['successful']
     init = {}
+    print(rv_int)
     for sp in primordial.required_species:
         init[sp.name] = rv_int[sp.name][0][flag][-1]  # *sp.weight
     density = old_init['density']
@@ -471,7 +472,13 @@ def run_dengo_freefall(update_options):
     import h5py
     print("os.getcwd()")
     print(os.getcwd())
-    dir_ff_grackle = "../freefall_solution/freefall.h5"
+    dir_ff_grackle = "examples/test/freefall_solution/freefall.h5"
+    if "TRAVIS_BUILD_DIR"  in os.environ:
+        dir_ff_grackle = os.path.join(os.environ["TRAVIS_BUILD_DIR"],
+                                      dir_ff_grackle)
+    else:
+        dir_ff_grackle = os.path.join(os.environ["DENGO_PATH"],
+                                      dir_ff_grackle)
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_init = convert_from_grackle_to_dengo(fdata)
@@ -548,32 +555,53 @@ def compare_dengo_grackle(solver_dir):
 
     f, ax = plt.subplots()
     ax.loglog(
-        grackle_results["density"],
+        grackle_results["density"]*1.67e-24,
         grackle_results["T"],
-        label="grackle",
+        label="Grackle",
         color="C0")
     ax.loglog(
-        dengo_results["density"][1:],
+        dengo_results["density"][1:]*1.67e-24,
         dengo_results["T"],
-        label="dengo", color='C0', ls='--')
+        label="Dengo", color='C0', ls='--')
+    ax.set_ylabel(r"Temperature ($\mathrm{K}$)")
+
     ax.legend()
     ax2 = ax.twinx()
     ax2.loglog(
-        grackle_results["density"],
+        grackle_results["density"]*1.67e-24,
         grackle_results["H2_1"] /
         (grackle_results["H_1"] + grackle_results["H2_1"]),
-        color="C1")
-    ax2.loglog(dengo_results["density"][1:],
+        color="C1", label= "Grackle")
+    ax2.loglog(dengo_results["density"][1:]*1.67e-24,
                dengo_results["H2_1"] /
                (dengo_results["H_1"] + dengo_results["H2_1"]),
-               color="C1", ls='--')
-
-    f.savefig("grackle_dengo_comparison.png")
+               color="C1", ls='--', label = "Dengo")
+    ax2.set_ylabel("Molecular Hydrogen Fraction")
+    ax.set_xlabel(r"density ($\mathrm{g / cm^{-3}}$)")
+    plt.tight_layout()
+    f.savefig("freefall_grackle_dengo_comparison.png", dpi=300)
 
 
     h2frac_dengo = dengo_results["H2_1"] / (dengo_results["H_1"] + dengo_results["H2_1"])
     h2frac_grackle = grackle_results["H2_1"] / (grackle_results["H_1"] + grackle_results["H2_1"])
 
+    f, ax = plt.subplots()
+    tdiff = (dengo_results["T"][:-1] - grackle_results["T"])/ dengo_results["T"][:-1]
+    fh2diff = (h2frac_dengo[:-1] - h2frac_grackle) / h2frac_dengo[:-1]
+    ax.semilogx(
+        grackle_results["density"]*1.67e-24,
+        tdiff,
+        label="temperature",
+        color="C0")
+    ax.semilogx(
+        grackle_results["density"]*1.67e-24,
+        fh2diff,
+        label=r"$\rm{f_{H_2}}$", color='C1')
+    ax.set_ylabel("Fractional Difference")
+    ax.set_xlabel(r"density ($\mathrm{g / cm^{-3}}$)")
+    ax.legend()
+    plt.tight_layout()
+    f.savefig("freefall_grackle_dengo_difference.png", dpi=300)
 
     ones = np.ones_like(h2frac_grackle)
     # within 10 % error
