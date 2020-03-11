@@ -201,6 +201,11 @@ def setup_primordial():
         vals = 10.0**(-18.20  - 3.194 * _log10T \
                + 1.786  * _log10T**2 \
                - 0.2072 * _log10T**3 )
+
+        _i1 = state.T < 30.0
+        vals[_i1] = 2.0e-20 * (state.T[_i1] / 30.0)**(-0.15)
+
+
         return vals
 
     # -- k10 --
@@ -228,17 +233,16 @@ def setup_primordial():
              - 1.8171411e-11 * state.logT**6 \
              + 3.5311932e-13 * state.logT**7))
 
-
         # Abel et al. (1997)
-        vals = np.exp(-24.24914687731536
-                      + 3.400824447095291*state.logtev
-                      - 3.898003964650152*state.logtev**2
-                      + 2.045587822403071*state.logtev**3
-                      - 0.5416182856220388*state.logtev**4
-                      + 0.0841077503763412*state.logtev**5
-                      - 0.007879026154483455*state.logtev**6
-                      + 0.0004138398421504563*state.logtev**7
-                      - 9.36345888928611e-6*state.logtev**8)
+#        vals = np.exp(-24.24914687731536
+#                     + 3.400824447095291*state.logtev
+#                      - 3.898003964650152*state.logtev**2
+#                      + 2.045587822403071*state.logtev**3
+#                      - 0.5416182856220388*state.logtev**4
+#                      + 0.0841077503763412*state.logtev**5
+#                      - 0.007879026154483455*state.logtev**6
+#                      + 0.0004138398421504563*state.logtev**7
+#                      - 9.36345888928611e-6*state.logtev**8)
         vals[_i2] = tiny
         return vals
 

@@ -198,8 +198,8 @@ def cool(eq):
         tm  = np.minimum(tm, 1.e4)
         lt3 = np.log10(tm / 1.e3)
 
-        _i1 = (state.T < 100.0)
-        _i2 = (state.T < 1000.0)
+        _i1 = (tm < 100.0)
+        _i2 = (tm < 1000.0)
         # Default value
         vals = 10**(-24.311209e0
              + 4.6450521e0 * lt3
@@ -302,8 +302,8 @@ def cool(eq):
         # Revised Rate, based on data from
         # Yoon et al (2008, J. Phys. Chem. Ref. Data, 37, 913).
 
-        _i1 = (state.T<100.0)
-        _i2 = (state.T<500.0)
+        _i1 = (tm<100.0)
+        _i2 = (tm<500.0)
 
         vals = 10.0**(-22.921189 \
                 + 1.6802758 * lt3 \
