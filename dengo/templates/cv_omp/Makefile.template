@@ -32,7 +32,7 @@ CVODE_PATH    = {{network._cvode_path}}
 SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
 HDF5_PATH = {{network._hdf5_path}}
-LIBTOOL   = /usr/bin/libtool
+LIBTOOL   = libtool
 
 CC      = gcc
 LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
