@@ -9,12 +9,13 @@ int main(int argc, char **argv) {
 
 /*
 // Sample on how to use dengo with primordial chemistry
+// with {{solver_name}}_solve_chemistry
 int main(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 64*64;
     field_data->ncells = N; 
-    double density = 1.0e12; // in cm^-3
-    double T = 2000.0; // in K
+    double density = 1.0e0; // in cm^-3
+    double T = 1000.0; // in K
     double mH, k, tiny;
 
     mH = 1.67e-24;
@@ -41,13 +42,16 @@ int main(int argc, char **argv) {
 
     for ( int i = 0; i < N; i++){
         {%- for species in network.required_species %}
-        {%- if species.name not in ["H2_1", "He_1", "H_1", "ge"] %}
+        {%- if species.name not in ["H2_1", "He_1", "H_1", "de", "H_2", "ge"] %}
         {{species.name}}_density[i] = tiny*density;
         {%- endif %}
         {%- endfor %}
-        H2_1_density[i] = 1.0e-3 * density;
+        H2_1_density[i] = 1.0e-5 * density;
         H_1_density[i]  = 0.76   * density;
         He_1_density[i] = 0.24   * density;
+	de_density[i]    = 1.0e-5 * density;
+	H_2_density[i]   = 1.0e-5 * density;
+
 	// ge ~ nkT / (gamma - 1)/ rho; gamaa ~ 5/3
         ge_density[i]   = 3.0/2.0 * k * T / mH;
     }
@@ -66,10 +70,11 @@ int main(int argc, char **argv) {
 
     const char *fileloc = "{{network._dengo_install_path}}/{{solver_name}}_tables.h5";
     field_data->dengo_data_file = fileloc;
+    field_data->reltol = reltol[0];
 
     double dt = 1.0 / sqrt(G * density) ;
     fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
-    {{solver_name}}_solve_chemistry_dt( units, field_data, reltol, abstol, dt );
+    {{solver_name}}_solve_chemistry( units, field_data, dt );
  
     {%- for species in network.required_species | sort %}
     {%- if species.name != "ge" %}
@@ -78,7 +83,26 @@ int main(int argc, char **argv) {
     fprintf(stderr, "{{species.name}} = %0.5g\n", field_data->{{species.name}}_density[0] );
     {%- endif %}
     {%- endfor %}
-   
+ 
+    // at the low density limit,
+    // Hm is important catalyst for H2 formation
+    // we compare the relative difference of of the solution
+    // between different cells
+    // since we starts with the same initial conditions,
+    // it should give the same result, at the worst, 
+    // results within the relative tolerance level
+    double frac, hm0, ref;
+    ref = field_data->H_m0_density[0];
+    unsigned long d;
+    for (d = 1; d < N; d++){
+        hm0 = field_data->H_m0_density[0];
+	frac = fabs(hm0-ref)/ref;
+	if (frac > reltol[0]){
+	    fprintf(stderr, "ref = %0.5g; y[%d] = %0.5g\n", ref/mH, d, hm0/mH);
+	}
+    }
+
+
     free(field_data);
     {%- for species in network.required_species | sort %}
     free({{species.name}}_density);
