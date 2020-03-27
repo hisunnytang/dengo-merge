@@ -1472,11 +1472,14 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     int threadID = 0;
     #endif
 
+    unsigned long i, j, dims;
+    int flag;
+    int nchem = {{network.required_species | length}};
     /* Now we set up some temporaries */
     // make sure the input are in number density
     {%- if not network.input_is_number %}
-    for (i = 0; i < dims; i++) {
-        j = i * N;
+    for (i = 0; i < nstrip; i++) {
+        j = i * nchem;
         {%- for species in network.ode_species | sort %}
         {%- if species.name != "ge" %}
         input[j] /= {{species.weight}}; // {{species.name}}
@@ -1486,8 +1489,6 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     }
     {%- endif %}
     
-    int flag;
-    int nchem = {{network.required_species | length}};
     // calculate temperature and cooling rate
     setting_up_extra_variables(data, input, nstrip );
     flag = {{solver_name}}_calculate_temperature(data,  input , nstrip, nchem );
@@ -1518,7 +1519,6 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     double T;
     double mdensity, inv_mdensity, dge_dt;
 
-    int i, j;   
     for ( i = 0; i < nstrip; i++ ){
         
         T            = data->Ts[threadID][i];
