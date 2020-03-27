@@ -1994,8 +1994,8 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
 
     double a = units->a_value * units->a_units;
     unsigned long ccount, c, idx;
+    
     ccount = 0;
-
     for (k = ks; k <= ke; k++){
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
@@ -2043,7 +2043,7 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
 	}
     }
     */
-
+    ccount = 0;
     for (k = ks; k <= ke; k++){
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
