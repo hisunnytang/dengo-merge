@@ -1323,6 +1323,100 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     }
 {% endblock %}
 
+{% block estimate_cooling_time_enzo %}
+int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data ){
+    
+    unsigned long int i, j, k, d, dims;
+    int nchem     = {{network.required_species | length }};
+    dims = field_data->ncells;
+
+    int is, ie, js, je, ks, ke;
+    int ni, nj,nk;
+
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    int idim = field_data->grid_dimension[0];
+    int jdim = field_data->grid_dimension[1];
+    int kdim = field_data->grid_dimension[2];
+
+    ni = ie - is + 1;
+    nj = je - js + 1;
+    nk = ke - ks + 1;
+    dims = ni*nj*nk;
+    field_data->ncells = dims;
+
+    double a = units->a_value * units->a_units;
+    unsigned long ccount, c, idx;
+    ccount = 0;
+
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+    double *input = (double *) malloc( sizeof(double) * nchem * dims );
+
+    for (k = ks; k <= ke; k++){
+    for (j = js; j <= je; j++){
+    for (i = is; i <= ie; i++){
+	c = ccount * nchem;
+	idx = ((k* jdim + j)*idim + i);
+
+        {%- for species in network.ode_species | sort %}
+        input[c]  = field_data->{{species.name}}_density[idx];
+        {%- if species != network.energy_term %}
+        input[c] *= units->density_units / m_amu;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        input[c] *= UNIT_E_per_M;
+        {%- endif %}
+	c++;
+	{%- endfor %}
+	ccount += 1;
+
+    }}}
+
+
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+    
+    int nstrip      = data->nstrip;
+
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+    
+    double *input_batch;
+    double *cooling_time_batch;
+    
+//    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) 
+    for ( d = 0; d < ntimes; d++ ){
+        input_batch        = &input[d* nchem];
+        cooling_time_batch = &field_data->CoolingTime[d * nstrip];
+        {{solver_name}}_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip, data);
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes*nchem];
+        cooling_time_batch = &field_data->CoolingTime[d]; 
+        {{solver_name}}_calculate_cooling_timescale( cooling_time_batch, input_batch, nstrip_res, data );    
+    }
+
+    for (i = 0; i < dims; i++ ){
+        field_data->CoolingTime[i] /= units->time_units; 
+    }
+    
+    free(input);
+    free(data);
+
+    // in the world of Enzo
+    //FAIL = 0
+    return 1;
+}
+{% endblock estimate_cooling_time_enzo %}
 
 {% block estimate_cooling_time %}
 int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data ){
@@ -1827,6 +1921,151 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
 
 {% endblock %}
 
+{% block solve_chemistry_enzo%}
+int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt ){
+    // to use this, reltol and floor_value must be specified through 
+    // dengo_field_data 
+    unsigned long int i, j, k, d, dims;
+    int N = {{network.ode_species | length }};
+    dims = field_data->ncells; // total number of strips to be evaluated
+
+
+    // turned the field data into a long chain of 
+    // 1-D array
+    //
+    // N: number of species
+    // d: d th number of strip to be evalulated
+    // i: index for each species
+    //    should be in correct order and handled 
+    //    by dengo templates
+    // i.e.
+    // input[d*N + i] = field_data->HI_density[]
+    //
+
+    int is, ie, js, je, ks, ke;
+    int ni, nj,nk;
+
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    int idim = field_data->grid_dimension[0];
+    int jdim = field_data->grid_dimension[1];
+    int kdim = field_data->grid_dimension[2];
+
+    ni = ie - is + 1;
+    nj = je - js + 1;
+    nk = ke - ks + 1;
+    dims = ni*nj*nk;
+    field_data->ncells = dims;
+    
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+
+    double *input = (double *) malloc(dims * N * sizeof(double));
+    double *temp  = (double *) malloc(dims * ({{network.equilibrium_species | length}}+1) * sizeof(double) );
+    double *atol  = (double *) malloc(dims * N * sizeof(double));
+    double *rtol  = (double *) malloc(sizeof(double));
+    
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+
+    rtol[0]            = field_data->reltol;
+    data->reltol       = field_data->reltol;
+    double floor_value = field_data->floor_value;
+
+    double a = units->a_value * units->a_units;
+    unsigned long ccount, c, idx;
+    ccount = 0;
+
+    for (k = ks; k <= ke; k++){
+    for (j = js; j <= je; j++){
+    for (i = is; i <= ie; i++){
+	c = ccount * N;
+	idx = ((k* jdim + j)*idim + i);
+
+        {%- for species in network.ode_species | sort %}
+        input[c]  = field_data->{{species.name}}_density[idx];
+        {%- if species != network.energy_term %}
+        input[c] *= units->density_units / m_amu;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        input[c] *= UNIT_E_per_M;
+        {%- endif %}
+	c++;
+	{%- endfor %}
+	ccount += 1;
+
+    }}}
+
+    /*
+    for (int i = 0; i < N; i++){
+    	fprintf(stderr, "input[%d] = %0.5g\n", i, input[i] );
+    }
+    */
+    
+    int flag;
+    double z = 1./a - 1.;
+    double dtf;
+    
+    // convert code time to seconds 
+    dt *= units->time_units;
+    dtf = dt;
+    
+    // update the rate table location
+    data->dengo_data_file = field_data->dengo_data_file; 
+    data->floor_value = floor_value;
+
+    flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+    
+    for (i = 0; i < N*dims; i++){
+    	if (input[i] < floor_value){
+	    input[i] = floor_value;
+	}
+    }
+
+    for (k = ks; k <= ke; k++){
+    for (j = js; j <= je; j++){
+    for (i = is; i <= ie; i++){
+	c = ccount * N;
+	idx = ((k* jdim + j)*idim + i);
+
+        {%- for species in network.ode_species | sort %}
+        field_data->{{species.name}}_density[idx] = input[c];
+        {%- if species != network.energy_term %}
+        field_data->{{species.name}}_density[idx] /= units->density_units / m_amu;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        field_data->{{species.name}}_density[idx] /= UNIT_E_per_M;
+        {%- endif %}
+	c++;
+	{%- endfor %}
+	ccount += 1;
+
+    }}}
+
+
+    free(input);
+    free(temp);
+    free(data);
+    free(atol);
+    free(rtol);
+
+    if (flag > 0) return 0;
+
+    return 1;
+}
+
+
+
+
+{% endblock %}
 {% block calculate_equilibrium_abundance %}
 int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
 	int nstrip, unsigned long d, unsigned long dims, double *equil_array){

@@ -156,6 +156,7 @@ typedef struct {{solver_name}}_data {
     const char *dengo_data_file;
     
     double reltol;
+    double floor_value;
 } {{ solver_name }}_data;
 
 
@@ -265,6 +266,10 @@ typedef struct dengo_field_data
   double *temperature;
   double *Gamma;
 
+  int *grid_start;
+  int *grid_end;
+  int *grid_dimension;
+
   const char *dengo_data_file;
   code_units *units;
 } dengo_field_data;
@@ -286,3 +291,7 @@ int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );
 
 int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
 	int nstrip, unsigned long d, unsigned long dims, double *equil_array);
+// Enzo interface
+int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data );
+
+int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
