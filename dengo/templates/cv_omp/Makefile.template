@@ -35,7 +35,7 @@ HDF5_PATH = {{network._hdf5_path}}
 LIBTOOL   = libtool
 
 CC      = gcc
-LIBS     = -lhdf5 -lhdf5_hl -lm -lstdc++
+LIBS     = -L$(HDF5_PATH)/lib -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
 OBJ = {{solver_name}}_solver.C initialize_cvode_solver.C
@@ -45,7 +45,7 @@ SHELL = sh
 
 exec_prefix  = $(CVODE_PATH)/instdir
 includedir   = $(CVODE_PATH)/include $(HDF5_PATH)/include
-libdir       = $(CVODE_PATH)/lib $(HDF5_PATH)/lib
+libdir       = $(CVODE_PATH)/lib
 
 CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
@@ -65,7 +65,7 @@ LIBDIR    = $(addprefix -L, ${libdir})
 # LOOKS LIKE I NEED TO INCLUDE CVODE PATH IN LD_LIBRARY_PATH for it to work
 
 INCLUDES_KLU  = $(SUITESPARSE_PATH)/include
-LIBRARIES_KLU = -lsundials_sunlinsolklu   $(SUITESPARSE_PATH)/KLU/Lib/libklu.so $(SUITESPARSE_PATH)/AMD/Lib/libamd.so $(SUITESPARSE_PATH)/COLAMD/Lib/libcolamd.so $(SUITESPARSE_PATH)/BTF/Lib/libbtf.so $(SUITESPARSE_PATH)/SuiteSparse_config/libsuitesparseconfig.so
+LIBRARIES_KLU = -lsundials_sunmatrixsparse -lsundials_sunlinsolklu $(SUITESPARSE_PATH)/KLU/Lib/libklu.so $(SUITESPARSE_PATH)/AMD/Lib/libamd.so $(SUITESPARSE_PATH)/COLAMD/Lib/libcolamd.so $(SUITESPARSE_PATH)/BTF/Lib/libbtf.so $(SUITESPARSE_PATH)/SuiteSparse_config/libsuitesparseconfig.so
 LINKFLAGS_KLU = ${LINKFLAGS}:$(SUITESPARSE_PATH)/KLU/Lib
 LIBRARIES = -lsundials_cvode -lsundials_nvecserial ${LIBS}
 
