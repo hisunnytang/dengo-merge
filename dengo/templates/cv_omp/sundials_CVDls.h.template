@@ -282,8 +282,6 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
 int dengo_estimate_cooling_time( code_units* units, dengo_field_data * field_data );
 
 int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, {{solver_name}}_data *data);
-int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input );
-int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input );
 
 int dengo_calculate_temperature( code_units*, dengo_field_data* );
 int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data*, double*, int );
@@ -295,3 +293,9 @@ int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input,
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data );
 
 int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
+
+
+int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input );
+int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input );
+int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double* input );
+int flatten_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double *input );

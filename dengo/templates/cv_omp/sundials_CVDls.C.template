@@ -14,6 +14,9 @@
 
 #include "{{solver_name}}_solver.h"
 
+///////////////////////////////////////////////////////////////////////////////
+/////////// Setup the reaction, cooling rate data table ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
 {{solver_name}}_data *{{solver_name}}_setup_data( const char *FileLocation, int *NumberOfFields, char ***FieldNames)
 {
 
@@ -79,6 +82,242 @@
 
 }
 
+{% block read_tables %}
+void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
+{
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    
+    {%- for name, rate in network.reactions | dictsort %}
+    H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
+    {%- endfor %}
+    
+    H5Fclose(file_id);
+}
+
+
+void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
+{
+
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    H5LTread_dataset_double(file_id, "/{{name}}_{{name2}}",
+                            data->c_{{name}}_{{name2}});
+    {%- endfor %}
+    {%- endfor %}
+
+    H5Fclose(file_id);
+}
+
+void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
+{
+
+    const char * filedir;
+    if (data->dengo_data_file != NULL){
+        filedir =  data->dengo_data_file; 
+    } else{
+        filedir = "{{solver_name}}_tables.h5";   
+    }
+    
+    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
+    /* Allocate the correct number of rate tables */
+    
+
+    {%- for sp in network.interpolate_gamma_species | sort %}
+    H5LTread_dataset_double(file_id, "/gamma{{sp.name}}",
+                            data->g_gamma{{sp.name}} );
+    H5LTread_dataset_double(file_id, "/dgamma{{sp.name}}_dT",
+                            data->g_dgamma{{sp.name}}_dT );   
+    {% endfor %}
+
+    H5Fclose(file_id);
+
+}
+{% endblock %} {# read_tables #}
+
+{% block interpolate_rates %}
+/*
+   This setup may be different than the user may anticipate, as a result
+   of the lockstep timestep we use for a pencil beam through the grid.
+   As such, it accepts the number of things to interpolate and makes
+   assumptions about the sizes of the rates.
+*/
+
+/* This also requires no templating other than for the solver name...*/
+void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
+                    int nstrip)
+{
+    int i, bin_id, zbin_id;
+    double lb, t1, t2;
+    double lbz, z1, z2, Tdef, zdef;
+    int no_photo = 0;
+    lb = log(data->bounds[0]);
+    lbz = log(data->z_bounds[0] + 1.0);
+
+
+    i = 0;
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
+    for ( i = 0; i < nstrip; i++ ){
+        data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
+        if (data->bin_id[threadID][i] <= 0) {
+            data->bin_id[threadID][i] = 0;
+        } else if (data->bin_id[threadID][i] >= data->nbins) {
+            data->bin_id[threadID][i] = data->nbins - 1;
+        }
+        t1 = (lb + (bin_id    ) * data->dbin);
+        t2 = (lb + (bin_id + 1) * data->dbin);
+        data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
+        data->dT[threadID][i] = (t2 - t1);
+        /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
+                i, data->bin_id[i], data->dT[i], data->Ts[i],
+                data->logTs[i]);*/
+    
+    if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
+        zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
+        if (zbin_id <= 0) {
+            zbin_id = 0;
+        } else if (zbin_id >= data->n_zbins) {
+            zbin_id = data->n_zbins - 1;
+        }
+        z1 = (lbz + (zbin_id    ) * data->d_zbin);
+        z2 = (lbz + (zbin_id + 1) * data->d_zbin);
+        data->zdef = (log(data->current_z + 1.0) - z1)/(z2 - z1);
+        data->dz = (exp(z2) - exp(z1)); //note: given this, we don't have to divide rate of change by z
+    } else {
+        no_photo = 1;
+    }
+    }
+
+    zdef   = data->zdef;
+    
+    {% for name, rate in network.reactions | dictsort %}
+    {%- if 'pi' not in name %}
+    
+    for ( i = 0; i < nstrip; i++ ){
+        bin_id = data->bin_id[threadID][i];
+        Tdef   = data->Tdef[threadID][i];
+        data->rs_{{name}}[threadID][i] = data->r_{{name}}[bin_id] +
+            Tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[threadID][i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
+        data->drs_{{name}}[threadID][i] /= data->dT[threadID][i];
+	    data->drs_{{name}}[threadID][i] *= data->invTs[threadID][i];
+    }
+    {% else %}
+    for ( i = 0; i < nstrip; i++ ){
+        if (no_photo) {
+            data->rs_{{name}}[threadID][i] = 0.0;
+            data->drs_{{name}}[threadID][i] = 0.0;
+        } else {
+        data->rs_{{name}}[threadID][i] = data->r_{{name}}[zbin_id] +
+            zdef * (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
+        }
+    }
+    {% endif -%}
+    {% endfor %}
+    
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    {%- if 'ph' not in name %}
+    for ( i = 0; i < nstrip; i++ ){
+        bin_id = data->bin_id[threadID][i];
+        Tdef   = data->Tdef[threadID][i];
+        data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[bin_id] +
+            Tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[threadID][i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
+        data->dcs_{{name}}_{{name2}}[threadID][i] /= data->dT[threadID][i];
+	    data->dcs_{{name}}_{{name2}}[threadID][i] *= data->invTs[threadID][i];
+    }
+    {%- else %}
+    for ( i = 0; i < nstrip; i++){
+        if (no_photo) {
+            data->cs_{{name}}_{{name2}}[threadID][i] = 0.0;
+            data->dcs_{{name}}_{{name2}}[threadID][i] = 0.0;
+        } else {
+            data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[zbin_id] +
+                zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
+        }
+    }
+    {%- endif -%}          
+    {% endfor %}
+    {% endfor %}
+    
+}
+{% endblock %} {# interpolate_rates #}
+
+{% block interpolate_gamma %}
+void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
+                    int i)
+{   
+
+    /*
+     * find the bin_id for the given temperature 
+     * update dT for i_th strip
+     */
+
+    int bin_id, zbin_id;
+    double lb, t1, t2;
+    double lbz, z1, z2;
+    int no_photo = 0;
+    lb = log(data->bounds[0]);
+    lbz = log(data->z_bounds[0] + 1.0);
+    
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
+    data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
+    if (data->bin_id[threadID][i] <= 0) {
+        data->bin_id[threadID][i] = 0;
+    } else if (data->bin_id[threadID][i] >= data->nbins) {
+        data->bin_id[threadID][i] = data->nbins - 1;
+    }
+    t1 = (lb + (bin_id    ) * data->dbin);
+    t2 = (lb + (bin_id + 1) * data->dbin);
+    data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
+    data->dT[threadID][i] = (t2 - t1);
+
+    {% for sp in network.interpolate_gamma_species%}
+    
+    bin_id = data->bin_id[threadID][i];
+    data->gamma{{sp.name}}[threadID][i] = data->g_gamma{{sp.name}}[bin_id] +
+        data->Tdef[threadID][i] * (data->g_gamma{{sp.name}}[bin_id+1] - data->g_gamma{{sp.name}}[bin_id]);
+
+    data->dgamma{{sp.name}}_dT[threadID][i] = data->g_dgamma{{sp.name}}_dT[bin_id] +
+        data->Tdef[threadID][i] * (data->g_dgamma{{sp.name}}_dT[bin_id+1] 
+        - data->g_dgamma{{sp.name}}_dT[bin_id]);
+    {% endfor %}
+       
+    }
+
+{% endblock interpolate_gamma%}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////// Main Evolution Routines            ////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 {% block entry_point %}
 int {{solver_name}}_main(int argc, char** argv )
 {
@@ -325,18 +564,11 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     LS = NULL;
     A  = NULL;
     
-    y_vec  = N_VNew_Serial( v_size );
-    abstol = N_VNew_Serial( v_size ); 
+    double *yvec_ptr;
+    double *atol_ptr;
 
-    double *yvec_ptr = N_VGetArrayPointer(y_vec);
-    double *atol_ptr = N_VGetArrayPointer(abstol);
-
-    for (i = 0; i < v_size ; i++) {
-        atol_ptr[i]   = reltol;
-    }
     // these objects should be initialize once !!
     // in each separate thread!!
-
     double *ttot = (double *) malloc( (ntimes + 1)* sizeof(double));
     int d;
     int sum;
@@ -351,11 +583,16 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
     #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec) num_threads(NTHREADS)
     {
-    y_vec = N_VNew_Serial(v_size);
-    yvec_ptr = N_VGetArrayPointer(y_vec);
 
-    for ( i = 0; i < v_size; i++){
-        yvec_ptr[i] = 1.0;
+    y_vec  = N_VNew_Serial(v_size);
+    abstol = N_VNew_Serial(v_size); 
+    yvec_ptr = N_VGetArrayPointer(y_vec);
+    atol_ptr = N_VGetArrayPointer(abstol);
+    
+    // Need to be initialized before feeding into A, LS
+    for (i = 0; i < v_size; i++) {
+            yvec_ptr[i]   = 1.0;
+            atol_ptr[i]   = reltol;
     }
     
     #ifdef CVKLU
@@ -398,12 +635,10 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     SUNMatDestroy(A);
     #ifdef _OPENMP
     N_VDestroy(y_vec);
+    N_VDestroy(abstol);
     #endif
     }
     } // if (ntimes > 0)
-
-    N_VDestroy(y_vec);
-    N_VDestroy(abstol);
 
     if ( v_size_res > 0 ){
         #ifdef _OPENMP
@@ -414,17 +649,6 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
         data->nstrip = nstrip_res;
         d = ntimes;
-        
-        // free all unused memory;
-
-       
-        SUNLinearSolver LS;
-        SUNMatrix A;
-        N_Vector y_vec, abstol;
-     
-        y_vec = NULL;   
-        LS = NULL;
-        A  = NULL;
     
         y_vec  = N_VNew_Serial( v_size_res );
         abstol = N_VNew_Serial( v_size_res ); 
@@ -620,77 +844,9 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
 }
 {% endblock evolve_in_batches%}
 
-
-
-
-{% block read_tables %}
-void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
-{
-    const char * filedir;
-    if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
-    } else{
-        filedir = "{{solver_name}}_tables.h5";   
-    }
-
-    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
-    /* Allocate the correct number of rate tables */
-    
-    {%- for name, rate in network.reactions | dictsort %}
-    H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
-    {%- endfor %}
-    
-    H5Fclose(file_id);
-}
-
-
-void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
-{
-
-    const char * filedir;
-    if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
-    } else{
-        filedir = "{{solver_name}}_tables.h5";   
-    }
-    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
-    /* Allocate the correct number of rate tables */
-
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    H5LTread_dataset_double(file_id, "/{{name}}_{{name2}}",
-                            data->c_{{name}}_{{name2}});
-    {%- endfor %}
-    {%- endfor %}
-
-    H5Fclose(file_id);
-}
-
-void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
-{
-
-    const char * filedir;
-    if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
-    } else{
-        filedir = "{{solver_name}}_tables.h5";   
-    }
-    
-    hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
-    /* Allocate the correct number of rate tables */
-    
-
-    {%- for sp in network.interpolate_gamma_species | sort %}
-    H5LTread_dataset_double(file_id, "/gamma{{sp.name}}",
-                            data->g_gamma{{sp.name}} );
-    H5LTread_dataset_double(file_id, "/dgamma{{sp.name}}_dT",
-                            data->g_dgamma{{sp.name}}_dT );   
-    {% endfor %}
-
-    H5Fclose(file_id);
-
-}
-{% endblock %} {# read_tables #}
+///////////////////////////////////////////////////////////////////////////////
+//////////// Evaluate Temperature /////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
 {% block calculate_temperature %}
 int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
@@ -822,204 +978,6 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
 }
 {% endblock %} {# calculate_temperature #}
 
-{% block interpolate_rates %}
-/*
-   This setup may be different than the user may anticipate, as a result
-   of the lockstep timestep we use for a pencil beam through the grid.
-   As such, it accepts the number of things to interpolate and makes
-   assumptions about the sizes of the rates.
-*/
-
-/* This also requires no templating other than for the solver name...*/
-void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
-                    int nstrip)
-{
-    int i, bin_id, zbin_id;
-    double lb, t1, t2;
-    double lbz, z1, z2, Tdef, zdef;
-    int no_photo = 0;
-    lb = log(data->bounds[0]);
-    lbz = log(data->z_bounds[0] + 1.0);
-
-
-    i = 0;
-    #ifdef _OPENMP
-    int threadID = omp_get_thread_num();
-    #else
-    int threadID = 0;
-    #endif
-
-    for ( i = 0; i < nstrip; i++ ){
-        data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
-        if (data->bin_id[threadID][i] <= 0) {
-            data->bin_id[threadID][i] = 0;
-        } else if (data->bin_id[threadID][i] >= data->nbins) {
-            data->bin_id[threadID][i] = data->nbins - 1;
-        }
-        t1 = (lb + (bin_id    ) * data->dbin);
-        t2 = (lb + (bin_id + 1) * data->dbin);
-        data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
-        data->dT[threadID][i] = (t2 - t1);
-        /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
-                i, data->bin_id[i], data->dT[i], data->Ts[i],
-                data->logTs[i]);*/
-    
-    if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
-        zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
-        if (zbin_id <= 0) {
-            zbin_id = 0;
-        } else if (zbin_id >= data->n_zbins) {
-            zbin_id = data->n_zbins - 1;
-        }
-        z1 = (lbz + (zbin_id    ) * data->d_zbin);
-        z2 = (lbz + (zbin_id + 1) * data->d_zbin);
-        data->zdef = (log(data->current_z + 1.0) - z1)/(z2 - z1);
-        data->dz = (exp(z2) - exp(z1)); //note: given this, we don't have to divide rate of change by z
-    } else {
-        no_photo = 1;
-    }
-    }
-
-    zdef   = data->zdef;
-    
-    {% for name, rate in network.reactions | dictsort %}
-    {%- if 'pi' not in name %}
-    
-    for ( i = 0; i < nstrip; i++ ){
-        bin_id = data->bin_id[threadID][i];
-        Tdef   = data->Tdef[threadID][i];
-        data->rs_{{name}}[threadID][i] = data->r_{{name}}[bin_id] +
-            Tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[threadID][i] = (data->r_{{name}}[bin_id+1] - data->r_{{name}}[bin_id]);
-        data->drs_{{name}}[threadID][i] /= data->dT[threadID][i];
-	    data->drs_{{name}}[threadID][i] *= data->invTs[threadID][i];
-    }
-    {% else %}
-    for ( i = 0; i < nstrip; i++ ){
-        if (no_photo) {
-            data->rs_{{name}}[threadID][i] = 0.0;
-            data->drs_{{name}}[threadID][i] = 0.0;
-        } else {
-        data->rs_{{name}}[threadID][i] = data->r_{{name}}[zbin_id] +
-            zdef * (data->r_{{name}}[zbin_id+1] - data->r_{{name}}[zbin_id]);
-        }
-    }
-    {% endif -%}
-    {% endfor %}
-    
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    {%- if 'ph' not in name %}
-    for ( i = 0; i < nstrip; i++ ){
-        bin_id = data->bin_id[threadID][i];
-        Tdef   = data->Tdef[threadID][i];
-        data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[bin_id] +
-            Tdef * (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
-        data->dcs_{{name}}_{{name2}}[threadID][i] = (data->c_{{name}}_{{name2}}[bin_id+1] - data->c_{{name}}_{{name2}}[bin_id]);
-        data->dcs_{{name}}_{{name2}}[threadID][i] /= data->dT[threadID][i];
-	    data->dcs_{{name}}_{{name2}}[threadID][i] *= data->invTs[threadID][i];
-    }
-    {%- else %}
-    for ( i = 0; i < nstrip; i++){
-        if (no_photo) {
-            data->cs_{{name}}_{{name2}}[threadID][i] = 0.0;
-            data->dcs_{{name}}_{{name2}}[threadID][i] = 0.0;
-        } else {
-            data->cs_{{name}}_{{name2}}[threadID][i] = data->c_{{name}}_{{name2}}[zbin_id] +
-                zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
-        }
-    }
-    {%- endif -%}          
-    {% endfor %}
-    {% endfor %}
-    
-}
-{% endblock %} {# interpolate_rates #}
-
-{% block interpolate_gamma %}
-void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
-                    int i)
-{   
-
-    /*
-     * find the bin_id for the given temperature 
-     * update dT for i_th strip
-     */
-
-    int bin_id, zbin_id;
-    double lb, t1, t2;
-    double lbz, z1, z2;
-    int no_photo = 0;
-    lb = log(data->bounds[0]);
-    lbz = log(data->z_bounds[0] + 1.0);
-    
-    #ifdef _OPENMP
-    int threadID = omp_get_thread_num();
-    #else
-    int threadID = 0;
-    #endif
-
-    data->bin_id[threadID][i] = bin_id = (int) (data->idbin * (data->logTs[threadID][i] - lb));
-    if (data->bin_id[threadID][i] <= 0) {
-        data->bin_id[threadID][i] = 0;
-    } else if (data->bin_id[threadID][i] >= data->nbins) {
-        data->bin_id[threadID][i] = data->nbins - 1;
-    }
-    t1 = (lb + (bin_id    ) * data->dbin);
-    t2 = (lb + (bin_id + 1) * data->dbin);
-    data->Tdef[threadID][i] = (data->logTs[threadID][i] - t1)/(t2 - t1);
-    data->dT[threadID][i] = (t2 - t1);
-
-    {% for sp in network.interpolate_gamma_species%}
-    
-    bin_id = data->bin_id[threadID][i];
-    data->gamma{{sp.name}}[threadID][i] = data->g_gamma{{sp.name}}[bin_id] +
-        data->Tdef[threadID][i] * (data->g_gamma{{sp.name}}[bin_id+1] - data->g_gamma{{sp.name}}[bin_id]);
-
-    data->dgamma{{sp.name}}_dT[threadID][i] = data->g_dgamma{{sp.name}}_dT[bin_id] +
-        data->Tdef[threadID][i] * (data->g_dgamma{{sp.name}}_dT[bin_id+1] 
-        - data->g_dgamma{{sp.name}}_dT[bin_id]);
-    {% endfor %}
-       
-    }
-
-{% endblock interpolate_gamma%}
-
-
-{% block ensure_electron_consistency %}
-
-void ensure_electron_consistency(double *input, int nstrip, int nchem)
-{
-    int i, j;
-
-    /* Now we set up some temporaries */
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    double total_e = 0.0;
-    int e_indx;
-    
-    double scale;
-
-    for (i = 0; i<nstrip; i++) {
-        j = i * nchem;
-    {%- for species in network.required_species | sort %}
-        {{species.name}} = input[j];
-        {%if species.name != "ge" and species.name != "de" 
-             and species.name != "us_e_0" %}
-        total_e += {{species.name}} * {{species.free_electrons}};
-        {%-endif%}
-        {%if species.name == "de" or species.name == "us_e_0" -%}
-        e_indx = j;
-        {%endif%}
-        j++;
-    {% endfor %}
-        input[e_indx] = total_e;
-    }  
-}
-
-{% endblock %}
-
 {#
 {% block temperature_from_mass_density %}
 void temperature_from_mass_density(double *input, int nstrip,
@@ -1046,7 +1004,7 @@ void temperature_from_mass_density(double *input, int nstrip,
 
     for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-    {%- for species in network.required_species | sort %}
+	{%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
         {%if species.name != "ge" %}
         {{species.name}} /= {{species.weight}} * mh;
@@ -1054,7 +1012,7 @@ void temperature_from_mass_density(double *input, int nstrip,
         /*fprintf(stderr, "{{species.name}}[%d] = % 0.16g\n",
                 i, {{species.name}});*/
         j++;
-    {% endfor %}
+	{% endfor %}
         density = {{network.print_mass_density()}};
         strip_temperature[i] = {{ network.temperature_calculation() }};
         if (strip_temperature[i] < 1.0)
@@ -1065,264 +1023,50 @@ void temperature_from_mass_density(double *input, int nstrip,
 {% endblock temperature_from_mass_density %}
 #}
 
-{% block calculate_jacobian_sundials %}
-int calculate_jacobian_{{solver_name}}( realtype t,
-                                        N_Vector y, N_Vector fy,
-                                        SUNMatrix J, void *user_data,
-                                        N_Vector tmp1, N_Vector tmp2,
-                                        N_Vector tmp3)
+///////////////////////////////////////////////////////////////////////////////
+////////// Ensure Conservation of mass, charge, species ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+{% block ensure_electron_consistency %}
+void ensure_electron_consistency(double *input, int nstrip, int nchem)
 {
-    /* We iterate over all of the rates */
-    /* Calcuate temperature first */
-    
-
-    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
-    
-    #ifdef _OPENMP
-    int threadID = omp_get_thread_num();
-    #else
-    int threadID = 0;
-    #endif
-
-    int nchem = {{network.required_species | length }};
-    int nstrip = data->nstrip;
     int i, j;
-
-    /* change N_Vector back to an array */
-    double *yvec_ptr = N_VGetArrayPointer(y);
-    double y_arr[ {{network.required_species | length }} * nstrip ];
- 
-    #ifdef SCALE_INPUT
-    double *scale     = data->scale[threadID];
-    double *inv_scale = data->inv_scale[threadID];   
-    double scale1, inv_scale2;
-    for ( i = 0; i < nstrip*nchem; i++ ){
-        y_arr[i] = yvec_ptr[i]*scale[i];
-    }
-    #else
-    for ( i = 0; i < nstrip*nchem; i++ ){
-        y_arr[i] = yvec_ptr[i];
-    }
-    #endif
-
-
-    int flag;
-    flag = {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem );
-    if (flag > 0){
-        // check if the temperature failed to converged
-        return -1;    
-    }
-    {{solver_name}}_interpolate_rates(data, nstrip);
-
-    // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
-    // {{solver_name}}_interpolate_rates(data, nstrip);
-
-    /* Now We set up some temporaries */
-    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
-
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}}[threadID];
-    double *r{{name}}= data->drs_{{name}}[threadID];
-    {%- endfor %}
-    
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
-    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}}[threadID];
-    {%- endfor %}
-    {%- endfor %}
-
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    double z;
-    double T;
-
-    double mh = 1.67e-24;
-    double mdensity, inv_mdensity;
-    {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
-    {% endif %}
-    {% if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx; 
-    {% endif %}
-  
-
-    j = 0;
-    mdensity = 0.0;
-    z = data->current_z;
-
-    for ( i = 0; i < nstrip; i++ ){
-        j = i * nchem;
-        {%- for species in network.required_species | sort %}
-        {{species.name}} = y_arr[j];
-        j++;
-        {%- endfor %}
-
-        mdensity = data->mdensity[threadID][i];
-        inv_mdensity = 1.0 / mdensity;
-        {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx  = data->h2_optical_depth_approx[threadID][i];  
-        {% endif %}
-        {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i]; 
-        {% endif %}
-
-        j = i * nchem;
-        {%- for s2 in network.required_species | sort %}
-        //
-        // Species: {{s2.name}}
-        //
-        {% set i_s2 = loop %}
-        {%- for s1 in network.required_species | sort %}
-        {% set i_s1 = loop%}
-        // {{s2.name}} by {{s1.name}}
-        {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
-        {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
-        {% else %}
-        // because the Jacobian is initialized to zeros by default
-        // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 )  ) }}
-        {% endif %}
-        
-
-        #ifdef SCALE_INPUT
-        inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
-        scale1     = scale    [ j + {{i_s1.index0}}];
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
-        #endif
-
-        {%- if s2.name == 'ge' %}
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
-        {%- endif %}
- 	    
-        {%- if s1.name == 'ge' %}
-        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= T{{ network.energy_term.name }}[i];
-        {%- endif %}
-
-        {%- endfor %}
-        {%- endfor %}
-    }
-    return 0;
-}
-
-
-{% endblock %}
-
-
-{% block calcuate_rhs_sundials%}
-int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data)
-{
-    {{solver_name}}_data *data = ({{solver_name}}_data* ) user_data;
-    int i, j;
-
-    int nchem = {{network.ode_species | length }};
-    int nstrip = data->nstrip;
-    
-    /* change N_Vector back to an array */
-    double y_arr[ nchem * nstrip ];
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-    
-    #ifdef _OPENMP
-    int threadID = omp_get_thread_num();
-    #else
-    int threadID = 0;
-    #endif
-   
-    double *yvec_ptr = N_VGetArrayPointer(y);
-    double *ydot_ptr = N_VGetArrayPointer(ydot);
-
-    #ifdef SCALE_INPUT
-    double *scale     = data->scale[threadID];
-    double *inv_scale = data->inv_scale[threadID];   
-    for ( i = 0; i < nstrip*nchem; i++ ){
-        y_arr[i] = yvec_ptr[i]*scale[i];
-    }
-    #else
-    for ( i = 0; i < nstrip*nchem; i++ ){
-        y_arr[i] = yvec_ptr[i];
-    }
-    #endif
-
-    int flag;
-    flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
-    if (flag > 0){
-        // check if the temperature failed to converged
-        return -1;    
-    }
-    {{solver_name}}_interpolate_rates(data, nstrip);
 
     /* Now we set up some temporaries */
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+    double total_e = 0.0;
+    int e_indx;
     
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}}[threadID];
-    {%- endfor %}
+    double scale;
 
-    {%- for name, rate in network.cooling_actions | dictsort %}
-    {%- for name2 in rate.tables | sort %}
-    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
-    {%- endfor %}
-    {%- endfor %}
-    
-    {%- if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;    
-    {% endif %}
-    {%- if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx;
-    {% endif %}
-
-    double z;
-    double T;
-
-    double mh = 1.67e-24;
-    double mdensity, inv_mdensity;
-
-   
-    for ( i = 0; i < nstrip; i++ ){
-        
-        T            = data->Ts[threadID][i];
-        z            = data->current_z;
-        mdensity     = data->mdensity[threadID][i];
-        inv_mdensity = data->inv_mdensity[threadID][i];
-        {%- if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
-        {% endif %}
-        {%- if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
-        {% endif %}
-
+    for (i = 0; i<nstrip; i++) {
         j = i * nchem;
-        {%- for species in network.ode_species | sort %}
-        {{species.name}} = y_arr[j];
+	{%- for species in network.required_species | sort %}
+        {{species.name}} = input[j];
+        {%if species.name != "ge" and species.name != "de" 
+             and species.name != "us_e_0" %}
+        total_e += {{species.name}} * {{species.free_electrons}};
+        {%-endif%}
+        {%if species.name == "de" or species.name == "us_e_0" -%}
+        e_indx = j;
+        {%endif%}
         j++;
-        {%- endfor %}
+	{% endfor %}
+        input[e_indx] = total_e;
+    }  
+}
 
-	{%- for species in network.equilibrium_species %}
-	{{network.solve_equilibrium_abundance(species.name)}}
-	{%- endfor %}
-    
-        j = i * nchem;
-        {%- for species in network.ode_species | sort %}
-        // Species: {{species.name}}
-        {{network.print_ccode(species, assign_to="ydot_ptr[j]" ) }}
-        #ifdef SCALE_INPUT
-        ydot_ptr[j] *= inv_scale[j];
-        #endif
-        {% if species.name == "ge" %}
-        ydot_ptr[j] *= inv_mdensity;
-        {% endif %}
-        j++;
-        //fprintf(stderr, "{{species.name}}: %0.5g\n", scale);
-        //fprintf(stderr, "ydot = %0.5g \n", ydot_ptr[j] );
-        {% endfor %}
-    
-    //fprintf(stderr, "----------------\n");
-    }
-    return 0;
-    }
 {% endblock %}
 
+
+///////////////////////////////////////////////////////////////////////////////
+//////////////////// Auxillary Functions that estimate state variables ////////
+///////////////////////////////////////////////////////////////////////////////
+// Again these are exposed to the user
+// and can be called basically with units, field_data objects
+///////////////////////////////////////////////////////////////////////////////
 {% block estimate_cooling_time_enzo %}
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data ){
     
@@ -1701,88 +1445,11 @@ int dengo_calculate_mean_molecular_weight( code_units *units, dengo_field_data *
 }
 {% endblock dengo_calculate_mean_molecular_weight %}
 
-
-{% block flatten_dengo_field_data  %}
-int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input ){
-    
-    // Function   :    flatten_dengo_field_data
-    // Description:     Flatten the field_data object to a long chain of 1D 
-    //                  input array for the solver in cgs units
-    //                  i.e. ge_density in erg /g
-    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
-    // Parameter  :     code_units
-    //                  dengo_field_data
-    //                  input
-
-    unsigned long int i, j, d, dims;
-    int N = {{network.required_species | length }};
-    dims = field_data->ncells; // total number of strips to be evaluated
-    
-    // code unit in terms of erg/g
-    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
-    double m_amu = 1.66053904e-24;
-
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
-    for ( d = 0; d< dims; d++  ){
-        j = d*N;
-        // input in *mass density per amu* 
-        // and energy in the units of (erg / g) 
-        {%- for species in network.required_species | sort %}
-        input[j]  = field_data->{{species.name}}_density[d] ;
-        {%- if species != network.energy_term %}
-        input[j] *= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        input[j] *= UNIT_E_per_M;
-        {%- endif %}
-        j++;
-        {%- endfor %}
-    }
-    
-    return 0;
-}
-{% endblock flatten_dengo_field_data %}
-
-{% block reshape_to_dengo_field_data %}
-int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input ){
-    // Function   :     reshape_to_dengo_field_data
-    // Description:     reshape the 1d output array from solver to a dengo_field_data object  
-    //                  and covert them to code units 
-    //                  i.e. ge_density in erg /g
-    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
-    // Parameter  :     code_units
-    //                  dengo_field_data
-    //                  input
-
-    unsigned long int i, j, d, dims;
-    int N = {{network.required_species | length }};
-    dims = field_data->ncells; // total number of strips to be evaluated
-    
-
-    // code unit in terms of erg/g
-    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
-    double m_amu = 1.66053904e-24;
-   
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
-    for ( d = 0; d< dims; d++  ){
-        j = d*N;
-       
-        {%- for species in network.required_species | sort %}
-        field_data->{{species.name}}_density[d] = input[j];
-        {%- if species != network.energy_term %}
-        field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
-        {%- endif %}
-        j++;
-        {%- endfor %}
-    }
-   
-    return 0;
-}
-{% endblock reshape_to_dengo_field_data %}
-
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////Solve Chemistry   ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// basically all the routines that are exposed to the user
+// that can be called from dengo
 
 {% block solve_chemistry%}
 int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_data, double dt ){
@@ -1791,19 +1458,6 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
     unsigned long int i, j, d, dims;
     int N = {{network.ode_species | length }};
     dims = field_data->ncells; // total number of strips to be evaluated
-
-
-    // turned the field data into a long chain of 
-    // 1-D array
-    //
-    // N: number of species
-    // d: d th number of strip to be evalulated
-    // i: index for each species
-    //    should be in correct order and handled 
-    //    by dengo templates
-    // i.e.
-    // input[d*N + i] = field_data->HI_density[]
-    //
     
     const char * FileLocation = field_data->dengo_data_file;
     {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
@@ -1821,28 +1475,7 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
     data->reltol       = field_data->reltol;
     double floor_value = field_data->floor_value;
 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
-    for ( d = 0; d< dims; d++  ){
-        j = d*N;
-        // this should be the normalized 
-        // by the input units later
-        // atol = input * rtol;
-        // which again should be set by dengo
-        // input in *mass density per amu* 
-        // and energy in the units of (erg / g) 
-        {%- for species in network.ode_species | sort %}
-        input[j]  = field_data->{{species.name}}_density[d] ;
-        {%- if species != network.energy_term %}
-        input[j] *= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        input[j] *= UNIT_E_per_M;
-        {%- endif %}
-	atol[j] = floor_value;
-        j++;
-        {%- endfor %}
-    }
-
+	flatten_dengo_field_data(units, field_data, input);
     /*
     for (int i = 0; i < N; i++){
     	fprintf(stderr, "input[%d] = %0.5g\n", i, input[i] );
@@ -1861,28 +1494,13 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
     data->dengo_data_file = field_data->dengo_data_file; 
 
     flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
+   	
+    reshape_to_dengo_field_data(units, field_data, input);	
     
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
     for ( d = 0; d< dims; d++  ){
-        j = d*N;
-        // this should be the normalized 
-        // by the input units later
-        // atol = input * rtol;
-        // which again should be set by dengo
-        
-        {%- for species in network.ode_species | sort %}
-        field_data->{{species.name}}_density[d] = input[j];
-        {%- if species != network.energy_term %}
-        field_data->{{species.name}}_density[d] /= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
-        {%- endif %}
-        j++;
-        {%- endfor %}
-	field_data->temperature[d] = temp[d];
-    }
-    
+		field_data->temperature[d] = temp[d];
+	}
+
     for ( d = 0; d< dims; d++  ){
         {%- for species in network.equilibrium_species | sort %}
         field_data->{{species.name}}_density[d] = temp[dims * (1+{{loop.index0}}) + d];
@@ -1894,31 +1512,6 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
     //dengo_calculate_temperature(units, field_data);
     //dengo_calculate_mean_molecular_weight( units, field_data );
 
-
-/*	
-    // convert from comoving to `proper units!`
-    // we need to multiply density by 1/a^3
-    // and energy density by 1/a^2 
-    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
-    for ( d = 0; d< dims; d++  ){
-        j = d*N;
-	// convert from comoving to `proper units!`
-	// we need to multiply density by 1/a^3
-	// and energy density by 1/a^2 
-        {%- for species in network.required_species | sort %}
-        input[j]  = field_data->{{species.name}}_density[d] ;
-        {%- if species != network.energy_term %}
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        {%- endif %}
-	atol[j] = floor_value;
-        j++;
-        {%- endfor %}
-    }
-*/
-
-
-
     free(input);
     free(temp);
     free(data);
@@ -1929,34 +1522,27 @@ int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_
 
     return 0;
 }
-
-
 {% endblock %}
+
 
 {% block solve_chemistry_enzo%}
 int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt ){
+	//-------------------------------------------------------------------------
+	// Function: {{solver_name}}_solve_chemistry_enzo
+	// Description: takes the same input as {{solver_name}}_solve_chemistry
+	//				BUT field_data needs to be specified with things like
+	//				grid_start, grid_end, grid_dimension
+	//              such that dengo can avoid evaluating ghost zones
+	//-------------------------------------------------------------------------
+
     // to use this, reltol and floor_value must be specified through 
     // dengo_field_data 
     unsigned long int i, j, k, d, dims;
     int N = {{network.ode_species | length }};
-    dims = field_data->ncells; // total number of strips to be evaluated
-
-
-    // turned the field data into a long chain of 
-    // 1-D array
-    //
-    // N: number of species
-    // d: d th number of strip to be evalulated
-    // i: index for each species
-    //    should be in correct order and handled 
-    //    by dengo templates
-    // i.e.
-    // input[d*N + i] = field_data->HI_density[]
-    //
-
+    
+    // calculate total number of cells 
     int is, ie, js, je, ks, ke;
-    int ni, nj,nk;
-
+    // avoid ghost zones
     is = field_data->grid_start[0];
     ie = field_data->grid_end[0];
 
@@ -1966,16 +1552,11 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
     ks = field_data->grid_start[2];
     ke = field_data->grid_end[2];
 
-    int idim = field_data->grid_dimension[0];
-    int jdim = field_data->grid_dimension[1];
-    int kdim = field_data->grid_dimension[2];
+    // number of cells that actually required calculations
+    dims = ie - is + 1;
+    dims*= je - js + 1;
+    dims*= ke - ks + 1;
 
-    ni = ie - is + 1;
-    nj = je - js + 1;
-    nk = ke - ks + 1;
-    dims = ni*nj*nk;
-    field_data->ncells = dims;
-    
     const char * FileLocation = field_data->dengo_data_file;
     {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
 
@@ -1984,45 +1565,18 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
     double *atol  = (double *) malloc(dims * N * sizeof(double));
     double *rtol  = (double *) malloc(sizeof(double));
     
-    // code unit in terms of erg/g
-    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
-    double m_amu = 1.66053904e-24;
+	// fills the `input` array with field data
+	// note that input are still some kind of mass density, rho/ m_amu	
+	flatten_dengo_field_data_enzo(units, field_data, input);
 
+	// specify the relative tolerance and floor value
     rtol[0]            = field_data->reltol;
     data->reltol       = field_data->reltol;
     double floor_value = field_data->floor_value;
-
-    double a = units->a_value * units->a_units;
-    unsigned long ccount, c, idx;
-    
-    ccount = 0;
-    for (k = ks; k <= ke; k++){
-    for (j = js; j <= je; j++){
-    for (i = is; i <= ie; i++){
-	c = ccount * N;
-	idx = ((k* jdim + j)*idim + i);
-
-        {%- for species in network.ode_species | sort %}
-        input[c]  = field_data->{{species.name}}_density[idx];
-        {%- if species != network.energy_term %}
-        input[c] *= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        input[c] *= UNIT_E_per_M;
-        {%- endif %}
-	c++;
-	{%- endfor %}
-	ccount += 1;
-
-    }}}
-
-    /*
-    for (int i = 0; i < N; i++){
-    	fprintf(stderr, "input[%d] = %0.5g\n", i, input[i] );
-    }
-    */
-    
+	
+	// specifiy the redshift
     int flag;
+    double a = units->a_value * units->a_units;
     double z = 1./a - 1.;
     double dtf;
     
@@ -2033,117 +1587,39 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
     // update the rate table location
     data->dengo_data_file = field_data->dengo_data_file; 
     data->floor_value = floor_value;
-
+	
+	// evolve chemistry in dengo
     flag = dengo_evolve_{{solver_name}}(dtf, dt, z, input, rtol, atol, dims, data, temp);
-    
-    /*
-    for (i = 0; i < N*dims; i++){
-    	if (input[i] < floor_value){
-	    input[i] = floor_value;
-	}
-    }
-    */
-    ccount = 0;
-    for (k = ks; k <= ke; k++){
-    for (j = js; j <= je; j++){
-    for (i = is; i <= ie; i++){
-	c = ccount * N;
-	idx = ((k* jdim + j)*idim + i);
 
-        {%- for species in network.ode_species | sort %}
-        field_data->{{species.name}}_density[idx] = input[c];
-        {%- if species != network.energy_term %}
-        field_data->{{species.name}}_density[idx] /= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        field_data->{{species.name}}_density[idx] /= UNIT_E_per_M;
-        {%- endif %}
-	c++;
-	{%- endfor %}
-	ccount += 1;
+	// fill results in `input` back to field data
+	// in appropriate units
+	reshape_to_dengo_field_data_enzo(units, field_data, input);
 
-    }}}
-
-
+	// free all pointers
     free(input);
     free(temp);
     free(data);
     free(atol);
     free(rtol);
 
+	// in Enzo; 0 == FAIL
     if (flag > 0) return 0;
-
+	// 1 == SUCCESS
     return 1;
 }
-
-
-
-
 {% endblock %}
-{% block calculate_equilibrium_abundance %}
-int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
-	int nstrip, unsigned long d, unsigned long dims, double *equil_array){
-
-    //-----------------------------------------------------
-    // Function     : calculate_equilibrium_abundance
-    // Parameter    :   
-    //                  input   : Array to store the initial value of each species, 
-    //                            it will be updated with the value at time dt
-    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations 
-    //                  equil_array: temperature of each cell by the end of the evolution
-    //                  d          : batch count  
-    //                  dims       : total number of cells to be solved
-    //-----------------------------------------------------
-    
-    // update the rates given the updated temperature from {{solver_name}}_data
-    {{solver_name}}_interpolate_rates(data, nstrip);
-    
-    #ifdef _OPENMP
-    int threadID = omp_get_thread_num();
-    #else
-    int threadID = 0;
-    #endif
-
-    int nchem = {{network.required_species | length }};
-    int i, j;
-
-    {%- for species in network.required_species | sort %}
-    double {{species.name}};
-    {%- endfor %}
-
-    {%- for name, rate in network.reactions | dictsort %}
-    double *{{name}} = data->rs_{{name}}[threadID];
-    {%- endfor %}
-
-    {%- for species in network.equilibrium_species | sort %}
-    double *{{species.name}}_arr = &equil_array[{{loop.index0}}*dims + d*nstrip];
-    {%- endfor %}
-
-    for ( i = 0; i < nstrip; i++ ){
-        j = i * nchem;
-        {%- for species in network.ode_species | sort %}
-        {{species.name}} = input[j];
-        j++;
-        {%- endfor %}
-	{%- for species in network.equilibrium_species | sort %}
-	{{network.solve_equilibrium_abundance(species.name) }}
-	{{species.name}}_arr[i] = {{species.name}};
-	{%- endfor %}
-
-    }
-
-    return 0;
-}
-{% endblock %}
-
 
 {% block solve_chemistry_dt %}
 int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* reltol, double* abstol, double dt ){
-    
+    // TODO:
+    // this is not only called from the python modules 
+    // but this is dumb...
+    // this is almost the same as {{solver_name}}_solve_chemistry!!!
+    // should be replaced later....
+
     unsigned long int i, j, d, dims;
     int N = {{network.required_species | length }};
     dims = field_data->ncells; // total number of strips to be evaluated
-
 
     // turned the field data into a long chain of 
     // 1-D array
@@ -2246,92 +1722,80 @@ int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *fie
 
     return 0;
 }
-
-
 {% endblock %}
 
-{% block read_init_data_to_dengo %}
+{% block calculate_equilibrium_abundance %}
+int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
+	int nstrip, unsigned long d, unsigned long dims, double *equil_array){
 
-int read_init_data_to_dengo( dengo_field_data *field_data ){
-
-    // this reads the initial abundances of the data from
-    // a hdf5 file, and initialize a field_data object
-
-    char const *filename;
-    filename = "newIC.h5";
-
-    hid_t file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
-
-    if (file_id < 0){
-        fprintf(stderr, "failed to open %s so dying. \n", filename);
-        return (1);
-        }
-
-    hsize_t dims;
-
-
-    /* Check gas energy to get the number of cells */
-    fprintf(stderr, "Getting dimensionality from ge:\n");
-    herr_t status = H5LTget_dataset_info(file_id, "/ge", &dims, NULL, NULL);
-    if(status == -1) {
-        fprintf(stderr, "Error opening initial conditions file.\n");
-        return 1;
-    }
-    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
+    //-----------------------------------------------------
+    // Function     : calculate_equilibrium_abundance
+    // Parameter    :   
+    //                  input   : Array to store the initial value of each species, 
+    //                            it will be updated with the value at time dt
+    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations 
+    //                  equil_array: temperature of each cell by the end of the evolution
+    //                  d          : batch count  
+    //                  dims       : total number of cells to be solved
+    //-----------------------------------------------------
     
-    field_data->ncells = (int) dims;
-
-    int N = {{network.required_species | length }};
+    // update the rates given the updated temperature from {{solver_name}}_data
+    {{solver_name}}_interpolate_rates(data, nstrip);
     
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
 
-    double *atol, *rtol;
-    atol = (double *) malloc(N * dims * sizeof(double));
-    rtol = (double *) malloc(N * dims * sizeof(double));
-
-    double *tics = (double *) malloc(dims * sizeof(double));
-    double *ics = (double *) malloc(dims * N * sizeof(double));
-    double *input = (double *) malloc(dims * N * sizeof(double));
-    
-    unsigned int i = 0, j;
+    int nchem = {{network.required_species | length }};
+    int i, j;
 
     {%- for species in network.required_species | sort %}
-    double *{{species.name}} = (double *) malloc(dims * sizeof(double));    
-    field_data->{{species.name}}_density = {{species.name}};
-    {% endfor %}
+    double {{species.name}};
+    {%- endfor %}
 
-    {%- for species in network.required_species | sort %}
-    fprintf(stderr, "Reading I.C. for /{{species.name}}\n");
-    H5LTread_dataset_double(file_id, "/{{species.name}}", tics);
-    for ( j = 0; j < dims; j++ ){
-        field_data->{{species.name}}_density[j] = tics[j];
-        if (j == 0){
-            fprintf(stderr, "{{species.name}}[0] = %0.3g \n", tics[j] );
-        }
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}}[threadID];
+    {%- endfor %}
+
+    {%- for species in network.equilibrium_species | sort %}
+    double *{{species.name}}_arr = &equil_array[{{loop.index0}}*dims + d*nstrip];
+    {%- endfor %}
+
+    for ( i = 0; i < nstrip; i++ ){
+        j = i * nchem;
+        {%- for species in network.ode_species | sort %}
+        {{species.name}} = input[j];
+        j++;
+        {%- endfor %}
+		{%- for species in network.equilibrium_species | sort %}
+		{{network.solve_equilibrium_abundance(species.name) }}
+		{{species.name}}_arr[i] = {{species.name}};
+		{%- endfor %}
     }
-    i++;
-    {% endfor %}
-    
-    H5Fclose(file_id);
-    free(input);
-    //free(atol);
-    //free(rtol);
-    free(ics);
-    
-    return 1;
-
+    return 0;
 }
 {% endblock %}
 
 
 
+/*
 {% block calculate_JacTimesVec_sundials %}
 int calculate_JacTimesVec_{{solver_name}}
             (N_Vector v, N_Vector Jv, realtype t,
              N_Vector y, N_Vector fy,
              void *user_data, N_Vector tmp)
 {
-    /* We iterate over all of the rates */
-    /* Calcuate temperature first */ 
+    // TODO:
+    // as of now this is utterly useless, 
+    // cos it runs even slower than the actual dense linear solver ...
+    // BUT! kept in mind that autodiff could easily replace this 
+    // but some linear call to rhs/ f evauluations O(n) time
+    // but not O(n^2) i think...
+    
+    // We iterate over all of the rates
+    // Calcuate temperature first
     int nstrip = 1;
     int nchem = {{network.required_species | length }};
     {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
@@ -2340,7 +1804,7 @@ int calculate_JacTimesVec_{{solver_name}}
     int i, j;
     j = 0;
 
-     /* change N_Vector back to an array */
+    // change N_Vector back to an array 
     double y_arr[ {{network.required_species | length }} ];
     {%- for species in network.required_species | sort %}
     y_arr[{{loop.index - 1}}] = Ith(y , {{loop.index }});
@@ -2360,10 +1824,10 @@ int calculate_JacTimesVec_{{solver_name}}
 
     {{solver_name}}_interpolate_rates(data, nstrip);
     
-    /* Now We set up some temporaries */
+    // Now We set up some temporaries
     double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
     
-    /* Define the reaction rates */
+    // Define the reaction rates 
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
     double *r{{name}} = data->drs_{{name}}[threadID];
@@ -2381,7 +1845,7 @@ int calculate_JacTimesVec_{{solver_name}}
     {% endif %}
 
     double scale;
-    /* Define the species */
+    // Define the species
     {%- for species in network.required_species | sort %}
     double {{species.name}}, v{{loop.index-1}};
     {%- endfor %}
@@ -2433,8 +1897,266 @@ int calculate_JacTimesVec_{{solver_name}}
     {%- endfor %}
     return 0;
 }
+{% endblock %}
+*/
 
 
+///////////////////////////////////////////////////////////////////////////////
+////////////////// RHS functions and Jacobian Functions ///////////////////////
+///////////////////////////////////////////////////////////////////////////////
+{% block calcuate_rhs_sundials%}
+int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data)
+{
+    {{solver_name}}_data *data = ({{solver_name}}_data* ) user_data;
+    int i, j;
+
+    int nchem = {{network.ode_species | length }};
+    int nstrip = data->nstrip;
+    
+    /* change N_Vector back to an array */
+    double y_arr[ nchem * nstrip ];
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+    
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+   
+    double *yvec_ptr = N_VGetArrayPointer(y);
+    double *ydot_ptr = N_VGetArrayPointer(ydot);
+
+    #ifdef SCALE_INPUT
+    double *scale     = data->scale[threadID];
+    double *inv_scale = data->inv_scale[threadID];   
+    for ( i = 0; i < nstrip*nchem; i++ ){
+        y_arr[i] = yvec_ptr[i]*scale[i];
+    }
+    #else
+    for ( i = 0; i < nstrip*nchem; i++ ){
+        y_arr[i] = yvec_ptr[i];
+    }
+    #endif
+
+    int flag;
+    flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    {{solver_name}}_interpolate_rates(data, nstrip);
+
+    /* Now we set up some temporaries */
+    
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}}[threadID];
+    {%- endfor %}
+
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    {%- endfor %}
+    {%- endfor %}
+    
+    {%- if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx;    
+    {% endif %}
+    {%- if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx;
+    {% endif %}
+
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity, inv_mdensity;
+
+   
+    for ( i = 0; i < nstrip; i++ ){
+        
+        T            = data->Ts[threadID][i];
+        z            = data->current_z;
+        mdensity     = data->mdensity[threadID][i];
+        inv_mdensity = data->inv_mdensity[threadID][i];
+        {%- if "gloverabel08" in network.cooling_actions %}
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
+        {% endif %}
+        {%- if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
+        {% endif %}
+
+        j = i * nchem;
+        {%- for species in network.ode_species | sort %}
+        {{species.name}} = y_arr[j];
+        j++;
+        {%- endfor %}
+
+		{%- for species in network.equilibrium_species %}
+		{{network.solve_equilibrium_abundance(species.name)}}
+		{%- endfor %}
+    
+        j = i * nchem;
+        {%- for species in network.ode_species | sort %}
+        // Species: {{species.name}}
+        {{network.print_ccode(species, assign_to="ydot_ptr[j]" ) }}
+        #ifdef SCALE_INPUT
+        ydot_ptr[j] *= inv_scale[j];
+        #endif
+        {% if species.name == "ge" %}
+        ydot_ptr[j] *= inv_mdensity;
+        {% endif %}
+        j++;
+        //fprintf(stderr, "{{species.name}}: %0.5g\n", scale);
+        //fprintf(stderr, "ydot = %0.5g \n", ydot_ptr[j] );
+        {% endfor %}
+    
+    //fprintf(stderr, "----------------\n");
+    }
+    return 0;
+    }
+{% endblock %}
+
+{% block calculate_jacobian_sundials %}
+int calculate_jacobian_{{solver_name}}( realtype t,
+                                        N_Vector y, N_Vector fy,
+                                        SUNMatrix J, void *user_data,
+                                        N_Vector tmp1, N_Vector tmp2,
+                                        N_Vector tmp3)
+{
+    /* We iterate over all of the rates */
+    /* Calcuate temperature first */
+    
+
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
+    
+    #ifdef _OPENMP
+    int threadID = omp_get_thread_num();
+    #else
+    int threadID = 0;
+    #endif
+
+    int nchem = {{network.required_species | length }};
+    int nstrip = data->nstrip;
+    int i, j;
+
+    /* change N_Vector back to an array */
+    double *yvec_ptr = N_VGetArrayPointer(y);
+    double y_arr[ {{network.required_species | length }} * nstrip ];
+ 
+    #ifdef SCALE_INPUT
+    double *scale     = data->scale[threadID];
+    double *inv_scale = data->inv_scale[threadID];   
+    double scale1, inv_scale2;
+    for ( i = 0; i < nstrip*nchem; i++ ){
+        y_arr[i] = yvec_ptr[i]*scale[i];
+    }
+    #else
+    for ( i = 0; i < nstrip*nchem; i++ ){
+        y_arr[i] = yvec_ptr[i];
+    }
+    #endif
+
+
+    int flag;
+    flag = {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem );
+    if (flag > 0){
+        // check if the temperature failed to converged
+        return -1;    
+    }
+    {{solver_name}}_interpolate_rates(data, nstrip);
+
+    // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
+    // {{solver_name}}_interpolate_rates(data, nstrip);
+
+    /* Now We set up some temporaries */
+    double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
+
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}}[threadID];
+    double *r{{name}}= data->drs_{{name}}[threadID];
+    {%- endfor %}
+    
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
+    double *r{{name}}_{{name2}} = data->dcs_{{name}}_{{name2}}[threadID];
+    {%- endfor %}
+    {%- endfor %}
+
+    {%- for species in network.required_species | sort %}
+    double {{species.name}};
+    {%- endfor %}
+    double z;
+    double T;
+
+    double mh = 1.67e-24;
+    double mdensity, inv_mdensity;
+    {% if "gloverabel08" in network.cooling_actions %}
+    double h2_optical_depth_approx;  
+    {% endif %}
+    {% if "cie_cooling" in network.cooling_actions %}
+    double cie_optical_depth_approx; 
+    {% endif %}
+  
+
+    j = 0;
+    mdensity = 0.0;
+    z = data->current_z;
+
+    for ( i = 0; i < nstrip; i++ ){
+        j = i * nchem;
+        {%- for species in network.required_species | sort %}
+        {{species.name}} = y_arr[j];
+        j++;
+        {%- endfor %}
+
+        mdensity = data->mdensity[threadID][i];
+        inv_mdensity = 1.0 / mdensity;
+        {% if "gloverabel08" in network.cooling_actions %}
+        h2_optical_depth_approx  = data->h2_optical_depth_approx[threadID][i];  
+        {% endif %}
+        {% if "cie_cooling" in network.cooling_actions %}
+        cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i]; 
+        {% endif %}
+
+        j = i * nchem;
+        {%- for s2 in network.required_species | sort %}
+        //
+        // Species: {{s2.name}}
+        //
+        {% set i_s2 = loop %}
+        {%- for s1 in network.required_species | sort %}
+        {% set i_s1 = loop%}
+        // {{s2.name}} by {{s1.name}}
+        {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
+        {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 ) , print_zeros = False ) }}
+        {% else %}
+        // because the Jacobian is initialized to zeros by default
+        // {{ network.print_jacobian_component(s2, s1, assign_to="SM_ELEMENT_D( J, j + {0}, j + {1} )".format( i_s2.index0, i_s1.index0 )  ) }}
+        {% endif %}
+        
+
+        #ifdef SCALE_INPUT
+        inv_scale2 = inv_scale[ j + {{i_s2.index0}}];
+        scale1     = scale    [ j + {{i_s1.index0}}];
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}}) *= inv_scale2*scale1;
+        #endif
+
+        {%- if s2.name == 'ge' %}
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
+        {%- endif %}
+ 	    
+        {%- if s1.name == 'ge' %}
+        SM_ELEMENT_D( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= T{{ network.energy_term.name }}[i];
+        {%- endif %}
+
+        {%- endfor %}
+        {%- endfor %}
+    }
+    return 0;
+}
 {% endblock %}
 
 {% block calculate_sparse_jacobian %}
@@ -2473,6 +2195,14 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     double cie_optical_depth_approx;
     {%- endif %}
 
+    //TODO: Here we assumed during the evaluation of jacobian
+    // temperature is approximately constant, 
+    // i.e. close enough to the point evaluation of f(y)
+    // such that the rates and temperature need not be interpolated or evalulated 
+    // again during the jacobian evaluation.
+    // We havent really fully explored the effect of this `assumption`...
+    // But it definitely boost the performance 
+    
     /*
     int flag;
     flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
@@ -2487,7 +2217,6 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     // {{solver_name}}_interpolate_rates(data, nstrip);
 
     /* Now We set up some temporaries */
-    
     // CSR is what we choose
     sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(J);
     sunindextype *colvals = SUNSparseMatrix_IndexValues(J);
@@ -2496,7 +2225,6 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     SUNMatZero(J);
    
     double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
-
 
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
@@ -2598,7 +2326,12 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 
 {% block setting_up_extra_variables %}
 void setting_up_extra_variables( {{solver_name}}_data * data, double * input, int nstrip ){
-    
+	//-------------------------------------------------------------------------    
+	// Function: setting_up_extra_variables
+	// Desciption: calculating variables that are independent on the state with time
+	// 			   to avoid repeated evaluation. Examples here are h2 optical depth
+	//			   and cie_optical depth. Functions that depends only on density
+	//-------------------------------------------------------------------------    
     #ifdef _OPENMP
     int threadID = omp_get_thread_num();
     #else
@@ -2608,6 +2341,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
     int i, j;
     double mh = 1.67e-24;
     double mdensity;
+    // TODO: maybe this should be filled out by Dengo as well
     for ( i = 0; i < nstrip; i++){
         data->mdensity[threadID][i] = 0;
         j = i * {{network.ode_species | length}};
@@ -2618,30 +2352,329 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
         {%- endif%}
         j++;
         {%- endfor%}
-	// TODO: update temperature and rates to obtain abundances of equilibrium states
+		// TODO: update temperature and rates to obtain abundances of equilibrium states
         data->mdensity[threadID][i] *= mh;
         data->inv_mdensity[threadID][i] = 1.0 / data->mdensity[threadID][i];
     }
 
-    {% if "cie_cooling" in network.cooling_actions %}
+    {%- if "cie_cooling" in network.cooling_actions %}
     double tau;
     for ( i = 0; i < nstrip; i++){
         
         mdensity = data->mdensity[threadID][i];
         tau      = pow( (mdensity / 3.3e-8 ), 2.8);
         tau      = fmax( tau, 1.0e-5 );
-	data->cie_optical_depth_approx[threadID][i] = fmin( 1.0, (1.0 - exp(-tau) ) / tau );
+		data->cie_optical_depth_approx[threadID][i] = fmin( 1.0, (1.0 - exp(-tau) ) / tau );
     }
-    {% endif %}
+    {%- endif %}
 
-
-    {% if "gloverabel08" in network.cooling_actions %}
+    {%- if "gloverabel08" in network.cooling_actions %}
     for ( i = 0; i < nstrip; i++ ){
         mdensity = data->mdensity[threadID][i];
         data->h2_optical_depth_approx[threadID][i] = fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
     }
-    {% endif %}
-
-
+    {%- endif %}
 }
+{% endblock %}
+
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////// Sturcture Incoming Data ///////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+// Reshape/ Flatten data to match the data shape/ type 
+// required by the solver in dengo
+
+{% block flatten_dengo_field_data %}
+int flatten_dengo_field_data(code_units *units, dengo_field_data *field_data, double *input){
+
+    //-----------------------------------------------------
+    // Function     :   flatten_dengo_field_data 
+    // Parameter    :   
+    //                  code_units: units from the incoming field_data 
+    //                  field_data: dengo_field_data class that contains pointer to species array 
+    //                  input     : 1D array that flattens the field_data, 
+    //                  			i.e. 
+    //                  			s = species, s0 = 0th species, with d dimensions
+    //                  			[s0, s1, s2..., , s0_1, s1_1, ... s0_d, s1_d, ...] 
+    //-----------------------------------------------------
+    //
+    unsigned long d, dims, i, j;
+    dims = field_data->ncells;
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+    double dom = units->density_units/m_amu;
+    int N = {{network.ode_species | length}};
+
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static,1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+        // this should be the normalized 
+        // by the input units later
+        // atol = input * rtol;
+        // which again should be set by dengo
+        // input in *mass density per amu* 
+        // and energy in the units of (erg / g) 
+        {%- for species in network.ode_species | sort %}
+        input[j]  = field_data->{{species.name}}_density[d] ;
+        {%- if species != network.energy_term %}
+        input[j] *= dom;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        input[j] *= UNIT_E_per_M;
+        {%- endif %}
+        j++;
+        {%- endfor %}
+    }
+}
+{% endblock flatten_dengo_field_data %}
+
+{% block reshape_to_dengo_field_data %}
+int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input ){
+	//------------------------------------------------------------------------------------
+    // Function   :     reshape_to_dengo_field_data
+    // Description:     reshape the 1d output array from solver to a dengo_field_data object  
+    //                  and covert them to code units 
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+	//------------------------------------------------------------------------------------
+
+    unsigned long int i, j, d, dims;
+    int N = {{network.required_species | length }};
+    dims = field_data->ncells; // total number of strips to be evaluated
+    
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+    double dom = units->density_units/ m_amu;
+   
+    #pragma omp parallel for private (i, j ,d) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d< dims; d++  ){
+        j = d*N;
+       
+        {%- for species in network.required_species | sort %}
+        field_data->{{species.name}}_density[d] = input[j];
+        {%- if species != network.energy_term %}
+        field_data->{{species.name}}_density[d] /= dom;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        field_data->{{species.name}}_density[d] /= UNIT_E_per_M;
+        {%- endif %}
+        j++;
+        {%- endfor %}
+    }
+   
+    return 0;
+}
+{% endblock reshape_to_dengo_field_data %}
+
+
+// and a enzo version
+//
+{% block flatten_dengo_field_data_enzo %}
+int flatten_dengo_field_data_enzo(code_units *units, dengo_field_data *field_data, double *input){
+
+    //-----------------------------------------------------
+    // Function     :   flatten_dengo_field_data_enzo
+	// Description  :   To read in data from Enzo pointers 
+    // Parameter    :   
+    //                  code_units: units from the incoming field_data 
+    //                  field_data: dengo_field_data class that contains pointer to species array 
+    //                  input     : 1D array that flattens the field_data, 
+	//                  			i.e. 
+	//                  			s = species, s0 = 0th species, with d dimensions
+	//                  			[s0, s1, s2..., , s0_1, s1_1, ... s0_d, s1_d, ...] 
+	//                              abundances in units of mass density / m_amu
+	//                              m_amu is in atomic mass units                  			
+    //-----------------------------------------------------
+    //
+	
+    int is, ie, js, je, ks, ke;
+    int i, j, k, N;
+    int ni, nj, nk, idim, jdim, kdim;
+    unsigned long dims, ccount, c, idx;
+
+    N = {{network.ode_species | length}};
+    // avoid ghost zones
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    idim = field_data->grid_dimension[0];
+    jdim = field_data->grid_dimension[1];
+    kdim = field_data->grid_dimension[2];
+
+    // number of cells that actually required calculations
+    ni = ie - is + 1;
+    nj = je - js + 1;
+    nk = ke - ks + 1;
+    dims = ni*nj*nk;
+    field_data->ncells = dims;
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+    double dom = units->density_units/m_amu;
+
+    ccount = 0;
+    for (k = ks; k <= ke; k++){
+    for (j = js; j <= je; j++){
+    for (i = is; i <= ie; i++){
+        c = ccount * N;
+	idx = ((k* jdim + j)*idim + i);
+
+        {%- for species in network.ode_species | sort %}
+        input[c]  = field_data->{{species.name}}_density[idx];
+        {%- if species != network.energy_term %}
+        input[c] *= dom;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        input[c] *= UNIT_E_per_M;
+        {%- endif %}
+	c++;
+	{%- endfor %}
+	ccount += 1;
+
+    }}}
+}
+{% endblock flatten_dengo_field_data_enzo %}
+
+
+{% block reshape_to_dengo_field_data_enzo %}
+int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double* input ){
+	//------------------------------------------------------------------------------------
+    // Function   :     reshape_to_dengo_field_data
+    // Description:     reshape the 1d output array from solver to a dengo_field_data object  
+    //                  and covert them to code units 
+    //                  i.e. ge_density in erg /g
+    //                       H_1_density in g / cm^-3 / amu (mass density per amu)
+    // Parameter  :     code_units
+    //                  dengo_field_data
+    //                  input
+	//------------------------------------------------------------------------------------
+
+    unsigned long i, j, k, d; 
+    unsigned long idx, ccount, c,dims;
+    int is, ie, js, je, ks, ke;
+    int ni, nj,nk;
+    int N = {{network.required_species | length }};
+
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    int idim = field_data->grid_dimension[0];
+    int jdim = field_data->grid_dimension[1];
+    int kdim = field_data->grid_dimension[2];
+
+    ni = ie - is + 1;
+    nj = je - js + 1;
+    nk = ke - ks + 1;
+    dims = ni*nj*nk;
+    field_data->ncells = dims;
+    dims = field_data->ncells; // total number of strips to be evaluated
+
+    // code unit in terms of erg/g
+    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
+    double m_amu = 1.66053904e-24;
+    double dom = units->density_units/ m_amu;
+   
+    ccount = 0;
+    for (k = ks; k <= ke; k++){
+    for (j = js; j <= je; j++){
+    for (i = is; i <= ie; i++){
+        c = ccount * N;
+	idx = ((k* jdim + j)*idim + i);
+
+        {%- for species in network.ode_species | sort %}
+        field_data->{{species.name}}_density[idx] = input[c];
+        {%- if species != network.energy_term %}
+        field_data->{{species.name}}_density[idx] /= dom;
+        {%- endif %}
+        {%- if species == network.energy_term %}
+        field_data->{{species.name}}_density[idx] /= UNIT_E_per_M;
+        {%- endif %}
+	c++;
+	{%- endfor %}
+	ccount += 1;
+    }}}
+
+    return 0;
+}
+{% endblock reshape_to_dengo_field_data_enzo %}
+
+
+{% block read_init_data_to_dengo %}
+int read_init_data_to_dengo( dengo_field_data *field_data, char const *filename){
+
+    // this reads the initial abundances of the data from
+    // a hdf5 file, and initialize a field_data object
+
+    hid_t file_id = H5Fopen(filename, H5F_ACC_RDONLY, H5P_DEFAULT);
+
+    if (file_id < 0){
+        fprintf(stderr, "failed to open %s so dying. \n", filename);
+        return (1);
+        }
+
+    hsize_t dims;
+    /* Check gas energy to get the number of cells */
+    fprintf(stderr, "Getting dimensionality from ge:\n");
+    herr_t status = H5LTget_dataset_info(file_id, "/ge", &dims, NULL, NULL);
+    if(status == -1) {
+        fprintf(stderr, "Error opening initial conditions file.\n");
+        return 1;
+    }
+    fprintf(stderr, "  ncells = % 3i\n", (int) dims);
+    
+    field_data->ncells = (int) dims;
+    int N = {{network.required_species | length }};
+    double *atol, *rtol;
+    atol = (double *) malloc(N * dims * sizeof(double));
+    rtol = (double *) malloc(N * dims * sizeof(double));
+
+    double *tics = (double *) malloc(dims * sizeof(double));
+    double *ics = (double *) malloc(dims * N * sizeof(double));
+    double *input = (double *) malloc(dims * N * sizeof(double));
+    
+    unsigned int i = 0, j;
+
+    {%- for species in network.required_species | sort %}
+    double *{{species.name}} = (double *) malloc(dims * sizeof(double));    
+    field_data->{{species.name}}_density = {{species.name}};
+    {% endfor %}
+
+    {%- for species in network.required_species | sort %}
+    fprintf(stderr, "Reading I.C. for /{{species.name}}\n");
+    H5LTread_dataset_double(file_id, "/{{species.name}}", tics);
+    for ( j = 0; j < dims; j++ ){
+        field_data->{{species.name}}_density[j] = tics[j];
+        if (j == 0){
+            fprintf(stderr, "{{species.name}}[0] = %0.3g \n", tics[j] );
+        }
+    }
+    i++;
+    {% endfor %}
+    
+    H5Fclose(file_id);
+    free(input);
+    free(ics);    
+    return 1;
+}
+
 {% endblock %}
