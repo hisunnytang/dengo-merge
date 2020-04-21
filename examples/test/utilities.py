@@ -95,9 +95,14 @@ def setup_primordial_network():
     primordial.add_cooling("gammah")
     primordial.add_cooling("ciHeI")
     primordial.add_cooling("ciHeII")
+    primordial.add_cooling("cie_cooling")
+    primordial.add_cooling("compton")
 
     # This defines the temperature range for the rate tables
     primordial.init_temperature((1e0, 1e8))
+
+    primordial.enforce_conservation = True
+    primordial.set_equilibrium_species("H2_2")
 
     return primordial
 
@@ -121,13 +126,13 @@ def setup_initial_conditions(network, density, temperature, h2frac, NCELLS):
     temperature = np.ones((NCELLS))*temperature
     init_array = np.ones(NCELLS) * density
     init_values = dict()
-    init_values["H_1"] = init_array * 0.76
+    init_values["H_1"] = (init_array * 0.76) / (1+h2frac)
     init_values['H_2'] = init_array * tiny
     init_values['H_m0'] = init_array * tiny
     init_values['He_1'] = init_array * 0.24
     init_values['He_2'] = init_array * tiny
     init_values['He_3'] = init_array * tiny
-    init_values['H2_1'] = init_array * h2frac
+    init_values['H2_1'] = init_array * 0.76 * h2frac / (1+h2frac)
     init_values['H2_2'] = init_array * tiny
     init_values['de'] = init_array * tiny
 

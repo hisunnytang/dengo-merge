@@ -791,6 +791,7 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
     #else
     for (i = 0; i < v_size; i++){ 
         yvec_ptr[i]   = input[ start_idx + i];
+        atol_ptr[i]   = reltol*reltol*yvec_ptr[i]; //atol_ptr[i]*inv_scale[i];
     }
     setting_up_extra_variables(data, yvec_ptr, nstrip );
     #endif
@@ -916,7 +917,6 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
         {%- endfor %}
     
-	H2_2 = 0.0;
         // calculate equilibrium abundance
         // TODO: pull the rates from {{solver_name}}_data
         // these species usually contribute negligbly to the number density (?)
@@ -2135,7 +2135,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     int threadID = 0;
     #endif
 
-    int nchem = {{network.required_species | length }};
+    int nchem = {{network.ode_species | length }};
     int nstrip = data->nstrip;
     int i, j;
 
@@ -2157,6 +2157,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     #endif
 
 
+    /*
     int flag;
     flag = {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem );
     if (flag > 0){
@@ -2164,6 +2165,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         return -1;    
     }
     {{solver_name}}_interpolate_rates(data, nstrip);
+    */
 
     // {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem);
     // {{solver_name}}_interpolate_rates(data, nstrip);
@@ -2205,11 +2207,15 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     for ( i = 0; i < nstrip; i++ ){
         j = i * nchem;
-        {%- for species in network.required_species | sort %}
+        {%- for species in network.ode_species | sort %}
         {{species.name}} = y_arr[j];
         j++;
         {%- endfor %}
 
+	{%- for species in network.equilibrium_species | sort %}
+	{{network.solve_equilibrium_abundance(species.name)}}
+	{% endfor %}
+	
         mdensity = data->mdensity[threadID][i];
         inv_mdensity = 1.0 / mdensity;
         {% if "gloverabel08" in network.cooling_actions %}
@@ -2220,12 +2226,12 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {% endif %}
 
         j = i * nchem;
-        {%- for s2 in network.required_species | sort %}
+        {%- for s2 in network.ode_species | sort %}
         //
         // Species: {{s2.name}}
         //
         {% set i_s2 = loop %}
-        {%- for s1 in network.required_species | sort %}
+        {%- for s1 in network.ode_species | sort %}
         {% set i_s1 = loop%}
         // {{s2.name}} by {{s1.name}}
         {% if  network.print_jacobian_component(s2, s1, print_zeros = False) != None %}
