@@ -32,6 +32,7 @@ from .periodic_table import \
     periodic_table_by_name, \
     periodic_table_by_number
 from .mixin import ComparableMixin
+import re
 
 try:
     import ChiantiPy.core as ch
@@ -139,6 +140,15 @@ class Reaction(ComparableMixin):
             return up - down
         else:
             return up - down
+
+    @property
+    def nbody_reaction(self):
+        # this is handy function for calculating
+        # number of species involved in the reaction
+        # this is used primarily in counting the
+        # number of scale factors a^3 needed to
+        # `calibrate`the reaction rates
+        return sum(n for n, s in self.left_side)
 
     def __call__(self, quantities, up_derivatives, down_derivatives):
         # We just calculate our net derivatives and stick them in the right
@@ -321,12 +331,40 @@ class ChemicalSpecies(Species):
                  pretty_name = None):
         self.weight = weight
         self.free_electrons = free_electrons
+        #self.elements = {}
         super(ChemicalSpecies, self).__init__(name, weight, pretty_name)
 
     def number_density(self, quantities):
         if self.weight == 0:
             return quantities[self.name]
         return quantities[self.name]/self.weight
+
+    def add_to_dict(self, e, v):
+        if  e in self._edict:
+            self._edict[e] += v
+        else:
+            self._edict[e] = v
+
+    def find_constituent(self):
+        """find elements based on its name
+        return: total weight
+        """
+        self._edict = {}
+        name = self.original_name
+        split = re.findall("\d+|\D+[a-z]|\D", name)
+        for s in split:
+            if s.isalpha():
+                _ele = s
+            if s.isnumeric():
+                self.add_to_dict(_ele, int(s)-1)
+            else:
+                self.add_to_dict(_ele, 1)
+        self.elements = self._edict
+    def get_weight(self):
+        w = 0
+        for s, n in self.elements.items():
+            w += periodic_table_by_name[s][1]*n
+        self._weight = w
 
 class AtomicSpecies(ChemicalSpecies):
     def __init__(self, atom_name, free_electrons):
@@ -337,6 +375,10 @@ class AtomicSpecies(ChemicalSpecies):
             name = "%s_%01i" % (atom_name, free_electrons + 1)
         pretty_name = "%s with %s free electrons" % (
             pn, free_electrons)
+        # update the self.elements based on the input name
+        self.original_name = atom_name
+        self.find_constituent ()
+
         super(AtomicSpecies, self).__init__(name, weight,
             free_electrons, pretty_name)
 
@@ -347,8 +389,11 @@ class MolecularSpecies(ChemicalSpecies):
         pretty_name = "%s with %s free electrons" % (
             name, free_electrons)
         self.original_name = original_name or molecule_name
+        # update the self.elements based on the input name
+        self.find_constituent()
         super(MolecularSpecies, self).__init__(name, weight,
             free_electrons, pretty_name)
+
 
 class CoolingAction(object):
     _eq = None

@@ -25,6 +25,7 @@ import numpy as np
 from .chemistry_constants import tevk, tiny, mh
 from .reaction_classes import reaction_registry, cooling_registry, \
     count_m, index_i, species_registry, Species, ChemicalSpecies
+from .periodic_table import periodic_table_by_name
 import types
 import sympy
 import pkgutil
@@ -33,6 +34,7 @@ import jinja2
 import h5py
 from sympy.printing import ccode
 from sympy.utilities import lambdify
+from collections import defaultdict
 
 ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name = "Electrons")
@@ -60,6 +62,7 @@ class ChemicalNetwork(object):
 
         self.threebody = 4
         self.equilibrium_species = set()
+        self.enforce_conservation = False
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -200,6 +203,35 @@ class ChemicalNetwork(object):
                 eq += self.cooling_actions[term].equation
 
         return ccode(eq, assign_to = assign_to)
+
+    def get_conserved_dict(self):
+        self.conserved_dict = defaultdict(lambda: [])
+        species_considered = ["H", "He"]
+        for s in self.species_list():
+            sp = species_registry[s]
+            if s in self.skip_weight: continue
+            for e in sp.elements:
+                if e in species_considered:
+                    self.conserved_dict[e] += [sp]
+        return self.conserved_dict
+
+    def print_conserved_species(self, s, assign_to):
+        """Calculate the total {H, He, ...} atoms locked in species considered
+        """
+        self.get_conserved_dict()
+        v = self.conserved_dict[s]
+        eq = sympy.sympify("0")
+        for i in v:
+            eq += i.symbol * i.elements[s]
+        return ccode(eq, assign_to = assign_to)
+
+    def print_apply_conservation(self, s, assign_to):
+        for ele, v in self.conserved_dict.items():
+            _, w, _ = periodic_table_by_name[ele]
+            vname = [i.name for i in v]
+            if s in vname:
+                return "{0} = {1}*f{2}*density/total_{2}/{3};".format(assign_to, s, ele, w)
+        return ''
 
     def cie_optical_depth_correction(self):
         mdensity = sympy.Symbol('mdensity')
