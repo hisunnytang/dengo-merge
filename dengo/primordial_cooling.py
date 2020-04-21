@@ -413,7 +413,36 @@ def h2formation(eq):
     def ncrd2(state):
         vals = 1.4 * np.exp(-12000.0 / (state.T + 1200.0) )
         return vals
+    # 1/2 account for the double counting of energy loss per hydrogen nuclei
+    # cooling here is the energy loss/gain per H2 molecule formed
+    eq.temporary("h2heatfrac", " (1.0 + ncrn / (HI * ncrd1 + H2I * ncrd2))**(-1.0)/2.0 " )
 
+@cooling_action("h2formation_extra", "h2heatfrac*(h2mheat_extra*HI*HI*H2I - h2mcool_extra*H2I*H2I)")
+def h2formation(eq):
+    @eq.table
+    def h2mheat_extra(state):
+        vals = 7.177e-12 * reaction_registry['k21'].coeff_fn(state)
+        return vals
+
+    @eq.table
+    def h2mcool_extra(state):
+        vals = 7.177e-12 * reaction_registry['k23'].coeff_fn(state)
+        return vals
+
+    @eq.table
+    def ncrn(state):
+        vals = 1.0e6 * (state.T**(-0.5))
+        return vals
+
+    @eq.table
+    def ncrd1(state):
+        vals = 1.6e0 * np.exp( - (400.0 / state.T)**2.0)
+        return vals
+
+    @eq.table
+    def ncrd2(state):
+        vals = 1.4 * np.exp(-12000.0 / (state.T + 1200.0) )
+        return vals
     # 1/2 account for the double counting of energy loss per hydrogen nuclei
     # cooling here is the energy loss/gain per H2 molecule formed
     eq.temporary("h2heatfrac", " (1.0 + ncrn / (HI * ncrd1 + H2I * ncrd2))**(-1.0)/2.0 " )
