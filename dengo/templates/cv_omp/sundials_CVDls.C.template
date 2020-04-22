@@ -545,7 +545,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int flag;
     double reltol = rtol[0];
     void *cvode_mem;
-    int MAX_ITERATION = 100;
+    int MAX_ITERATION = 1;
     double mh = 1.67e-24;
     int nstrip = data->nstrip;
 
@@ -709,7 +709,9 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     }
 
     // inputs are in `number density`
+    {%- if network.enforce_conservation %}
     ensure_electron_consistency(input, equil_array, dims, N);
+    {%- endif %}
 
     {%-  if not network.input_is_number %}
     for (i = 0; i < dims; i++) {
@@ -785,7 +787,7 @@ double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
         scale[i]      = input[ start_idx + i];
         inv_scale[i]  = 1.0 / scale[i];
         yvec_ptr[i]   = 1.0;
-        atol_ptr[i]   = fmin(reltol, atol_ptr[i]/inv_scale[i]); //atol_ptr[i]*inv_scale[i];
+        atol_ptr[i]   = reltol*reltol; //atol_ptr[i]*inv_scale[i];
     }
     setting_up_extra_variables(data, data->scale[threadID], nstrip );
     #else
@@ -917,14 +919,26 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
         j++;
         {%- endfor %}
     
-        // calculate equilibrium abundance
-        // TODO: pull the rates from {{solver_name}}_data
-        // these species usually contribute negligbly to the number density (?)
         /*
         {%- for species in network.equilibrium_species | sort %}
         {{network.solve_equilibrium_abundance(species.name)}}
         {%- endfor %}
         */
+	
+        // TODO: pull the rates from {{solver_name}}_data
+        // these species usually contribute negligbly to the number density (?)
+	// it is a little tricky here,
+	// since these species depends on the temperature 
+	// and the abundance of the rest of the species
+	// BUT, without their abundance, temperature CANNOT be evaluated....
+	// FOR NOW, a not entirely correct physically, 
+	// BUT a not-too-bad surrogate is:
+	// assume these species has negligible abundance....
+	{%- if network.equilibrium_species | length > 0 %}
+        {%- for species in network.equilibrium_species | sort %}
+	{{species.name}} = 0.0;
+        {%- endfor %}
+	{%- endif %}
 
         density = {{network.print_mass_density()}};
         
@@ -1066,6 +1080,7 @@ void ensure_electron_consistency(double *input, double *equil_array, unsigned lo
     int e_indx;
 
     for (i = 0; i<nstrip; i++) {
+	total_e = 0.0;
     	{%- for species in network.equilibrium_species | sort %}
 	{{species.name}} = {{species.name}}_arr[i];
     	{%- endfor %}
@@ -1076,9 +1091,9 @@ void ensure_electron_consistency(double *input, double *equil_array, unsigned lo
              and species.name != "us_e_0" %}
         total_e += {{species.name}} * {{species.free_electrons}};
         {%-endif%}
-        {%if species.name == "de" or species.name == "us_e_0" -%}
+        {%-if species.name == "de" or species.name == "us_e_0" -%}
         e_indx = j;
-        {%endif%}
+        {%-endif%}
         j++;
         {%- endfor %}
         input[e_indx] = total_e;
@@ -1152,7 +1167,7 @@ void ensure_species_conservation(double *input, double *mdensity, double *equil_
 	{{network.print_apply_conservation(species.name, "{}_arr[i]".format(species.name))}}
 	{%- endfor %}
     }  
-    fprintf(stderr, "diff = %0.5g\n", fH*density/total_H);
+    //fprintf(stderr, "diff = %0.5g\n", fH*density/total_H);
     
 }
 {% endblock %}
@@ -1168,13 +1183,13 @@ void ensure_species_conservation(double *input, double *mdensity, double *equil_
 {% block estimate_cooling_time_enzo %}
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data ){
     
+
     unsigned long int i, j, k, d, dims;
-    int nchem     = {{network.required_species | length }};
-    dims = field_data->ncells;
-
+    int nchem = {{network.ode_species | length }};
+    
+    // calculate total number of cells 
     int is, ie, js, je, ks, ke;
-    int ni, nj,nk;
-
+    // avoid ghost zones
     is = field_data->grid_start[0];
     ie = field_data->grid_end[0];
 
@@ -1184,57 +1199,27 @@ int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field
     ks = field_data->grid_start[2];
     ke = field_data->grid_end[2];
 
-    int idim = field_data->grid_dimension[0];
-    int jdim = field_data->grid_dimension[1];
-    int kdim = field_data->grid_dimension[2];
-
-    ni = ie - is + 1;
-    nj = je - js + 1;
-    nk = ke - ks + 1;
-    dims = ni*nj*nk;
-    field_data->ncells = dims;
-
-    double a = units->a_value * units->a_units;
-    unsigned long ccount, c, idx;
-    ccount = 0;
-
-    double UNIT_E_per_M = units->velocity_units * units->velocity_units;
-    double m_amu = 1.66053904e-24;
-    double *input = (double *) malloc( sizeof(double) * nchem * dims );
-
-    for (k = ks; k <= ke; k++){
-    for (j = js; j <= je; j++){
-    for (i = is; i <= ie; i++){
-    c = ccount * nchem;
-    idx = ((k* jdim + j)*idim + i);
-
-        {%- for species in network.ode_species | sort %}
-        input[c]  = field_data->{{species.name}}_density[idx];
-        {%- if species != network.energy_term %}
-        input[c] *= units->density_units / m_amu;
-        {%- endif %}
-        {%- if species == network.energy_term %}
-        input[c] *= UNIT_E_per_M;
-        {%- endif %}
-    c++;
-    {%- endfor %}
-    ccount += 1;
-
-    }}}
-
+    // number of cells that actually required calculations
+    dims = ie - is + 1;
+    dims*= je - js + 1;
+    dims*= ke - ks + 1;
 
     const char * FileLocation = field_data->dengo_data_file;
     {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
-    
-    int nstrip      = data->nstrip;
 
+    // fills the `input` array with field data
+    // note that input are still some kind of mass density, rho/ m_amu  
+    double *input = (double *) malloc(dims*nchem*sizeof(double));
+    flatten_dengo_field_data_enzo(units, field_data, input);
+
+    int nstrip      = data->nstrip;
     unsigned long ntimes      = dims / nstrip;
     int nstrip_res            = dims % nstrip;
     
     double *input_batch;
     double *cooling_time_batch;
     
-//    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) 
+    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) num_threads(NTHREADS) schedule(static, 1) 
     for ( d = 0; d < ntimes; d++ ){
         input_batch        = &input[d* nstrip* nchem];
         cooling_time_batch = &field_data->CoolingTime[d * nstrip];
@@ -1264,7 +1249,7 @@ int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field
 int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data ){
     
     unsigned long int i, j, d, dims;
-    int nchem     = {{network.required_species | length }};
+    int nchem     = {{network.ode_species | length }};
     dims = field_data->ncells;
     
     const char * FileLocation = field_data->dengo_data_file;
@@ -1282,7 +1267,7 @@ int dengo_estimate_cooling_time( code_units* units, dengo_field_data *field_data
     double *input_batch;
     double *cooling_time_batch;
     
-//    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) 
+    #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) num_threads(NTHREADS) schedule(static, 1) 
     for ( d = 0; d < ntimes; d++ ){
         input_batch        = &input[d* nstrip *nchem];
         cooling_time_batch = &field_data->CoolingTime[d * nstrip];
@@ -1316,7 +1301,7 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
 
     unsigned long i, j, dims;
     int flag;
-    int nchem = {{network.required_species | length}};
+    int nchem = {{network.ode_species | length}};
     /* Now we set up some temporaries */
     // make sure the input are in number density
     {%- if not network.input_is_number %}
@@ -1344,6 +1329,11 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     double {{sp.name}};
     {%- endfor %}
 
+    // this might be redundant
+    // should only select relavant rates
+    {%- for name, rate in network.reactions | dictsort %}
+    double *{{name}} = data->rs_{{name}}[threadID];
+    {%- endfor %}
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
@@ -1375,11 +1365,16 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
         {% endif %}
 
         j = i * nchem;
-        {%- for species in network.required_species | sort %}
+        {%- for species in network.ode_species | sort %}
         {{species.name}} = input[j];
         j++;
         {%- endfor %}
-    
+   	
+        // obtain a quasis-equilibrium estimate	
+        {%- for species in network.equilibrium_species | sort %}
+        {{network.solve_equilibrium_abundance(species.name) }}
+        {%- endfor %}
+
         //
         // Species: ge
         //
@@ -2105,9 +2100,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         {% if species.name == "ge" %}
         ydot_ptr[j] *= inv_mdensity;
         {% endif %}
+        //fprintf(stderr, "{{species.name}}: %0.5g\n", scale[j]);
+        //fprintf(stderr, "ydot = %0.5g \n", ydot_ptr[j]*scale[j] );
         j++;
-        //fprintf(stderr, "{{species.name}}: %0.5g\n", scale);
-        //fprintf(stderr, "ydot = %0.5g \n", ydot_ptr[j] );
         {% endfor %}
     
     //fprintf(stderr, "----------------\n");
@@ -2457,6 +2452,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
         j++;
         {%- endfor%}
         // TODO: update temperature and rates to obtain abundances of equilibrium states
+	// for more detail: go to the _calculate_temperature 
         data->mdensity[threadID][i] *= mh;
         data->inv_mdensity[threadID][i] = 1.0 / data->mdensity[threadID][i];
     }
@@ -2548,7 +2544,7 @@ int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data
     //------------------------------------------------------------------------------------
 
     unsigned long int i, j, d, dims;
-    int N = {{network.required_species | length }};
+    int N = {{network.ode_species | length }};
     dims = field_data->ncells; // total number of strips to be evaluated
     
 
@@ -2671,7 +2667,7 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     unsigned long idx, ccount, c,dims;
     int is, ie, js, je, ks, ke;
     int ni, nj,nk;
-    int N = {{network.required_species | length }};
+    int N = {{network.ode_species | length }};
 
     is = field_data->grid_start[0];
     ie = field_data->grid_end[0];
@@ -2703,7 +2699,7 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
         c = ccount * N;
-    idx = ((k* jdim + j)*idim + i);
+	idx = ((k* jdim + j)*idim + i);
 
         {%- for species in network.ode_species | sort %}
         field_data->{{species.name}}_density[idx] = input[c];
@@ -2713,9 +2709,9 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
         {%- if species == network.energy_term %}
         field_data->{{species.name}}_density[idx] /= UNIT_E_per_M;
         {%- endif %}
-    c++;
-    {%- endfor %}
-    ccount += 1;
+	c++;
+	{%- endfor %}
+	ccount += 1;
     }}}
 
     return 0;
