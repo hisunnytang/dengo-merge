@@ -40,10 +40,19 @@ else:
 
 
 
+#@pytest.mark.parametrize('setup_solver_options',
+#                         ({"use_omp": False, "use_cvode": False,
+#                           "use_suitesparse": False,
+#                           "output_dir": "be_chem_solve"},
+#                          {"use_omp": False, "use_cvode": True,
+#                           "use_suitesparse": False,
+#                           "output_dir": "cvode_dls"},
+#                          {"use_omp": True, "use_cvode": True,
+#                           "use_suitesparse": True,
+#                           "output_dir": "cvode_klu"}),
+#                         indirect=True)
 @pytest.mark.parametrize('setup_solver_options',
-                         ({"use_omp": False, "use_cvode": False,
-                           "use_suitesparse": False,
-                           "output_dir": "be_chem_solve"},
+                         (
                           {"use_omp": False, "use_cvode": True,
                            "use_suitesparse": False,
                            "output_dir": "cvode_dls"},
@@ -75,7 +84,7 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
         setup_solver_options["reltol"] = r
         init_values = setup_initial_conditions(
             setup_primordial_network, density, temperature, h2frac, NCELLS)
-        r = run_solver(init_values, setup_solver_options, make_plot=False, intermediate=False)
+        r = run_solver(init_values, **setup_solver_options, make_plot=False, intermediate=False)
         if start:
             for k, v in r.items():
                 if k in skip:
@@ -119,7 +128,10 @@ def TestConservation(cN, results, density):
     de_ = cN.calculate_free_electrons(results)
     de_solver = results["de"]
     pdiff = (de_ - de_solver) / de_
-    percentage_error.append(pdiff)
+    if len(pdiff) < 1:
+        return [np.nan, np.nan, np.nan]
+    print("in TestConservation", pdiff)
+    percentage_error.append(float(pdiff))
 
     # test mass conservation
     # conservation of Hydrogen mass
@@ -127,13 +139,13 @@ def TestConservation(cN, results, density):
     hmass = results["H2_1"] + results["H2_2"] + \
         results["H_1"] + results["H_2"] + results["H_m0"]
     pdiff = (hmass - true_hfrac) / hmass
-    percentage_error.append(pdiff)
+    percentage_error.append(float(pdiff))
 
     # conservation of helium mass
     true_hefrac = 0.24 * density
     hemass = results["He_1"] + results["He_2"] + results["He_3"]
     pdiff = (hemass - true_hefrac) / hemass
-    percentage_error.append(pdiff)
+    percentage_error.append(float(pdiff))
 
     return percentage_error
 
@@ -154,7 +166,7 @@ def run_grid(network, solver_options, density, temperature, h2frac):
                     network, d, T, f, NCELLS)
                 r = run_solver(
                     init_values,
-                    solver_options=solver_options,
+                    **solver_options,
                     intermediate = False,
                     make_plot=False)
                 perror.append(
@@ -193,13 +205,13 @@ def main(density, temperature, h2frac,
     print(init_values)
     results = run_solver(
         init_values,
-        solver_options=solver_options,
+        **solver_options,
         make_plot=False)
     TestConservation(network, results, density)
 
 
 def runtime_ncells(setup_primordial_network, setup_solver_options):
-    density = 1.0e14
+    density = 1.0e10
     temperature = 2000.0
     h2frac = 1.0e-3
     solver_name = setup_solver_options["solver_name"]
@@ -237,7 +249,7 @@ def runtime_ncells(setup_primordial_network, setup_solver_options):
         end = timer()
         print("ncells = {:d}, with {:0.2e} s\n".format(
                   ncells, (end - start) / ncells))
-        TestConservation(setup_primordial_network, rv_int, density)
+        #TestConservation(setup_primordial_network, rv_int, density)
     os.chdir("../")
 
 
@@ -284,13 +296,13 @@ def test_run_grid(setup_primordial_network, setup_solver_options, nd, nT, nf):
 
     # visualize the percentage error plot
     error_grid = np.array(error_grid).reshape(nd, nT, nf, 3)
+    error_grid = error_grid.astype(np.float64)
     fig, axes = plt.subplots(nf, 2, figsize=(nf*4, 2*4))
     error_name = ["$e^-$ ", "H ", "He "]
     X, Y = np.meshgrid(density_array, temp_array)
     for i in range(2):
         for j in range(nf):
-            im = axes[j, i].pcolor(X, Y,
-                                   np.log10(np.abs(error_grid[:, :, j, i])))
+            im = axes[j, i].pcolor(X, Y, np.log10(np.abs(error_grid[:, :, j, i])))
             axes[j, i].set_title(error_name[i] +
                                  " {0:0.2e}".format(h2frac_array[j]))
             axes[j, i].set_xscale("log")

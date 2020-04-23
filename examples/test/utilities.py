@@ -172,6 +172,7 @@ def write_network(network, solver_options={"output_dir": "test_dir",
     use_suitesparse = solver_options["use_suitesparse"]
 
     if use_cvode:
+        print(output_dir)
         network.write_solver(solver_name, output_dir=output_dir,
                              solver_template="cv_omp/sundials_CVDls",
                              ode_solver_source="initialize_cvode_solver.C")
@@ -185,14 +186,18 @@ def write_network(network, solver_options={"output_dir": "test_dir",
         return
 
 
-def run_solver(init_values, solver_options, dtf=None,
-               make_plot=True, intermediate=True):
+def run_solver(init_values, dtf=None,
+               make_plot=True, intermediate=True,
+               solver_name="temp", output_dir=".",
+               niters=1e3, reltol=1.0e-3, adaptive_step=True,
+               **kwargs):
 
-    print(os.getcwd())
-    solver_name = solver_options["solver_name"]
-    solver_dir = solver_options["output_dir"]
-    niters = solver_options["niters"]
-    reltol = solver_options["reltol"]
+    print("########### from run solver", os.getcwd())
+
+    #solver_name = solver_options["solver_name"]
+    #solver_dir = solver_options["output_dir"]
+    #niters = solver_options["niters"]
+    #reltol = solver_options["reltol"]
     pyximport.install(setup_args={"include_dirs": np.get_include()},
                       reload_support=True, inplace=True)
 
@@ -203,11 +208,12 @@ def run_solver(init_values, solver_options, dtf=None,
 
     if dtf is None:
         dtf = freefall_time(init_values["density"])
-    rv, rv_int = eval(
-        "_solver_run.run_{}(init_values, dtf, niter={}, reltol = {}, floor_value = 1.0e-20)".format(
-            solver_name, niters, reltol))
 
+    rv, rv_int = eval("_solver_run.run_{}(init_values, dtf, \
+                      niter={}, reltol = {}, floor_value = 1.0e-20)".format(
+                          solver_name, niters, reltol))
     mask = rv_int['successful']
+
     for name in sorted(rv_int):
         if len(rv_int[name].shape) == 1:
             rv_int[name] = rv_int[name][mask]

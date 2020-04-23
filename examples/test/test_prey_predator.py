@@ -186,7 +186,7 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
         setup_solver_options["reltol"] = reltol
         results = run_solver(
             init,
-            setup_solver_options,
+            **setup_solver_options,
             make_plot=False,
             dtf=10.0)
         v0, vt = conserved_variables(results, make_plot=False)
@@ -229,17 +229,22 @@ def check_output_conservation(solver_options):
                          indirect=True)
 def test_prey_predator(setup_predator_prey_network, setup_solver_options):
     setup_solver_options["solver_name"] = solver_name
+    os.chdir(pytest_dir)
+
     write_network(setup_predator_prey_network,
                   setup_solver_options)
     init_values = write_initial_conditions(setup_predator_prey_network)
 
-    os.chdir(pytest_dir)
     os.chdir(setup_solver_options["output_dir"])
+
+    setup_solver_options["niters"] = 1e2
+    setup_solver_options["reltol"] = 1.0e-4
     results = run_solver(
         init_values,
-        setup_solver_options,
         make_plot=False,
-        dtf=10.0)
+        dtf=100.0,
+        **setup_solver_options)
+
     phase_plot(results)
     os.chdir("../")
 
@@ -266,7 +271,7 @@ def test_prey_predator_convergence(
     os.chdir(setup_solver_options["output_dir"])
     results = run_solver(
         init_values,
-        setup_solver_options,
+        **setup_solver_options,
         make_plot=False,
         dtf=10.0)
     phase_plot(results)
