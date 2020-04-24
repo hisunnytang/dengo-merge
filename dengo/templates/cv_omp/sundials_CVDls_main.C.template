@@ -222,6 +222,9 @@ int solve_chemistry_enzo(int argc, char **argv) {
     field_data->dengo_data_file = fileloc;
     field_data->reltol = reltol[0];
 
+    units->a_value = 1.0;
+    units->a_units = 1.0;
+
     double dt = 1.0 / sqrt(G * density) ;
     fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
     {{solver_name}}_solve_chemistry( units, field_data, dt );

@@ -1218,7 +1218,12 @@ int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field
     
     double *input_batch;
     double *cooling_time_batch;
-    
+
+    // update the redshift
+    double a = units->a_value * units->a_units;
+    double z = 1./a - 1.;
+    data->current_z = z;
+
     #pragma omp parallel for private (i, j ,d, input_batch, cooling_time_batch) num_threads(NTHREADS) schedule(static, 1) 
     for ( d = 0; d < ntimes; d++ ){
         input_batch        = &input[d* nstrip* nchem];
