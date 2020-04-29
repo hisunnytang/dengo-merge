@@ -297,7 +297,7 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
 
 int reshape_to_dengo_field_data( code_units* units, dengo_field_data *field_data, double* input );
 int flatten_dengo_field_data( code_units* units, dengo_field_data *field_data, double *input );
-int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double* input );
+int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double* input, double *temp );
 int flatten_dengo_field_data_enzo( code_units* units, dengo_field_data *field_data, double *input );
 
 

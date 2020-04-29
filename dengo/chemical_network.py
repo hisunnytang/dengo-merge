@@ -215,14 +215,18 @@ class ChemicalNetwork(object):
                     self.conserved_dict[e] += [sp]
         return self.conserved_dict
 
-    def print_conserved_species(self, s, assign_to):
+    def print_conserved_species(self, s, assign_to, is_mass_density=True):
         """Calculate the total {H, He, ...} atoms locked in species considered
         """
         self.get_conserved_dict()
         v = self.conserved_dict[s]
         eq = sympy.sympify("0")
-        for i in v:
-            eq += i.symbol * i.elements[s]
+        if is_mass_density:
+            for i in v:
+                eq += i.symbol
+        else:
+            for i in v:
+                eq += i.symbol * i.elements[s]
         return ccode(eq, assign_to = assign_to)
 
     def print_apply_conservation(self, s, assign_to):
@@ -230,7 +234,7 @@ class ChemicalNetwork(object):
             _, w, _ = periodic_table_by_name[ele]
             vname = [i.name for i in v]
             if s in vname:
-                return "{0} = {1}*f{2}*density/total_{2}/{3};".format(assign_to, s, ele, w)
+                return "{0} = {1}*f{2}*density/total_{2};".format(assign_to, s, ele)
         return ''
 
     def cie_optical_depth_correction(self):
