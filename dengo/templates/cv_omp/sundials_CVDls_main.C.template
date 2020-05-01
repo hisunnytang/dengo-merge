@@ -19,7 +19,7 @@ int solve_chemistry(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 64*64;
     field_data->ncells = N; 
-    double density = 1.0e0; // in cm^-3
+    double density = 1.0e8; // in cm^-3
     double T = 1000.0; // in K
     double mH, k, tiny;
 
@@ -59,6 +59,7 @@ int solve_chemistry(int argc, char **argv) {
 
 	// ge ~ nkT / (gamma - 1)/ rho; gamaa ~ 5/3
         ge_density[i]   = 3.0/2.0 * k * T / mH;
+	//density[i] = (0.76+0.24+1.0e-5+1.0e-5)*density;
     }
 
     for ( int i = 0; i < N * {{network.required_species| length}}; i++ ){
@@ -68,6 +69,7 @@ int solve_chemistry(int argc, char **argv) {
     {%- for species in network.required_species %}
     field_data->{{species.name}}_density = {{species.name}}_density;
     {%- endfor %}
+    //field_data->density         = density;
     field_data->CoolingTime     = cooling_time;
     field_data->Gamma           = gamma;
     field_data->temperature     = temperature;
@@ -109,7 +111,7 @@ int solve_chemistry(int argc, char **argv) {
 	{{species.name}} = field_data->{{species.name}}_density[d];
 	frac = fabs({{species.name}}-ref0)/ref0;
 	if (frac > reltol[0]){
-	    fprintf(stderr, "ref = %0.5g; {{species.name}}[%lu] = %0.5g\n", ref0, d, {{species.name}});
+	    fprintf(stderr, "{{species.name}}[%lu] = %0.5g; diff = %0.5g\n", d, {{species.name}}, frac);
 	}
     }
     {%- endfor %}
@@ -120,7 +122,7 @@ int solve_chemistry(int argc, char **argv) {
 	ct = field_data->CoolingTime[d];
 	frac = fabs(ct-ref0)/ref0;
 	if (frac > reltol[0]){
-	    fprintf(stderr, "ref = %0.5g; CoolingTime%lu] = %0.5g\n", ref0, d, ct);
+	    fprintf(stderr, "CoolingTime[%lu] = %0.5g; diff = %0.5g\n",d,ct, frac);
 	}
     }
 
@@ -143,7 +145,7 @@ int solve_chemistry_enzo(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 16*16*16;
     field_data->ncells = N; 
-    double density = 1.0e0; // in cm^-3
+    double density = 1.0e8; // in cm^-3
     double T = 1000.0; // in K
     double mH, k, tiny;
 
@@ -164,6 +166,7 @@ int solve_chemistry_enzo(int argc, char **argv) {
     double *gamma = (double * ) malloc( N * sizeof(double) );
     double *temperature = (double *) malloc( N * sizeof(double) );
     double *mean_molecular_weight = (double *) malloc( N * sizeof(double) );
+    double *density_arr = (double *) malloc( N * sizeof(double) );
 
     double *reltol = (double*) malloc(sizeof(double));
     double *abstol = (double*) malloc(sizeof(double)* N * {{network.required_species | length }});
@@ -183,6 +186,7 @@ int solve_chemistry_enzo(int argc, char **argv) {
 
 	// ge ~ nkT / (gamma - 1)/ rho; gamaa ~ 5/3
         ge_density[i]   = 3.0/2.0 * k * T / mH;
+	density_arr[i] = (1+2.0*1e-5)*density;
     }
 
     for ( int i = 0; i < N * {{network.required_species| length}}; i++ ){
@@ -192,6 +196,8 @@ int solve_chemistry_enzo(int argc, char **argv) {
     {%- for species in network.required_species %}
     field_data->{{species.name}}_density = {{species.name}}_density;
     {%- endfor %}
+
+    field_data->density         = density_arr;
     field_data->CoolingTime     = cooling_time;
     field_data->Gamma           = gamma;
     field_data->temperature     = temperature;
@@ -227,7 +233,7 @@ int solve_chemistry_enzo(int argc, char **argv) {
 
     double dt = 1.0 / sqrt(G * density) ;
     fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
-    {{solver_name}}_solve_chemistry( units, field_data, dt );
+    {{solver_name}}_solve_chemistry_enzo( units, field_data, dt );
     dengo_estimate_cooling_time_enzo( units, field_data);
  
     {%- for species in network.required_species | sort %}
@@ -249,7 +255,7 @@ int solve_chemistry_enzo(int argc, char **argv) {
 	{{species.name}} = field_data->{{species.name}}_density[d];
 	frac = fabs({{species.name}}-ref0)/ref0;
 	if (frac > reltol[0]){
-	    fprintf(stderr, "ref = %0.5g; {{species.name}}[%lu] = %0.5g\n", ref0, d, {{species.name}});
+	    fprintf(stderr, "{{species.name}}[%lu] = %0.5g; diff = %0.5g\n", d, {{species.name}}, frac);
 	}
     }
     {%- endfor %}
@@ -260,9 +266,37 @@ int solve_chemistry_enzo(int argc, char **argv) {
 	ct = field_data->CoolingTime[d];
 	frac = fabs(ct-ref0)/ref0;
 	if (frac > reltol[0]){
-	    fprintf(stderr, "ref = %0.5g; CoolingTime%lu] = %0.5g\n", ref0, d, ct);
+	    fprintf(stderr, "CoolingTime[%lu] = %0.5g; diff = %0.5g\n",d,ct, frac);
 	}
     }
+
+    {%- if network.enforce_conservation %}
+    double fH = 0.76;
+    double fHe = 1- fH;
+    double rho;
+    double total_H;
+    double total_He;
+    double diff;
+    for (d = 0; d <N; d++){
+    	{%- for element in network.get_conserved_dict() %}
+	total_{{element}} = 0.0;
+	total_{{element}} = 0.0;
+	{%- endfor %}
+	rho = density_arr[d]*units->density_units;
+    	{%- for species in network.ode_species %}
+	{%- for element in species.elements %}
+	total_{{element}} += field_data->{{species.name}}_density[d]/rho/f{{element}};
+	{%- endfor %}
+	{%- endfor %}
+
+    	{%- for element in network.get_conserved_dict() %}
+	diff = fabs(total_{{element}} - 1.0);
+        if (diff > 1.0e-9){
+	    fprintf(stderr, "total_{{element}} is  not conserved %0.5g\n", diff);
+	}	
+	{%- endfor %}
+    }
+    {%- endif %}
 
     free(field_data);
     {%- for species in network.required_species | sort %}
