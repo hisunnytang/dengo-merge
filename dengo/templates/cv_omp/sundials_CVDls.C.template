@@ -546,7 +546,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     double reltol = rtol[0];
     void *cvode_mem;
     int MAX_ITERATION = 1;
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     int nstrip = data->nstrip;
 
     // inputs are now grouped into a batch of nstrip
@@ -878,7 +878,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
     int i, j;
     double density, T, Tnew;
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double gamma = 5.e0/3.e0;
     double _gamma_m1 = 1.0 / (gamma - 1);
 
@@ -1021,7 +1021,7 @@ void temperature_from_mass_density(double *input, int nstrip,
     int i, j;
     double density;
     double kb = 1.3806504e-16; // Boltzmann constant [erg/K]
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double gamma = 5.e0/3.e0;
     double _gamma_m1 = 1.0 / (gamma - 1.0);
     {% if 'H2_1' in network.species_list() %}
@@ -2068,7 +2068,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double z;
     double T;
 
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double mdensity, inv_mdensity;
 
    
@@ -2191,7 +2191,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     double z;
     double T;
 
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double mdensity, inv_mdensity;
     {% if "gloverabel08" in network.cooling_actions %}
     double h2_optical_depth_approx;  
@@ -2348,7 +2348,7 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     double z;
     double T;
 
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double mdensity, inv_mdensity;
     
     double scale2, inv_scale1;
@@ -2443,7 +2443,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
     #endif
 
     int i, j;
-    double mh = 1.67e-24;
+    double mh = 1.66054e-24;
     double mdensity;
     // TODO: maybe this should be filled out by Dengo as well
     for ( i = 0; i < nstrip; i++){
@@ -2711,7 +2711,7 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     double total_{{s}}[dims];
     {%- endfor %}
     {%- for species in network.equilibrium_species | sort %}
-    double *{{species.name}}_arr = &temp[{{loop.index0}}*dims];
+    double *{{species.name}}_arr = &temp[{{loop.index}}*dims];
     double *density = field_data->density;
     {%- endfor %}
     ////////////////////////////////////////////
@@ -2765,15 +2765,14 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     for (i = is; i <= ie; i++){
         c = ccount * N;
 	idx = ((k* jdim + j)*idim + i);
-	rho = density[idx]*units->density_units; // density in cgs units
+	rho = density[idx]*units->density_units/m_amu; // density in cgs units
 	// given a speices, return the element it belongs to
-        {%- for species in network.ode_species | sort -%}
+        {%- for species in network.ode_species | sort %}
         // {{species.name}}
 	{%- for element in species.elements %}
 	field_data->{{species.name}}_density[idx] *= f{{element}}*rho/total_{{element}}[ccount];
 	{%- endfor %}
-        j++;
-        {%- endfor -%}
+        {%- endfor %}
 
 	//fprintf(stderr, "fractional difference: %0.5g\n", fH*rho/total_H[ccount]);
 	ccount += 1;
