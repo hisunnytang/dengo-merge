@@ -1858,7 +1858,7 @@ int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input,
     {%- endfor %}
 
     {%- for species in network.equilibrium_species | sort %}
-    double *{{species.name}}_arr = &equil_array[{{loop.index0}}*dims + d*nstrip];
+    double *{{species.name}}_arr = &equil_array[{{loop.index0}}*dims + d*MAX_NCELLS];
     {%- endfor %}
 
     for ( i = 0; i < nstrip; i++ ){
@@ -2740,6 +2740,11 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     for (i = is; i <= ie; i++){
         c = ccount * N;
 	idx = ((k* jdim + j)*idim + i);
+	
+	{%- for species in network.equilibrium_species | sort %}
+        field_data->{{species.name}}_density[idx] = {{species.name}}_arr[ccount];
+        field_data->{{species.name}}_density[idx] /= dom;
+        {%- endfor %}
 
         {%- for species in network.ode_species | sort %}
         field_data->{{species.name}}_density[idx] = input[c];
