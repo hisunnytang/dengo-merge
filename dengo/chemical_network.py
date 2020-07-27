@@ -285,6 +285,7 @@ class ChemicalNetwork(object):
         i2_list     = []
 
         #sp_list = list( sorted(self.required_species) )
+        self.update_ode_species()
         sp_list = list( sorted(self.ode_species) )
         s1_now  = sp_list[0]
 
@@ -598,6 +599,65 @@ class ChemicalNetwork(object):
             if s.name in self.skip_weight: continue
             values[s.name] = values[s.name] * s.weight
         return values
+
+    def write_cuda_solver(self, solver_name,
+                     solver_template = "cvode_cuda",
+                     output_dir = ".", init_values = None,
+                     main_name = "main",
+                     input_is_number = False):
+        self.input_is_number = input_is_number
+        self.update_ode_species()
+
+        if not os.path.isdir(output_dir): os.makedirs(output_dir)
+
+        root_path = os.path.join(os.path.dirname(__file__), "templates")
+        template_path = os.path.join(root_path, "cvode_cuda")
+        env = jinja2.Environment(extensions=['jinja2.ext.loopcontrols'],
+                loader = jinja2.FileSystemLoader(template_path))
+        template_vars = dict(network = self, solver_name = solver_name)
+
+        for suffix in (".cu", "_main.cu", ".h"):
+            iname = "%s%s" % (solver_template, suffix)
+            oname = os.path.join(output_dir,
+                            "%s_solver%s" % (solver_name, suffix))
+            template_inst = env.get_template(iname + ".template")
+            solver_out = template_inst.render(**template_vars)
+            with open(oname ,"w") as f:
+                f.write(solver_out)
+
+        # now we create a Makefile
+        try:
+           temp_dir, _ = os.path.split(solver_template)
+           iname = os.path.join(temp_dir, "Makefile")
+           oname = os.path.join(output_dir, "Makefile")
+           template_inst = env.get_template(iname + ".template")
+           solver_out = template_inst.render(**template_vars)
+           with open(oname ,"w") as f:
+               f.write(solver_out)
+        except:
+            print("This does not have a Makefile.template")
+            pass
+
+        # This writes out the rates for the species in the
+        # chemical network to HDF5 files which can later be
+        # read by the C++ code that is output by the template
+        ofn = os.path.join(output_dir, "%s_tables.h5" % solver_name)
+        f = h5py.File(ofn, "w")
+
+        for rxn in sorted(self.reactions.values()):
+            f.create_dataset("/%s" % rxn.name, data = rxn.coeff_fn(self).astype("float64"))
+        for action in sorted(self.cooling_actions.values()):
+            for tab in action.tables:
+                f.create_dataset("/%s_%s" % (action.name, tab),
+                    data=action.tables[tab](self).astype("float64"))
+
+        for sp in sorted(self.interpolate_gamma_species):
+            name = sp.name
+            f.create_dataset("/gamma%s" %name,
+                    data = self.interpolate_species_gamma(sp).astype("float64"))
+            f.create_dataset("/dgamma%s_dT" %name,
+                    data = self.interpolate_species_gamma(sp,deriv=True).astype("float64"))
+        f.close()
 
     def write_solver(self, solver_name,
                      solver_template = "rates_and_rate_tables",
