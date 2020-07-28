@@ -177,7 +177,8 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data * data, N_Vector y, double reltol, N_Vector abstol );
 
-{{solver_name}}_data *{{solver_name}}_setup_data(int *, char***);
+
+{{solver_name}}_data *{{solver_name}}_setup_data( const char *FileLocation, int *NumberOfFields, char ***FieldNames);
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*);
 void {{ solver_name }}_read_gamma({{solver_name}}_data*);
