@@ -40,6 +40,6 @@ script:
     - echo $HDF5_PATH
     - echo $DENGO_INSTALL_PATH
     - echo $LD_LIBRARY_PATH
-    - pytest -v examples/test/
+    - pytest --ignore-glob="*cuda*" -v examples/test/
 
 
