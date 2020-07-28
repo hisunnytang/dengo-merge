@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
         h2fraction  = atof(argv[4]);
         dims = (unsigned long)atol(argv[5]);
     }
-    //run_dengo_solver(density, temperature, efraction, h2fraction, dims);
+    run_dengo_solver(density, temperature, efraction, h2fraction, dims);
 
     cudaEvent_t startCuda, stopCuda;
     cudaEventCreate(&startCuda);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[])
     float milliseconds = 0;
 
     cudaEventRecord(startCuda);
-    run_dengo_struct(density, temperature, efraction, h2fraction, dims);
+    //run_dengo_struct(density, temperature, efraction, h2fraction, dims);
 
     cudaEventRecord(stopCuda);
     cudaEventSynchronize(stopCuda);

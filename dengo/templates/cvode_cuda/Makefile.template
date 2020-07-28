@@ -18,13 +18,16 @@
 # set at configuration time. It can be used as a template for
 # other user Makefiles.
 # -----------------------------------------------------------------
+#
+
+CVODE_INSTALL_PATH = /home/kwoksun2/dengo-merge/cvode-5.3.0/instdir
 
 SHELL = sh
 
-prefix       = /home/kwoksun2/dengo-merge/cvode-5.3.0/instdir
-exec_prefix  = /home/kwoksun2/dengo-merge/cvode-5.3.0/instdir
-includedir   = /home/kwoksun2/dengo-merge/cvode-5.3.0/instdir/include
-libdir       = /home/kwoksun2/dengo-merge/cvode-5.3.0/instdir/lib64
+prefix       = ${CVODE_INSTALL_PATH}
+exec_prefix  = ${CVODE_INSTALL_PATH}
+includedir   = ${CVODE_INSTALL_PATH}/include
+libdir       = ${CVODE_INSTALL_PATH}/lib64
 
 CC          = /usr/bin/cc
 CFLAGS      = -fPIC

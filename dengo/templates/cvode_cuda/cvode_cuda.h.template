@@ -149,7 +149,7 @@ void test_rhs_function({{solver_name}}_data data);
 void test_jacobian_function({{solver_name}}_data data);
 int grid_performance();
 int test_scaling_dims();
-int run_dengo_struct(double density, double temperature, double h2fraction, double efraction, unsigned long dims);
+int run_dengo_struct(double density, double temperature, double h2fraction, double efraction, unsigned long dims, double *output);
 
 
 // cvode helper function

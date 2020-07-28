@@ -1245,6 +1245,7 @@ int grid_performance()
     double *timelapsed = new double[nd*nT];
     double *darray      = new double[nd*nT];
     double *Tarray      = new double[nd*nT];
+    double *output      = new double[nchem*nd*nT];
 
     for (int i = 0; i < nd; i++)
     {
@@ -1255,7 +1256,7 @@ int grid_performance()
 
             start = clock();
             cudaEventRecord(startCuda);
-            run_dengo_struct(d, T, h2fraction, efraction, dims);
+            run_dengo_struct(d, T, h2fraction, efraction, dims, &output[(i*nT+j)*nchem]);
             
             cudaEventRecord(stopCuda);
             end = clock();
@@ -1278,15 +1279,17 @@ int grid_performance()
     // create a file
     hid_t file_id, dataset;
     hid_t datatype, dataspace;
-    hsize_t dimsf[1];
+    hsize_t dimsf[1], dimsO[1];
     herr_t status;
     dimsf[0] = nd*nT;
+    dimsO[0] = nchem*nd*nT;
 
     file_id = H5Fcreate("performance.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
 
     H5LTmake_dataset_double(file_id, "/time", 1, dimsf, timelapsed);
     H5LTmake_dataset_double(file_id, "/density", 1, dimsf, darray);
     H5LTmake_dataset_double(file_id, "/temperature", 1, dimsf, Tarray);
+    H5LTmake_dataset_double(file_id, "/output", 1, dimsO, output);
 
     H5Fclose(file_id);
 
@@ -1304,21 +1307,22 @@ int test_scaling_dims()
     cudaEventCreate(&stopCuda);
     float milliseconds = 0;
 
-    int ntimes = 7;
+    int ntimes = 8;
     double *timelapsed = new double[ntimes];
     long *ncells     = new long[ntimes];
+    double *output   = new double[ntimes*nchem];
 
     density = 1.0;
     temperature = 1.0;
     h2fraction = 1e-4;
     efraction = 1e-4;
 
-    for (int i = 0; i < 7; i++)
+    for (int i = 0; i < ntimes; i++)
     {
         start = clock();
         cudaEventRecord(startCuda);
 
-        run_dengo_struct(density, temperature, h2fraction, efraction, dims);
+        run_dengo_struct(density, temperature, h2fraction, efraction, dims, &output[i*nchem]);
         
         dims *= 2;
         cudaEventRecord(stopCuda);
@@ -1340,21 +1344,21 @@ int test_scaling_dims()
     // create a file
     hid_t file_id, dataset;
     hid_t datatype, dataspace;
-    hsize_t dimsf[1];
+    hsize_t dimsf[1], dimsO[1];
     herr_t status;
     dimsf[0] = ntimes;
+    dimsO[0] = ntimes*nchem;
 
     file_id = H5Fcreate("scaling.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
-
     H5LTmake_dataset_double(file_id, "/time", 1, dimsf, timelapsed);
     H5LTmake_dataset_long(file_id, "/ncells", 1, dimsf, ncells);
-
+    H5LTmake_dataset_double(file_id, "/output", 1, dimsO, output);
     H5Fclose(file_id);
 
 }
 
 
-int run_dengo_struct(double density, double temperature, double h2fraction, double efraction, unsigned long dims)
+int run_dengo_struct(double density, double temperature, double h2fraction, double efraction, unsigned long dims, double *output)
 {
     // dengo solver interface
     DengoSolver s;
@@ -1367,7 +1371,7 @@ int run_dengo_struct(double density, double temperature, double h2fraction, doub
     initialize_long_ydata(input, dims, density, temperature, h2fraction, efraction);
     rtol[0] = 1.0e-5;
 
-    //for (int i = 0; i<nchem; i++) printf("input[%d] = %0.5g\n", i, input[i]);
+    for (int i = 0; i<nchem; i++) printf("input[%d] = %0.5g\n", i, input[i]);
 
     // main evolution;
     double dtf = pow(6.67e-8*mh*density, -0.5);
@@ -1375,7 +1379,7 @@ int run_dengo_struct(double density, double temperature, double h2fraction, doub
 
     s.EvolveChemistry(dtf, z, input, rtol, atol, dims);
 
-    //for (int i = 0; i<nchem; i++) printf("output[%d] = %0.5g\n", i, input[i]);
+    for (int i = 0; i<nchem; i++) printf("output[%d] = %0.5g\n", i, input[i]);
 
     // supposingly this would return the output in "input" array
 
