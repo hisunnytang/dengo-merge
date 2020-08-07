@@ -83,6 +83,15 @@ class ChemicalNetwork(object):
         for s in self.equilibrium_species:
             self.ode_species.remove(s)
 
+    @property
+    def chemical_species(self):
+        """helper function for code generation
+        """
+        chemical_species = self.required_species.copy()
+        chemical_species.remove(self.energy_term)
+        return chemical_species
+
+
     def solve_equilibrium_abundance(self, species):
         """write the equilibrium abundance of species sp
         """
@@ -673,6 +682,7 @@ class ChemicalNetwork(object):
 
         # Only HDF5_PATH and DENGO_INSTALL_PATH is needed for
         # running dengo, but then it can only be coupled with the 1st order BDF solver
+
         if  "HDF5_PATH" in os.environ:
             self._hdf5_path  = os.environ["HDF5_PATH"]
         else:
