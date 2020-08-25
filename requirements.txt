@@ -3,7 +3,6 @@ attrs==19.2.0
 certifi==2019.6.16
 cycler==0.10.0
 Cython==0.29.13
--e git+https://github.com/hisunnytang/dengo-merge.git@99b1d9149c3bcb47e6c8cac723e7add16bd2a8ac#egg=dengo
 docutils==0.15.2
 h5py==2.10.0
 importlib-metadata==0.23
