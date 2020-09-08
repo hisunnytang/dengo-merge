@@ -300,11 +300,8 @@ void {{ solver_name }}_interpolate_gamma({{ solver_name }}_data *data,
     data->dT[threadID][i] = (t2 - t1);
 
     {% for sp in network.interpolate_gamma_species%}
-    
-    bin_id = data->bin_id[threadID][i];
     data->gamma{{sp.name}}[threadID][i] = data->g_gamma{{sp.name}}[bin_id] +
         data->Tdef[threadID][i] * (data->g_gamma{{sp.name}}[bin_id+1] - data->g_gamma{{sp.name}}[bin_id]);
-
     data->dgamma{{sp.name}}_dT[threadID][i] = data->g_dgamma{{sp.name}}_dT[bin_id] +
         data->Tdef[threadID][i] * (data->g_dgamma{{sp.name}}_dT[bin_id+1] 
         - data->g_dgamma{{sp.name}}_dT[bin_id]);
@@ -1180,6 +1177,255 @@ void ensure_species_conservation(double *input, double *mdensity, double *equil_
 // Again these are exposed to the user
 // and can be called basically with units, field_data objects
 ///////////////////////////////////////////////////////////////////////////////
+{% block calculate_pressure_enzo %}
+int dengo_calculate_pressure_enzo( code_units* units, dengo_field_data *field_data){
+
+    unsigned long int i, j, k, d, dims;
+    int nchem = {{network.ode_species | length }};
+    
+    // calculate total number of cells 
+    int is, ie, js, je, ks, ke;
+    // avoid ghost zones
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    // number of cells that actually required calculations
+    dims = ie - is + 1;
+    dims*= je - js + 1;
+    dims*= ke - ks + 1;
+
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+
+    // fills the `input` array with field data
+    // note that input are still some kind of mass density, rho/ m_amu  
+    double *input = (double *) malloc(dims*nchem*sizeof(double));
+    flatten_dengo_field_data_enzo(units, field_data, input);
+
+    // now we should call internal dengo function to calculate gamma
+    // once, gamma is updated, we can use P = (gamma -1)* rho * u
+    double *gamma_eff = (double *) malloc(dims*sizeof(double));
+    double *pressure;
+    double *density;
+    double *thermal_energy;
+    double *input_batch;
+    double *gamma_eff_batch;
+
+    int nstrip           = data->nstrip;
+    unsigned long ntimes = dims / nstrip;
+    int nstrip_res       = dims % nstrip;
+    int threadID; 
+
+    #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, pressure, thermal_energy, density, threadID) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d < ntimes; d++ ){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+
+        input_batch        = &input[d*nstrip*nchem];
+        gamma_eff_batch    = &gamma_eff[d*nstrip];
+        pressure           = &field_data->Pressure[d*nstrip];
+        thermal_energy     = &field_data->ge_density[d*nstrip];
+        density            = &field_data->density[d*nstrip];
+
+        setting_up_extra_variables( data, input_batch, nstrip );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip, nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+        for ( i = 0; i < nstrip; i++ ){
+            pressure[i] = (gamma_eff_batch[i] - 1.0)* density[i]* thermal_energy[i];   
+        }
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes*nstrip*nchem];
+        gamma_eff_batch    = &gamma_eff[ntimes*nstrip];
+        pressure           = &field_data->Pressure[ntimes*nstrip];
+        thermal_energy     = &field_data->ge_density[ntimes*nstrip];
+        density            = &field_data->density[ntimes*nstrip];
+        
+        setting_up_extra_variables( data, input_batch, nstrip_res );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip_res , nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+        for ( i = 0; i < nstrip_res; i++ ){
+            pressure[i] = (gamma_eff_batch[i] - 1.0)* density[i]* thermal_energy[i];   
+        }
+    }
+    
+    double pressure_unit = pow(units->length_units, 4)* units->density_units / pow(units->time_units,2); 
+    for (unsigned long i = 0; i < dims; i++ ){
+        field_data->Pressure[i] /= pressure_unit; 
+    }
+
+    free(input);
+    free(gamma_eff);
+    return 1;
+
+}
+{% endblock calculate_pressure_enzo %}
+
+{% block calculate_gamma_enzo %}
+int dengo_calculate_gamma_enzo(code_units* units, dengo_field_data *field_data){
+    unsigned long i, j, k, d, dims;
+    int nchem = {{network.ode_species | length }};
+    
+    // calculate total number of cells 
+    int is, ie, js, je, ks, ke;
+    // avoid ghost zones
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    // number of cells that actually required calculations
+    dims = ie - is + 1;
+    dims*= je - js + 1;
+    dims*= ke - ks + 1;
+
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+
+    // fills the `input` array with field data
+    // note that input are still some kind of mass density, rho/ m_amu  
+    double *input = (double *) malloc(dims*nchem*sizeof(double));
+    flatten_dengo_field_data_enzo(units, field_data, input);
+
+    // now we should call internal dengo function to calculate gamma
+    // once, gamma is updated, we can use P = (gamma -1)* rho * u
+    double *input_batch;
+    double *gamma_eff_batch;
+
+    int nstrip     = data->nstrip;
+    unsigned long ntimes = dims / nstrip;
+    int nstrip_res = dims % nstrip;
+    int threadID; 
+    
+    #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, threadID) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d < ntimes; d++ ){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+        input_batch        = &input[d*nstrip*nchem];
+        gamma_eff_batch    = &field_data->Gamma[d*nstrip];
+
+        setting_up_extra_variables( data, input_batch, nstrip );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip, nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes*nstrip*nchem];
+        gamma_eff_batch    = &field_data->Gamma[ntimes*nstrip];
+        
+        setting_up_extra_variables( data, input_batch, nstrip_res );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip_res , nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+    }
+    
+    free(input);
+    return 1;
+
+}
+{% endblock calculate_gamma_enzo %}
+
+{% block calculate_temperature_enzo %}
+int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_data){
+    unsigned long int i, j, k, d, dims;
+    int nchem = {{network.ode_species | length }};
+    
+    // calculate total number of cells 
+    int is, ie, js, je, ks, ke;
+    // avoid ghost zones
+    is = field_data->grid_start[0];
+    ie = field_data->grid_end[0];
+
+    js = field_data->grid_start[1];
+    je = field_data->grid_end[1];
+
+    ks = field_data->grid_start[2];
+    ke = field_data->grid_end[2];
+
+    // number of cells that actually required calculations
+    dims = ie - is + 1;
+    dims*= je - js + 1;
+    dims*= ke - ks + 1;
+
+    const char * FileLocation = field_data->dengo_data_file;
+    {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
+
+    // fills the `input` array with field data
+    // note that input are still some kind of mass density, rho/ m_amu  
+    double *input = (double *) malloc(dims*nchem*sizeof(double));
+    flatten_dengo_field_data_enzo(units, field_data, input);
+    
+    // since we dont know if memory are allocated to the gamma pointer
+    // lets just keep it local here
+    double *gamma_eff = (double*) malloc(sizeof(double)*dims);
+    
+    double *input_batch;
+    double *cooling_time_batch;
+    double *gamma_eff_batch;
+    int nstrip      = data->nstrip;
+    unsigned long ntimes      = dims / nstrip;
+    int nstrip_res            = dims % nstrip;
+
+    int threadID; 
+    /* Now we set up some temporaries */
+
+    #pragma omp parallel for private (i, j ,d, input_batch, gamma_eff_batch, threadID) num_threads(NTHREADS) schedule(static, 1)
+    for ( d = 0; d < ntimes; d++ ){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
+        input_batch        = &input[d* nchem];
+        gamma_eff_batch    = &gamma_eff[d*nstrip];
+
+        setting_up_extra_variables( data, input_batch, nstrip );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip, nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+        for ( i = 0; i < nstrip; i++ ){
+            field_data->temperature[d*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+
+    if (nstrip_res > 0){
+        input_batch        = &input[ntimes * nchem];
+        gamma_eff_batch    = &gamma_eff[ntimes*nstrip];
+        
+        setting_up_extra_variables( data, input_batch, nstrip_res );
+        {{solver_name}}_calculate_temperature(data,  input_batch , nstrip_res , nchem );
+        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+       
+        for ( i = 0; i < nstrip_res; i++ ){
+            field_data->temperature[ntimes*nstrip + i] = data->Ts[threadID][i]; 
+        }
+    }
+    
+    free(input);
+    free(data);
+
+    return 1;
+
+}
+{% endblock %}
+
+
+
 {% block estimate_cooling_time_enzo %}
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data ){
     
@@ -1462,11 +1708,11 @@ int dengo_calculate_temperature( code_units *units, dengo_field_data *field_data
 {% block dengo_calculate_gamma %}
 int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double *input, int nstrip  ){
     unsigned long int i, j, d, dims;
-    int nchem     = {{network.required_species | length }};
+    int nchem     = {{network.ode_species | length }};
     
-    {% for sp in network.required_species %}
+    {%- for sp in network.required_species | sort %}
     double {{sp.name}};
-    {% endfor %}
+    {%- endfor %}
     
     double gamma = 5.0/3.0;
     {% for sp in network.interpolate_gamma_species | sort %}
@@ -1486,7 +1732,7 @@ int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double
     for (i = 0; i < nstrip; i++ ){
         ndensity = 0;
         j = i * nchem;
-        {%- for sp in network.required_species %}
+        {%- for sp in network.ode_species | sort %}
         {{sp.name}} = input[j] / {{sp.weight}};
         {%- if sp != network.energy_term %}
         ndensity += {{sp.name}};
@@ -2712,8 +2958,8 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     {%- endfor %}
     {%- for species in network.equilibrium_species | sort %}
     double *{{species.name}}_arr = &temp[{{loop.index}}*dims];
-    double *density = field_data->density;
     {%- endfor %}
+    double *density = field_data->density;
     ////////////////////////////////////////////
     // first pass to fill out the total_H and total_He;
     for (i = 0; i<dims; i++) {
