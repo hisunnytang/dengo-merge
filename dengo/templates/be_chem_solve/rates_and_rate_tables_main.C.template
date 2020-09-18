@@ -1,5 +1,220 @@
 #include "{{solver_name}}_solver.h"
 
-int main(int argc, char **argv) {
-    {{solver_name}}_main(argc, argv);
+int solve_chemistry(int argc, char **argv);
+int solve_chemistry_enzo(int argc, char **argv);
+
+// Handy Function to compare identical array
+int compare_array(double *array, double rtol, unsigned long N){
+    /* Check if the array element are the same within tolerance level */
+    double ref, diff;
+    ref = array[0];
+    for (unsigned long i = 0; i < N; i++){
+        diff = fabs(ref - array[i])/ref;
+        if (diff > rtol){
+            printf("Exceeded tolerance level (%0.5g); ref = %0.5g; array[%lu] = %0.5g\n", rtol, ref, i, array[i]);
+            return 1;
+        }
+    }
+    return 0;
 }
+
+int main(int argc, char **argv) {
+    /*
+    if (argc > 1){
+       {{solver_name}}_main(argc, argv);
+       return 0;
+    }
+    */
+    // solve_chemistry(argc, argv);
+    solve_chemistry_enzo(argc, argv);
+}
+
+// Sample on how to use dengo with primordial chemistry
+// with {{solver_name}}_solve_chemistry_enzo
+int solve_chemistry_enzo(int argc, char **argv) {
+    dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
+    int Nx = 32;
+    int Ny = 32;
+    int Nz = 32;
+
+    int N = Nx*Ny*Nz;
+    field_data->ncells = N; 
+    double density = 1.0e0; // in cm^-3
+    double T = 1000.0; // in K
+    double mH, k, tiny;
+
+    mH = 1.67e-24;
+    k  = 1.380e-16;
+    tiny = 1.0e-20; 
+    density *= mH;
+    double G = 6.67259e-8;
+    code_units *units = (code_units *) malloc(sizeof(code_units));
+    units->density_units = 1.0;
+    units->length_units = 1.0;
+    units->time_units = 1.0;
+    units->velocity_units = 1.0;
+    {%- for species in network.required_species | sort %}
+    double *{{species.name}}_density = (double*) malloc(N * sizeof(double));
+    {%- endfor %}
+    double *cooling_time = (double *) malloc( N * sizeof(double) );
+    double *gamma = (double * ) malloc( N * sizeof(double) );
+    double *temperature = (double *) malloc( N * sizeof(double) );
+    double *mean_molecular_weight = (double *) malloc( N * sizeof(double) );
+    double *density_arr = (double *) malloc( N * sizeof(double) );
+
+    double reltol;
+    double *abstol = (double*) malloc(sizeof(double)* N * {{network.required_species | length }});
+    reltol = 1.0e-5;
+
+    for ( int i = 0; i < N; i++){
+        {%- for species in network.required_species %}
+        {%- if species.name not in ["H2_1", "He_1", "H_1", "de", "H_2", "ge"] %}
+        {{species.name}}_density[i] = tiny*density;
+        {%- endif %}
+        {%- endfor %}
+        H2_1_density[i] = 1.0e-5 * density;
+        H_1_density[i]  = 0.76   * density;
+        He_1_density[i] = 0.24   * density;
+	    de_density[i]    = 1.0e-5 * density;
+	    H_2_density[i]   = 1.0e-5 * density;
+
+	    // ge ~ nkT / (gamma - 1)/ rho; gamaa ~ 5/3
+        ge_density[i]   = 3.0/2.0 * k * T / mH;
+	    density_arr[i] = (1+2.0*1e-5)*density;
+    }
+
+    for ( int i = 0; i < N * {{network.required_species| length}}; i++ ){
+    	abstol[i] = tiny * reltol;
+    }
+    
+    {%- for species in network.required_species %}
+    field_data->{{species.name}}_density = {{species.name}}_density;
+    {%- endfor %}
+
+    field_data->density         = density_arr;
+    field_data->CoolingTime     = cooling_time;
+    field_data->Gamma           = gamma;
+    field_data->temperature     = temperature;
+    field_data->MolecularWeight = mean_molecular_weight;
+
+    int gstart[3];
+    int gend[3];
+    int gd[3];
+
+    gstart[0] = 0;
+    gstart[1] = 0;
+    gstart[2] = 0;
+
+    gend[0] = Nx - 1;
+    gend[1] = Ny - 1;
+    gend[2] = Nz - 1;
+
+    gd[0] = Nx;
+    gd[1] = Ny;
+    gd[2] = Nz;
+
+    field_data->grid_start     = &gstart[0];
+    field_data->grid_end       = &gend[0];
+    field_data->grid_dimension = &gd[0];
+
+
+    const char *fileloc = "{{network._dengo_install_path}}/{{solver_name}}_tables.h5";
+    field_data->dengo_data_file = fileloc;
+    field_data->reltol = reltol;
+
+    units->a_value = 1.0;
+    units->a_units = 1.0;
+
+    double dt = 1.0 / sqrt(G * density) ;
+    fprintf(stderr, "MAX_NCELLS = %d \n", MAX_NCELLS);
+    {{solver_name}}_solve_chemistry_enzo( units, field_data, dt );
+    dengo_estimate_cooling_time_enzo( units, field_data);
+ 
+    {%- for species in network.required_species | sort %}
+    {%- if species.name != "ge" %}
+    fprintf(stderr, "{{species.name}} = %0.5g\n", field_data->{{species.name}}_density[0] / mH );
+    {%- else %}
+    fprintf(stderr, "{{species.name}} = %0.5g\n", field_data->{{species.name}}_density[0] );
+    {%- endif %}
+    {%- endfor %}
+    fprintf(stderr, "CoolingTime = %0.5g\n", field_data->CoolingTime[0]);
+
+    /*
+    double *Pressure = (double *) malloc(sizeof(double)*N);
+    double *Temperature = (double *) malloc(sizeof(double)*N);
+    double *Gamma  = (double *) malloc(sizeof(double)*N);
+    field_data->Gamma       = Gamma;
+    field_data->Pressure    = Pressure;
+    field_data->temperature = Temperature;
+
+    dengo_calculate_pressure_enzo   (units, field_data);
+    dengo_calculate_temperature_enzo(units, field_data);
+    dengo_calculate_gamma_enzo      (units, field_data);
+
+
+    for (int i = 0; i < 1; i++){
+    fprintf(stderr, "Gamma    = %0.5g ", field_data->Gamma[i]);
+    fprintf(stderr, "Pressure = %0.5g ", field_data->Pressure[i]);
+    fprintf(stderr, "Temperature = %0.5g\n", field_data->temperature[i]);
+    }
+
+    fprintf(stderr, "\nGamma    = %0.5g ", field_data->Gamma[0]);
+    compare_array(field_data->Gamma, 1.0e-4, N);
+    fprintf(stderr, "\nPressure = %0.5g ", field_data->Pressure[i]);
+    compare_array(field_data->Pressure, 1.0e-4, N);
+    fprintf(stderr, "\n Temperature = %0.5g\n", field_data->temperature[i]);
+    compare_array(field_data->temperature, 1.0e-4, N);
+    */
+
+    unsigned long d;
+    // lets just compare everything!!!!!!
+    double ref0, frac;
+    {%- for species in network.required_species %}
+    if (compare_array(field_data->{{species.name}}_density, reltol, N) == 1)
+        printf("{{species.name}} is not consistent\n");
+    {%- endfor -%}
+
+    if (compare_array(field_data->CoolingTime, reltol, N) == 1)
+        printf("CoolingTime is not consistent\n");
+
+    {%- if network.enforce_conservation %}
+    double fH = 0.76;
+    double fHe = 1- fH;
+    double rho;
+    double total_H;
+    double total_He;
+    double diff;
+    for (d = 0; d <N; d++){
+    	{%- for element in network.get_conserved_dict() %}
+        total_{{element}} = 0.0;
+        total_{{element}} = 0.0;
+        {%- endfor %}
+        rho = density_arr[d]*units->density_units;
+    	{%- for species in network.ode_species %}
+        {%- for element in species.elements %}
+        total_{{element}} += field_data->{{species.name}}_density[d]/rho/f{{element}};
+        {%- endfor %}
+        {%- endfor %}
+
+    	{%- for element in network.get_conserved_dict() %}
+        diff = fabs(total_{{element}} - 1.0);
+        if (diff > 1.0e-9){
+            fprintf(stderr, "total_{{element}} is  not conserved %0.5g\n", diff);
+	    }	
+	    {%- endfor %}
+    }
+    {%- endif %}
+
+    free(field_data);
+    {%- for species in network.required_species | sort %}
+    free({{species.name}}_density);
+    {%- endfor %}
+    free(cooling_time);
+    free(gamma);
+    free(temperature);
+    free(mean_molecular_weight);
+    free(abstol);
+    free(units);
+    free(density_arr);
+}
+
