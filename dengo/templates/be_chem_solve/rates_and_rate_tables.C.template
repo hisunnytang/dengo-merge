@@ -428,6 +428,8 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     }
     {%- endif %}
     //ensure_electron_consistency(input, dims, N);
+    double floor_value = data->floor_value;
+    for (j = 0; j< dims*N; j++) input[j] = fmax(input[j], floor_value);
 
     rhs_f f = calculate_rhs_{{solver_name}};
     jac_f jf = calculate_jacobian_{{solver_name}};
@@ -446,7 +448,6 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     double *s  = (double *) malloc(N*sizeof(double));
     double *gu = (double *) malloc(N*dims*sizeof(double));
     double *Ju = (double *) malloc(N*N*dims*sizeof(double));
-    double floor_value = 1e-25;
 
     // setting up extra temporary variables
     setting_up_extra_variables(data, scale, dims);
@@ -454,12 +455,12 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     while (ttot < dtf) {
         int rv = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, N,
                                scale, (void *) data, u0, s, gu, Ju);
-        /*
+        #ifdef DENGO_DEBUG
         fprintf(stderr, "Return value [%d]: %i.  %0.5g / %0.5g = %0.5g (%0.5g)\n",
                 niter, rv, ttot, dtf, ttot/dtf, dt);
         fprintf(stderr, "Value[0] = %0.5g %0.5g\n",
                 input[0], prev[0]);
-        */
+        #endif
         for (i = 0; i < dims * N; i++) {
             if (input[i] < 0) {
                 rv = 1;
@@ -521,8 +522,10 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         }
         niter++;
     }
+    #ifdef DENGO_DEBUG
     fprintf(stderr, "End: %0.5g / %0.5g (%0.5g)\n",
        ttot, dtf, dtf-ttot);
+    #endif
 
     {%-  if not network.input_is_number %}
     for (i = 0; i<dims; i++) {
@@ -1290,8 +1293,9 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
         dt = dtf;
         // evolve chemistry in dengo
         flag = dengo_evolve_{{solver_name}}(dtf, dt, z, &input[i*N*MAX_NCELLS], rtol, &atol[i*N*MAX_NCELLS], MAX_NCELLS, data);
+        #ifdef DENGO_DEBUG
         printf("tID(%d) flag = %d; %lu/ %lu\n", threadID, flag, i, ntimes);
-        
+        #endif
         flag_array[i] = flag;
     }
 
@@ -1301,8 +1305,9 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
         dt = dtf;
         // evolve chemistry in dengo
         flag = dengo_evolve_{{solver_name}}(dtf, dt, z, &input[ntimes*N*MAX_NCELLS], rtol, &atol[ntimes*N*MAX_NCELLS], nstrip_res, data);
+        #ifdef DENGO_DEBUG
         printf("tID(%d) flag = %d; %lu/ %lu\n", threadID, flag, i, nstrip_res);
-        
+        #endif
         flag_array[ntimes] = flag;
     } else{
         flag_array[ntimes] = 0;
@@ -1326,9 +1331,10 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
 
     // in Enzo; 0 == FAIL
     //          1 == SUCCESS
-    int Enzo_Fail = 0;
-    if (f == 0) return 0;
-    return 1;
+    int Enzo_Fail    = 0;
+    int Enzo_Success = 1;
+    if (f == 0) return Enzo_Success;
+    return Enzo_Fail;
 }
 {% endblock %}
 

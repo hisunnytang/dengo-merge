@@ -117,7 +117,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
   for (i=0; i<nstrip*nchem*nchem; i++)  Ju[i] = 0.0;
 
   // perform Newton iterations
-  //found_nan = 0;
+  found_nan = 0;
   for (isweep=0; isweep<sweeps; isweep++) {
 
     // compute nonlinear residual and Jacobian
@@ -186,6 +186,12 @@ int BE_chem_solve(rhs_f f, jac_f J,
           if ( u[ioff+i] != u[ioff+i] ) {  // NaN encountered!!
             printf("BE_chem_solve ERROR: NaN in iteration %i (cell %i, species %i); dt = %0.5g, atol = %0.5g\n",
                    isweep,ix,i, dt, atol[ioff+i]);
+            #ifdef DENGO_DEBUG
+            for (int jj = 0; jj < nchem; jj++){
+                printf("u[%d+%d] = %0.5g\n", ioff, jj, u[ioff+jj]);
+            }
+            printf("\n");
+            #endif
             if (dt < 1.0) {
 	              fprintf(stderr, "dt %0.5g, Sweep %d, Unsolved[%d]: nchem: %d change: % 0.8g sum tol: % 0.5g atol: % 0.5g rtol: % 0.5g value: % 0.5g\n",
 		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
@@ -199,7 +205,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
             
             delete[] inv_scaling;
             return 1;
-            //found_nan = 1;
+            found_nan = 1;
             //unsolved = 1;
             //break;
           }
@@ -208,7 +214,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
     } // ix loop
 
     // check if we ended up with a NaN, which certainly won't solve the next time around
-    //if (found_nan) break;
+    if (found_nan) break;
 
     // check for convergence
     if (!unsolved)  break;
@@ -231,10 +237,14 @@ int BE_chem_solve(rhs_f f, jac_f J,
 
   // final check, diagnostics output
   if (unsolved) {
-    //printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
+    #ifdef DENGO_DEBUG
+    printf("BE_chem_solve WARNING: unsolved after %i iterations\n",isweep);
+    #endif
     return 1;
   } else {
-    /*printf("BE_chem_solve: solved with %i total iterations\n",isweep);*/
+    #ifdef DENGI_DEBUG
+    printf("BE_chem_solve: solved with %i total iterations\n",isweep);
+    #endif
     return 0;
   }
 
@@ -271,6 +281,14 @@ int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt,
   //   g(u) = u - u0 - dt*f(u)
   for (i=0; i<nstrip*nchem; i++)  gu[i] = u[i] - u0[i] - dt*gu[i];
 
+  for (i=0; i<nstrip*nchem; i++){
+
+  #ifdef DENGO_DEBUG
+  if ( gu[i] != gu[i] ) {  // NaN encountered!!
+    printf("[RHS] NaN encountered at gu[%d] = %0.5g\n", i, gu[i]);
+  }
+  #endif
+  }
   return 0;
 }
 
@@ -317,6 +335,14 @@ int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
     for (ivar=0; ivar<nchem; ivar++)
       Ju[ix*nchem*nchem + ivar*nchem + ivar] += 1.0;
   
+  for (ix=0; ix<nstrip*nchem*nchem; ix++){
+
+  #ifdef DENGO_DEBUG
+  if ( Ju[ix] != Ju[ix] ) {  // NaN encountered!!
+    printf("[JAC] NaN encountered at Jac[%d] = %0.5g\n", ix, Ju[ix]);
+  }
+  #endif
+  }
   return 0;
 }
 
