@@ -21,6 +21,7 @@ LIBTOOL   = {{network._libtool}}
 {%endif%}
 
 CC      = gcc
+LIBTOOL = /usr/bin/libtool
 LIBS    = -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
@@ -30,7 +31,7 @@ TEST_OBJ = {{solver_name}}_solver_main.C
 includedir   = $(HDF5_PATH)/include
 libdir       = $(HDF5_PATH)/lib
 
-CFLAGS   = -O3 -DNDEBUG -g
+CFLAGS   = -O3 -DNDEBUG -g -fopenmp
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 

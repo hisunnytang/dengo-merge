@@ -427,7 +427,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
       {%-endfor%}
     }
     {%- endif %}
-    //ensure_electron_consistency(input, dims, N);
+    ensure_electron_consistency(input, dims, N);
     double floor_value = data->floor_value;
     for (j = 0; j< dims*N; j++) input[j] = fmax(input[j], floor_value);
 
@@ -912,7 +912,7 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
 
 {% block ensure_electron_consistency %}
 
-void ensure_electron_consistency(double *input, int nstrip, int nchem)
+void ensure_electron_consistency(double *input, long long nstrip, int nchem)
 {
     int i, j;
 
@@ -924,18 +924,19 @@ void ensure_electron_consistency(double *input, int nstrip, int nchem)
     int e_indx;
 
     for (i = 0; i<nstrip; i++) {
+        total_e = 0.0;
         j = i * nchem;
-    {%- for species in network.required_species | sort %}
+        {%- for species in network.required_species | sort %}
         {{species.name}} = input[j];
         {%if species.name != "ge" and species.name != "de" 
              and species.name != "us_e_0" %}
         total_e += {{species.name}} * {{species.free_electrons}};
         {%-endif%}
-        {%if species.name == "de" or species.name == "us_e_0" -%}
+        {%-if species.name == "de" or species.name == "us_e_0" -%}
         e_indx = j;
-        {%endif%}
+        {%-endif%}
         j++;
-    {% endfor %}
+        {% endfor %}
         input[e_indx] = total_e;
     }  
 }
