@@ -22,7 +22,7 @@
 OPTIONS = -DCVKLU -DMAX_NCELLS=256
 
 # Use OPENMP?
-OPTIONS += -fopenmp -DNTHREADS=8
+#OPTIONS += -fopenmp -DNTHREADS=8
 
 # Scale input to 1
 OPTIONS += -DSCALE_INPUT
@@ -32,9 +32,13 @@ CVODE_PATH    = {{network._cvode_path}}
 SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
 HDF5_PATH = {{network._hdf5_path}}
-LIBTOOL   = libtool
+
+{%if network._libtool is defined%}
+LIBTOOL   = {{network._libtool}}
+{%endif%}
 
 CC      = gcc
+LIBTOOL = /usr/bin/libtool
 LIBS     = -L$(HDF5_PATH)/lib -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
