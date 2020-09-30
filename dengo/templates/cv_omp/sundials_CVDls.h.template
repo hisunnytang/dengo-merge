@@ -266,6 +266,7 @@ typedef struct dengo_field_data
   double *MolecularWeight;
   double *temperature;
   double *Gamma;
+  double *Pressure;
 
   int *grid_start;
   int *grid_end;
@@ -284,8 +285,13 @@ int dengo_estimate_cooling_time( code_units* units, dengo_field_data * field_dat
 
 int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, {{solver_name}}_data *data);
 
+int dengo_calculate_pressure_enzo( code_units*, dengo_field_data* );
+int dengo_calculate_gamma_enzo( code_units*, dengo_field_data* );
+int dengo_calculate_temperature_enzo( code_units*, dengo_field_data* );
+
+int dengo_calculate_pressure( code_units*, dengo_field_data* );
 int dengo_calculate_temperature( code_units*, dengo_field_data* );
-int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data*, double*, int );
+int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data*, double* input, int nstrip);
 int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );
 
 int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
