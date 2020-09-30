@@ -215,7 +215,14 @@ def chianti_rate(atom_name, sm1, s, sp1):
     new_rates = []
     def ion_rate(network):
         ion = ch.ion(ion_name, temperature = network.T)
-        ion.ionizRate()
+        try:
+            ion.ionizRate()
+        except AttributeError:
+            print(f"{ion_name} is not defined in ChiantiPy master list")
+            print(f"manually adding temperature to {ion_name}_ion")
+            ion.Temperature = network.T
+            ion.NTempDens   = len(network.T)
+            ion.ionizRate()
         vals = ion.IonizRate['rate']
         return vals
     if sp1 is not None:
@@ -259,10 +266,14 @@ def ion_photoionization_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
-                      %(element_name, photo_background))
-        print('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
-                      %(element_name, photo_background))
+        fn = os.path.join(os.path.dirname(__file__),
+                '..', 'input', 'photoionization',
+                '%s_ion_by_ion_photoionization_%s.h5' %(element_name, photo_background))
+        f = h5py.File(fn,'r')
+        #f = h5py.File('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+        #              %(element_name, photo_background))
+        #print('../input/photoionization/%s_ion_by_ion_photoionization_%s.h5'
+        #              %(element_name, photo_background))
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
 
@@ -556,8 +567,12 @@ def ion_photoheating_rate(species, photo_background='HM12'):
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
         # NOTE: these rates do the interpolation as a function fo redshift
-        f = h5py.File('../input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
-                                                                 photo_background))
+        fn = os.path.join(os.path.dirname(__file__),
+                '..', 'input', 'photoheating',
+                '%s_ion_by_ion_photoheating_%s.h5' %(element_name, photo_background))
+        f = h5py.File(fn,'r')
+        #f = h5py.File('../input/photoheating/%s_ion_by_ion_photoheating_%s.h5' %(element_name,
+        #                                                         photo_background))
 
         ### Intepolate values within table values ###
         vals = np.interp(network.z, f['z'], f['%s' %(ion_name)])
