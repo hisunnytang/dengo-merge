@@ -502,6 +502,9 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         {%- endfor%}
     }
     {%- endif %}
+
+    double floor_value = data->floor_value;
+    for (i = 0; i < dims*N; i++) input[i] = fmax(floor_value, input[i]);
     
     // when partial equilibrium solver is used
     // the equilibrium abundance is passed through the temp_array
@@ -535,14 +538,13 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int niter = 0;
     int siter = 0;
 
-    double floor_value = 1e-20;
 
     // Initialize a CVODE object, memory spaces
     // and attach rhs, jac to them
     int flag;
     double reltol = rtol[0];
     void *cvode_mem;
-    int MAX_ITERATION = 1;
+    int MAX_ITERATION = 10;
     double mh = 1.66054e-24;
     int nstrip = data->nstrip;
 
@@ -957,7 +959,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
             {{ solver_name }}_interpolate_gamma(data, i);
             {% for sp in network.interpolate_gamma_species | sort %}
             gamma{{sp.name}} = data->gamma{{sp.name}}[threadID][i];
-            dgamma{{sp.name}}_dT = data->dgamma{{sp.name}}_dT[threadID][i];
+            dgamma{{sp.name}}_dT = 0.0; //data->dgamma{{sp.name}}_dT[threadID][i]; // iterations do not converge in some cases...
             _gamma{{sp.name}}_m1 = 1.0 / (gamma{{sp.name}} - 1.0);
             // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
             {% endfor %}
@@ -1077,7 +1079,7 @@ void ensure_electron_consistency(double *input, double *equil_array, unsigned lo
     int e_indx;
 
     for (i = 0; i<nstrip; i++) {
-	total_e = 0.0;
+	    total_e = 0.0;
     	{%- for species in network.equilibrium_species | sort %}
 	{{species.name}} = {{species.name}}_arr[i];
     	{%- endfor %}
