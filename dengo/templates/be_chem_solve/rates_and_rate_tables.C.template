@@ -98,6 +98,11 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
     
     {%- for name, rate in network.reactions | dictsort %}
     H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    H5LTread_dataset_double(file_id, "/{{name}}_{{name2}}", data->r_{{name}}_{{name2}});
+    {%- endfor %}
+    {%- endif %}
     {%- endfor %}
     
     H5Fclose(file_id);
@@ -235,6 +240,19 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data,
         }
     }
     {% endif -%}
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    for ( i = 0; i < nstrip; i++ ){
+        bin_id = data->bin_id[threadID][i];
+        Tdef   = data->Tdef[threadID][i];
+        data->rs_{{name}}_{{name2}}[threadID][i] = data->r_{{name}}_{{name2}}[bin_id] +
+            Tdef * (data->r_{{name}}[bin_id+1] - data->r_{{name}}_{{name2}}[bin_id]);
+        data->drs_{{name}}_{{name2}}[threadID][i] = (data->r_{{name}}_{{name2}}[bin_id+1] - data->r_{{name}}_{{name2}}[bin_id]);
+        data->drs_{{name}}_{{name2}}[threadID][i] /= data->dT[threadID][i];
+        data->drs_{{name}}_{{name2}}[threadID][i] *= data->invTs[threadID][i];
+    }
+    {%- endfor %}
+    {%- endif %}
     {% endfor %}
     
     {%- for name, rate in network.cooling_actions | dictsort %}
@@ -720,6 +738,11 @@ int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
     /* Now we set up some temporaries */
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->rs_{{name}}_{{name2}}[threadID];
+    {%- endfor %}
+    {%- endif %}
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
@@ -825,6 +848,12 @@ int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
     double *r{{name}} = data->drs_{{name}}[threadID];
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->rs_{{name}}_{{name2}}[threadID];
+    double *r{{name}}_{{name2}} = data->drs_{{name}}_{{name2}}[threadID];
+    {%- endfor %}
+    {%- endif %}
     {%- endfor %}
 
     {%- for name, rate in network.cooling_actions | dictsort %}
@@ -1382,7 +1411,13 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     // should only select relavant rates
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    double *{{name}}_{{name2}} = data->rs_{{name}}_{{name2}}[threadID];
     {%- endfor %}
+    {%- endif %}
+    {%- endfor %}
+
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];

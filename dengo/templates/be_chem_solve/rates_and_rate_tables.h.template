@@ -66,7 +66,15 @@ typedef struct {{solver_name}}_data {
     double rs_{{name}}[NTHREADS][MAX_NCELLS];
     double drs_{{name}}[NTHREADS][MAX_NCELLS];
     {%- endif %}
+    {%- if rate.tables is defined %}
+    {%- for name2 in rate.tables | sort %}
+    double r_{{name}}_{{name2}}[MAX_NCELLS];
+    double rs_{{name}}_{{name2}}[NTHREADS][MAX_NCELLS];
+    double drs_{{name}}_{{name2}}[NTHREADS][MAX_NCELLS];
+    {%- endfor %}
+    {%- endif %}
     {% endfor %}
+
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     {% if 'ph' not in name -%}
