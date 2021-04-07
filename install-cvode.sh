@@ -1,6 +1,6 @@
 set -ex
-# wget https://github.com/LLNL/sundials/releases/download/v5.7.0/cvode-5.7.0.tar.gz
-# tar -xvzf cvode-5.7.0.tar.gz
+wget https://github.com/LLNL/sundials/releases/download/v5.7.0/cvode-5.7.0.tar.gz
+tar -xvzf cvode-5.7.0.tar.gz
 cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
 cd builddir
 cvode_inst="${TRAVIS_BUILD_DIR}/cvode_instdir"
