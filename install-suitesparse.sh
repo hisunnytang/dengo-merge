@@ -3,7 +3,9 @@ git clone https://github.com/DrTimothyAldenDavis/SuiteSparse
 cd SuiteSparse
 make purge
 make distclean
-cd SuiteSparse_config && make CUDA=no LAPACK="" BLAS="" && cd ../
+export LAPACK=""
+export BLAS=""
+cd SuiteSparse_config && make CUDA=no && cd ../
 make metis CUDA=no
 cd AMD && make CUDA=no && cd ../
 cd CAMD && make CUDA=no && cd ../
