@@ -1,18 +1,13 @@
 set -ex
-git clone https://github.com/jluttine/suitesparse.git
-cd suitesparse
-git clone https://github.com/xianyi/OpenBLAS.git
-openblas_inst="${TRAVIS_BUILD_DIR}/suitesparse/OpenBLAS"
-cd OpenBLAS && make && make install PREFIX=$openblas_inst
-cd ../
-export LAPACK=""
-export BLAS="-L${openblas_inst}/lib -lopenblas"
-cd SuiteSparse_config && make && cd ../
-cd AMD && make && cd ../
-cd CAMD && make && cd ../
-cd CCOLAMD && make && cd ../
-suitesparse_inst="${TRAVIS_BUILD_DIR}/suitesparse"
-cd metis-5.1.0 && make config prefix=$suitesparse_inst && make && make install && cd ../
-cd COLAMD && make && cd ../
-cd BTF && make && cd ../
-cd KLU && make
+git clone https://github.com/DrTimothyAldenDavis/SuiteSparse
+cd SuiteSparse
+make purge
+make distclean
+cd SuiteSparse_config && make CUDA=no && cd ../
+make metis CUDA=no
+cd AMD && make CUDA=no && cd ../
+cd CAMD && make CUDA=no && cd ../
+cd CCOLAMD && make CUDA=no && cd ../
+cd COLAMD && make CUDA=no && cd ../
+cd BTF && make CUDA=no && cd ../
+cd KLU && make CUDA=no
