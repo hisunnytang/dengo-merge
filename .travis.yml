@@ -13,7 +13,7 @@ envs:
 before_install:
     - sudo apt-get install gfortran libtool
     - export DENGO_INSTALL_PATH=$TRAVIS_BUILD_DIR/dengo_install
-    - export CVODE_PATH=$TRAVIS_BUILD_DIR/cvode-3.1.0/instdir
+    - export CVODE_PATH=$TRAVIS_BUILD_DIR/cvode_instdir
     - export HDF5_PATH=$TRAVIS_BUILD_DIR/hdf5_install
     - export SUITESPARSE_PATH=$TRAVIS_BUILD_DIR/SuiteSparse
     - export HDF5_DIR=$TRAVIS_BUILD_DIR/hdf5_install
