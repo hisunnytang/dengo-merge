@@ -123,7 +123,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     int i, flag;
 
     /* Create CVODES object */
-    cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
+    cvode_mem = CVodeCreate(CV_BDF);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(NULL);
     
     
