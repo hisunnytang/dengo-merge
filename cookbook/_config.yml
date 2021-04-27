@@ -1,0 +1,7 @@
+# Book settings
+title: Dengo Cookbook
+author: Sunny Tang
+
+latex:
+  latex_documents:
+    targetname: book.tex
