@@ -176,6 +176,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     cdef double ttot = 0.0
     cdef int status
+    cdef int Enzo_Success = 1
+    cdef int Enzo_Fail    = 0
     # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
@@ -223,16 +225,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             {%- endfor %}
             temp_int[ i, iter ] = field_data.temperature[i]
 
-        if status == 0:
+        if status == Enzo_Success:
             result_int[iter] = 1
             ttot += dt
-        elif status == 1:
+        elif status == Enzo_Fail:
             result_int[iter] = 0
 
         t_int[iter] = ttot
         dt_int[iter] = dt
 
-        if status == 0:
+        if status == Enzo_Success:
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
@@ -241,7 +243,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
             if tf - ttot < dt:
                 dt = tf - ttot
-        elif status == 1:
+        elif status == Enzo_Fail:
             dt /= 2.0;
             # copy_array(prev, input, NTOT)
             # Reset the scaling array to match the new values
@@ -428,6 +430,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double dt = tf / niter
     cdef double ttot = 0.0
     cdef int status
+    cdef int Enzo_Success = 1;
+    cdef int Enzo_Fail    = 0;
     # Allocate some temporary data
     # Now we manually evolve
     #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
@@ -448,14 +452,14 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
                 j += 1
                 {%- endfor %}
                 # temp_int[i, iter] = data.Ts[i]
-            if status == 0:
+            if status == Enzo_Success:
                 result_int[iter] = 1
                 ttot += dt
-            elif status == 1:
+            elif status == Enzo_Fail:
                 result_int[iter] = 0
             t_int[iter] = ttot
             dt_int[iter] = dt
-        if status == 0:
+        if status == Enzo_Success:
             if iter % 1000 == 0:
                 print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (
                     iter, dt, ttot, tf)
@@ -465,7 +469,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             dt *= 1.1
             if tf - ttot < dt:
                 dt = tf - ttot
-        elif status == 1:
+        elif status == Enzo_Fail:
             dt /= 2.0
             copy_array(prev, input, NTOT)
             # Reset the scaling array to match the new values
