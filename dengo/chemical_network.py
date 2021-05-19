@@ -44,11 +44,52 @@ de = ChemicalSpecies("de", 1.0, pretty_name="Electrons")
 
 
 class ChemicalNetwork(object):
+    """[summary]
+
+    Parameters
+    ----------
+    object : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Yields
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    RuntimeError
+        [description]
+    """
 
     energy_term = None
     skip_weight = ("ge", "de")
 
     def __init__(self, write_intermediate=False, stop_time=3.1557e13):
+        """[summary]
+
+        Parameters
+        ----------
+        write_intermediate : bool, optional
+            [description], by default False
+        stop_time : [type], optional
+            [description], by default 3.1557e13
+        """
         self.reactions = {}
         self.cooling_actions = {}
         self.required_species = set([])
@@ -68,6 +109,17 @@ class ChemicalNetwork(object):
         self.enforce_conservation = False
 
     def add_collection(self, species_names, cooling_names, reaction_names):
+        """[summary]
+
+        Parameters
+        ----------
+        species_names : [type]
+            [description]
+        cooling_names : [type]
+            [description]
+        reaction_names : [type]
+            [description]
+        """
         for s in species_names:
             self.add_species(s)
         for c in cooling_names:
@@ -76,24 +128,44 @@ class ChemicalNetwork(object):
             self.add_reaction(r, False)
 
     def set_equilibrium_species(self, species):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+        """
         sp = species_registry.get(species, species)
         self.equilibrium_species.add(sp)
 
     def update_ode_species(self):
-        """this refers to the set of species that our ODE solver solves"""
+        """This refers to the set of species that our ODE solver solves
+        """
         self.ode_species = self.required_species.copy()
         for s in self.equilibrium_species:
             self.ode_species.remove(s)
 
     @property
     def chemical_species(self):
-        """helper function for code generation"""
+        """Helper function for code generation
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         chemical_species = self.required_species.copy()
         chemical_species.remove(self.energy_term)
         return chemical_species
 
     def solve_equilibrium_abundance(self, species):
-        """write the equilibrium abundance of species sp"""
+        """Write the equilibrium abundance of species sp
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         from sympy.solvers import solve
 
         eq = self.species_total(species)
@@ -101,10 +173,35 @@ class ChemicalNetwork(object):
         return ccode(equil_sol[0], assign_to=species)
 
     def add_species(self, species):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+        """
         sp = species_registry.get(species, species)
         self.required_species.add(sp)
 
     def add_reaction(self, reaction, auto_add=True):
+        """[summary]
+
+        Parameters
+        ----------
+        reaction : [type]
+            [description]
+        auto_add : bool, optional
+            [description], by default True
+
+        Raises
+        ------
+        RuntimeError
+            [description]
+        RuntimeError
+            [description]
+        RuntimeError
+            [description]
+        """
         reaction = reaction_registry.get(reaction, reaction)
         if reaction.name in self.reactions:
             raise RuntimeError
@@ -130,6 +227,22 @@ class ChemicalNetwork(object):
         print("Adding reaction: %s" % reaction)
 
     def add_cooling(self, cooling_term, auto_add=True):
+        """[summary]
+
+        Parameters
+        ----------
+        cooling_term : [type]
+            [description]
+        auto_add : bool, optional
+            [description], by default True
+
+        Raises
+        ------
+        RuntimeError
+            [description]
+        RuntimeError
+            [description]
+        """
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError
@@ -143,6 +256,15 @@ class ChemicalNetwork(object):
         self.cooling_actions[cooling_term.name] = cooling_term
 
     def init_temperature(self, T_bounds=(1, 1e8), n_bins=1024):
+        """[summary]
+
+        Parameters
+        ----------
+        T_bounds : tuple, optional
+            [description], by default (1, 1e8)
+        n_bins : int, optional
+            [description], by default 1024
+        """
         self.n_bins = n_bins
         self.T = np.logspace(
             np.log(T_bounds[0]), np.log(T_bounds[1]), n_bins, base=np.e
@@ -153,6 +275,15 @@ class ChemicalNetwork(object):
         self.T_bounds = T_bounds
 
     def init_redshift(self, z_bounds=(0.0, 10.0), n_z_bins=100):
+        """[summary]
+
+        Parameters
+        ----------
+        z_bounds : tuple, optional
+            [description], by default (0.0, 10.0)
+        n_z_bins : int, optional
+            [description], by default 100
+        """
         self.n_z_bins = n_z_bins
         self.z = np.logspace(
             np.log(z_bounds[0] + 1.0), np.log(z_bounds[1] + 1.0), n_z_bins, base=np.e
@@ -162,12 +293,36 @@ class ChemicalNetwork(object):
         self.z_bounds = z_bounds
 
     def species_total(self, species):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         eq = sympy.sympify("0")
         for rn, rxn in sorted(self.reactions.items()):
             eq += rxn.species_equation(species)
         return eq
 
     def species_reactions(self, species):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         tr = []
         for rn, rxn in sorted(self.reactions.items()):
             if species in rxn:
@@ -175,16 +330,44 @@ class ChemicalNetwork(object):
         return tr
 
     def species_list(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         species_list = []
         for s in sorted(self.required_species):
             species_list.append(s.name)
         return species_list
 
     def __iter__(self):
+        """[summary]
+
+        Yields
+        -------
+        [type]
+            [description]
+        """
         for rname, rxn in sorted(self.reactions.items()):
             yield rxn
 
     def print_ccode(self, species, assign_to=None):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+        assign_to : [type], optional
+            [description], by default None
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # assign_to = sympy.IndexedBase("d_%s" % species.name, (count_m,))
         if assign_to is None:
             assign_to = sympy.Symbol("d_%s[i]" % species.name)
@@ -199,9 +382,28 @@ class ChemicalNetwork(object):
         return ccode(eq, assign_to=assign_to)
 
     def cie_optical_depth_approx(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return sympy.Symbol("cie_optical_depth_approx")
 
     def print_cooling(self, assign_to):
+        """[summary]
+
+        Parameters
+        ----------
+        assign_to : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         eq = sympy.sympify("0")
         for term in self.cooling_actions:
             # TODO: make it a more general check case?
@@ -218,6 +420,13 @@ class ChemicalNetwork(object):
         return ccode(eq, assign_to=assign_to)
 
     def get_conserved_dict(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         self.conserved_dict = defaultdict(lambda: [])
         species_considered = ["H", "He"]
         for s in self.species_list():
@@ -230,7 +439,13 @@ class ChemicalNetwork(object):
         return self.conserved_dict
 
     def print_conserved_species(self, s, assign_to, is_mass_density=True):
-        """Calculate the total {H, He, ...} atoms locked in species considered"""
+        """Calculate the total {H, He, ...} atoms locked in species considered
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         self.get_conserved_dict()
         v = self.conserved_dict[s]
         eq = sympy.sympify("0")
@@ -243,6 +458,20 @@ class ChemicalNetwork(object):
         return ccode(eq, assign_to=assign_to)
 
     def print_apply_conservation(self, s, assign_to):
+        """[summary]
+
+        Parameters
+        ----------
+        s : [type]
+            [description]
+        assign_to : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         for ele, v in self.conserved_dict.items():
             _, w, _ = periodic_table_by_name[ele]
             vname = [i.name for i in v]
@@ -251,6 +480,13 @@ class ChemicalNetwork(object):
         return ""
 
     def cie_optical_depth_correction(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         mdensity = sympy.Symbol("mdensity")
         tau = (mdensity / 3.3e-8) ** 2.8
         tau = sympy.Max(tau, 1e-5)
@@ -258,6 +494,24 @@ class ChemicalNetwork(object):
         return ciefudge
 
     def print_jacobian_component(self, s1, s2, assign_to=None, print_zeros=True):
+        """[summary]
+
+        Parameters
+        ----------
+        s1 : [type]
+            [description]
+        s2 : [type]
+            [description]
+        assign_to : [type], optional
+            [description], by default None
+        print_zeros : bool, optional
+            [description], by default True
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
 
         if s1 == self.energy_term:
             st = sum(
@@ -290,6 +544,22 @@ class ChemicalNetwork(object):
     def get_sparse_matrix_component(
         self, sparse_type="CSR", return_type="component", assign_to="data"
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        sparse_type : str, optional
+            [description], by default "CSR"
+        return_type : str, optional
+            [description], by default "component"
+        assign_to : str, optional
+            [description], by default "data"
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
 
         k = 0
         colvals = []
@@ -342,9 +612,15 @@ class ChemicalNetwork(object):
             return k
 
     def print_JacTimesVec_component(self, s1, assign_to=None):
-        """
-        Compute the product of Jacobian * Vec for a given Vec
+        """Compute the product of Jacobian * Vec for a given Vec
+
+        Notes
+        -----
         Might be useful when we use the CVSpils solver
+        Returns
+        -------
+        [type]
+            [description]
         """
         if s1 == self.energy_term:
             st = sum(
@@ -383,7 +659,17 @@ class ChemicalNetwork(object):
         return ccode(JtV_eq, assign_to=assign_to)
 
     def print_mass_density(self):
-        # Note: this assumes things are number density at this point
+        """[summary]
+
+        Notes
+        -----
+        This assumes things are number density at this point
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
             if s.weight > 0:
@@ -393,6 +679,25 @@ class ChemicalNetwork(object):
         return ccode(eq)
 
     def interpolate_species_gamma(self, sp, deriv=False):
+        """[summary]
+
+        Parameters
+        ----------
+        sp : [type]
+            [description]
+        deriv : bool, optional
+            [description], by default False
+
+        Returns
+        -------
+        [type]
+            [description]
+
+        Raises
+        ------
+        RuntimeError
+            [description]
+        """
         if (sp.name == "H2_1") or (sp.name == "H2_2"):
             expr_gammaH2 = self.species_gamma(
                 species_registry["H2_1"], temp=True, name=False
@@ -418,6 +723,22 @@ class ChemicalNetwork(object):
             raise RuntimeError
 
     def species_gamma(self, species, temp=False, name=True):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+        temp : bool, optional
+            [description], by default False
+        name : bool, optional
+            [description], by default True
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if species in self.interpolate_gamma_species:
             sp_name = species.name
             T = sympy.Symbol("T")
@@ -470,6 +791,18 @@ class ChemicalNetwork(object):
         return gamma
 
     def gamma_factor(self, temp=False):
+        """[summary]
+
+        Parameters
+        ----------
+        temp : bool, optional
+            [description], by default False
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
             if s.name != "ge":
@@ -479,6 +812,22 @@ class ChemicalNetwork(object):
     def temperature_calculation(
         self, derivative=False, derivative_dge_dT=False, get_dge=False
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        derivative : bool, optional
+            [description], by default False
+        derivative_dge_dT : bool, optional
+            [description], by default False
+        get_dge : bool, optional
+            [description], by default False
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # If derivative=True, returns the derivative of
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
@@ -579,8 +928,21 @@ class ChemicalNetwork(object):
 
             return ccode(function_eq)
 
-    # This function computes the total number density
     def calculate_number_density(self, values, skip=()):
+        """Computes the total number density
+
+        Parameters
+        ----------
+        values : [type]
+            [description]
+        skip : tuple, optional
+            [description], by default ()
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -590,8 +952,19 @@ class ChemicalNetwork(object):
             n += values[s.name] / s.weight
         return n
 
-    # This function counts up the total number of free electrons
     def calculate_free_electrons(self, values):
+        """Counts up the total number of free electrons
+
+        Parameters
+        ----------
+        values : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -601,8 +974,19 @@ class ChemicalNetwork(object):
             n += (values[s.name] / s.weight) * s.free_electrons
         return n
 
-    # This computes the total mass density from abundance fractions
     def calculate_mass_density(self, values):
+        """Computes the total mass density from abundance fractions
+
+        Parameters
+        ----------
+        values : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -612,9 +996,19 @@ class ChemicalNetwork(object):
             n += values[s.name] * s.weight
         return n
 
-    # This function sums the densities (mass or number depending on what
-    # is fed in) of non-electron species
     def calculate_total_density(self, values):
+        """Sums mass or number densities of non-electron species
+
+        Parameters
+        ----------
+        values : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -624,8 +1018,21 @@ class ChemicalNetwork(object):
             n += values[s.name]
         return n
 
-    # This function converts from fractional abundance to mass density
     def convert_to_mass_density(self, values, skip=()):
+        """Converts from fractional abundance to mass density
+
+        Parameters
+        ----------
+        values : [type]
+            [description]
+        skip : tuple, optional
+            [description], by default ()
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         for s in self.required_species:
             if s.name in self.skip_weight:
                 continue
@@ -641,6 +1048,23 @@ class ChemicalNetwork(object):
         main_name="main",
         input_is_number=False,
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        solver_name : [type]
+            [description]
+        solver_template : str, optional
+            [description], by default "cvode_cuda"
+        output_dir : str, optional
+            [description], by default "."
+        init_values : [type], optional
+            [description], by default None
+        main_name : str, optional
+            [description], by default "main"
+        input_is_number : bool, optional
+            [description], by default False
+        """
         self.input_is_number = input_is_number
         self.update_ode_species()
 
@@ -723,6 +1147,25 @@ class ChemicalNetwork(object):
         main_name="main",
         input_is_number=False,
     ):
+        """[summary]
+
+        Parameters
+        ----------
+        solver_name : [type]
+            [description]
+        solver_template : str, optional
+            [description], by default "rates_and_rate_tables"
+        ode_solver_source : str, optional
+            [description], by default "BE_chem_solve.C"
+        output_dir : str, optional
+            [description], by default "."
+        init_values : [type], optional
+            [description], by default None
+        main_name : str, optional
+            [description], by default "main"
+        input_is_number : bool, optional
+            [description], by default False
+        """
         self.input_is_number = input_is_number
         self.update_ode_species()
 
