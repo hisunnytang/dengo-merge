@@ -47,7 +47,21 @@ cooling_registry = {}
 species_registry = {}
 
 def registry_setup(func):
+    """[summary]
+
+    Parameters
+    ----------
+    func : [type]
+        [description]
+    """
     def _wfunc(*args, **kwargs):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         old_names = [set(d.keys()) for d in (species_registry,
                                              cooling_registry,
                                              reaction_registry)]
@@ -62,14 +76,50 @@ def registry_setup(func):
 
 
 def ensure_reaction(r):
+    """[summary]
+
+    Parameters
+    ----------
+    r : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     if isinstance(r, Reaction): return r
     return reaction_registry[r]
 
 def ensure_cooling(c):
+    """[summary]
+
+    Parameters
+    ----------
+    c : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     if isinstance(c, CoolingAction): return c
     return cooling_registry[c]
 
 def ensure_species(s):
+    """[summary]
+
+    Parameters
+    ----------
+    s : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     if isinstance(s, Species): return s
     return species_registry[s]
 
@@ -77,18 +127,56 @@ count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
 
 class ReactionCoefficient(sympy.Symbol):
+    """[summary]
+
+    Parameters
+    ----------
+    sympy : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     #TODO: the functional derivatives
     # sympy.diff() of the sum/ mul of the combination of `ReacionCoefficient` class
     # gives zeros....
     energy = sympy.simplify("ge")
 
     def _eval_derivative(self, s):
+        """[summary]
+
+        Parameters
+        ----------
+        s : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if s == self.energy:
             return sympy.Symbol("r%s" % self)
         else:
             return super(ReactionCoefficient, self)._eval_derivative(s)
 
     def _eval_derivative_n_times(self, s, n):
+        """[summary]
+
+        Parameters
+        ----------
+        s : [type]
+            [description]
+        n : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if n == 1:
             return self._eval_derivative(s)
         else:
@@ -96,6 +184,18 @@ class ReactionCoefficient(sympy.Symbol):
 
 
     def diff(self, s):
+        """[summary]
+
+        Parameters
+        ----------
+        s : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if s == self.energy:
             return sympy.Symbol("r%s" %self)
         else:
@@ -103,11 +203,38 @@ class ReactionCoefficient(sympy.Symbol):
 
     @property
     def free_symbols(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return super().free_symbols.union(set([self.energy]))
 
 
 class Reaction(ComparableMixin):
+    """[summary]
+
+    Parameters
+    ----------
+    ComparableMixin : [type]
+        [description]
+    """
     def __init__(self, name, coeff_fn, left_side, right_side):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        coeff_fn : [type]
+            [description]
+        left_side : [type]
+            [description]
+        right_side : [type]
+            [description]
+        """
         self.name = name
         self.coeff_fn = coeff_fn
         #self.coeff_sym = sympy.IndexedBase(name, (count_m,))
@@ -118,22 +245,67 @@ class Reaction(ComparableMixin):
         reaction_registry[name] = self # Register myself
 
     def __contains__(self, c):
+        """[summary]
+
+        Parameters
+        ----------
+        c : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         c = ensure_species(c)
         return c in self.considered
 
     @property
     def down_species(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return [s for n, s in self.left_side]
 
     @property
     def up_species(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return [s for n, s in self.right_side]
 
     @property
     def species(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return set(self.down_species + self.up_species)
 
     def net_change(self, sname):
+        """[summary]
+
+        Parameters
+        ----------
+        sname : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         up = sum( n for n, s in self.right_side if s.name == sname)
         down = sum( n for n, s in self.left_side if s.name == sname)
         if up == down:
@@ -143,14 +315,38 @@ class Reaction(ComparableMixin):
 
     @property
     def nbody_reaction(self):
-        # this is handy function for calculating
-        # number of species involved in the reaction
-        # this is used primarily in counting the
-        # number of scale factors a^3 needed to
-        # `calibrate`the reaction rates
+        """Calculates the number of species involved in the reaction
+
+        Notes
+        -----
+        This is used primarily in counting the number of 
+        scale factors a^3 needed to calibrate the reaction
+        rates
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return sum(n for n, s in self.left_side)
 
     def __call__(self, quantities, up_derivatives, down_derivatives):
+        """[summary]
+
+        Parameters
+        ----------
+        quantities : [type]
+            [description]
+        up_derivatives : [type]
+            [description]
+        down_derivatives : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # We just calculate our net derivatives and stick them in the right
         # place
         r = self.rate(quantities)
@@ -163,9 +359,23 @@ class Reaction(ComparableMixin):
         return r
 
     def _cmpkey(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return repr(self)
 
     def __repr__(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         a = "%s : " % self.name \
           + " + ".join( ["%s*%s" % (i, s.name) for i, s in self.left_side] ) \
           + " => " \
@@ -174,11 +384,41 @@ class Reaction(ComparableMixin):
 
     @classmethod
     def create_reaction(cls, name, left_side, right_side):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        left_side : [type]
+            [description]
+        right_side : [type]
+            [description]
+        """
         def _w(f):
+            """[summary]
+
+            Parameters
+            ----------
+            f : [type]
+                [description]
+            """
             rxn = cls(name, f, left_side, right_side)
         return _w
 
     def species_equation(self, species):
+        """[summary]
+
+        Parameters
+        ----------
+        species : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if isinstance(species, str):
             species = species_registry[species]
         elif isinstance(species, (sympy.IndexedBase, sympy.Symbol)):
@@ -188,6 +428,13 @@ class Reaction(ComparableMixin):
         return nr * self.lhs_equation
     @property
     def lhs_equation(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         #eq = self.coeff_sym[index_i]
         eq = self.coeff_sym
         for i, s in self.left_side:
@@ -206,6 +453,31 @@ class Reaction(ComparableMixin):
 
 reaction = Reaction.create_reaction
 def chianti_rate(atom_name, sm1, s, sp1):
+    """[summary]
+
+    Parameters
+    ----------
+    atom_name : [type]
+        [description]
+    sm1 : [type]
+        [description]
+    s : [type]
+        [description]
+    sp1 : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ImportError
+        [description]
+    RuntimeError
+        [description]
+    """
     if ch is None: raise ImportError
     ion_name = s.name.lower()
     if "_" not in ion_name:
@@ -214,6 +486,18 @@ def chianti_rate(atom_name, sm1, s, sp1):
     de = species_registry['de']
     new_rates = []
     def ion_rate(network):
+        """[summary]
+
+        Parameters
+        ----------
+        network : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         ion = ch.ion(ion_name, temperature = network.T)
         try:
             ion.ionizRate()
@@ -232,6 +516,18 @@ def chianti_rate(atom_name, sm1, s, sp1):
         new_rates.append("%s_i" % s.name)
 
     def rec_rate(network):
+        """[summary]
+
+        Parameters
+        ----------
+        network : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         ion = ch.ion(ion_name, temperature = network.T)
         # for some reason, the latest chiantipy
         # failed to update the tempeature for fully ionized
@@ -247,6 +543,27 @@ def chianti_rate(atom_name, sm1, s, sp1):
     return new_rates
 
 def ion_photoionization_rate(species, photo_background='HM12'):
+    """[summary]
+
+    Parameters
+    ----------
+    species : [type]
+        [description]
+    photo_background : str, optional
+        [description], by default 'HM12'
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ImportError
+        [description]
+    RuntimeError
+        [description]
+    """
     if chu is None: raise ImportError
     ion_name = species.name.lower()
     #ion_name = chu.zion2name(np.int(species.number),
@@ -261,6 +578,18 @@ def ion_photoionization_rate(species, photo_background='HM12'):
     new_rates = []
 
     def photoionization_rate(network):
+        """[summary]
+
+        Parameters
+        ----------
+        network : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # Read in photoheating rates generated from Ben Oppenheimer's data
         # (from: http://noneq.strw.leidenuniv.nl/)
         # and do linear interpolation and then recompute
@@ -324,7 +653,25 @@ def ion_photoionization_rate(species, photo_background='HM12'):
     return new_rates
 
 class Species(ComparableMixin):
+    """[summary]
+
+    Parameters
+    ----------
+    ComparableMixin : [type]
+        [description]
+    """
     def __init__(self, name, weight, pretty_name = None):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        weight : [type]
+            [description]
+        pretty_name : [type], optional
+            [description], by default None
+        """
         self.pretty_name = pretty_name or name
         self.weight = weight
         self.name = name
@@ -332,34 +679,94 @@ class Species(ComparableMixin):
         species_registry[name] = self
 
     def _cmpkey(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return repr(self)
 
     def __repr__(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return "Species: %s" % (self.name)
 
 class ChemicalSpecies(Species):
+    """[summary]
+
+    Parameters
+    ----------
+    Species : [type]
+        [description]
+    """
     def __init__(self, name, weight, free_electrons = 0.0,
                  pretty_name = None):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        weight : [type]
+            [description]
+        free_electrons : float, optional
+            [description], by default 0.0
+        pretty_name : [type], optional
+            [description], by default None
+        """
         self.weight = weight
         self.free_electrons = free_electrons
         #self.elements = {}
         super(ChemicalSpecies, self).__init__(name, weight, pretty_name)
 
     def number_density(self, quantities):
+        """[summary]
+
+        Parameters
+        ----------
+        quantities : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if self.weight == 0:
             return quantities[self.name]
         return quantities[self.name]/self.weight
 
     def add_to_dict(self, e, v):
+        """[summary]
+
+        Parameters
+        ----------
+        e : [type]
+            [description]
+        v : [type]
+            [description]
+        """
         if  e in self._edict:
             self._edict[e] += v
         else:
             self._edict[e] = v
 
     def find_constituent(self):
-        """find elements based on its name
-        return: total weight
+        """Find elements based on its name
+        
+        Returns         #NOTE does this function actually return anything?
+        -------
+        total weight
+            [description]
         """
+
         self._edict = {}
         name = self.original_name
         split = re.findall("\d+|\D+[a-z]|\D", name)
@@ -372,13 +779,31 @@ class ChemicalSpecies(Species):
                 self.add_to_dict(_ele, 1)
         self.elements = self._edict
     def get_weight(self):
+        """[summary]
+        """
         w = 0
         for s, n in self.elements.items():
             w += periodic_table_by_name[s][1]*n
         self._weight = w
 
 class AtomicSpecies(ChemicalSpecies):
+    """[summary]
+
+    Parameters
+    ----------
+    ChemicalSpecies : [type]
+        [description]
+    """
     def __init__(self, atom_name, free_electrons):
+        """[summary]
+
+        Parameters
+        ----------
+        atom_name : [type]
+            [description]
+        free_electrons : [type]
+            [description]
+        """
         num, weight, pn = periodic_table_by_name[atom_name]
         if free_electrons < 0:
             name = "%s_m%i" % (atom_name, np.abs(free_electrons + 1))
@@ -394,8 +819,28 @@ class AtomicSpecies(ChemicalSpecies):
             free_electrons, pretty_name)
 
 class MolecularSpecies(ChemicalSpecies):
+    """[summary]
+
+    Parameters
+    ----------
+    ChemicalSpecies : [type]
+        [description]
+    """
     def __init__(self, molecule_name, weight, free_electrons,
                  original_name = None):
+        """[summary]
+
+        Parameters
+        ----------
+        molecule_name : [type]
+            [description]
+        weight : [type]
+            [description]
+        free_electrons : [type]
+            [description]
+        original_name : [type], optional
+            [description], by default None
+        """
         name = "%s_%i" % (molecule_name, free_electrons + 1)
         pretty_name = "%s with %s free electrons" % (
             name, free_electrons)
@@ -407,8 +852,29 @@ class MolecularSpecies(ChemicalSpecies):
 
 
 class CoolingAction(object):
+    """[summary]
+
+    Parameters
+    ----------
+    object : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     _eq = None
     def __init__(self, name, equation):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        equation : [type]
+            [description]
+        """
         self.name = name
         self._equation = equation
         self.tables = {}
@@ -419,10 +885,29 @@ class CoolingAction(object):
 
     # so that we can sort the coolingaction
     def __gt__(self, other):
+        """[summary]
+
+        Parameters
+        ----------
+        other : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         return self.name > other.name
 
     @property
     def equation(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
@@ -459,6 +944,13 @@ class CoolingAction(object):
 
     @property
     def species(self):
+        """[summary]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # self.equation
         bad = set(self.temp_symbols.values()).update( set(self.table_symbols.values()) )
         species = set([])
@@ -471,12 +963,42 @@ class CoolingAction(object):
         return species
 
     def table(self, func):
+        """[summary]
+
+        Parameters
+        ----------
+        func : [type]
+            [description]
+        """
         self.tables[func.__name__] = func
 
     def temporary(self, name, eq):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        eq : [type]
+            [description]
+        """
         self.temporaries[name] = eq
     @classmethod
     def create_cooling_action(cls, name, equation):
+        """[summary]
+
+        Parameters
+        ----------
+        name : [type]
+            [description]
+        equation : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         obj = cls(name, equation)
         def _W(f):
             f(obj)
@@ -485,13 +1007,38 @@ class CoolingAction(object):
 cooling_action = CoolingAction.create_cooling_action
 
 def ion_cooling_rate(species, atom_name):
+    """[summary]
 
+    Parameters
+    ----------
+    species : [type]
+        [description]
+    atom_name : [type]
+        [description]
+
+    Returns
+    -------
+    [type]
+        [description]
+    """
     species_c = species.name
     ion_name = species.name.lower()
     de = species_registry['de']
     new_rates = []
 
     def cooling_rate(network):
+        """[summary]
+
+        Parameters
+        ----------
+        network : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # Read in cooling rates from Gnat & Ferland 2012
         # and do linear interpolation and then recompute
         # the ends with either an extrapolation or falloff
@@ -548,6 +1095,27 @@ def ion_cooling_rate(species, atom_name):
     return new_rates
 
 def ion_photoheating_rate(species, photo_background='HM12'):
+    """[summary]
+
+    Parameters
+    ----------
+    species : [type]
+        [description]
+    photo_background : str, optional
+        [description], by default 'HM12'
+
+    Returns
+    -------
+    [type]
+        [description]
+
+    Raises
+    ------
+    ImportError
+        [description]
+    RuntimeError
+        [description]
+    """
     if chu is None: raise ImportError
     #ion_name = chu.zion2name(np.int(species.number),
     #                         np.int(species.free_electrons + 1))
@@ -562,6 +1130,18 @@ def ion_photoheating_rate(species, photo_background='HM12'):
     new_rates = []
 
     def photoheating_rate(network):
+        """[summary]
+
+        Parameters
+        ----------
+        network : [type]
+            [description]
+
+        Returns
+        -------
+        [type]
+            [description]
+        """
         # Read in photoheating rates generated from Ben Oppenheimer's data
         # (from: http://noneq.strw.leidenuniv.nl/)
         # and do linear interpolation and then recompute
