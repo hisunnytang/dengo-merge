@@ -3,6 +3,9 @@ cd SuiteSparse
 make purge
 # make distclean
 export CUDA=no
+export BLAS="-L/home/cwagner4/miniconda/lib -lblas"
+export LAPACK="-L/home/cwagner4/miniconda/lib -llapack"
+
 cd SuiteSparse_config && make CUDA=no &> /dev/null && cd ../
 make metis CUDA=no &> /dev/null
 cd AMD && make CUDA=no &> /dev/null && cd ../
