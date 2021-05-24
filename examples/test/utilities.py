@@ -17,6 +17,8 @@ import sys
 import matplotlib.pyplot as plt
 import pytest
 import h5py
+import logging
+
 
 def set_env_variables(var, path):
     """Set the environoment path for the use of dengo,
@@ -37,6 +39,19 @@ def set_env_variables(var, path):
         os.environ[var] = os.path.join(os.environ["DENGO_PATH"], path)
     else:
         os.environ[var] = path
+
+def check_defined_envpath():
+    paths          = ['HDF5_DIR', "HDF5_PATH", "DENGO_INSTALL_PATH"]
+    optional_paths = ["CVODE_PATH", "SUITESPARSE_PATH",]
+
+    for p in paths:
+        logging.debug(f"define paths {p} = {os.environ[p]}  ")
+        if p not in os.environ:
+            logging.debug("paths {p} is not defined.")
+            raise ValueError(f"Path {p} is not defined in your environment, try adding `export {p}=/path/to/install`")
+    for p in optional_paths:
+        if p not in os.environ:
+            logging.debug(f"optional path {p} is not found")
 
 
 def freefall_time(density):
@@ -101,8 +116,8 @@ def setup_primordial_network():
     # This defines the temperature range for the rate tables
     primordial.init_temperature((1e0, 1e8))
 
-    primordial.enforce_conservation = True
-    primordial.set_equilibrium_species("H2_2")
+    #primordial.enforce_conservation = True
+    #primordial.set_equilibrium_species("H2_2")
 
     return primordial
 
@@ -165,10 +180,10 @@ def write_network(network, solver_options={"output_dir": "test_dir",
     # IF you need to use the Makefile, and c-library
     # you will have to specified the library_path
 
-    output_dir = solver_options["output_dir"]
-    solver_name = solver_options["solver_name"]
-    use_omp = solver_options["use_omp"]
-    use_cvode = solver_options["use_cvode"]
+    output_dir      = solver_options["output_dir"]
+    solver_name     = solver_options["solver_name"]
+    use_omp         = solver_options["use_omp"]
+    use_cvode       = solver_options["use_cvode"]
     use_suitesparse = solver_options["use_suitesparse"]
 
     if use_cvode:
@@ -199,7 +214,7 @@ def run_solver(init_values, dtf=None,
     #niters = solver_options["niters"]
     #reltol = solver_options["reltol"]
     pyximport.install(setup_args={"include_dirs": np.get_include()},
-                      reload_support=True, inplace=True)
+                      reload_support=True, inplace=True, language_level=3)
 
     _solver_run = pyximport.load_module(
         "{}_solver_run".format(solver_name),
