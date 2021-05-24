@@ -13,27 +13,28 @@ import copy
 import pytest
 import h5py
 from utilities import setup_solver_options, write_network,\
-    run_solver, set_env_variables, run_c_solver, write_init_to_file
+    run_solver, check_defined_envpath, run_c_solver, write_init_to_file
 
 matplotlib.use("Agg")
 
 # note that these are not persistent at all!
 
-if "TRAVIS_BUILD_DIR" not in os.environ:
-    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
-    set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
-    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/dengo-git/suitesparse")
-    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
-else:
+#if "TRAVIS_BUILD_DIR" not in os.environ:
+#    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
+#    set_env_variables("CVODE_PATH", "/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir")
+#    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
+#    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/dengo-merge/suitesparse")
+#    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
+#else:
     # then we assume that the libraries are installed relative to the dengo
     # path, so the below paths are the relative default install path
-    set_env_variables("HDF5_DIR", "hdf5_install")
-    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
-    set_env_variables("HDF5_PATH", "hdf5_install")
-    set_env_variables("SUITESPARSE_PATH", "suitesparse")
-    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
+#    set_env_variables("HDF5_DIR", "hdf5_install")
+#    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
+#    set_env_variables("HDF5_PATH", "hdf5_install")
+#    set_env_variables("SUITESPARSE_PATH", "suitesparse")
+#    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
 
+check_defined_envpath()
 
 
 solver_name = "predator_prey"
@@ -77,6 +78,9 @@ def setup_predator_prey_rates():
 
 @pytest.fixture
 def setup_predator_prey_network():
+    return predator_prey_network()
+
+def predator_prey_network():
     setup_predator_prey_rates()
     cN = ChemicalNetwork()
     cN.add_reaction("exp_growth_prey")
@@ -86,7 +90,6 @@ def setup_predator_prey_network():
     # this shouldnt be compulsory...
     cN.init_temperature((1e0, 1e8))
     return cN
-
 
 def run_model(init_values, reltol=1.0e-5, make_plot=True, dtf=5.0e1):
     if not os.path.exists(output_dir):
@@ -190,6 +193,8 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
             make_plot=False,
             dtf=10.0)
         v0, vt = conserved_variables(results, make_plot=False)
+        print(setup_solver_options)
+        print(v0, vt)
         ones = np.ones_like(vt)
         # this shows the tolerance level of the solver
         np.testing.assert_array_almost_equal(ones, vt/v0, decimal=2)
@@ -228,25 +233,45 @@ def check_output_conservation(solver_options):
                            "output_dir": "cvode_klu"}),
                          indirect=True)
 def test_prey_predator(setup_predator_prey_network, setup_solver_options):
-    setup_solver_options["solver_name"] = solver_name
+    run_prey_predator(setup_predator_prey_network, setup_solver_options)
+    # setup_solver_options["solver_name"] = solver_name
+    # os.chdir(pytest_dir)
+
+    # write_network(setup_predator_prey_network,
+    #               setup_solver_options)
+    # init_values = write_initial_conditions(setup_predator_prey_network)
+
+    # os.chdir(setup_solver_options["output_dir"])
+
+    # setup_solver_options["niters"] = 1e2
+    # setup_solver_options["reltol"] = 1.0e-4
+    # results = run_solver(
+    #     init_values,
+    #     make_plot=False,
+    #     dtf=100.0,
+    #     **setup_solver_options)
+
+    # phase_plot(results)
+    # os.chdir("../")
+
+def run_prey_predator(network, options):
+    options["solver_name"] = solver_name
     os.chdir(pytest_dir)
+    write_network(network,
+                  options)
+    init_values = write_initial_conditions(network)
+    os.chdir(options['output_dir'])
 
-    write_network(setup_predator_prey_network,
-                  setup_solver_options)
-    init_values = write_initial_conditions(setup_predator_prey_network)
-
-    os.chdir(setup_solver_options["output_dir"])
-
-    setup_solver_options["niters"] = 1e2
-    setup_solver_options["reltol"] = 1.0e-4
+    options["niters"] = 1e2
+    options["reltol"] = 1.0e-4
     results = run_solver(
         init_values,
         make_plot=False,
         dtf=100.0,
-        **setup_solver_options)
-
+        **options)
     phase_plot(results)
     os.chdir("../")
+
 
 
 #@pytest.mark.xfail(reason="relative level of the tolerance?")
@@ -264,21 +289,47 @@ def test_prey_predator(setup_predator_prey_network, setup_solver_options):
     indirect=True)
 def test_prey_predator_convergence(
         setup_predator_prey_network, setup_solver_options):
-    init_values = write_initial_conditions(setup_predator_prey_network)
-    setup_solver_options["solver_name"] = solver_name
-    #
+    prey_predator_convergence(setup_predator_prey_network,
+                              setup_solver_options)
+
+    # os.chdir(pytest_dir)
+    # setup_solver_options["solver_name"] = solver_name
+
+    # write_network(
+    #     setup_predator_prey_network, setup_solver_options)
+
+    # init_values = write_initial_conditions(setup_predator_prey_network)
+    # os.chdir(setup_solver_options["output_dir"])
+    # results = run_solver(
+    #     init_values,
+    #     **setup_solver_options,
+    #     make_plot=False,
+    #     dtf=10.0)
+    # phase_plot(results)
+    # TestConvergence(
+    #     init_values, rtol_array=np.logspace(-8, -4, 5),
+    #     setup_solver_options=setup_solver_options)
+    # os.chdir("../")
+
+def prey_predator_convergence(network, option):
     os.chdir(pytest_dir)
-    os.chdir(setup_solver_options["output_dir"])
+    option["solver_name"] = solver_name
+
+    write_network(network, option)
+
+    init_values = write_initial_conditions(network)
+    os.chdir(option["output_dir"])
     results = run_solver(
         init_values,
-        **setup_solver_options,
+        **option,
         make_plot=False,
         dtf=10.0)
     phase_plot(results)
     TestConvergence(
         init_values, rtol_array=np.logspace(-8, -4, 5),
-        setup_solver_options=setup_solver_options)
+        setup_solver_options=option)
     os.chdir("../")
+
 
 
 @pytest.mark.last
@@ -297,7 +348,7 @@ def test_c_solver(setup_predator_prey_network, setup_solver_options):
     os.chdir(pytest_dir)
     write_init_to_file(init_values, setup_solver_options)
     run_c_solver(setup_solver_options)
-    #check_output_conservation(setup_solver_options)
+    check_output_conservation(setup_solver_options)
 
 def write_initial_conditions(cN, N=1024):
     init_values = {}
