@@ -15,25 +15,9 @@ import h5py
 from utilities import setup_solver_options, write_network,\
     run_solver, check_defined_envpath, run_c_solver, write_init_to_file
 
-matplotlib.use("Agg")
+plt.switch_backend("agg")
 
 # note that these are not persistent at all!
-
-#if "TRAVIS_BUILD_DIR" not in os.environ:
-#    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
-#    set_env_variables("CVODE_PATH", "/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir")
-#    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-#    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/dengo-merge/suitesparse")
-#    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
-#else:
-    # then we assume that the libraries are installed relative to the dengo
-    # path, so the below paths are the relative default install path
-#    set_env_variables("HDF5_DIR", "hdf5_install")
-#    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
-#    set_env_variables("HDF5_PATH", "hdf5_install")
-#    set_env_variables("SUITESPARSE_PATH", "suitesparse")
-#    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
-
 check_defined_envpath()
 
 

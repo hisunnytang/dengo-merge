@@ -16,29 +16,9 @@ from utilities import setup_primordial_network, setup_solver_options,\
     write_network, setup_initial_conditions, run_solver,freefall_time, \
     set_env_variables
 
+plt.switch_backend("agg")
 output_dir = "test_primordial"
 pytest_dir = os.getcwd()
-
-os.environ["DENGO_PATH"] = "/home/kwoksun2/"
-
-if "TRAVIS_BUILD_DIR" not in os.environ:
-    set_env_variables("HDF5_DIR", "/home/kwoksun2/anaconda3")
-    set_env_variables("CVODE_PATH", "/home/kwoksun2/cvode-3.1.0/instdir")
-    set_env_variables("HDF5_PATH", "/home/kwoksun2/anaconda3")
-    set_env_variables("SUITESPARSE_PATH", "/home/kwoksun2/SuiteSparse")
-    set_env_variables("DENGO_INSTALL_PATH", "/home/kwoksun2/dengo_install")
-else:
-    # then we assume that the libraries are installed relative to the dengo
-    # path, so the below paths are the relative default install path
-    set_env_variables("HDF5_DIR", "hdf5_install")
-    set_env_variables("CVODE_PATH", "cvode-3.1.0/instdir")
-    set_env_variables("HDF5_PATH", "hdf5_install")
-    set_env_variables("SUITESPARSE_PATH", "suitesparse")
-    set_env_variables("DENGO_INSTALL_PATH", "dengo_install")
-
-
-
-
 
 #@pytest.mark.parametrize('setup_solver_options',
 #                         ({"use_omp": False, "use_cvode": False,
@@ -85,6 +65,62 @@ def test_tolerance_convergence(setup_primordial_network, setup_solver_options):
         init_values = setup_initial_conditions(
             setup_primordial_network, density, temperature, h2frac, NCELLS)
         r = run_solver(init_values, **setup_solver_options, make_plot=False, intermediate=False)
+        if start:
+            for k, v in r.items():
+                if k in skip:
+                    continue
+                r[k] = [float(r[k])]
+            results = r
+            print(results)
+            start = False
+        else:
+            for k, v in r.items():
+                if k in skip:
+                    continue
+                results[k].append(v[0])
+    f, ax = plt.subplots()
+    for k, v in results.items():
+        if k in skip:
+            continue
+        # here we treat reltol = 1.0e-9 as ground truth
+        # and compare it to the rest to see if it converges
+        v = np.array(v)
+        error = np.abs((v[1:] - v[0]) / v[0])
+        if (error - rtol_array[1:]).sum() > 0.0:
+            print(k)
+        ax.loglog(rtol_array[1:], error, label=k)
+    ax.plot(rtol_array, rtol_array, ls='--', color='k')
+    #ax.set_ylim(1.0e-9, 1e-2)
+    #ax.set_xlim(1.0e-8, 1.0e-4)
+    ax.set_xlabel("Relative Tolerance of the Solver")
+    ax.set_ylabel("Fractional Differnce to rtol =1e-9")
+    ax.legend(loc="best", fontsize="xx-small")
+    f.savefig("primordial_tolerance_convergence.png")
+    os.chdir("../")
+
+def tolerance_convergence(network, options):
+    os.chdir(pytest_dir)
+    write_network(
+        network,
+        solver_options=options)
+    output_dir = options["output_dir"]
+    print(options)
+    if not os.path.exists(output_dir):
+        os.mkdir(output_dir)
+    os.chdir(output_dir)
+    density = 1.0e8
+    temperature = 1000.0
+    h2frac = 1.0e-4
+    NCELLS = 1
+
+    rtol_array = np.logspace(-8, -4, 5)
+    start = True
+    skip = ('successful', 'dt', 't')
+    for r in rtol_array:
+        options["reltol"] = r
+        init_values = setup_initial_conditions(
+            network, density, temperature, h2frac, NCELLS)
+        r = run_solver(init_values, **options, make_plot=False, intermediate=False)
         if start:
             for k, v in r.items():
                 if k in skip:
@@ -312,3 +348,19 @@ def test_run_grid(setup_primordial_network, setup_solver_options, nd, nT, nf):
             cbar = plt.colorbar(im, cax=cax)
     fig.tight_layout()
     fig.savefig("primordial_error_rate.png")
+
+
+def main():
+    network = setup_primordial_network()
+    solver_options = {"output_dir": "temp",
+                      "solver_name": "primordial",
+                      "use_omp": False,
+                      "use_cvode": False,
+                      "use_suitesparse": False,
+                      "niters": 1e3,
+                      "NCELLS": 128,
+                      "reltol": 1.0e-6}
+    tolerance_convergence(network, solver_options)
+
+if __name__ == '__main__':
+    main()

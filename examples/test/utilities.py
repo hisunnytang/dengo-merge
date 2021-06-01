@@ -60,6 +60,9 @@ def freefall_time(density):
 
 @pytest.fixture
 def setup_primordial_network():
+    return sample_primordial_network()
+
+def sample_primordial_network():
     """Initial a ChemicalNetwork object
        for primordial network 9-species model
     Return:
