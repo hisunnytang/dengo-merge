@@ -735,14 +735,13 @@ class ChemicalNetwork(object):
         if "HDF5_PATH" in os.environ:
             self._hdf5_path = os.environ["HDF5_PATH"]
         else:
-            print("Need to supply HDF5_PATH")
+            raise ValueError("Need to supply HDF5_PATH")
             return
 
         if "DENGO_INSTALL_PATH" in os.environ:
             self._dengo_install_path = os.environ["DENGO_INSTALL_PATH"]
         else:
-            print("Need to supply DENGO_INSTALL_PATH")
-            return
+            raise ValueError("Need to supply DENGO_INSTALL_PATH")
 
         # CVODE is optional, but recommended for performance boost
         if "CVODE_PATH" in os.environ:
@@ -759,6 +758,7 @@ class ChemicalNetwork(object):
             )
             print("In that case, please set ode_solver_source to 'BE_chem_solve.C'")
             print("and solver_template to 'rates_and_rate_tables'. ")
+            raise ValueError()
 
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
@@ -779,7 +779,9 @@ class ChemicalNetwork(object):
             extensions=["jinja2.ext.loopcontrols"],
             loader=jinja2.PackageLoader("dengo", "templates"),
         )
-        template_vars = dict(network=self, solver_name=solver_name)
+        template_vars = dict(network=self,
+                             solver_name=solver_name,
+                             init_values=init_values)
 
         for suffix in (
             ".C",
