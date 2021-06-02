@@ -23,6 +23,7 @@ jobs:
       HDF5_PATH: $GITHUB_WORKSPACE/hdf5_install
       SUITESPARSE_PATH: $GITHUB_WORKSPACE/SuiteSparse
       HDF5_DIR: $GITHUB_WORKSPACE/hdf5_install
+      LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
       
       
 
@@ -41,7 +42,7 @@ jobs:
     - name: Install gfortran, blas and lapack
       run: sudo apt-get install gfortran libblas-dev liblapack-dev
       
-    - name: Install SuiteSparse/ CVode/ Chiantipy/ HDF5
+    - name: Install SuiteSparse
       run: ./install-suitesparse.sh
       
     - name: Install CVode 5.7.0
@@ -50,7 +51,7 @@ jobs:
         tar -xvzf cvode-5.7.0.tar.gz
         cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
         cd builddir
-        cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -                         DKLU_LIBRARY_DIR="${suitesparse_inst}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
+        cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -DKLU_LIBRARY_DIR="${SUITESPARSE_PATH}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
         make && make install
         
     - name: Install HDF5
@@ -60,8 +61,12 @@ jobs:
         cd hdf5-1.10.5
         ./configure --prefix="${HDF5_DIR}"
         make && make install
+
     - name: Install ChiantiPy
       run: ./install-chiantipy.sh
+
+    - name: Build Dengo
+      run: pip install -e. 
         
     - name: Lint with flake8
       run: |
