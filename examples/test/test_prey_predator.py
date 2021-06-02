@@ -15,7 +15,7 @@ import h5py
 from utilities import setup_solver_options, write_network,\
     run_solver, check_defined_envpath, run_c_solver, write_init_to_file
 
-matplotlib.use("Agg")
+plt.switch_backend("agg")
 
 check_defined_envpath()
 
