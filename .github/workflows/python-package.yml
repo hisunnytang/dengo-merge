@@ -1,0 +1,74 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Python package
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+    env:
+      DENGO_INSTALL_PATH: $GITHUB_WORKSPACE:/dengo_install
+      CVODE_PATH: $GITHUB_WORKSPACE/cvode_instdir
+      HDF5_PATH: $GITHUB_WORKSPACE/hdf5_install
+      SUITESPARSE_PATH: $GITHUB_WORKSPACE/SuiteSparse
+      HDF5_DIR: $GITHUB_WORKSPACE/hdf5_install
+      
+      
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+        
+    - name: Install gfortran, blas and lapack
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev
+      
+    - name: Install SuiteSparse/ CVode/ Chiantipy/ HDF5
+      run: ./install-suitesparse.sh
+      
+    - name: Install CVode 5.7.0
+      run: |
+        wget https://github.com/LLNL/sundials/releases/download/v5.7.0/cvode-5.7.0.tar.gz
+        tar -xvzf cvode-5.7.0.tar.gz
+        cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
+        cd builddir
+        cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -                         DKLU_LIBRARY_DIR="${suitesparse_inst}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
+        make && make install
+        
+    - name: Install HDF5
+      run: |
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
+        tar -xvzf hdf5-1.10.5.tar.gz
+        cd hdf5-1.10.5
+        ./configure --prefix="${HDF5_DIR}"
+        make && make install
+    - name: Install ChiantiPy
+      run: ./install-chiantipy.sh
+        
+    - name: Lint with flake8
+      run: |
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        pytest --ignore-glob="*cuda*" -v examples/test/
