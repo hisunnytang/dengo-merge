@@ -18,7 +18,7 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9]
     env:
-      DENGO_INSTALL_PATH: ${{github.workspace}}:/dengo_install
+      DENGO_INSTALL_PATH: ${{github.workspace}}/dengo_install
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
       HDF5_PATH: ${{github.workspace}}/hdf5_install
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
