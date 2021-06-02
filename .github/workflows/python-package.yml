@@ -18,11 +18,11 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9]
     env:
-      DENGO_INSTALL_PATH: $GITHUB_WORKSPACE:/dengo_install
-      CVODE_PATH: $GITHUB_WORKSPACE/cvode_instdir
-      HDF5_PATH: $GITHUB_WORKSPACE/hdf5_install
-      SUITESPARSE_PATH: $GITHUB_WORKSPACE/SuiteSparse
-      HDF5_DIR: $GITHUB_WORKSPACE/hdf5_install
+      DENGO_INSTALL_PATH: ${{github.workspace}}:/dengo_install
+      CVODE_PATH: ${{github.workspace}}/cvode_instdir
+      HDF5_PATH: ${{github.workspace}}/hdf5_install
+      SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
+      HDF5_DIR: ${{github.workspace}}/hdf5_install
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
       
       
