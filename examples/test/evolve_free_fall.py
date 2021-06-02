@@ -7,8 +7,6 @@ from dengo.chemical_network import \
 import dengo.primordial_rates
 import dengo.primordial_cooling
 from dengo.chemistry_constants import tiny, kboltz, mh
-import yt
-import yt.units as u
 import numpy
 import pickle
 import time
@@ -174,7 +172,7 @@ def calculate_pressure(init, primordial):
     for sp in primordial.required_species:
         if sp.name != 'ge':
             n_sp = init[sp.name]/sp.weight
-            P += n_sp * u.boltzmann_constant_cgs.v * T
+            P += n_sp * kboltz * T
     return P
 
 
@@ -307,7 +305,7 @@ def update_initial_condition(
     # compute the new density using the modified
     # free-fall collapse as per Omukai et al. (2005)
 
-    gravitational_constant = 4.0*numpy.pi*6.65259e-8 * u.amu_cgs.v
+    gravitational_constant = 4.0*numpy.pi*6.65259e-8 * amu_cgs.v
     freefall_time_constant = np.power(
         ((32.0*gravitational_constant) / (3.0*numpy.pi)), 0.5)
 
@@ -368,22 +366,22 @@ def convert_from_grackle_to_dengo(grackle_dict, init=True):
         if charge > 0:
             dengo_name = ele + '_' + str(charge)
             dengo_dict[dengo_name] = numpy.array(
-                grackle_dict[key])/u.amu_cgs.v
+                grackle_dict[key])/amu_cgs.v
         elif 'M' in key:
             ele = key.split('M')[0]
             dengo_name = ele + '_' + str("m0")
             dengo_dict[dengo_name] = numpy.array(
-                grackle_dict[key])/u.amu_cgs.v
+                grackle_dict[key])/amu_cgs.v
         elif key == 'temperature':
             dengo_name = 'T'
             dengo_dict[dengo_name] = numpy.array(grackle_dict[key])
         elif key == 'de':
             dengo_name = 'de'
             dengo_dict[dengo_name] = numpy.array(
-                grackle_dict[key])/u.amu_cgs.v
+                grackle_dict[key])/amu_cgs.v
         elif key == 'density':
             dengo_dict[key] = numpy.array(
-                grackle_dict[key])/u.amu_cgs.v
+                grackle_dict[key])/amu_cgs.v
         else:
             dengo_dict[key] = numpy.array(grackle_dict[key])
     if init:
@@ -403,23 +401,23 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
             dengo_name = ele + '_' + str(charge)
             if ele == 'H':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v  # / 1.00794
+                    grackle_dict[key])/amu_cgs.v  # / 1.00794
             elif ele == 'He':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v  # / 4.002602
+                    grackle_dict[key])/amu_cgs.v  # / 4.002602
             elif ele == 'H2':
                 dengo_dict[dengo_name] = numpy.array(
-                    grackle_dict[key])/u.amu_cgs.v  # / 1.00794 / 2.0
+                    grackle_dict[key])/amu_cgs.v  # / 1.00794 / 2.0
         elif 'M' in key:
             ele = key.split('M')[0]
             dengo_name = ele + '_' + str("m0")
-            dengo_dict[dengo_name] = numpy.array(grackle_dict[key])/u.amu_cgs.v
+            dengo_dict[dengo_name] = numpy.array(grackle_dict[key])/amu_cgs.v
         elif key == 'temperature':
             dengo_name = 'T'
             dengo_dict[dengo_name] = numpy.array(grackle_dict[key])
         elif key == 'de':
             dengo_name = 'de'
-            dengo_dict[dengo_name] = numpy.array(grackle_dict[key])/u.amu_cgs.v
+            dengo_dict[dengo_name] = numpy.array(grackle_dict[key])/amu_cgs.v
     return dengo_dict
 
 

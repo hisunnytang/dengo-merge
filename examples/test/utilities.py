@@ -7,8 +7,6 @@ from dengo.chemical_network import \
 import dengo.primordial_rates
 import dengo.primordial_cooling
 from dengo.chemistry_constants import tiny, kboltz, mh, G
-import yt
-import yt.units as u
 import numpy
 import pickle
 import time
