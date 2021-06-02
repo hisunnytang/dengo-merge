@@ -17,7 +17,6 @@ from utilities import setup_solver_options, write_network,\
 
 plt.switch_backend("agg")
 
-# note that these are not persistent at all!
 check_defined_envpath()
 
 

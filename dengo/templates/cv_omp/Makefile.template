@@ -35,10 +35,11 @@ HDF5_PATH = {{network._hdf5_path}}
 
 {%if network._libtool is defined%}
 LIBTOOL   = {{network._libtool}}
+{%else%}
+LIBTOOL = libtool
 {%endif%}
 
 CC      = gcc
-LIBTOOL = /usr/bin/libtool
 LIBS     = -L$(HDF5_PATH)/lib -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
