@@ -51,6 +51,8 @@ jobs:
         tar -xvzf cvode-5.7.0.tar.gz
         cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
         cd builddir
+        echo $SUITESPARSE_PATH
+        echo $CVODE_PATH
         cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -DKLU_LIBRARY_DIR="${SUITESPARSE_PATH}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
         make && make install
         
