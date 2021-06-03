@@ -124,7 +124,7 @@ clean:
 	rm -f run_dengo
 	rm -f libdengo.la
 	rm -f *.lo
-	libtool --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
+	$(libtool) --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
 
 
 

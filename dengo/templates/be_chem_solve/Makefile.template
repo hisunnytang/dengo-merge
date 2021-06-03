@@ -19,7 +19,7 @@ HDF5_PATH = {{network._hdf5_path}}
 {%if network._libtool is defined%}
 LIBTOOL   = {{network._libtool}}
 {%else%}
-LIBTOOL = /usr/bin/libtool
+LIBTOOL = libtool
 {%endif%}
 
 CC      = gcc
@@ -82,7 +82,7 @@ clean:
 	rm -f run_dengo
 	rm -f libdengo.la
 	rm -f *.lo
-	libtool --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
+	$(libtool) --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
 
 
 
