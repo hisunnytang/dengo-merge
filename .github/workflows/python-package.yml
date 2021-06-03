@@ -21,8 +21,10 @@ jobs:
       DENGO_INSTALL_PATH: ${{github.workspace}}/dengo_install
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
-      HDF5_INCLUDEDIR: /usr/include/hdf5/serial
-      HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
+      #HDF5_INCLUDEDIR: /usr/include/hdf5/serial
+      #HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
+      HDF5_DIR: ${{github.workspace}}/hdf5_install
+      HDF5_PATH: ${{github.workspace}}/hdf5_install
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_LIBDIR:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
       
       
@@ -35,8 +37,16 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     - name: Install gfortran, blas and lapack, HDF5
-      run: sudo apt-get install gfortran libblas-dev liblapack-dev libhdf5-dev libtool-bin
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin
     
+    - name: Install HDF5
+      run: |
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
+        tar -xvzf hdf5-1.10.5.tar.gz
+        cd hdf5-1.10.5
+        ./configure --prefix="${HDF5_DIR}"
+        make && make install
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -58,13 +68,6 @@ jobs:
         cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -DKLU_LIBRARY_DIR="${SUITESPARSE_PATH}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
         make && make install
         
-    #- name: Install HDF5
-    #  run: |
-    #    wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
-    #    tar -xvzf hdf5-1.10.5.tar.gz
-    #    cd hdf5-1.10.5
-    #    ./configure --prefix="${HDF5_DIR}"
-    #    make && make install
 
     - name: Install ChiantiPy
       run: ./install-chiantipy.sh
