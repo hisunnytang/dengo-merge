@@ -22,7 +22,7 @@ jobs:
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
       HDF5_INCLUDEDIR: /usr/include/hdf5/serial
-      HDF5_INCLUDEDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
+      HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
       
       
