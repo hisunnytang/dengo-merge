@@ -33,14 +33,16 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
+    
+    - name: Install gfortran, blas and lapack, HDF5
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev libhdf5-dev libtool-bin
+    
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
-    - name: Install gfortran, blas and lapack, HDF5
-      run: sudo apt-get install gfortran libblas-dev liblapack-dev libhdf5-dev libtool-bin
       
     - name: Install SuiteSparse
       run: ./install-suitesparse.sh
@@ -78,4 +80,5 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+
         pytest --ignore-glob="*cuda*" -v examples/test/
