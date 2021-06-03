@@ -1,39 +1,40 @@
 import os
+from distutils.extension import Extension
 
 def make_ext(modname, pyxfilename):
-	from distutils.extension import Extension
-	if "HDF5_DIR" in os.environ:
-		hdf5_dir = os.environ["HDF5_DIR"]
-	elif "YT_DEST" in os.environ:
-		hdf5_dir = os.environ["YT_DEST"]
-	else:
-		print("You need to set HDF5_DIR or YT_DEST in your environment.")
-		raise RuntimeError
-
-	inc = os.path.join(hdf5_dir, "include")
-	lib = os.path.join(hdf5_dir, "lib")
-	compile_flags = ["-w"]
-	include_paths = [inc, ".", "{{network._cvode_path}}/include"]
-	library_paths = [lib, "{{network._cvode_path}}/lib"]
+    if "HDF5_DIR" in os.environ:
+        hdf5_dir = os.environ["HDF5_DIR"]
+        inc = os.path.join(hdf5_dir, "include")
+        lib = os.path.join(hdf5_dir, "lib")
+    elif "HDF5_INCLUDEDIR" in os.environ and "HDF5_LIBDIR" in os.environ:
+        inc = os.environ["HDF5_INCLUDEDIR"]
+        lib = os.environ["HDF5_LIBDIR"]
+    else:
+        print("You need to set HDF5_DIR or HDF5_INCLUDEDIR and HDF5_LIBDIR in your environment.")
+        raise RuntimeError
+        
+    compile_flags = ["-w"]
+    include_paths = [inc, ".", "{{network._cvode_path}}/include"]
+    library_paths = [lib, "{{network._cvode_path}}/lib"]
 	# add compiler flag to the cython build 
 	# if cvode is build with KLU and Suitesparse
-	libraries = ['m', 'hdf5', 'hdf5_hl', "stdc++", "sundials_cvode", "sundials_nvecserial"]
-	if "SUITESPARSE_PATH" in os.environ:
-		print("You have suitesparse!")
-		ss_path = os.environ["SUITESPARSE_PATH"]
-		ss_inc_dir = os.path.join( ss_path, "include" )
-		ss_lib_dir = os.path.join( ss_path, "lib" )
-		compile_flags += ["-DCVKLU", "-DMAX_NCELLS=256", "-DSCALE_INPUT"]
-		include_paths += [ss_inc_dir]
-		library_paths += [ss_lib_dir]
-		libraries += ["sundials_sunlinsolklu"]
-		klu_libraries = [ "klu", "amd", "colamd", "btf","suitesparseconfig" ]
-		libraries += klu_libraries
-	else:
-		compile_flags += ["-DCVDLS", "-DMAX_NCELLS=1"]
-	return Extension(name=modname,
-			sources=[pyxfilename,"{{solver_name}}_solver.C", "initialize_cvode_solver.C"],
-			include_dirs=include_paths,
-			library_dirs=library_paths,
-			libraries=libraries,
-			language="C++", extra_compile_args=compile_flags)
+    libraries = ['m', 'hdf5', 'hdf5_hl', "stdc++", "sundials_cvode", "sundials_nvecserial"]
+    if "SUITESPARSE_PATH" in os.environ:
+        print("You have suitesparse!")
+        ss_path = os.environ["SUITESPARSE_PATH"]
+        ss_inc_dir = os.path.join( ss_path, "include" )
+        ss_lib_dir = os.path.join( ss_path, "lib" )
+        compile_flags += ["-DCVKLU", "-DMAX_NCELLS=256", "-DSCALE_INPUT"]
+        include_paths += [ss_inc_dir]
+        library_paths += [ss_lib_dir]
+        libraries += ["sundials_sunlinsolklu"]
+        klu_libraries = [ "klu", "amd", "colamd", "btf","suitesparseconfig" ]
+        libraries += klu_libraries
+    else:
+        compile_flags += ["-DCVDLS", "-DMAX_NCELLS=1"]
+    return Extension(name=modname, 
+                    sources=[pyxfilename,"{{solver_name}}_solver.C", "initialize_cvode_solver.C"],
+                    include_dirs=include_paths,
+                    library_dirs=library_paths,
+                    libraries=libraries,
+                    language="C++", extra_compile_args=compile_flags)

@@ -14,7 +14,19 @@
 
 # INSTALL PATHS
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
+
+{% if network._hdf5_path is defined %}
 HDF5_PATH = {{network._hdf5_path}}
+HDF5_INC  = $(HDF5_PATH)/include
+HDF5_LIB  = $(HDF5_PATH)/lib
+{% elif network._hdf5_include is defined %}
+HDF5_INC  = {{network._hdf5_include}}
+HDF5_LIB  = {{network._hdf5_lib}}
+{%else%}
+# Specify the paths here
+HDF5_INC = 
+HDF5_LIB = 
+{%endif%}
 
 {%if network._libtool is defined%}
 LIBTOOL   = {{network._libtool}}
@@ -29,8 +41,8 @@ LIBS    = -lhdf5 -lhdf5_hl -lm -lstdc++
 OBJ = {{solver_name}}_solver.C BE_chem_solve.C
 TEST_OBJ = {{solver_name}}_solver_main.C
 
-includedir   = $(HDF5_PATH)/include
-libdir       = $(HDF5_PATH)/lib
+includedir   = $(HDF5_INC)
+libdir       = $(HDF5_LIB)
 
 CFLAGS   = -O3 -DNDEBUG -g -fopenmp
 LDFLAGS  = 

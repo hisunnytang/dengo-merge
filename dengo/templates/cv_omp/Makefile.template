@@ -31,7 +31,19 @@ OPTIONS += -DSCALE_INPUT
 CVODE_PATH    = {{network._cvode_path}}
 SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
+
+{% if network._hdf5_path is defined %}
 HDF5_PATH = {{network._hdf5_path}}
+HDF5_INC  = $(HDF5_PATH)/include
+HDF5_LIB  = $(HDF5_PATH)/lib
+{% elif network._hdf5_include is defined %}
+HDF5_INC  = {{network._hdf5_include}}
+HDF5_LIB  = {{network._hdf5_lib}}
+{%else%}
+# Specify the paths here
+HDF5_INC = 
+HDF5_LIB = 
+{%endif%}
 
 {%if network._libtool is defined%}
 LIBTOOL   = {{network._libtool}}
@@ -49,8 +61,8 @@ TEST_OBJ = {{solver_name}}_solver_main.C
 SHELL = sh
 
 exec_prefix  = $(CVODE_PATH)/instdir
-includedir   = $(CVODE_PATH)/include $(HDF5_PATH)/include
-libdir       = $(CVODE_PATH)/lib
+includedir   = $(CVODE_PATH)/include $(HDF5_INC)
+libdir       = $(CVODE_PATH)/lib $(HDF5_LIB)
 
 CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
@@ -99,7 +111,7 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I $(HDF5_INC) -L$(HDF5_LIB)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
 	./run_dengo
