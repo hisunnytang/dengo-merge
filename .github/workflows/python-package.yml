@@ -20,9 +20,9 @@ jobs:
     env:
       DENGO_INSTALL_PATH: ${{github.workspace}}/dengo_install
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
-      HDF5_PATH: /usr
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
-      HDF5_DIR: /usr
+      HDF5_INCLUDEDIR: /usr/include/hdf5/serial
+      HDF5_INCLUDEDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
       LD_LIBRARY_PATH: $LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
       
       
@@ -40,7 +40,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
     - name: Install gfortran, blas and lapack, HDF5
-      run: sudo apt-get install gfortran libblas-dev liblapack-dev libhdf5-dev
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev libhdf5-dev libtool-bin
       
     - name: Install SuiteSparse
       run: ./install-suitesparse.sh
