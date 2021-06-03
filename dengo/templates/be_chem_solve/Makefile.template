@@ -48,7 +48,7 @@ CFLAGS   = -O3 -DNDEBUG -g -fopenmp
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
-LINKFLAGS = -Wl,-rpath,$(HDF5_PATH)/lib
+LINKFLAGS = -Wl,-rpath,$(HDF5_LIB)
 
 TMP_INCS  = . ${includedir} 
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
@@ -69,7 +69,7 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(HDF5_INC) -L$(HDF5_LIB) -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
 	./run_dengo

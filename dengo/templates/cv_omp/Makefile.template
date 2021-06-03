@@ -52,7 +52,7 @@ LIBTOOL = libtool
 {%endif%}
 
 CC      = gcc
-LIBS     = -L$(HDF5_PATH)/lib -lhdf5 -lhdf5_hl -lm -lstdc++
+LIBS     = -L$(HDF5_LIB) -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
 OBJ = {{solver_name}}_solver.C initialize_cvode_solver.C
@@ -68,7 +68,7 @@ CFLAGS   = -O3 -DNDEBUG -g
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
-LINKFLAGS = -Wl,-rpath,$(CVODE_PATH)/lib:$(HDF5_PATH)/lib
+LINKFLAGS = -Wl,-rpath,$(CVODE_PATH)/lib:$(HDF5_LIB)
 
 TMP_INCS  = . ${includedir} 
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
@@ -111,7 +111,7 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I $(HDF5_INC) -L$(HDF5_LIB)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I $(HDF5_INC) -L$(HDF5_LIB) -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
 	./run_dengo
