@@ -39,17 +39,29 @@ def set_env_variables(var, path):
         os.environ[var] = path
 
 def check_defined_envpath():
-    paths          = ['HDF5_DIR', "HDF5_PATH", "DENGO_INSTALL_PATH"]
+    paths          = ["DENGO_INSTALL_PATH"]
     optional_paths = ["CVODE_PATH", "SUITESPARSE_PATH",]
+
+    hdf5_paths = ["HDF5_INCLUDEDIR", "HDF5_LIBDIR"]
+
 
     for p in paths:
         logging.debug(f"define paths {p} = {os.environ[p]}  ")
         if p not in os.environ:
             logging.debug("paths {p} is not defined.")
             raise ValueError(f"Path {p} is not defined in your environment, try adding `export {p}=/path/to/install`")
+
     for p in optional_paths:
         if p not in os.environ:
             logging.debug(f"optional path {p} is not found")
+
+    if "HDF5_PATH" in os.environ:
+        logging.debug(f"define HDF5_PATH = {os.environ['HDF5_PATH']}  ")
+    elif "HDF5_INCLUDEDIR" in os.environ and "HDF5_LIBDIR" in os.environ:
+        logging.debug(f"define HDF5_INCLUDEDIR = {os.environ['HDF5_INCLUDEDIR']}  ")
+        logging.debug(f"define HDF5_LIBDIR     = {os.environ['HDF5_LIBDIR']}  ")
+    else:
+        raise ValueError(f"Path {p} is not defined in your environment, try adding `export {p}=/path/to/install`")
 
 
 def freefall_time(density):
