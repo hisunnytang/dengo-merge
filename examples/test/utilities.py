@@ -240,7 +240,7 @@ def run_solver(init_values, dtf=None,
     #rv, rv_int = eval("_solver_run.run_{}(init_values, dtf, \
     #                  niter={}, reltol = {}, floor_value = 1.0e-20)".format(
     #                      solver_name, niters, reltol))
-    rv, rv_int = _solver_run.run_prey_predator(init_values, dtf, \
+    rv, rv_int = _solver_run.run_predator_prey(init_values, dtf, \
                       niter=1e3, reltol = 1e-4, floor_value = 1.0e-20)
     mask = rv_int['successful']
 
