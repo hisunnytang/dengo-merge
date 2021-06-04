@@ -25,7 +25,6 @@ jobs:
       #HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
       HDF5_DIR: ${{github.workspace}}/hdf5_install
       HDF5_PATH: ${{github.workspace}}/hdf5_install
-      HDF5_LIBDIR: ${{github.workspace}}/hdf5_install/lib
       
       
 
@@ -39,12 +38,12 @@ jobs:
     - name: Install gfortran, blas and lapack, HDF5
       run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin #libhdf5-dev
 
-    - name: get env variables
-      run: |
-        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_LIBDIR:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
-        echo $LD_LIBRARY_PATH
-        echo $HDF5_DIR
-        echo $HDF5_PATH
+    # - name: get env variables
+    #   run: |
+    #     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_LIBDIR:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib
+    #     echo $LD_LIBRARY_PATH
+    #     echo $HDF5_DIR
+    #     echo $HDF5_PATH
         #ls $HDF5_INCLUDEDIR
         #ls $HDF5_LIBDIR
           #pytest --ignore-glob="*cuda*" -v examples/test/
@@ -96,6 +95,9 @@ jobs:
     #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
+        echo "test h5py install?"
+        python -c "import h5py; h5py.run_tests()"
+        export HDF5_LIBDIR=${{github.workspace}}/hdf5_install/lib
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
         echo $LD_LIBRARY_PATH
         pytest --ignore-glob="*cuda*" -v examples/test/test_prey_predator.py
