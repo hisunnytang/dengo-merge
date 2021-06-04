@@ -23,8 +23,8 @@ jobs:
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
       #HDF5_INCLUDEDIR: /usr/include/hdf5/serial
       #HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
-      HDF5_DIR: ${{github.workspace}}/hdf5_install
-      HDF5_PATH: ${{github.workspace}}/hdf5_install
+      #HDF5_DIR: ${{github.workspace}}/hdf5_install
+      #HDF5_PATH: ${{github.workspace}}/hdf5_install
       
       
 
@@ -54,7 +54,9 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install flake8 pytest
-        #pip install --no-binary=h5py h5py
+        export HDF5_INCLUDEDIR=${{github.workspace}}/hdf5_install/include
+        export HDF5_LIBDIR=${{github.workspace}}/hdf5_install/lib
+        pip install --no-binary=h5py h5py
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     
     - name: Install HDF5
@@ -97,7 +99,6 @@ jobs:
       run: |
         echo "test h5py install?"
         python -c "import h5py; h5py.run_tests()"
-        export HDF5_LIBDIR=${{github.workspace}}/hdf5_install/lib
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
         echo $LD_LIBRARY_PATH
         pytest --ignore-glob="*cuda*" -v examples/test/test_prey_predator.py
