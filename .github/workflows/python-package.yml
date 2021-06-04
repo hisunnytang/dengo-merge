@@ -99,6 +99,6 @@ jobs:
       run: |
         echo "test h5py install?"
         python -c "import h5py; h5py.run_tests()"
-        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_DIR}/lib:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
         echo $LD_LIBRARY_PATH
         pytest --ignore-glob="*cuda*" -v examples/test/test_prey_predator.py
