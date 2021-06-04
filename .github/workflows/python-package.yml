@@ -57,33 +57,33 @@ jobs:
     #     ./configure --prefix="${HDF5_DIR}"
     #     make && make install
 
-    # - name: Install dependencies
-    #   run: |
-    #     python -m pip install --upgrade pip
-    #     python -m pip install flake8 pytest
-    #     if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install flake8 pytest
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
       
-    # - name: Install SuiteSparse
-    #   run: ./install-suitesparse.sh
+    - name: Install SuiteSparse
+      run: ./install-suitesparse.sh
       
-    # - name: Install CVode 5.7.0
-    #   run: |
-    #     wget https://github.com/LLNL/sundials/releases/download/v5.7.0/cvode-5.7.0.tar.gz
-    #     tar -xvzf cvode-5.7.0.tar.gz
-    #     cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
-    #     cd builddir
-    #     echo $SUITESPARSE_PATH
-    #     echo $CVODE_PATH
-    #     cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -DKLU_LIBRARY_DIR="${SUITESPARSE_PATH}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
-    #     make && make install
+    - name: Install CVode 5.7.0
+      run: |
+        wget https://github.com/LLNL/sundials/releases/download/v5.7.0/cvode-5.7.0.tar.gz
+        tar -xvzf cvode-5.7.0.tar.gz
+        cd cvode-5.7.0 && rm -rf builddir && mkdir builddir
+        cd builddir
+        echo $SUITESPARSE_PATH
+        echo $CVODE_PATH
+        cmake -DCMAKE_INSTALL_PREFIX=$CVODE_PATH -DKLU_INCLUDE_DIR="${SUITESPARSE_PATH}/include" -DKLU_LIBRARY_DIR="${SUITESPARSE_PATH}/lib" -DCMAKE_C_FLAGS=-fPIC -DENABLE_KLU=ON ../
+        make && make install
         
 
-    # - name: Install ChiantiPy
-    #   run: ./install-chiantipy.sh
+    - name: Install ChiantiPy
+      run: ./install-chiantipy.sh
 
-    # - name: Build Dengo
-    #   run: pip install -e. 
+    - name: Build Dengo
+      run: pip install -e. 
         
     # - name: Lint with flake8
     #   run: |
@@ -91,8 +91,8 @@ jobs:
     #     flake8 . --count --exit-zero --select=E9,F63,F7,F82 --show-source --statistics
     #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
     #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    # - name: Test with pytest
-    #   run: |
-    #     export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
-    #     echo $LD_LIBRARY_PATH
-    #     pytest --ignore-glob="*cuda*" -v examples/test/
+    - name: Test with pytest
+      run: |
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
+        echo $LD_LIBRARY_PATH
+        pytest --ignore-glob="*cuda*" -v examples/test/test_prey_predator.py
