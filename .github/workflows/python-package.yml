@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.7 ] #, 3.8, 3.9]
     env:
       DENGO_INSTALL_PATH: ${{github.workspace}}/dengo_install
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
@@ -50,13 +50,6 @@ jobs:
           #pytest --ignore-glob="*cuda*" -v examples/test/
     
     
-    - name: Install HDF5
-      run: |
-        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
-        tar -xvzf hdf5-1.10.5.tar.gz
-        cd hdf5-1.10.5
-        ./configure --prefix="${HDF5_DIR}"
-        make && make install
 
     - name: Install dependencies
       run: |
@@ -64,6 +57,14 @@ jobs:
         python -m pip install flake8 pytest
         #pip install --no-binary=h5py h5py
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+    
+    - name: Install HDF5
+      run: |
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
+        tar -xvzf hdf5-1.10.5.tar.gz
+        cd hdf5-1.10.5
+        ./configure --prefix="${HDF5_DIR}"
+        make && make install
         
       
     - name: Install SuiteSparse
