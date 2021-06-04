@@ -23,8 +23,8 @@ jobs:
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
       HDF5_INCLUDEDIR: /usr/include/hdf5/serial
       HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
-      HDF5_DIR: ${{github.workspace}}/hdf5_install
-      HDF5_PATH: ${{github.workspace}}/hdf5_install
+      #HDF5_DIR: ${{github.workspace}}/hdf5_install
+      #HDF5_PATH: ${{github.workspace}}/hdf5_install
       
       
 
