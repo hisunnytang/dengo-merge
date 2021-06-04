@@ -21,10 +21,11 @@ jobs:
       DENGO_INSTALL_PATH: ${{github.workspace}}/dengo_install
       CVODE_PATH: ${{github.workspace}}/cvode_instdir
       SUITESPARSE_PATH: ${{github.workspace}}/SuiteSparse
-      HDF5_INCLUDEDIR: /usr/include/hdf5/serial
-      HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
-      #HDF5_DIR: ${{github.workspace}}/hdf5_install
-      #HDF5_PATH: ${{github.workspace}}/hdf5_install
+      #HDF5_INCLUDEDIR: /usr/include/hdf5/serial
+      #HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
+      HDF5_DIR: ${{github.workspace}}/hdf5_install
+      HDF5_PATH: ${{github.workspace}}/hdf5_install
+      HDF5_LIBDIR: ${{github.workspace}}/hdf5_install/lib
       
       
 
@@ -36,7 +37,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install gfortran, blas and lapack, HDF5
-      run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin libhdf5-dev
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin #libhdf5-dev
 
     - name: get env variables
       run: |
@@ -49,13 +50,13 @@ jobs:
           #pytest --ignore-glob="*cuda*" -v examples/test/
     
     
-    # - name: Install HDF5
-    #   run: |
-    #     wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
-    #     tar -xvzf hdf5-1.10.5.tar.gz
-    #     cd hdf5-1.10.5
-    #     ./configure --prefix="${HDF5_DIR}"
-    #     make && make install
+    - name: Install HDF5
+      run: |
+        wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hdf5-1.10.5.tar.gz
+        tar -xvzf hdf5-1.10.5.tar.gz
+        cd hdf5-1.10.5
+        ./configure --prefix="${HDF5_DIR}"
+        make && make install
 
     - name: Install dependencies
       run: |
