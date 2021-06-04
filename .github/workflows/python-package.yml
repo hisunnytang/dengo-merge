@@ -45,8 +45,8 @@ jobs:
         echo $LD_LIBRARY_PATH
         echo $HDF5_DIR
         echo $HDF5_PATH
-        ls $HDF5_INCLUDEDIR
-        ls $HDF5_LIBDIR
+        #ls $HDF5_INCLUDEDIR
+        #ls $HDF5_LIBDIR
           #pytest --ignore-glob="*cuda*" -v examples/test/
     
     
