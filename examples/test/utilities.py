@@ -233,7 +233,9 @@ def run_solver(init_values, dtf=None,
         "{}_solver_run".format(solver_name),
         "{}_solver_run.pyx".format(solver_name),
         build_inplace=True, pyxbuild_dir="_dengo_temp")
-
+    print('_solver_run', _solver_run)
+    print(_solver_run.__dict__)
+    print(init_values, dtf)
     if dtf is None:
         dtf = freefall_time(init_values["density"])
 
