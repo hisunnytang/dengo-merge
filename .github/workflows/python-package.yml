@@ -82,5 +82,6 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with pytest
       run: |
-        echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_LIBDIR:$SUITESPARSE_PATH/lib:$CVODE_PATH/lib'
+        echo 'export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_LIBDIR}:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib'
+        echo $LD_LIBRARY_PATH
         pytest --ignore-glob="*cuda*" -v examples/test/
