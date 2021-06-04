@@ -25,7 +25,7 @@ jobs:
       #HDF5_LIBDIR: /usr/lib/x86_64-linux-gnu/hdf5/serial
       HDF5_DIR: ${{github.workspace}}/hdf5_install
       HDF5_PATH: ${{github.workspace}}/hdf5_install
-      LD_LIBRARY_PATH: ${{LD_LIBRARY_PATH}}:${{DENGO_INSTALL_PATH}}/lib:${{HDF5_LIBDIR}}:${{SUITESPARSE_PATH}}/lib:${{CVODE_PATH}}/lib
+      LD_LIBRARY_PATH: ${{env.LD_LIBRARY_PATH}}:${{env.DENGO_INSTALL_PATH}}/lib:${{env.HDF5_LIBDIR}}:${{env.SUITESPARSE_PATH}}/lib:${{env.CVODE_PATH}}/lib
       
       
 
