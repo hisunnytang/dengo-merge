@@ -36,7 +36,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install gfortran, blas and lapack, HDF5
-    run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin build-essential #libhdf5-dev
+      run: sudo apt-get install gfortran libblas-dev liblapack-dev libtool-bin build-essential #libhdf5-dev
 
     # - name: get env variables
     #   run: |
