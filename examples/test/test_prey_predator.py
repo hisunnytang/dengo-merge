@@ -1,3 +1,5 @@
+import faulthandler
+faulthandler.enable()
 import numpy as np
 from dengo.reaction_classes import \
     reaction, \
@@ -15,7 +17,8 @@ import h5py
 from utilities import setup_solver_options, write_network,\
     run_solver, check_defined_envpath, run_c_solver, write_init_to_file
 
-plt.switch_backend("agg")
+
+#plt.switch_backend("agg")
 
 check_defined_envpath()
 
