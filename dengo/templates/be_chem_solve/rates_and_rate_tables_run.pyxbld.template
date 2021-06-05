@@ -12,6 +12,9 @@ def make_ext(modname, pyxfilename):
     else:
         print("You need to set HDF5_DIR or HDF5_INCLUDEDIR and HDF5_LIBDIR in your environment.")
         raise RuntimeError
+    print('include paths', inc)
+    print('library_paths', lib)
+
     return Extension(name=modname,
                      sources=[pyxfilename,
                         "{{solver_name}}_solver.C", "BE_chem_solve.C"],

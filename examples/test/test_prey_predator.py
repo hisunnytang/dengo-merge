@@ -250,7 +250,7 @@ def run_prey_predator(network, options):
     results = run_solver(
         init_values,
         make_plot=False,
-        dtf=100.0,
+        dtf=10.0,
         **options)
     phase_plot(results)
     os.chdir("../")
@@ -346,3 +346,18 @@ def write_initial_conditions(cN, N=1024):
     init_values['ge'] = np.ones((N)) * 10.0
 
     return init_values
+
+def main():
+    network = predator_prey_network()
+    solver_options = {"output_dir": "temp",
+                      "solver_name": "primordial",
+                      "use_omp": False,
+                      "use_cvode": False,
+                      "use_suitesparse": False,
+                      "niters": 1e3,
+                      "NCELLS": 128,
+                      "reltol": 1.0e-6}
+    run_prey_predator(network, solver_options)
+
+if __name__ == '__main__':
+    main()

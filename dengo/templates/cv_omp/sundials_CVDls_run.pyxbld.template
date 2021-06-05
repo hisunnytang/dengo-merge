@@ -16,6 +16,8 @@ def make_ext(modname, pyxfilename):
     compile_flags = ["-w"]
     include_paths = [inc, ".", "{{network._cvode_path}}/include"]
     library_paths = [lib, "{{network._cvode_path}}/lib"]
+    print('include paths', include_paths)
+    print('library_paths', library_paths)
 	# add compiler flag to the cython build 
 	# if cvode is build with KLU and Suitesparse
     libraries = ['m', 'hdf5', 'hdf5_hl', "stdc++", "sundials_cvode", "sundials_nvecserial"]
