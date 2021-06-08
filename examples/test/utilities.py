@@ -227,7 +227,8 @@ def run_solver(init_values, dtf=None,
     #niters = solver_options["niters"]
     #reltol = solver_options["reltol"]
     pyximport.install(setup_args={"include_dirs": np.get_include()},
-                      reload_support=True, inplace=True, language_level=3)
+                      reload_support=True, inplace=True, language_level=3,
+                      build_in_temp=True)
 
     _solver_run = pyximport.load_module(
         "{}_solver_run".format(solver_name),
@@ -242,8 +243,7 @@ def run_solver(init_values, dtf=None,
     #rv, rv_int = eval("_solver_run.run_{}(init_values, dtf, \
     #                  niter={}, reltol = {}, floor_value = 1.0e-20)".format(
     #                      solver_name, niters, reltol))
-    rv, rv_int = _solver_run.run_predator_prey(init_values, dtf, \
-                      niter=1e3, reltol = 1e-4, floor_value = 1.0e-20)
+    rv, rv_int = _solver_run.run_predator_prey(init_values, dtf, niter=1e3, reltol = 1e-4, floor_value = 1.0e-20)
     mask = rv_int['successful']
 
     for name in sorted(rv_int):
