@@ -11,9 +11,11 @@ import dengo.primordial_rates, dengo.primordial_cooling
 import pyximport
 import os
 import pylab
+from utilities import check_defined_envpath
+
+
 
 check_defined_envpath()
-
 # this would register all the reaction defined in primodial_rates!
 # such that these reaction are set up and can be founnd in reaction registry and species registry
 dengo.primordial_rates.setup_primordial()

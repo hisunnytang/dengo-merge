@@ -7,8 +7,6 @@ from dengo.chemical_network import \
 import dengo.primordial_rates
 import dengo.primordial_cooling
 from dengo.chemistry_constants import tiny, kboltz, mh, G
-import yt
-import yt.units as u
 import numpy
 import pickle
 import time
@@ -20,17 +18,29 @@ import h5py
 import logging
 
 def check_defined_envpath():
-    paths          = ['HDF5_DIR', "HDF5_PATH", "DENGO_INSTALL_PATH"]
+    paths          = ["DENGO_INSTALL_PATH"]
     optional_paths = ["CVODE_PATH", "SUITESPARSE_PATH",]
+
+    hdf5_paths = ["HDF5_INCLUDEDIR", "HDF5_LIBDIR"]
+
 
     for p in paths:
         logging.debug(f"define paths {p} = {os.environ[p]}  ")
         if p not in os.environ:
             logging.debug("paths {p} is not defined.")
             raise ValueError(f"Path {p} is not defined in your environment, try adding `export {p}=/path/to/install`")
+
     for p in optional_paths:
         if p not in os.environ:
             logging.debug(f"optional path {p} is not found")
+
+    if "HDF5_PATH" in os.environ:
+        logging.debug(f"define HDF5_PATH = {os.environ['HDF5_PATH']}  ")
+    elif "HDF5_INCLUDEDIR" in os.environ and "HDF5_LIBDIR" in os.environ:
+        logging.debug(f"define HDF5_INCLUDEDIR = {os.environ['HDF5_INCLUDEDIR']}  ")
+        logging.debug(f"define HDF5_LIBDIR     = {os.environ['HDF5_LIBDIR']}  ")
+    else:
+        raise ValueError(f"Path {p} is not defined in your environment, try adding `export {p}=/path/to/install`")
 
 
 def freefall_time(density):
@@ -203,13 +213,16 @@ def run_solver(init_values, dtf=None,
         "{}_solver_run".format(solver_name),
         "{}_solver_run.pyx".format(solver_name),
         build_inplace=True, pyxbuild_dir="_dengo_temp")
-
+    print('_solver_run', _solver_run)
+    print(_solver_run.__dict__)
+    print(init_values, dtf)
     if dtf is None:
         dtf = freefall_time(init_values["density"])
 
-    rv, rv_int = eval("_solver_run.run_{}(init_values, dtf, \
-                      niter={}, reltol = {}, floor_value = 1.0e-20)".format(
-                          solver_name, niters, reltol))
+    #rv, rv_int = eval("_solver_run.run_{}(init_values, dtf, \
+    #                  niter={}, reltol = {}, floor_value = 1.0e-20)".format(
+    #                      solver_name, niters, reltol))
+    rv, rv_int = _solver_run.run_predator_prey(init_values, dtf, niter=1e3, reltol = 1e-4, floor_value = 1.0e-20)
     mask = rv_int['successful']
 
     for name in sorted(rv_int):

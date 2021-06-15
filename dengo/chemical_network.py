@@ -734,6 +734,9 @@ class ChemicalNetwork(object):
 
         if "HDF5_PATH" in os.environ:
             self._hdf5_path = os.environ["HDF5_PATH"]
+        elif "HDF5_INCLUDEDIR" in os.environ and "HDF5_LIBDIR" in os.environ:
+            self._hdf5_include = os.environ["HDF5_INCLUDEDIR"]
+            self._hdf5_lib = os.environ["HDF5_LIBDIR"]
         else:
             raise ValueError("Need to supply HDF5_PATH")
             return
