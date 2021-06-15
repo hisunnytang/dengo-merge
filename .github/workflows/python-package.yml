@@ -101,5 +101,10 @@ jobs:
         python -c "import h5py; h5py.run_tests()"
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${DENGO_INSTALL_PATH}/lib:${HDF5_DIR}/lib:${SUITESPARSE_PATH}/lib:${CVODE_PATH}/lib
         echo $LD_LIBRARY_PATH
-        python -Xfaulthandler examples/test/test_prey_predator.py
+        python -Xfaulthandler examples/test/test_prey_predator.py > fail.out
         pytest --ignore-glob="*cuda*" -v examples/test/test_prey_predator.py
+
+    - name: Cat for GitHub Actions
+      uses: pCYSl5EDgo/cat@1.0.0
+      with:
+        path: fail.out
