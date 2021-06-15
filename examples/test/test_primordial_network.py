@@ -13,8 +13,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 import pytest
 from utilities import setup_primordial_network, setup_solver_options,\
-    write_network, setup_initial_conditions, run_solver,freefall_time, \
-    set_env_variables
+    write_network, setup_initial_conditions, run_solver,freefall_time
 
 plt.switch_backend("agg")
 output_dir = "test_primordial"
