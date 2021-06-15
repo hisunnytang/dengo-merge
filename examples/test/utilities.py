@@ -17,27 +17,6 @@ import pytest
 import h5py
 import logging
 
-
-def set_env_variables(var, path):
-    """Set the environoment path for the use of dengo,
-       and this is only set within the code running time, not persistent
-       if `dengo_path` is set, then we use the `path` is taken as relative to dengo_path
-       else an absolute path is expected
-    Args:
-        var: env name
-        path: absolute/ relative path to respective libraray
-    """
-    # if the env variables is defined, then we should not redefine it
-    if var in os.environ:
-        return
-    if "TRAVIS_BUILD_DIR" in os.environ and "DENGO_PATH" not in os.environ:
-        # if we are in travis, the dengo_path is the travis build dir
-        os.environ["DENGO_PATH"] =  os.path.abspath("../../")
-    if "DENGO_PATH" in os.environ:
-        os.environ[var] = os.path.join(os.environ["DENGO_PATH"], path)
-    else:
-        os.environ[var] = path
-
 def check_defined_envpath():
     paths          = ["DENGO_INSTALL_PATH"]
     optional_paths = ["CVODE_PATH", "SUITESPARSE_PATH",]
