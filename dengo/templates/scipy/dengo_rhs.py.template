@@ -1,0 +1,96 @@
+import h5py
+import numpy as np
+gamma = 5./3.
+kb    = 1.38e-16
+mh    = 1.67e-24
+
+
+# read rates in as global variables
+rates_table = "{{solver_name}}_tables.h5"
+ratef = h5py.File(rates_table, 'r')
+
+# Reaction Rates
+{% for k in network.reactions.keys()%}
+out{{k}}dev = ratef['{{k}}'][:]
+{%- endfor %} 
+
+# Cooling Rates
+{%- for name, rate in network.cooling_actions | dictsort %}
+{%- for name2 in rate.tables | sort %}
+out_{{name}}_{{name2}} = ratef["{{name}}_{{name2}}"][:]
+{%- endfor %}
+{%- endfor %}
+tdev = ratef['T'][:]
+ratef.close()
+
+def interpolate_rates(T):
+    {% for k in network.reactions.keys()%}
+    {{k}} = np.interp(T, tdev, out{{k}}dev)
+    {%- endfor %} 
+    return (
+    {%- for k in network.reactions.keys() -%}
+    {{k}}, 
+    {%- endfor -%}
+    )
+def interpolate_cooling_rates(T):
+    {%- for name, rate in network.cooling_actions | dictsort %}
+    {%- for name2 in rate.tables | sort %}
+    {{name}}_{{name2}} = np.interp(T, tdev, out_{{name}}_{{name2}})
+    {%- endfor %}
+    {%- endfor %}
+    return (
+    {%- for name, rate in network.cooling_actions | dictsort -%}
+    {%- for name2 in rate.tables | sort -%}
+    {{name}}_{{name2}}, 
+    {%- endfor -%}
+    {%- endfor -%}
+    )
+
+
+def calculate_temperature(state):
+    # extract the abundance from the state vector
+    {% for s in network.required_species | sort -%}
+    {{s.name}}, 
+    {%- endfor -%}
+    = state
+    density = {{network.print_mass_density()}}
+    T = {{network.temperature_calculation()}}
+    return T
+    
+def rhs_func(state, t):
+
+    # extract the abundance from the state vector
+    {% for s in network.required_species | sort -%}
+    {{s.name}}, 
+    {%- endfor -%}
+    = state
+    
+    T   = calculate_temperature(state)[np.newaxis]
+    
+    {% for k in network.reactions.keys() -%}
+    {{k}}, 
+    {%- endfor -%}
+    = interpolate_rates    (T)
+    
+    i = 0
+    
+    {% for name, rate in network.cooling_actions | dictsort -%}
+    {%- for name2 in rate.tables | sort -%}
+    {{name}}_{{name2}}, 
+    {%- endfor -%}
+    {%- endfor -%}
+    = interpolate_cooling_rates(T)
+    
+    rho = {{network.print_mass_density()}}
+    
+    {% for s in network.required_species | sort %}
+    {% if s.name != "ge" %}
+    d{{s.name}}dt = {{network.species_total(s)}}
+    {% else %}
+    d{{s.name}}dt = {{network.print_cooling(assign_to=None)}} / mh/ rho
+    {%- endif -%}
+    {%- endfor %}
+    
+    return {% for s in network.required_species | sort -%}
+    d{{s.name}}dt, 
+    {%- endfor -%}
