@@ -1,6 +1,31 @@
-- file: intro
-- file: content
-- file: buildingBlock.ipynb
-- file: threebody-check.ipynb
-- file: c_example.ipynb
-- file: workWithHydroSims.ipynb
+format: jb-book
+root: landing
+parts:
+    - caption: Installation
+      chapters:
+      - file: install/Install.md
+    - caption: Build Your Own Network
+      chapters:
+      - file: tutorial/buildingblocks/SimpleNetwork.md
+        sections:
+        - file: tutorial/buildingblocks/CreateSpecies.ipynb
+        - file: tutorial/buildingblocks/CreateReaction.ipynb
+        - file: tutorial/buildingblocks/CreateCoolingFunction.ipynb
+        - file: tutorial/buildingblocks/CreateANetwork.ipynb
+        - file: tutorial/buildingblocks/BuildingSolverWithDengo.ipynb
+    - caption: Make use of Templates
+      chapters:
+      - file: tutorial/buildingblocks/solverTemplate.ipynb
+      - file: tutorial/buildingblocks/dengo_writesolver.ipynb
+        sections:
+        - file: tutorial/buildingblocks/dengo_cython.ipynb
+        - file: tutorial/buildingblocks/dengo_buildClib.ipynb
+    - caption: Topic Guides
+      chapters:
+      - file: threebody-check.ipynb
+      - file: workWithHydroSims.ipynb
+      - file: CreateNewCoolingAction.ipynb
+      - file: CompareWithGrackle.ipynb
+    - caption: Reference
+      chapters:
+      - file: api.rst
