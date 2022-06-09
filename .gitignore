@@ -15,3 +15,4 @@ test_performance/test_cvdls/*
 */_dengo_temp/*
 dengo/templates/working/*
 *.out
+viz_network_examples/*
