@@ -1,26 +1,3 @@
-"""
-Author: Matthew Turk <matthewturk@gmail.com>
-Affiliation: UCSD
-Homepage: http://yt.enzotools.org/
-License:
-  Copyright (C) 2010 Matthew Turk.  All Rights Reserved.
-
-  This file is part of the dengo package.
-
-  This file is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
 import numpy as np
 from .chemistry_constants import tevk, tiny, mh
 import types
@@ -47,6 +24,9 @@ cooling_registry = {}
 species_registry = {}
 
 def registry_setup(func):
+    """a decorator function register unseen species,
+    cooling and reactions into the registry
+    """
     def _wfunc(*args, **kwargs):
         old_names = [set(d.keys()) for d in (species_registry,
                                              cooling_registry,
@@ -174,6 +154,21 @@ class Reaction(ComparableMixin):
 
     @classmethod
     def create_reaction(cls, name, left_side, right_side):
+        """Initialize `Reaction`,
+        the chemical reactions between species
+
+        Parameters
+        ----------
+        name: str
+            name of the reaction
+        left_side:
+            left hand side of the chemical reaction
+        right_side:
+            right hand side of the chemical reaction
+        f:
+            a function that takes state,
+            and returns the reaction coefficient
+        """
         def _w(f):
             rxn = cls(name, f, left_side, right_side)
         return _w
@@ -338,6 +333,17 @@ class Species(ComparableMixin):
         return "Species: %s" % (self.name)
 
 class ChemicalSpecies(Species):
+    """initialize chemical species object
+
+    Parameters
+    ----------
+    name: str
+        name of the chemical species
+    weight: float
+        the weight of the species in terms of atomic mass unit
+    free_electrons: int
+        the number of free electrons of the species
+    """
     def __init__(self, name, weight, free_electrons = 0.0,
                  pretty_name = None):
         self.weight = weight
@@ -378,6 +384,19 @@ class ChemicalSpecies(Species):
         self._weight = w
 
 class AtomicSpecies(ChemicalSpecies):
+    """Initialize the atomic species
+
+    Parameters
+    ----------
+    atom_name: str
+        name of the atom
+    free_electrons: int
+        number of free electron
+
+    Note
+    ----
+    since it is an atom, the weight is taken directly from the periodic table.
+    """
     def __init__(self, atom_name, free_electrons):
         num, weight, pn = periodic_table_by_name[atom_name]
         if free_electrons < 0:
@@ -394,6 +413,18 @@ class AtomicSpecies(ChemicalSpecies):
             free_electrons, pretty_name)
 
 class MolecularSpecies(ChemicalSpecies):
+    """Initialize molecular species
+
+    Parameters
+    ----------
+    molecule_name: str
+        the name of the molecules
+    weight: float
+        weight of the molecule in amu
+    free_electrons: int
+        free electron in molecules
+
+    """
     def __init__(self, molecule_name, weight, free_electrons,
                  original_name = None):
         name = "%s_%i" % (molecule_name, free_electrons + 1)

@@ -1,26 +1,3 @@
-"""
-Author: Matthew Turk <matthewturk@gmail.com>
-Affiliation: Columbia University
-Homepage: http://yt.enzotools.org/
-License:
-  Copyright (C) 2012 Matthew Turk.  All Rights Reserved.
-
-  This file is part of the dengo package.
-
-  This file is free software; you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation; either version 3 of the License, or
-  (at your option) any later version.
-
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-"""
-
 import os
 import pkgutil
 import types
@@ -35,15 +12,36 @@ from sympy.utilities import lambdify
 
 from .chemistry_constants import mh, tevk, tiny
 from .periodic_table import periodic_table_by_name
-from .reaction_classes import (ChemicalSpecies, Species, cooling_registry,
-                               count_m, index_i, reaction_registry,
-                               species_registry)
+from .reaction_classes import (
+    ChemicalSpecies,
+    Species,
+    cooling_registry,
+    count_m,
+    index_i,
+    reaction_registry,
+    species_registry,
+)
 
 ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name="Electrons")
 
 
 class ChemicalNetwork(object):
+    """A chemical network that gathers all the species and reactions.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    reactions: dict
+        the dictionary that holds the reactions added through `self.add_reaction`
+    cooling_actions: dict
+        the dictionary that tracks the cooling tracked by the `ChemicalNetwork`
+    required_species:
+        the set of chemical species tracked by `ChemicalNetwork`
+
+    """
 
     energy_term = None
     skip_weight = ("ge", "de")
@@ -105,6 +103,18 @@ class ChemicalNetwork(object):
         self.required_species.add(sp)
 
     def add_reaction(self, reaction, auto_add=True):
+        """Add reaction to the `ChemicalNetwork`
+
+        Parameters
+        ----------
+        reaction
+            the string of the reactions that are previously registered in `reaction_registry`
+
+        Returns
+        -------
+        None
+
+        """
         reaction = reaction_registry.get(reaction, reaction)
         if reaction.name in self.reactions:
             raise RuntimeError
@@ -130,6 +140,18 @@ class ChemicalNetwork(object):
         print("Adding reaction: %s" % reaction)
 
     def add_cooling(self, cooling_term, auto_add=True):
+        """Add cooling to the `ChemicalNetwork`
+
+        Parameters
+        ----------
+        cooling term
+            the string that corresponds to the cooling that are previously registered in `cooling_registry`
+
+        Returns
+        -------
+        None
+
+        """
         cooling_term = cooling_registry.get(cooling_term, cooling_term)
         if cooling_term.name in self.cooling_actions:
             raise RuntimeError
@@ -143,6 +165,16 @@ class ChemicalNetwork(object):
         self.cooling_actions[cooling_term.name] = cooling_term
 
     def init_temperature(self, T_bounds=(1, 1e8), n_bins=1024):
+        """Initialize the range of temperature over which the rate tables are generated
+
+        Parameters
+        ----------
+        T_bounds: List[Float, Float], optional (default=(1,1e8))
+            the range over which the rates table is interpolated
+
+        n_bins: int, optional (default=1024)
+
+        """
         self.n_bins = n_bins
         self.T = np.logspace(
             np.log(T_bounds[0]), np.log(T_bounds[1]), n_bins, base=np.e
@@ -153,6 +185,16 @@ class ChemicalNetwork(object):
         self.T_bounds = T_bounds
 
     def init_redshift(self, z_bounds=(0.0, 10.0), n_z_bins=100):
+        """Initialize the range of redshift over which the rate tables are generated
+
+        Parameters
+        ----------
+        z_bounds: List[Float, Float], optional (default=(0.0,10.0))
+            the range over which the rates table is interpolated
+
+        n_bins: int, optional (default=1024)
+
+        """
         self.n_z_bins = n_z_bins
         self.z = np.logspace(
             np.log(z_bounds[0] + 1.0), np.log(z_bounds[1] + 1.0), n_z_bins, base=np.e
@@ -162,6 +204,17 @@ class ChemicalNetwork(object):
         self.z_bounds = z_bounds
 
     def species_total(self, species):
+        """Output the RHS function of the given species
+
+        Parameters
+        ----------
+        species: str,
+
+        Return
+        ------
+        eq: Sympy.symbols
+            the dydt (RHS function) in sympy expressions
+        """
         eq = sympy.sympify("0")
         for rn, rxn in sorted(self.reactions.items()):
             eq += rxn.species_equation(species)
@@ -191,10 +244,10 @@ class ChemicalNetwork(object):
         if species == self.energy_term:
             return self.print_cooling(assign_to)
         eq = self.species_total(species)
-        #eq = eq.replace(
+        # eq = eq.replace(
         #    lambda x: x.is_Pow and x.exp > 0,
         #    lambda x: sympy.Symbol("*".join([x.base.name] * x.exp)),
-        #)
+        # )
 
         return ccode(eq, assign_to=assign_to)
 
@@ -277,10 +330,10 @@ class ChemicalNetwork(object):
             return "\n".join(codes)
 
         eq = sympy.diff(st, s2.symbol)
-        #eq = eq.replace(
+        # eq = eq.replace(
         #    lambda x: x.is_Pow and x.exp > 0 and x.exp == sympy.Integer,
         #    lambda x: sympy.Symbol("*".join([x.base.name] * x.exp)),
-        #)
+        # )
 
         if eq == sympy.sympify("0") and not print_zeros:
             return
@@ -686,7 +739,7 @@ class ChemicalNetwork(object):
             f.create_dataset(
                 "/%s" % rxn.name, data=rxn.coeff_fn(self).astype("float64")
             )
-            if hasattr(rxn, 'tables'):
+            if hasattr(rxn, "tables"):
                 for tab in rxn.tables:
                     print(rxn.name, tab, rxn)
                     f.create_dataset(
@@ -723,6 +776,20 @@ class ChemicalNetwork(object):
         main_name="main",
         input_is_number=False,
     ):
+        """Write the chemistry solver, based on the specified solver templates
+
+        Parameters
+        ----------
+        solver_name: str
+            the name of the solver
+        solver_template: str, default = rate_and_rate_tables
+            the jinja2 template the `ChemicalNetwork` populates, read dengo/templates for examples
+        ode_solver_source: str, default = BE_chem_solve.C
+            the ODE solver used
+        output_dir: str, deafault = .
+            the directory at which these files would be generated
+
+        """
         self.input_is_number = input_is_number
         self.update_ode_species()
 
@@ -779,9 +846,9 @@ class ChemicalNetwork(object):
             extensions=["jinja2.ext.loopcontrols"],
             loader=jinja2.PackageLoader("dengo", "templates"),
         )
-        template_vars = dict(network=self,
-                             solver_name=solver_name,
-                             init_values=init_values)
+        template_vars = dict(
+            network=self, solver_name=solver_name, init_values=init_values
+        )
 
         for suffix in (
             ".C",
@@ -864,7 +931,7 @@ class ChemicalNetwork(object):
             f.create_dataset(
                 "/%s" % rxn.name, data=rxn.coeff_fn(self).astype("float64")
             )
-            if hasattr(rxn, 'tables'):
+            if hasattr(rxn, "tables"):
                 for tab in rxn.tables:
                     print(rxn.name, tab, rxn)
                     f.create_dataset(
