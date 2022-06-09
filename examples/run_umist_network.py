@@ -8,19 +8,18 @@ from dengo.get_rates import setup_umist_species, setup_umist_reactions
 from dengo.chemistry_constants import tiny, kboltz, mh
 
 import os
-os.environ['HDF5_DIR'] = '/home/kwoksun2/anaconda2/'
 
 NCELLS = 1
 density = 1.0e0
 temperature = np.logspace(1, 3, NCELLS)
-temperature[:] = 1e3
+temperature[:] = 1e4
 X = 1e-2
 
 umist = ChemicalNetwork()
 umist.skip_weight += ("us_e_0",)
 
 # This defines the temperature range for the rate tables
-umist.init_temperature((1e0, 1e3))
+umist.init_temperature((1e0, 1e5))
 
 # Get UMIST rates for a bunch of species for an example network
 
@@ -33,13 +32,14 @@ added_species = set([])
 
 for name, weight in desired_species:
     s, c, r = setup_umist_species(name, weight)
-    print("ADDED", s)
+    print(("ADDED", s, c, r))
     added_species.update(s)
     umist.add_collection(s, c, r)
 # Add ionic species by hand, since we need correct atomic weights
-
+print(added_species)
 s, c, r = setup_umist_reactions(added_species)
 umist.add_collection(s, c, r)
+print(reaction_registry)
 
 tiny = 1e-10
 
@@ -47,7 +47,7 @@ init_array = np.ones(NCELLS) * density
 init_values = dict()
 init_values['us_H_1']     = init_array * X
 init_values['us_H2_1']     = init_array * X
-init_values['us_e_0']      = init_array * 0.0
+init_values['us_e_0']      = init_array * 1e-10
 
 print(init_values)
 #print sorted(umist.reactions.values())
@@ -58,7 +58,7 @@ for species in umist.required_species:
 
 total_density = umist.calculate_total_density(init_values)
 init_values = umist.convert_to_mass_density(init_values)
-init_values['us_e_0'] = umist.calculate_free_electrons(init_values)
+init_values['us_e_0'] = init_array*1e-10; # umist.calculate_free_electrons(init_values)
 init_values['density'] = umist.calculate_total_density(init_values)
 number_density = umist.calculate_number_density(init_values)
 
@@ -76,7 +76,6 @@ init_values['ge'] = ((temperature * number_density * kboltz)
 print(init_values)
 
 
-import pdb; pdb.set_trace()
 
 #import pdb; pdb.set_trace()
 
@@ -91,7 +90,7 @@ pyximport.install(setup_args={"include_dirs":np.get_include()},
 umist_solver_run = pyximport.load_module("umist_solver_run",
                             "umist_solver_run.pyx",
                             build_inplace = True, pyxbuild_dir = "_dengo_temp")
-rv, rv_int = umist_solver_run.run_umist(init_values, 1e2, niter = 1e1)
+rv, rv_int = umist_solver_run.run_umist(init_values, 1e16, niter = 1e4)
 
 import pylab
 pylab.clf()
