@@ -23,7 +23,7 @@ carbon.add_energy_term()
 #     if ca.name.startswith("C"):
 #        carbon.add_cooling(ca)
 
-for s in reaction_registry.values():
+for s in list(reaction_registry.values()):
     # The following line can be used to specify a subset of species
     #if all(sp.name in want for sp in s.species):
     if s.name.startswith("C"):
@@ -55,7 +55,7 @@ if generate_initial_conditions:
     init_values = dict()
     init_values['density'] = density * init_array
     init_values[initial_state] = init_array.copy() # use conservation to set this below
-           
+
     # set up initial temperatures values used to define ge
     temperature = np.logspace(4, 6.7, NCELLS)
     temperature[:] = 1e7; # need to remove this line for the above one to matter
@@ -63,7 +63,7 @@ if generate_initial_conditions:
 
     if start_neutral:
         X = 1e-6
- 
+
         # populate initial fractional values for the other species
         for s in sorted(carbon.required_species):
             if s.name != 'ge' and s.name != initial_state:
@@ -76,9 +76,9 @@ if generate_initial_conditions:
         for s in sorted(carbon.required_species):
             if s.name in ("ge", "de"): continue
             init_values['de'] += init_values[s.name] * s.free_electrons
-            print "Adding %0.5e to electrons from %s" % (
-                (init_values[s.name] * s.free_electrons)[0], s.name)
-        print "Total de: %0.5e" % (init_values['de'][0])
+            print(("Adding %0.5e to electrons from %s" % (
+                (init_values[s.name] * s.free_electrons)[0], s.name)))
+        print(("Total de: %0.5e" % (init_values['de'][0])))
 
     else:
         # Unless neutral is desired, we'll start in a perturbed CIE solution
@@ -98,23 +98,23 @@ if generate_initial_conditions:
                     else:
                         ion_frac[ion_frac < tiny] = tiny
                         init_values[s.name] = ion_frac * init_array
-                
+
                 # add some random noise
                 init_values[s.name] += 0.5 * init_values[s.name] * np.random.randn(NCELLS)
                 # in case something went negative:
                 init_values[s.name][init_values[s.name] < tiny] = tiny
-                
+
                 # conservation...
                 init_values[initial_state] -= init_values[s.name]
-        
+
         init_values[initial_state][init_values[initial_state] < tiny] = tiny
         init_values['de'] = init_array * 0.0
         for s in sorted(carbon.required_species):
             if s.name in ("ge", "de"): continue
             init_values['de'] += init_values[s.name] * s.free_electrons
-            print "Adding %0.5e to electrons from %s" % (
-                (init_values[s.name] * s.free_electrons)[0], s.name)
-        print "Total de: %0.5e" % (init_values['de'][0])
+            print(("Adding %0.5e to electrons from %s" % (
+                (init_values[s.name] * s.free_electrons)[0], s.name)))
+        print(("Total de: %0.5e" % (init_values['de'][0])))
 
     # convert to masses to multiplying by the density factor and the species weight
     for s in carbon.required_species:

@@ -28,17 +28,23 @@ HeI = AtomicSpecies("He", 0.0)
 HeII = AtomicSpecies("He", 1.0)
 de = species_registry['de']
 
+OI = AtomicSpecies("O", 0.0)
+OII = AtomicSpecies("O", 1.0)
+OIII = AtomicSpecies("O", 2.0)
+OIV = AtomicSpecies("O", 3.0)
+OV  = AtomicSpecies("O", 4.0)
+OVI = AtomicSpecies("O", 5.0)
 ion_by_ion.add_species(de)
 ion_by_ion.add_species(HI)
 ion_by_ion.add_species(HII)
 ion_by_ion.add_species(HeI)
 ion_by_ion.add_species(HeII)
-#ion_by_ion.add_species('O_1')
-#ion_by_ion.add_species('O_2')
-#ion_by_ion.add_species('O_3')
-#ion_by_ion.add_species('O_4')
-#ion_by_ion.add_species('O_5')
-#ion_by_ion.add_species('O_6')
+ion_by_ion.add_species(OI)
+ion_by_ion.add_species(OII)
+ion_by_ion.add_species(OIII)
+ion_by_ion.add_species(OIV)
+ion_by_ion.add_species(OV)
+ion_by_ion.add_species(OVI)
 
 for atom in ["H", "He", "O"]: #"C", "N", "O", "Ne", "Si"]:
     s, c, r = setup_ionization(atom, photo_background="HM12")
@@ -83,21 +89,21 @@ else:
     # start CIE
 
     for s in sorted(ion_by_ion.required_species):
-            if s.name != 'ge':
-                if s.name == 'de':
-                    continue
-                else:
-                    ion_name = s.name.lower()
-                    ion = ch.ion(ion_name, temperature=init_values['T'])
-                    print(ion_name)
-                    ion.ioneqOne()
-                    # this calcuate the equilirbium abundance @ T
-                    # however this attr is not defined for fully ionized species...
-                    # fix that later, take this as 1 for now first
-                    #ion_frac = ion.IoneqOne
-                    ion_frac = 1.0
-                    # ion.Abundance is the elemental abundance relative to hydrogen
-                    init_values[s.name] = ion_frac * init_array * ion.Abundance
+        if s.name != 'ge':
+            if s.name == 'de':
+                continue
+            else:
+                ion_name = s.name.lower()
+                ion = ch.ion(ion_name, temperature=init_values['T'])
+                print(ion_name)
+                #ion.ioneqOne()
+                # this calcuate the equilirbium abundance @ T
+                # however this attr is not defined for fully ionized species...
+                # fix that later, take this as 1 for now first
+                #ion_frac = ion.IoneqOne
+                ion_frac = 1.0
+                # ion.Abundance is the elemental abundance relative to hydrogen
+                init_values[s.name] = ion_frac * init_array * ion.Abundance
 
                 # in case something is negative or super small:
                 init_values[s.name][init_values[s.name] < tiny] = tiny
@@ -118,11 +124,6 @@ init_values['ge'] = ((temperature * number_density * kboltz)
 # Write the initial conditions file
 # IF you need to use the Makefile, and c-library
 # you will have to specified the library_path
-library_path = {}
-library_path["CVODE_PATH"] = "/home/kwoksun2/cvode-3.1.0/instdir"
-library_path["HDF5_PATH"] = "/home/kwoksun2/anaconda3"
-library_path["SUITESPARSE_PATH"] = "/home/kwoksun2/SuiteSparse"
-library_path["DENGO_INSTALL_PATH"] = "/home/kwoksun2/dengo_install"
 
 
 # Write the initial conditions file
@@ -131,15 +132,15 @@ ion_by_ion.write_solver("ion_by_ion", output_dir = ".",
                         input_is_number=False,
                         solver_template = "cv_omp/sundials_CVDls",
                         ode_solver_source = "initialize_cvode_solver.C",
-                        library_path = library_path)
+                        )
 
 import pyximport
 pyximport.install(setup_args={"include_dirs":np.get_include()},
                   reload_support=True, inplace=True)
 
 ion_by_ion_solver_run = pyximport.load_module("ion_by_ion_solver_run",
-                            "ion_by_ion_solver_run.pyx",
-                            build_inplace = True, pyxbuild_dir = "_dengo_temp")
+                                              "ion_by_ion_solver_run.pyx",
+                                              build_inplace = True, pyxbuild_dir = "_dengo_temp")
 rv, rv_int = ion_by_ion_solver_run.run_ion_by_ion(init_values, 1e16, 100000,
                                                   z = 0.0)
 import pylab

@@ -12,7 +12,6 @@ import pyximport
 import os
 import pylab
 
-check_defined_envpath()
 
 # this would register all the reaction defined in primodial_rates!
 # such that these reaction are set up and can be founnd in reaction registry and species registry

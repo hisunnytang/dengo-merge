@@ -10,28 +10,28 @@ import sympy
 from sympy.printing import print_ccode
 
 oxygen = ChemicalNetwork()
-for ca in cooling_registry.values():
+for ca in list(cooling_registry.values()):
     if ca.name.startswith("o_"):
         oxygen.add_cooling(ca)
 
-print "These species are required for cooling alone:"
-print "\n".join([s.name for s in sorted(oxygen.required_species)])
+print("These species are required for cooling alone:")
+print(("\n".join([s.name for s in sorted(oxygen.required_species)])))
 
-for s in reaction_registry.values():
+for s in list(reaction_registry.values()):
     if s.name.startswith("o_"):
         oxygen.add_reaction(s)
 
-print "These species are required for chemistry and cooling:"
-print "\n".join([s.name for s in sorted(oxygen.required_species)])
+print("These species are required for chemistry and cooling:")
+print(("\n".join([s.name for s in sorted(oxygen.required_species)])))
 
 functions = []
 
 cooling = sum(v.equation for n,v in sorted(oxygen.cooling_actions.items()))
 
 for species in oxygen.required_species:
-    print
-    print "// HANDLING SPECIES", species.name
-    print
+    print()
+    print(("// HANDLING SPECIES", species.name))
+    print()
     eq = oxygen.species_total(species)
     oxygen.print_ccode(species)
     oxygen.print_jacobian(species)
@@ -40,12 +40,13 @@ for species in oxygen.required_species:
 
 T_bounds = [1.0e4, 1.0e8]
 oxygen.init_temperature(T_bounds)
-print
-print "// WRITING RATE TABLES TO HDF5 FILES"
-print
+print()
+print("// WRITING RATE TABLES TO HDF5 FILES")
+print()
 create_rate_tables(oxygen, "oxygen")
 
-print
-print "// WRITING C CODE TO READ HDF5 FILES"
-print
+print()
+print("// WRITING C CODE TO READ HDF5 FILES")
+print()
 create_rate_reader(oxygen, "oxygen")
+:q

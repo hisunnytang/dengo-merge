@@ -22,7 +22,7 @@ X = 1e-3
 combined = ChemicalNetwork()
 combined.add_energy_term()
 
-for ca in cooling_registry.values():
+for ca in list(cooling_registry.values()):
     if ca.name.startswith("C") \
     or ca.name.startswith("N") \
     or ca.name.startswith("O") \
@@ -45,7 +45,7 @@ combined.add_cooling("ceHeI")
 combined.add_cooling("ciHeI")
 combined.add_cooling("ciHeII")
 
-for r in reaction_registry.values():
+for r in list(reaction_registry.values()):
     if r.name.startswith("C") \
     or r.name.startswith("N") \
     or r.name.startswith("O") \
@@ -102,7 +102,7 @@ else:
                 if s.name == 'de':
                     continue
                 else:
-                    print s.name, s.number, s.free_electrons + 1
+                    print(s.name, s.number, s.free_electrons + 1)
                     ion_name = chu.zion2name(np.int(s.number),
                                              np.int(s.free_electrons + 1))
                     ion = ch.ion(ion_name, temperature=init_values['T'])

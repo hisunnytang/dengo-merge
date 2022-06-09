@@ -17,7 +17,6 @@ from utilities import setup_solver_options, write_network,\
 
 plt.switch_backend("agg")
 
-check_defined_envpath()
 
 
 solver_name = "predator_prey"

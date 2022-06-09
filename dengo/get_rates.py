@@ -14,6 +14,8 @@ from .reaction_classes import \
 
 from .umist_rates import umist_rates
 
+tiny = 1e-50
+
 def _get_species(sn):
     species_name = "us_%s" % (sn)
     free_electrons = species_name.count('+')-species_name.count('-')
@@ -50,7 +52,7 @@ def _create_reaction(rline):
     elif rtype == "CR":
         @reaction(rname, reactants, products)
         def rxn(state):
-            return 0.0
+            return tiny
     else:
         @reaction(rname, reactants, products)
         def rxn(state):
@@ -58,7 +60,7 @@ def _create_reaction(rline):
             _i1 = (state.T < T_upper) & (state.T > T_lower)
             _i2 = ~_i1
             vals = a*(state.T**b)*(np.exp(-g / state.T))
-            vals[_i2] = 0.0
+            vals[_i2] = tiny
             return vals
 
 @registry_setup
@@ -78,7 +80,7 @@ def setup_umist_reactions(allowed_species):
     #umist_names.add("PHOTON")
     fn = os.path.join(os.path.dirname(__file__), "RATE12.txt")
     for line in open(fn, "r"):
-        rline = re.split(":?", line)
+        rline = line.split(":")
         if not all(r in umist_names for r in rline[2:6]): continue
         _create_reaction(rline)
 

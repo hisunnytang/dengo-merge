@@ -581,6 +581,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     int NSPARSE = {{network.get_sparse_matrix_component(return_type="nsparse")}}; // no. of sparse jacobian compoents
     
     int threadID;
+    SUNContext sunctx;
 
     // this routine is also called from the cythonized routine too
     // where MAX_NCELLS > input strip length
@@ -589,9 +590,11 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
     #pragma omp parallel private (A, LS, cvode_mem, threadID, y_vec, abstol) num_threads(NTHREADS)
     {
+    SUNContext_Create(NULL, &sunctx);
 
-    y_vec  = N_VNew_Serial(v_size);
-    abstol = N_VNew_Serial(v_size); 
+    y_vec  = N_VNew_Serial(v_size, sunctx);
+    abstol = N_VNew_Serial(v_size, sunctx); 
+
     yvec_ptr = N_VGetArrayPointer(y_vec);
     atol_ptr = N_VGetArrayPointer(abstol);
     
@@ -602,14 +605,14 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     }
     
     #ifdef CVKLU
-    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * NSPARSE, CSR_MAT );
-    LS        = SUNKLU( y_vec, A);
+    A         = SUNSparseMatrix      ( v_size, v_size, nstrip * NSPARSE, CSR_MAT, sunctx);
+    LS        = SUNLinSol_KLU( y_vec, A, sunctx);
     #else
     A         = SUNDenseMatrix      ( v_size, v_size );
-    LS        = SUNDenseLinearSolver( y_vec, A);
+    LS        = SUNLinSol_DenseLinearSolver( y_vec, A, sunctx);
     #endif
     
-    cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol);
+    cvode_mem = setup_cvode_solver  ( f, jf, v_size , data, LS, A, y_vec, reltol, abstol, sunctx);
     
     // d: d th path going into the solver
     #pragma omp for private (sum, i, d, siter, threadID) schedule(static, 1)
@@ -645,6 +648,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     CVodeFree(&cvode_mem);
     SUNLinSolFree(LS);
     SUNMatDestroy(A);
+    SUNContext_Free(&sunctx);
     #ifdef _OPENMP
     N_VDestroy(y_vec);
     N_VDestroy(abstol);
@@ -662,8 +666,10 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         data->nstrip = nstrip_res;
         d = ntimes;
     
-        y_vec  = N_VNew_Serial( v_size_res );
-        abstol = N_VNew_Serial( v_size_res ); 
+        SUNContext_Create(NULL, &sunctx);
+    
+        y_vec  = N_VNew_Serial( v_size_res, sunctx );
+        abstol = N_VNew_Serial( v_size_res, sunctx ); 
 
         yvec_ptr = N_VGetArrayPointer(y_vec);
         atol_ptr = N_VGetArrayPointer(abstol);
@@ -674,14 +680,14 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         }
        
         #ifdef CVKLU
-        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * NSPARSE, CSR_MAT);
-        LS = SUNKLU(y_vec,A); 
+        A  = SUNSparseMatrix(v_size_res, v_size_res, nstrip_res * NSPARSE, CSR_MAT, sunctx);
+        LS = SUNLinSol_KLU(y_vec,A, sunctx); 
         #else
         A  = SUNDenseMatrix(v_size_res, v_size_res);
-        LS = SUNDenseLinearSolver(y_vec, A);
+        LS = SUNLinSol_DenseLinearSolver(y_vec, A, sunctx);
         #endif
         
-        cvode_mem = setup_cvode_solver( f, jf, v_size_res, data, LS, A, y_vec, reltol, abstol );
+        cvode_mem = setup_cvode_solver( f, jf, v_size_res, data, LS, A, y_vec, reltol, abstol, sunctx);
         ttot[d] = evolve_in_batches(cvode_mem, y_vec, abstol, reltol, input, v_size_res, d, d * v_size,  MAX_ITERATION, dtf, data);
         {{solver_name}}_calculate_temperature(data, &input[d*v_size], nstrip_res, N);
         for ( i = 0; i < nstrip_res; i ++){
@@ -703,6 +709,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
         SUNMatDestroy(A);
         N_VDestroy(y_vec);
         N_VDestroy(abstol);    
+        SUNContext_Free(&sunctx);
     } else{
       ttot[ntimes] = dtf;      
     }
