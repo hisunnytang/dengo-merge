@@ -52,7 +52,7 @@ exec_prefix  = $(CVODE_PATH)/instdir
 includedir   = $(CVODE_PATH)/include $(HDF5_PATH)/include
 libdir       = $(CVODE_PATH)/lib
 
-CFLAGS   = -O3 -DNDEBUG -g
+CFLAGS   = -O3 -DNDEBUG -g -std=c++11
 LDFLAGS  = 
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 

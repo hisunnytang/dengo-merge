@@ -173,7 +173,7 @@ typedef int(*jac_f)(N_Vector , N_Vector , realtype,
 
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
-        {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol);
+        {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol, SUNContext sunctx);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data * data, N_Vector y, double reltol, N_Vector abstol );
 
