@@ -29,8 +29,10 @@ jobs:
           export SUITESPARSE_PATH=${CONDA}
           export CVODE_PATH=${CONDA}
           export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
+          export LD_LIBRARY_PATH=${CONDA}/lib:$LD_LIBRARY_PATH
 
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
+          echo "$LD_LIBRARY_PATH"
           ls ${CONDA}/lib/libsundials_*
           pytest -v -x
