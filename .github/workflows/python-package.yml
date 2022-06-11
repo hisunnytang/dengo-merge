@@ -29,7 +29,5 @@ jobs:
         env:
           HDF5_PATH: $CONDA
           SUITESPARSE_PATH: $CONDA
-          
-      - name: Test with pytest
         run: |
           pytest -v -x
