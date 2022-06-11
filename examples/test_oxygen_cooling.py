@@ -49,4 +49,3 @@ print()
 print("// WRITING C CODE TO READ HDF5 FILES")
 print()
 create_rate_reader(oxygen, "oxygen")
-:q
