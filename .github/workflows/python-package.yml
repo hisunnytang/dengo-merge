@@ -27,6 +27,7 @@ jobs:
         env:
           HDF5_PATH: $CONDA
           SUITESPARSE_PATH: $CONDA
+          CVODE_PATH: $CONDA
           DENGO_INSTALL_PATH: $GITHUB_WORKSPACE/dengo_install
         run: |
           pytest -v -x
