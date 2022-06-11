@@ -17,6 +17,11 @@ jobs:
             auto-update-conda: true
             auto-activate-base: true
             python-version: ${{matrix.python-version}}
+      - name: Setting Environment Variables
+        run: |
+          echo "HDF5_PATH=${{env.CONDA}}" >> $GITHUB_ENV
+          echo "$HDF5_PATH"
+          python -c "assert 1 == 0"
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
@@ -24,12 +29,13 @@ jobs:
           pip install -e .
           conda install -c conda-forge sundials>=6.2.0
       - name: Setting Environment Variables
-        env:
-          HDF5_PATH: ${{env.CONDA}}
-          SUITESPARSE_PATH: ${{env.CONDA}}
-          CVODE_PATH: ${{env.CONDA}}
-          DENGO_INSTALL_PATH: ${{env.GITHUB_WORKSPACE}}/dengo_install
         run: |
+          echo "HDF5_PATH=${{env.CONDA}}" >> $GITHUB_ENV
+          export HDF5_PATH=$CONDA
+          export SUITESPARSE_PATH=$CONDA
+          export CVODE_PATH=$CONDA
+          export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
+
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
           pytest -v -x
