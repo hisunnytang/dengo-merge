@@ -19,8 +19,11 @@ jobs:
             python-version: ${{matrix.python-version}}
       - name: Setting Environment Variables
         run: |
-          echo "HDF5_PATH=$CONDA" >> $GITHUB_ENV
-          echo "$HDF5_PATH"
+          which conda
+          conda --version
+          echo "HDF5_PATH=${CONDA}" >> $GITHUB_ENV
+          echo ${CONDA}
+          echo ${HDF5_PATH}
           python -c "assert 1 == 0"
       - uses: actions/checkout@v3
       - name: Install dependencies
