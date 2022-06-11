@@ -16,11 +16,8 @@ def setup_solver_options(update_options={}):
     solver_options.update(update_options)
     return solver_options
 
-
+#@pytest.mark.skip(reason='sympy substitute not working in our case')
 def test_freefall(setup_solver_options):
-
-    if "TRAVIS_BUILD_DIR" not in os.environ:
-        os.environ["DENGO_PATH"] = "/home/kwoksun2/dengo-git"
 
     run_dengo_freefall(setup_solver_options)
     compare_dengo_grackle(setup_solver_options["output_dir"])
