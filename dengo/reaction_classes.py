@@ -4,7 +4,6 @@ import types
 import os
 import sympy
 import h5py
-import docutils.utils.roman as roman
 from .periodic_table import \
     periodic_table_by_name, \
     periodic_table_by_number
