@@ -31,4 +31,5 @@ jobs:
 
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
+          ls ${CONDA}/lib/libsundials_*
           pytest -v -x
