@@ -28,6 +28,8 @@ jobs:
           HDF5_PATH: ${{env.CONDA}}
           SUITESPARSE_PATH: ${{env.CONDA}}
           CVODE_PATH: ${{env.CONDA}}
-          DENGO_INSTALL_PATH: ${{GITHUB_WORKSPACE}}/dengo_install
+          DENGO_INSTALL_PATH: ${{env.GITHUB_WORKSPACE}}/dengo_install
         run: |
+          echo "$HDF5_PATH"
+          echo "$DENGO_INSTALL_PATH"
           pytest -v -x
