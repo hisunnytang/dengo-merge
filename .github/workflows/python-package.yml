@@ -19,11 +19,19 @@ jobs:
             python-version: ${{matrix.python-version}}
       - name: Setting Environment Variables
         run: |
-          echo "HDF5_PATH=$env.CONDA" >> $GITHUB_ENV
+          echo "HDF5_PATH=${CONDA}" >> $GITHUB_ENV
           echo ${CONDA}
           echo ${{env.HDF5_PATH}}
           export HDF5_PATH=${CONDA}
           
+          echo "HDF5_PATH=${{env.CONDA}}" >> $GITHUB_ENV
+          export HDF5_PATH=${CONDA}
+          export SUITESPARSE_PATH=${CONDA}
+          export CVODE_PATH=${CONDA}
+          export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
+
+          echo "$HDF5_PATH"
+          echo "$DENGO_INSTALL_PATH"
           python -c "import os; print(os.environ['HDF5_PATH'])"
           python -c "assert 1 == 0"
       - uses: actions/checkout@v3
@@ -35,9 +43,9 @@ jobs:
       - name: Setting Environment Variables
         run: |
           echo "HDF5_PATH=${{env.CONDA}}" >> $GITHUB_ENV
-          export HDF5_PATH=$CONDA
-          export SUITESPARSE_PATH=$CONDA
-          export CVODE_PATH=$CONDA
+          export HDF5_PATH=${CONDA}
+          export SUITESPARSE_PATH=${CONDA}
+          export CVODE_PATH=${CONDA}
           export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
 
           echo "$HDF5_PATH"
