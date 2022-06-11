@@ -13,6 +13,8 @@ import time
 import pyximport
 import sys
 import matplotlib.pyplot as plt
+from unyt import amu_cgs
+import sympy
 
 pytest_dir = os.getcwd()
 
@@ -206,24 +208,42 @@ def calculate_collapse_factor(pressure, density):
     force_factor = min(force_factor, 0.95)
     return force_factor
 
-
-def calculate_gamma(init, primordial):
+def evaluate_gamma_factor(init, primordial, temperature):
     gamma = 5.0/3.0
-    temperature = init["T"]
+    num_den = {}
     for sp in primordial.required_species:
-        if sp.name == 'H2_1':
-            sp_H2 = sp
-            break
-    gammaH2 = primordial.species_gamma(
-        sp, temp=True, name=False).subs(
-        {'T': temperature})
+        num_den[sp.name] = init[sp.name].item() #/ sp.weight
 
-    gammaH2 = 7./5.
+    x = 6100.0/temperature
+    gammaH2 = (2.0 / (5.0 + 2.0*x*x*numpy.exp(x) / (numpy.exp(x) - 1)**2.0) + 1).item()
+
     gamma_fac = primordial.gamma_factor()
-    gamma_factor = gamma_fac.subs(init).subs(
-        {'gamma': gamma}).subs(
-        {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2})
+    gamma_factor = gamma_fac.subs(num_den).subs(
+        {'gamma':gamma,
+         'gammaH2_1':gammaH2,
+         'gammaH2_2': gammaH2})
+    return gamma_factor
 
+def calculate_gamma(init, primordial, temperature):
+#    gamma = 5.0/3.0
+#    temperature = init["T"]
+#    for sp in primordial.required_species:
+#        if sp.name == 'H2_1':
+#            sp_H2 = sp
+#            break
+#    gammaH2 = primordial.species_gamma(
+#        sp, temp=True, name=False).subs(
+#        {'T': temperature})
+#
+#    gammaH2 = 7./5.
+#    gamma_fac = primordial.gamma_factor()
+#    gamma_factor = gamma_fac.subs(init).subs(
+#        {'gamma': gamma}).subs(
+#        {'gammaH2_1': gammaH2,
+#         "gammaH2_2": gammaH2})
+#    print(gamma_factor)
+
+    gamma_factor = evaluate_gamma_factor(init, primordial, temperature)
     n_density = 0.0
     for sp in primordial.required_species:
         if sp.name != 'ge':
@@ -243,11 +263,11 @@ def calculate_temperature(init, primordial):
     while dT > 0.1:
         x = 6100.0/temperature
         # update the gammaH2 which is dependent on temperature
-        gammaH2 = 2.0 / (5.0 + 2.0*x*x*numpy.exp(x) / (numpy.exp(x) - 1)**2.0) + 1
-        gammaH2 = 7./5.
-        gamma_factor = primordial.gamma_factor().subs(nden).subs(
-            {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2, 'gamma': 5./3., 'T': temperature})
+        #gammaH2 = 7./5.
+        #gamma_factor = primordial.gamma_factor().subs(nden).subs(
+        #    {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2, 'gamma': 5./3., 'T': temperature})
 
+        gamma_factor = evaluate_gamma_factor(init, primordial, temperature)
         # with ge updated from compressional heating
         ge = init['ge']
 
@@ -264,10 +284,7 @@ def calculate_energy(init, primordial):
     """
     num_den = {}
     for sp in primordial.required_species:
-        try:
-            num_den[sp.name] = init[sp.name] / sp.weight
-        except BaseException:
-            pass
+        num_den[sp.name] = init[sp.name] / sp.weight
 
     # set up initial temperatures values used to define ge
     temperature = init['T']
@@ -275,8 +292,9 @@ def calculate_energy(init, primordial):
     x = 6100.0/temperature
     gammaH2 = 2.0 / (5.0 + 2.0*x*x*numpy.exp(x) / (numpy.exp(x) - 1)**2.0) + 1
 
-    gamma_factor = primordial.gamma_factor().subs(num_den).subs(
-        {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2, 'gamma': 5./3., 'T': temperature})
+    #gamma_factor = primordial.gamma_factor().subs(num_den).subs(
+    #    {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2, 'gamma': 5./3., 'T': temperature})
+    gamma_factor = evaluate_gamma_factor(num_den, primordial, temperature)
 
     ge = ((temperature * kboltz) * gamma_factor
           / (init['density'] * mh))
@@ -328,7 +346,8 @@ def update_initial_condition(
         if sp.name != 'ge':
             init[sp.name] *= density_ratio
 
-    Gamma = calculate_gamma(init, primordial)
+    current_temperature = calculate_temperature(init, primordial)
+    Gamma = calculate_gamma(init, primordial, current_temperature)
 
     # update internal energy
     init['ge'] += (Gamma - 1.0) * init['ge'] * \
@@ -469,13 +488,14 @@ def run_dengo_freefall(update_options):
     import h5py
     print("os.getcwd()")
     print(os.getcwd())
-    dir_ff_grackle = "examples/test/freefall_solution/freefall.h5"
-    if "TRAVIS_BUILD_DIR"  in os.environ:
-        dir_ff_grackle = os.path.join(os.environ["TRAVIS_BUILD_DIR"],
-                                      dir_ff_grackle)
-    else:
-        dir_ff_grackle = os.path.join(os.environ["DENGO_PATH"],
-                                      dir_ff_grackle)
+    dir_ff_grackle = os.path.join(os.path.dirname(__file__), "freefall_solution/freefall.h5")
+    #dir_ff_grackle = "examples/test/freefall_solution/freefall.h5"
+    #if "TRAVIS_BUILD_DIR"  in os.environ:
+    #    dir_ff_grackle = os.path.join(os.environ["TRAVIS_BUILD_DIR"],
+    #                                  dir_ff_grackle)
+    #else:
+    #    dir_ff_grackle = os.path.join(os.environ["DENGO_PATH"],
+    #                                  dir_ff_grackle)
     f = h5py.File(dir_ff_grackle)
     fdata = f['data']
     grackle_init = convert_from_grackle_to_dengo(fdata)
@@ -485,6 +505,7 @@ def run_dengo_freefall(update_options):
     # new_init, primordial = Init_values(np.array([temperature]),
     #                                   np.array([density]) ,
     #                                   n_species = 9)
+    print(grackle_init)
     for i in new_init.keys():
         if i not in ['density', 'ge']:
             #print(i, grackle_init[i])
