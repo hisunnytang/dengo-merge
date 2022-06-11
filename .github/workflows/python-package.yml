@@ -22,12 +22,12 @@ jobs:
         run: |
           pip install -r requirements.txt
           pip install -e .
-          conda install -c conda-forge sundials
+          conda install -c conda-forge sundials>=6.2.0
       - name: Setting Environment Variables
         env:
-          HDF5_PATH: $CONDA
-          SUITESPARSE_PATH: $CONDA
-          CVODE_PATH: $CONDA
-          DENGO_INSTALL_PATH: $GITHUB_WORKSPACE/dengo_install
+          HDF5_PATH: "$CONDA"
+          SUITESPARSE_PATH: "$CONDA"
+          CVODE_PATH: "$CONDA"
+          DENGO_INSTALL_PATH: "$GITHUB_WORKSPACE/dengo_install"
         run: |
           pytest -v -x
