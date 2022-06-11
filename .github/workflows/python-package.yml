@@ -21,15 +21,12 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          pip install -r requirements.txt
           pip install -e .
           conda install -c conda-forge sundials
-      - name: Check Sundials Path
-        run: |
-          ls $CONDA/lib/libsundials_*
       - name: Setting Environment Variables
         env:
           HDF5_PATH: $CONDA
           SUITESPARSE_PATH: $CONDA
+          DENGO_INSTALL_PATH: $GITHUB_WORKSPACE/dengo_install
         run: |
           pytest -v -x
