@@ -20,7 +20,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
-          conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt sundials>=6.2.0
+          conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt sundials>=6.2.0 -c conda-forge
           pip install -e .
       - name: Setting Environment Variables
         run: |
