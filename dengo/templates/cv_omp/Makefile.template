@@ -33,8 +33,8 @@ SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
 HDF5_PATH = {{network._hdf5_path}}
 
-{%if network._libtool is defined%}
-LIBTOOL   = {{network._libtool}}
+{%if network._libtool_path is defined%}
+LIBTOOL   = {{network._libtool_path}}/libtool
 {%else%}
 LIBTOOL = libtool
 {%endif%}
@@ -99,7 +99,7 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
 
 run_dengo: {{solver_name}}_solver_main.C
-	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
+	$(CC) -o $@ $^ $(OPTIONS) $(CFLAGS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
 	./run_dengo

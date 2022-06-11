@@ -115,7 +115,7 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver
 }
 
 void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
-        {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol){
+        {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol, SUNContext sunctx){
     
     void *cvode_mem;
     cvode_mem = NULL;
@@ -123,7 +123,7 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     int i, flag;
 
     /* Create CVODES object */
-    cvode_mem = CVodeCreate(CV_BDF);
+    cvode_mem = CVodeCreate(CV_BDF, sunctx);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(NULL);
     
     
