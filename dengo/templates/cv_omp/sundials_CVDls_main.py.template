@@ -5,7 +5,7 @@ import os
 # write the solver for various network
 
 # test the cython intallation
-os.environ["HDF5_DIR"] = {{network._hdf5_path}}
+os.environ["HDF5_PATH"] = {{network._hdf5_path}}
 pyximport.install(setup_args={"include_dirs":numpy.get_include()},
                   reload_support=True)
 

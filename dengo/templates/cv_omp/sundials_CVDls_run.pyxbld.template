@@ -2,12 +2,12 @@ import os
 
 def make_ext(modname, pyxfilename):
 	from distutils.extension import Extension
-	if "HDF5_DIR" in os.environ:
-		hdf5_dir = os.environ["HDF5_DIR"]
+	if "HDF5_PATH" in os.environ:
+		hdf5_dir = os.environ["HDF5_PATH"]
 	elif "YT_DEST" in os.environ:
 		hdf5_dir = os.environ["YT_DEST"]
 	else:
-		print("You need to set HDF5_DIR or YT_DEST in your environment.")
+		print("You need to set HDF5_PATH or YT_DEST in your environment.")
 		raise RuntimeError
 
 	inc = os.path.join(hdf5_dir, "include")
