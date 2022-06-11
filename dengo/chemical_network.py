@@ -22,6 +22,9 @@ from .reaction_classes import (
     species_registry,
 )
 
+import warnings
+import logging
+
 ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name="Electrons")
 
@@ -91,7 +94,19 @@ class ChemicalNetwork(object):
         return chemical_species
 
     def solve_equilibrium_abundance(self, species):
-        """write the equilibrium abundance of species sp"""
+        """write the equilibrium abundance of species sp
+        this is by setting dydt = 0
+
+        Parameters
+        ----------
+            species: dengo.reaction_classes.ChemicalSpecies
+
+        Return
+        ------
+            equilibrium_sol: str
+                C-Code snippet that gives equilibrium species formula
+
+        """
         from sympy.solvers import solve
 
         eq = self.species_total(species)
@@ -769,12 +784,11 @@ class ChemicalNetwork(object):
     def write_solver(
         self,
         solver_name,
+        solver_option = None,
         solver_template="rates_and_rate_tables",
         ode_solver_source="BE_chem_solve.C",
         output_dir=".",
         init_values=None,
-        main_name="main",
-        input_is_number=False,
     ):
         """Write the chemistry solver, based on the specified solver templates
 
@@ -786,12 +800,24 @@ class ChemicalNetwork(object):
             the jinja2 template the `ChemicalNetwork` populates, read dengo/templates for examples
         ode_solver_source: str, default = BE_chem_solve.C
             the ODE solver used
-        output_dir: str, deafault = .
+        output_dir: str, default = .
             the directory at which these files would be generated
-
+        init_values: Optional[dict, None], default=None
+            a initial value hdf5 file would be generated that can be fed to the solver (for testing purpose)
         """
-        self.input_is_number = input_is_number
         self.update_ode_species()
+
+        if solver_option == 'CVODE':
+            solver_template = "rates_and_rate_tables"
+            ode_solver_source = "BE_chem_solve.C"
+        elif solver_option == 'BE_CHEM_SOLVE':
+            solver_template = "cv_omp/sundials_CVDls",
+            ode_solver_source = "initialize_cvode_solver.C"
+        else:
+            warnings.warn(
+                "going to be replaced solver_template and ode_solver_source with solver_option",
+                PendingDeprecationWarning
+            )
 
         # with Dan suggestions, I have included the path to write the solver!
         # please specify the environ path!
@@ -803,12 +829,14 @@ class ChemicalNetwork(object):
             self._hdf5_path = os.environ["HDF5_PATH"]
         else:
             raise ValueError("Need to supply HDF5_PATH")
-            return
 
         if "DENGO_INSTALL_PATH" in os.environ:
             self._dengo_install_path = os.environ["DENGO_INSTALL_PATH"]
         else:
             raise ValueError("Need to supply DENGO_INSTALL_PATH")
+
+        if "LIBTOOL_PATH" in os.environ:
+            self._libtool_path = os.environ["LIBTOOL_PATH"]
 
         # CVODE is optional, but recommended for performance boost
         if "CVODE_PATH" in os.environ:
@@ -819,13 +847,15 @@ class ChemicalNetwork(object):
             else:
                 print("Need to supply SUITESPARSE_PATH if CVODE is compiled with KLU")
         else:
-            print("Need to supply CVODE_PATH")
+            print("CVODE_PATH is optional")
             print(
                 "OR: You can choose to use the first order BDF solver that comes with dengo"
             )
             print("In that case, please set ode_solver_source to 'BE_chem_solve.C'")
             print("and solver_template to 'rates_and_rate_tables'. ")
-            raise ValueError()
+            solver_template = "rates_and_rate_tables"
+            ode_solver_source = "BE_chem_solve.C"
+            #raise ValueError()
 
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
@@ -844,7 +874,8 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(
             extensions=["jinja2.ext.loopcontrols"],
-            loader=jinja2.PackageLoader("dengo", "templates"),
+            #loader=jinja2.PackageLoader("dengo", "templates"),
+            loader=jinja2.FileSystemLoader(root_path)
         )
         template_vars = dict(
             network=self, solver_name=solver_name, init_values=init_values
