@@ -12,7 +12,7 @@ MarkupSafe==1.1.1
 matplotlib==3.1.1
 more-itertools==7.2.0
 mpmath==1.1.0
-numpy==1.17.2
+numpy==1.21.0
 packaging==19.2
 pluggy==0.13.0
 py==1.10.0
