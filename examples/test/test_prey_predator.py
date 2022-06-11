@@ -317,6 +317,7 @@ def run_prey_predator(network, options):
     indirect=True,
 )
 def test_prey_predator_convergence(setup_predator_prey_network, setup_solver_options):
+    os.chdir(pytest_dir)
     prey_predator_convergence(setup_predator_prey_network, setup_solver_options)
 
     # os.chdir(pytest_dir)
