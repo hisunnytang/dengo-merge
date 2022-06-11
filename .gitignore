@@ -16,3 +16,9 @@ test_performance/test_cvdls/*
 dengo/templates/working/*
 *.out
 viz_network_examples/*
+cvode*
+hdf5*
+test_accuracy/
+test_performance/
+suitesparse/
+SuiteSparse
