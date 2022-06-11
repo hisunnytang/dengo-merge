@@ -1,14 +1,12 @@
-Metadata-Version: 1.1
+Metadata-Version: 2.1
 Name: dengo
-Version: 0.1
+Version: 0.2.2
 Summary: A framework for creating chemical and radiative coolingreaction networks
-Home-page: http://bitbucket.org/MatthewTurk/dengo
-Author: Matthew J. Turk
-Author-email: matthewturk@gmail.com
+Home-page: https://github.com/hisunnytang/dengo-merge
+Author: Sunny Tang, Matthew J. Turk, Devin Silvia
+Author-email: hisunnytang@gmail.com, matthewturk@gmail.com, devin.silvia@gmail.com
 License: GPL-3
-Description: UNKNOWN
 Keywords: astronomy astrophysics chemistry
-Platform: UNKNOWN
 Classifier: Development Status :: 2 - Pre-Alpha
 Classifier: Environment :: Console
 Classifier: Intended Audience :: Science/Research
@@ -19,3 +17,20 @@ Classifier: Programming Language :: C
 Classifier: Programming Language :: Python
 Classifier: Topic :: Scientific/Engineering :: Astronomy
 Classifier: Topic :: Scientific/Engineering :: Physics
+Description-Content-Type: text/markdown
+License-File: LICENSE.txt
+
+# Dengo: An Engineer for Chemistry Solvers
+
+Hi there! Welcome to Dengo. Dengo is a Python system for symbolically describing a system of chemical species, chemical kinetic rate equations, cooling functions, and then producing from these a set of numerical kernels to calculate the “right hand side” and Jacobian of this system. These two numerical kernels can then be linked into one of several ODE solvers.
+
+Dengo is best thought of as a way to create a chemistry and cooling solver that you can stick into a codebase. Rather than trying to tie together the four separate parts – species, reactions, rate coefficients and the solver itself – into a single whole, Dengo allows you to construct each item individually and join them at the final step before inserting them into a simulation code.
+
+A online version of the cookbook and documentation can be found here
+https://hisunnytang.github.io/dengo-cookbook/landing.html
+
+For more information, please contact the authors:
+    Sunny Tang   (hisunnytang@gmail.com)
+    Matthew Turk (matthew.turk@gmail.com)
+    Devin Silvia (devin.silvia@gmail.com)
+
