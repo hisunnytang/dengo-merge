@@ -34,6 +34,12 @@ jobs:
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
           echo "$LD_LIBRARY_PATH"
+      - name: setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 15
+
+     - name: run pytest
+       run: |
           ls ${CONDA}/lib/libsundials_*
           python examples/test/run_prey_predator.py 
           pytest -vv -s --pdb 
