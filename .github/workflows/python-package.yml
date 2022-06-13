@@ -39,7 +39,7 @@ jobs:
           echo "$LD_LIBRARY_PATH"
       - name: setup tmate session
         uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 15
+        timeout-minutes: 30
 
       - name: run pytest
         run: |
