@@ -275,7 +275,7 @@ def test_prey_predator(setup_predator_prey_network, setup_solver_options):
 def run_prey_predator(network, options):
     options["solver_name"] = solver_name
     os.chdir(pytest_dir)
-    write_network(network, options)
+    #write_network(network, options)
     init_values = write_initial_conditions(network)
     os.chdir(options["output_dir"])
 
@@ -356,10 +356,20 @@ def prey_predator_convergence(network, option):
     os.chdir("../")
 
 
-@pytest.mark.last
 @pytest.mark.parametrize(
     "setup_solver_options",
     (
+        pytest.param(
+            {
+                "use_omp": False,
+                "use_cvode": False,
+                "use_suitesparse": False,
+                "output_dir": "be_chem_solve",
+            },
+            marks=pytest.mark.xfail(
+                reason="BE_chem_solve is unstable to stiff equations?"
+            )
+        ),
         {
             "use_omp": False,
             "use_cvode": True,
