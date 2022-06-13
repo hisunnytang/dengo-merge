@@ -38,8 +38,8 @@ jobs:
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 15
 
-     - name: run pytest
-       run: |
+      - name: run pytest
+        run: |
           ls ${CONDA}/lib/libsundials_*
           python examples/test/run_prey_predator.py 
           pytest -vv -s --pdb 
