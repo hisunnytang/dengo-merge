@@ -238,9 +238,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     free(success_arr)
     free(field_data)
     free(units)
-    free(grid_dimension)
-    free(grid_start)
-    free(grid_end)
 
     print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
 
