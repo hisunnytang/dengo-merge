@@ -874,7 +874,6 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(
             extensions=["jinja2.ext.loopcontrols"],
-            #loader=jinja2.PackageLoader("dengo", "templates"),
             loader=jinja2.FileSystemLoader(root_path)
         )
         template_vars = dict(

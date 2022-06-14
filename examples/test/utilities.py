@@ -194,7 +194,7 @@ def run_solver(init_values, dtf=None,
     #niters = solver_options["niters"]
     #reltol = solver_options["reltol"]
     pyximport.install(setup_args={"include_dirs": np.get_include()},
-                      reload_support=True, inplace=True, language_level=3,
+                      reload_support=True, inplace=True, language_level="3",
                       build_in_temp=True)
 
     _solver_run = pyximport.load_module(
@@ -240,7 +240,7 @@ def run_solver(init_values, dtf=None,
             return rv_int
 
 
-def run_c_solver(solver_options, dt=100.0):
+def run_c_solver(solver_options, dt=10.0):
     solver_dir = solver_options["output_dir"]
     solver_name = solver_options["solver_name"]
     os.chdir(solver_dir)
