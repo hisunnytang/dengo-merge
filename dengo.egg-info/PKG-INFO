@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: dengo
-Version: 0.2.2
+Version: 0.1.1
 Summary: A framework for creating chemical and radiative coolingreaction networks
 Home-page: https://github.com/hisunnytang/dengo-merge
 Author: Sunny Tang, Matthew J. Turk, Devin Silvia
