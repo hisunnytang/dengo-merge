@@ -38,7 +38,7 @@ jobs:
           echo "$DENGO_INSTALL_PATH"
           echo "$LD_LIBRARY_PATH"
           
-          ls ${CONDA}/lib/libsundials_*
+          ls ${CONDA}/envs/test/lib/libsundials_*
           python examples/test/run_prey_predator.py 
           pytest -vv -s --pdb 
       - name: setup tmate session
