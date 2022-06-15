@@ -40,7 +40,7 @@ jobs:
           
           #ls ${CONDA}/envs/test/lib/libsundials_*
           #python examples/test/run_prey_predator.py 
-          pytest -vv -s --pdb 
+          #pytest -vv -s --pdb 
       - name: setup tmate session
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 45
