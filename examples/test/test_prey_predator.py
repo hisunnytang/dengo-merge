@@ -276,7 +276,7 @@ def test_prey_predator(setup_predator_prey_network, setup_solver_options):
 def run_prey_predator(network, options):
     options["solver_name"] = solver_name
     os.chdir(pytest_dir)
-    #write_network(network, options)
+    write_network(network, options)
     init_values = write_initial_conditions(network)
     os.chdir(options["output_dir"])
 
