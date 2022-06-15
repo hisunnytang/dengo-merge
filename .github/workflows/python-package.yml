@@ -28,11 +28,11 @@ jobs:
           pip install -e .
       - name: Run Pytest
         run: |
-          export HDF5_PATH=${CONDA}
-          export SUITESPARSE_PATH=${CONDA}
-          export CVODE_PATH=${CONDA}
+          export HDF5_PATH=${CONDA}/envs/test
+          export SUITESPARSE_PATH=${CONDA}/envs/test
+          export CVODE_PATH=${CONDA}/envs/test
           export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
-          export LD_LIBRARY_PATH=${CONDA}/lib:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:$LD_LIBRARY_PATH
 
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
