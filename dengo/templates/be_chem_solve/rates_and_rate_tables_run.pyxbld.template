@@ -17,4 +17,4 @@ def make_ext(modname, pyxfilename):
                      include_dirs=[inc, "."],
                      library_dirs=[lib],
                      libraries=['m', 'hdf5', 'hdf5_hl', "stdc++"],
-                     language="C++", extra_compile_args=["-w"])
+                     language="C++", extra_compile_args=["-w", "-O0"])
