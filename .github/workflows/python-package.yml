@@ -26,6 +26,7 @@ jobs:
           conda install -c conda-forge "sundials>=6.2"
           conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
           pip install -e .
+          sudo apt-get install libtool
       - name: Run Pytest
         run: |
           export HDF5_PATH=${CONDA}/envs/test
@@ -40,7 +41,7 @@ jobs:
           
           #ls ${CONDA}/envs/test/lib/libsundials_*
           #python examples/test/run_prey_predator.py 
-          #pytest -vv -s --pdb 
+          pytest -vv -s --pdb 
       - name: setup tmate session
         uses: mxschmitt/action-tmate@v3
         timeout-minutes: 45
