@@ -26,7 +26,7 @@ jobs:
           conda install -c conda-forge "sundials>=6.2"
           conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
           pip install -e .
-      - name: Setting Environment Variables
+      - name: Run Pytest
         run: |
           export HDF5_PATH=${CONDA}
           export SUITESPARSE_PATH=${CONDA}
@@ -37,12 +37,10 @@ jobs:
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
           echo "$LD_LIBRARY_PATH"
-      - name: setup tmate session
-        uses: mxschmitt/action-tmate@v3
-        timeout-minutes: 45
-
-      - name: run pytest
-        run: |
+          
           ls ${CONDA}/lib/libsundials_*
           python examples/test/run_prey_predator.py 
           pytest -vv -s --pdb 
+      - name: setup tmate session
+        uses: mxschmitt/action-tmate@v3
+        timeout-minutes: 45
