@@ -966,9 +966,13 @@ void ensure_electron_consistency(double *input, long long nstrip, int nchem)
         {%-endif%}
         j++;
         {% endfor %}
+
+
+        {%- for species in network.required_species | sort %}
         {%-if species.name == "de" or species.name == "us_e_0" -%}
         input[e_indx] = total_e;
         {%-endif%}
+        {% endfor %}
     }  
 }
 
