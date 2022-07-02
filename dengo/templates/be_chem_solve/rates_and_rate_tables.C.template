@@ -1299,7 +1299,7 @@ int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *f
     // specifiy the redshift
     int flag;
     double a = units->a_value * units->a_units;
-    double z = 0.0; // 1./a - 1.;
+    double z = 1./a - 1.;
     double dtf;
 
     // convert code time to seconds 
