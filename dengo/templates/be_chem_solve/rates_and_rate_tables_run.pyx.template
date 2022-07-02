@@ -123,8 +123,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int i, j, k, iter
     cdef int dims = {{network.energy_term.name}}_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
-    cdef double *input = <double *> malloc(NTOT * sizeof(double))
-    cdef double *prev = <double *> malloc(NTOT * sizeof(double))
 
     cdef dengo_field_data *field_data = <dengo_field_data *> malloc(sizeof(dengo_field_data));
     cdef code_units       * units     = <code_units *> malloc(sizeof(code_units));
@@ -167,12 +165,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         t_int = np.zeros(niter, "float64")
         dt_int = np.zeros(niter, "float64")
 
-    j = 0
-    for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        input[j] = prev[j] = {{s.name}}_arr[i]
-        j += 1
-        {%- endfor %}
 
     cdef double ttot = 0.0
     cdef int status
@@ -254,8 +246,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             continue
         if ttot >= tf: break
 
-    free(input)
-    free(prev)
     free(t_now)
     free(temp)
     free(dt_arr)
@@ -279,12 +269,12 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         rv_t['t'] = t_int
         rv_t['dt'] = dt_int
 
-    j = 0
-    for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_arr[i] = input[j] #* {{s.weight}}
-        j += 1
-        {%- endfor %}
+    #j = 0
+    #for i in range(dims):
+    #    {%- for s in network.required_species | sort %}
+    #    {{s.name}}_arr[i] = input[j] #* {{s.weight}}
+    #    j += 1
+    #    {%- endfor %}
     return rv, rv_t
 
 cdef copy_array(double *input, double *output, int dims):
