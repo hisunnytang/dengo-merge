@@ -247,12 +247,12 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     {%- endfor %}
     if intermediate:
         {%- for s in network.required_species | sort %}
-        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]
+        rv_t["{{s.name}}"] = {{s.name}}_int[:,:iter+1]
         {%- endfor %}
-        rv_t["successful"] = result_int.astype("bool")
-        rv_t['T'] = temp_int
-        rv_t['t'] = t_int
-        rv_t['dt'] = dt_int
+        rv_t["successful"] = result_int.astype("bool")[:iter+1]
+        rv_t['T'] = temp_int[:,:iter+1]
+        rv_t['t'] = t_int[:iter+1]
+        rv_t['dt'] = dt_int[:iter+1]
 
 #    j = 0
 #    for i in range(dims):
