@@ -22,7 +22,7 @@ LIBTOOL   = {{network._libtool}}
 LIBTOOL = /usr/bin/libtool
 {%endif%}
 
-CC      = gcc
+CC      = $(GCC)
 LIBS    = -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
