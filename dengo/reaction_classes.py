@@ -557,10 +557,11 @@ class CoolingAction(object):
 
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
-        self._eq = eval(self._equation, symbols)
+        #         self._eq = eval(self._equation, symbols)
+        self._eq = sympy.sympify(self._equation, locals=symbols)
         for n, e in self.temporaries.items():
-            e = eval(e, symbols)
-            e = sympy.sympify(e)
+            #e = eval(e, symbols)
+            e = sympy.sympify(e, locals=symbols)
             for n2, e2 in ta_sym.items():
                 e = e.subs(n2, e2)
             self._eq = self._eq.subs(n, e)
