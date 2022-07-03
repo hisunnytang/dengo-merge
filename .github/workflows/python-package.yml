@@ -34,7 +34,7 @@ jobs:
           export SUITESPARSE_PATH=${CONDA}/envs/test
           export CVODE_PATH=${CONDA}/envs/test
           export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
-          export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:$(DENGO_INSTALL_PATH)/lib:$LD_LIBRARY_PATH
+          export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBRARY_PATH
           export GCC=gcc
 
           echo "$HDF5_PATH"
