@@ -26,7 +26,8 @@ jobs:
           conda install -c conda-forge "sundials>=6.2"
           conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
           pip install -e .
-          sudo apt-get install libtool
+          sudo apt-get update
+          sudo apt-get install -y libtool build-essential
       - name: Run Pytest
         run: |
           export HDF5_PATH=${CONDA}/envs/test
@@ -34,10 +35,12 @@ jobs:
           export CVODE_PATH=${CONDA}/envs/test
           export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
           export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:$LD_LIBRARY_PATH
+          export GCC=gcc
 
           echo "$HDF5_PATH"
           echo "$DENGO_INSTALL_PATH"
           echo "$LD_LIBRARY_PATH"
+          gcc --version
           
           #ls ${CONDA}/envs/test/lib/libsundials_*
           #python examples/test/run_prey_predator.py 
