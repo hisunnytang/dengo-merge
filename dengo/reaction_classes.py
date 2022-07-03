@@ -56,9 +56,12 @@ count_m = sympy.Symbol('m', integer=True)
 index_i = sympy.Idx('i', count_m)
 
 class ReactionCoefficient(sympy.Symbol):
-    #TODO: the functional derivatives
-    # sympy.diff() of the sum/ mul of the combination of `ReacionCoefficient` class
-    # gives zeros....
+    """Override sympy.Symbol derivative function to account for energy dependence
+    for example:
+    k01 = ReactionCoefficient("k01")
+    sympy.diff(k01, energy) = sympy.Symbol(rk01)
+    This is particularly useful for calculating the jacobian.
+    """
     energy = sympy.simplify("ge")
 
     def _eval_derivative(self, s):
@@ -86,6 +89,26 @@ class ReactionCoefficient(sympy.Symbol):
 
 
 class Reaction(ComparableMixin):
+    """Defines reactions in Dengo
+
+    Parameters
+    ----------
+    name: str
+        name of the reaction
+    coeff_fn:
+        a function that gives the reaction rate as a function of temperature
+    left_side: List(Tuple, Tuple)
+        The left hand side of the reaction, for example the reaction, p P + q Q -> k K + l L
+        dengo expects an input of [(p,P), (q,Q)].
+        P,Q,K,L should be created and registered first as ChemicalSpecies.
+    right_side: List(Tuple, Tuple)
+        similar to left_side, dengo expects an input [(k,K), (l,L)]
+
+    See Also
+    --------
+    primordial_rates: example on how reactions are created and registered.
+
+    """
     def __init__(self, name, coeff_fn, left_side, right_side):
         self.name = name
         self.coeff_fn = coeff_fn
@@ -102,17 +125,21 @@ class Reaction(ComparableMixin):
 
     @property
     def down_species(self):
+        """the species that gets depleted in this reaction"""
         return [s for n, s in self.left_side]
 
     @property
     def up_species(self):
+        """the species that are created in this reaction"""
         return [s for n, s in self.right_side]
 
     @property
     def species(self):
+        """all the species considered in this reaction"""
         return set(self.down_species + self.up_species)
 
     def net_change(self, sname):
+        """the net change of the sto"""
         up = sum( n for n, s in self.right_side if s.name == sname)
         down = sum( n for n, s in self.left_side if s.name == sname)
         if up == down:
@@ -153,8 +180,7 @@ class Reaction(ComparableMixin):
 
     @classmethod
     def create_reaction(cls, name, left_side, right_side):
-        """Initialize `Reaction`,
-        the chemical reactions between species
+        """An decorator  that initialize `Reaction`
 
         Parameters
         ----------
@@ -173,6 +199,7 @@ class Reaction(ComparableMixin):
         return _w
 
     def species_equation(self, species):
+        """evaluate the Sympy expression for the this particular equation and this particular species"""
         if isinstance(species, str):
             species = species_registry[species]
         elif isinstance(species, (sympy.IndexedBase, sympy.Symbol)):
@@ -200,6 +227,24 @@ class Reaction(ComparableMixin):
 
 reaction = Reaction.create_reaction
 def chianti_rate(atom_name, sm1, s, sp1):
+    """Create Collisional Ionization and Recombination reactions from the ChiantiPy
+
+    Parameters
+    ----------
+    atom_name: str
+        the name of the atom of interest
+    sm1: str
+        the name of the recombined species
+    s: str
+        the name of the original species
+    sp1: str
+        the name of the ionized species
+
+    Returns
+    -------
+    new_rates: List[Str]
+        the list of reactions names added
+    """
     if ch is None: raise ImportError
     ion_name = s.name.lower()
     if "_" not in ion_name:
@@ -437,6 +482,18 @@ class MolecularSpecies(ChemicalSpecies):
 
 
 class CoolingAction(object):
+    """Create and Register Cooling Action in Dengo
+    Parameters
+    ----------
+    name: str
+    equation: str
+        the cooling equation
+
+    See Also
+    --------
+    dengo.primordial_cooling
+        a sample of how cooling terms are defined in dengo
+    """
     _eq = None
     def __init__(self, name, equation):
         self.name = name
@@ -453,6 +510,28 @@ class CoolingAction(object):
 
     @property
     def equation(self):
+        """convert the string input equation into sympy expression
+
+        When the equation is defined, multiple cooling action coefficients can be defined.
+        Each of this coefficients can be registered with the decorator @eq.table.
+        For example, when bremsstrahlung cooling is defined.
+        The cooling equation is "-brem*(HII+HeII+4*HeIII)".
+        The cooling rate "brem" is dependent on the temperature.
+        It can be defined below and registered with @eq.table.
+        @cooling_action("brem", "-brem * (HII + HeII + 4.0*HeIII) * de")
+        def cool(eq):
+            @eq.table
+            def brem(state):
+                # balck 1981 / Spitzer & Hart 1979
+                vals = 1.43e-27*np.sqrt(state.T) \
+                     *(1.1+0.34*np.exp(-(5.5-np.log10(state.T))**2/3.0))
+                return vals
+
+        See Also
+        --------
+        dengo.primordial_cooling
+            for how cooling actions are defined.
+        """
         if self._eq is not None: return self._eq
         symbols = dict((n, s.symbol) for n, s in species_registry.items())
         #ta_sym = dict((n, sympy.IndexedBase(n, (count_m,))) for n in self.tables))
@@ -478,10 +557,11 @@ class CoolingAction(object):
 
         symbols.update(self.table_symbols)
         symbols.update(self.temp_symbols)
-        self._eq = eval(self._equation, symbols)
+        #         self._eq = eval(self._equation, symbols)
+        self._eq = sympy.sympify(self._equation, locals=symbols)
         for n, e in self.temporaries.items():
-            e = eval(e, symbols)
-            e = sympy.sympify(e)
+            #e = eval(e, symbols)
+            e = sympy.sympify(e, locals=symbols)
             for n2, e2 in ta_sym.items():
                 e = e.subs(n2, e2)
             self._eq = self._eq.subs(n, e)

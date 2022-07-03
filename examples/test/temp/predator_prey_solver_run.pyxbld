@@ -13,8 +13,8 @@ def make_ext(modname, pyxfilename):
     lib = os.path.join(hdf5_dir, "lib")
     return Extension(name=modname,
                      sources=[pyxfilename,
-                        "{{solver_name}}_solver.C", "BE_chem_solve.C"],
+                        "predator_prey_solver.C", "BE_chem_solve.C"],
                      include_dirs=[inc, "."],
                      library_dirs=[lib],
                      libraries=['m', 'hdf5', 'hdf5_hl', "stdc++"],
-                     language="C++", extra_compile_args=["-w", "-O0"])
+                     language="C++", extra_compile_args=["-w", "-g"])

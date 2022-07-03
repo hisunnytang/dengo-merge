@@ -1,4 +1,4 @@
-
+#cython: language_level=3
 cimport numpy as np
 import numpy as np
 import time
@@ -7,19 +7,21 @@ from libcpp cimport bool
 from cpython cimport array
 
 # NSPECIES here is N in the .C.template file
-DEF NSPECIES = {{network.required_species | length}}
+DEF NSPECIES = 5
 DEF MAX_NCELLS=1
 
-cdef extern from "{{solver_name}}_solver.h":
+cdef extern from "predator_prey_solver.h":
     cdef int _MAX_NCELLS  "MAX_NCELLS"
     cdef int _NSPECIES "NSPECIES"
 
     ctypedef struct dengo_field_data:
         unsigned long int nstrip;
         unsigned long int ncells;
-        {%- for species in network.required_species | sort %}
-        double *{{species.name}}_density;
-        {%- endfor %}
+        double *dead_predator_density;
+        double *dead_prey_density;
+        double *ge_density;
+        double *predator_density;
+        double *prey_density;
         double *density;
         double *CoolingTime;
         double *MolecularWeight;
@@ -42,7 +44,7 @@ cdef extern from "{{solver_name}}_solver.h":
         double a_value
 
 
-    ctypedef struct {{solver_name}}_data:
+    ctypedef struct predator_prey_data:
         double dbin
         double idbin
         double bounds[2]
@@ -61,50 +63,65 @@ cdef extern from "{{solver_name}}_solver.h":
         double Tdef[MAX_NCELLS]
         double dT[MAX_NCELLS]
         double logTs[MAX_NCELLS]
-        double dTs_{{ network.energy_term.name }}[MAX_NCELLS]
-        {%- for name, rate in network.reactions | dictsort %}
-        double r_{{name}}[{{ network.T | length }}]
-        double rs_{{name}}[MAX_NCELLS]
-        double drs_{{name}}[MAX_NCELLS]
-        {%- endfor %}
-        {%- for name, rate in network.cooling_actions | dictsort %}
-        {%- for name2 in rate.tables | sort %}
-        double c_{{name}}_{{name2}}[{{ network.T | length }}]
-        double cs_{{name}}_{{name2}}[MAX_NCELLS]
-        double dcs_{{name}}_{{name2}}[MAX_NCELLS]
-        {%- endfor %}
-        {% endfor %}
+        double dTs_ge[MAX_NCELLS]
+        double r_exp_growth_prey[1024]
+        double rs_exp_growth_prey[MAX_NCELLS]
+        double drs_exp_growth_prey[MAX_NCELLS]
+        double r_natural_death_predator[1024]
+        double rs_natural_death_predator[MAX_NCELLS]
+        double drs_natural_death_predator[MAX_NCELLS]
+        double r_predation[1024]
+        double rs_predation[MAX_NCELLS]
+        double drs_predation[MAX_NCELLS]
         int bin_id[MAX_NCELLS]
         int ncells
 
-    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+    double dengo_evolve_predator_prey (double dtf, double dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
-                                         {{solver_name}}_data *data, double *temp)
-    int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double* atol, double dt)
-    int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
-    int {{solver_name}}_main(int argc, char **argv);
+                                         predator_prey_data *data, double *temp)
+    int predator_prey_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double* atol, double dt)
+    int predator_prey_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
+    int predator_prey_main(int argc, char **argv);
 
 
 
-def main_run_{{solver_name}}():
+def main_run_predator_prey():
     t1 = time.time()
-    {{solver_name}}_main(0, NULL)
+    predator_prey_main(0, NULL)
     t2 = time.time()
     print("Total elapsed time: %0.3e" % (t2-t1))
 
-def run_{{solver_name}}(ics, double tf, int niter = 10000,
+def run_predator_prey(ics, double tf, int niter = 10000,
                         int intermediate = 1, float z = -1.0, bool adaptive_step = True,
 			float reltol = 1.0e-5, float floor_value = 1.0e-20):
     #assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
-    {%- for s in network.required_species | sort %}
-    cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
-    if not {{s.name}}_arr.flags['C_CONTIGUOUS']:
-        {{s.name}}_arr = np.ascontiguousarray( {{s.name}}_arr )
-    cdef double[::1] {{s.name}}_memview = {{s.name}}_arr
-    cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
-    {%- endfor %}
+    cdef np.ndarray[np.float64_t, ndim=1] dead_predator_arr = ics["dead_predator"]
+    if not dead_predator_arr.flags['C_CONTIGUOUS']:
+        dead_predator_arr = np.ascontiguousarray( dead_predator_arr )
+    cdef double[::1] dead_predator_memview = dead_predator_arr
+    cdef np.ndarray[np.float64_t, ndim=2] dead_predator_int
+    cdef np.ndarray[np.float64_t, ndim=1] dead_prey_arr = ics["dead_prey"]
+    if not dead_prey_arr.flags['C_CONTIGUOUS']:
+        dead_prey_arr = np.ascontiguousarray( dead_prey_arr )
+    cdef double[::1] dead_prey_memview = dead_prey_arr
+    cdef np.ndarray[np.float64_t, ndim=2] dead_prey_int
+    cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
+    if not ge_arr.flags['C_CONTIGUOUS']:
+        ge_arr = np.ascontiguousarray( ge_arr )
+    cdef double[::1] ge_memview = ge_arr
+    cdef np.ndarray[np.float64_t, ndim=2] ge_int
+    cdef np.ndarray[np.float64_t, ndim=1] predator_arr = ics["predator"]
+    if not predator_arr.flags['C_CONTIGUOUS']:
+        predator_arr = np.ascontiguousarray( predator_arr )
+    cdef double[::1] predator_memview = predator_arr
+    cdef np.ndarray[np.float64_t, ndim=2] predator_int
+    cdef np.ndarray[np.float64_t, ndim=1] prey_arr = ics["prey"]
+    if not prey_arr.flags['C_CONTIGUOUS']:
+        prey_arr = np.ascontiguousarray( prey_arr )
+    cdef double[::1] prey_memview = prey_arr
+    cdef np.ndarray[np.float64_t, ndim=2] prey_int
     cdef np.ndarray[np.float64_t, ndim=1] CoolingTime;
     cdef np.ndarray[np.float64_t, ndim=1] Gamma;
     cdef np.ndarray[np.float64_t, ndim=1] Temperature;
@@ -121,8 +138,10 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef np.ndarray[np.float64_t, ndim=1] dt_int
 
     cdef int i, j, k, iter
-    cdef int dims = {{network.energy_term.name}}_arr.shape[0]
+    cdef int dims = ge_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
+    cdef double *input = <double *> malloc(NTOT * sizeof(double))
+    cdef double *prev = <double *> malloc(NTOT * sizeof(double))
 
     cdef dengo_field_data *field_data = <dengo_field_data *> malloc(sizeof(dengo_field_data));
     cdef code_units       * units     = <code_units *> malloc(sizeof(code_units));
@@ -138,9 +157,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double[::1] gamma_memview = Gamma
     cdef double[::1] temp_memview  = Temperature
     cdef double[::1] mweight_memview = MolecularWeight
-    {%- for species in network.required_species | sort %}
-    field_data.{{species.name}}_density = &{{species.name}}_memview[0];
-    {%- endfor %}
+    field_data.dead_predator_density = &dead_predator_memview[0];
+    field_data.dead_prey_density = &dead_prey_memview[0];
+    field_data.ge_density = &ge_memview[0];
+    field_data.predator_density = &predator_memview[0];
+    field_data.prey_density = &prey_memview[0];
     field_data.CoolingTime = &ctime_memview[0]
     field_data.Gamma       = &gamma_memview[0]
     field_data.temperature = &temp_memview[0]
@@ -152,9 +173,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     if intermediate == 1:
         # allocate memory for the intermediate results
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_int = np.zeros((dims, niter), "float64")
-        {%- endfor %}
+        dead_predator_int = np.zeros((dims, niter), "float64")
+        dead_prey_int = np.zeros((dims, niter), "float64")
+        ge_int = np.zeros((dims, niter), "float64")
+        predator_int = np.zeros((dims, niter), "float64")
+        prey_int = np.zeros((dims, niter), "float64")
         CoolingTime_int = np.zeros((dims, niter), "float64")
         Gamma_int       = np.zeros((dims, niter), "float64")
         Temperature_int = np.zeros((dims, niter), "float64")
@@ -165,6 +188,18 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         t_int = np.zeros(niter, "float64")
         dt_int = np.zeros(niter, "float64")
 
+    j = 0
+    for i in range(dims):
+        input[j] = prev[j] = dead_predator_arr[i]
+        j += 1
+        input[j] = prev[j] = dead_prey_arr[i]
+        j += 1
+        input[j] = prev[j] = ge_arr[i]
+        j += 1
+        input[j] = prev[j] = predator_arr[i]
+        j += 1
+        input[j] = prev[j] = prey_arr[i]
+        j += 1
 
     cdef double ttot = 0.0
     cdef int status
@@ -172,7 +207,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int Enzo_Fail    = 0
     # Allocate some temporary data
     # Now we manually evolve
-    #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
+    #ttot = dengo_evolve_predator_prey(tf, dt, input, rtol, atol, dims, data)
     cdef double *t_now = <double *> malloc( sizeof(double) )
     cdef double *dt_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *success_arr = <double *> malloc(sizeof(double) * dims * niter)
@@ -201,20 +236,26 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     cdef int niter_cvodes = niter
     cdef double dt  = tf / float(niter)
-    field_data.dengo_data_file = "{{solver_name}}_tables.h5"
+    field_data.dengo_data_file = "predator_prey_tables.h5"
 
     field_data.reltol = reltol;
     field_data.floor_value = floor_value;
 
     for iter in range(niter):
-        status = {{solver_name}}_solve_chemistry_enzo( units, field_data, dt);
+        status = predator_prey_solve_chemistry_enzo( units, field_data, dt);
         j = 0;
 
         for i in range(dims):
-            {%- for s in network.required_species | sort %}
-            {{s.name}}_int[i, iter] = field_data.{{s.name}}_density[i]
+            dead_predator_int[i, iter] = field_data.dead_predator_density[i]
             j += 1
-            {%- endfor %}
+            dead_prey_int[i, iter] = field_data.dead_prey_density[i]
+            j += 1
+            ge_int[i, iter] = field_data.ge_density[i]
+            j += 1
+            predator_int[i, iter] = field_data.predator_density[i]
+            j += 1
+            prey_int[i, iter] = field_data.prey_density[i]
+            j += 1
             temp_int[ i, iter ] = field_data.temperature[i]
 
         if status == Enzo_Success:
@@ -246,6 +287,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             continue
         if ttot >= tf: break
 
+    free(input)
+    free(prev)
     free(t_now)
     free(temp)
     free(dt_arr)
@@ -253,28 +296,41 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     free(success_arr)
     free(field_data)
     free(units)
+    free(grid_dimension)
+    free(grid_start)
+    free(grid_end)
 
     print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
 
     rv, rv_t = {}, {}
-    {%- for s in network.required_species | sort %}
-    {{s.name}}_arr = rv["{{s.name}}"] = np.zeros(dims, "float64")
-    {%- endfor %}
+    dead_predator_arr = rv["dead_predator"] = np.zeros(dims, "float64")
+    dead_prey_arr = rv["dead_prey"] = np.zeros(dims, "float64")
+    ge_arr = rv["ge"] = np.zeros(dims, "float64")
+    predator_arr = rv["predator"] = np.zeros(dims, "float64")
+    prey_arr = rv["prey"] = np.zeros(dims, "float64")
     if intermediate:
-        {%- for s in network.required_species | sort %}
-        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]
-        {%- endfor %}
+        rv_t["dead_predator"] = dead_predator_int[:niter]
+        rv_t["dead_prey"] = dead_prey_int[:niter]
+        rv_t["ge"] = ge_int[:niter]
+        rv_t["predator"] = predator_int[:niter]
+        rv_t["prey"] = prey_int[:niter]
         rv_t["successful"] = result_int.astype("bool")
         rv_t['T'] = temp_int
         rv_t['t'] = t_int
         rv_t['dt'] = dt_int
 
-    #j = 0
-    #for i in range(dims):
-    #    {%- for s in network.required_species | sort %}
-    #    {{s.name}}_arr[i] = input[j] #* {{s.weight}}
-    #    j += 1
-    #    {%- endfor %}
+#    j = 0
+#    for i in range(dims):
+#        dead_predator_arr[i] = input[j] #* 1.0
+#        j += 1
+#        dead_prey_arr[i] = input[j] #* 1.0
+#        j += 1
+#        ge_arr[i] = input[j] #* 1.0
+#        j += 1
+#        predator_arr[i] = input[j] #* 1.0
+#        j += 1
+#        prey_arr[i] = input[j] #* 1.0
+#        j += 1
     return rv, rv_t
 
 cdef copy_array(double *input, double *output, int dims):
@@ -297,13 +353,13 @@ cdef extern from "alloca.h":
     void *alloca(int)
 
 # NSPECIES here is N in the .C.template file
-DEF NSPECIES = {{network.required_species | length}}
+DEF NSPECIES = 5
 DEF MAX_NCELLS=1024
 
-cdef extern from "{{solver_name}}_solver.h":
+cdef extern from "predator_prey_solver.h":
     cdef int _MAX_NCELLS  "MAX_NCELLS"
     cdef int _NSPECIES "NSPECIES"
-    ctypedef struct {{solver_name}}_data:
+    ctypedef struct predator_prey_data:
         double dbin
         double idbin
         double bounds[2]
@@ -322,69 +378,76 @@ cdef extern from "{{solver_name}}_solver.h":
         double Tdef[MAX_NCELLS]
         double dT[MAX_NCELLS]
         double logTs[MAX_NCELLS]
-        double dTs_{{ network.energy_term.name }}[MAX_NCELLS]
-        {%- for name, rate in network.reactions | dictsort %}
-        double r_{{name}}[{{ network.T | length }}]
-        double rs_{{name}}[MAX_NCELLS]
-        double drs_{{name}}[MAX_NCELLS]
-        {%- endfor %}
-        {%- for name, rate in network.cooling_actions | dictsort %}
-        {%- for name2 in rate.tables | sort %}
-        double c_{{name}}_{{name2}}[{{ network.T | length }}]
-        double cs_{{name}}_{{name2}}[MAX_NCELLS]
-        double dcs_{{name}}_{{name2}}[MAX_NCELLS]
-        {%- endfor %}
-        {% endfor %}
+        double dTs_ge[MAX_NCELLS]
+        double r_exp_growth_prey[1024]
+        double rs_exp_growth_prey[MAX_NCELLS]
+        double drs_exp_growth_prey[MAX_NCELLS]
+        double r_natural_death_predator[1024]
+        double rs_natural_death_predator[MAX_NCELLS]
+        double drs_natural_death_predator[MAX_NCELLS]
+        double r_predation[1024]
+        double rs_predation[MAX_NCELLS]
+        double drs_predation[MAX_NCELLS]
         int bin_id[MAX_NCELLS]
         int ncells
 
     ctypedef int(*rhs_f)(double *, double *, int, int, void *)
     ctypedef int(*jac_f)(double *, double *, int, int, void *)
 
-    int {{solver_name}}_main(int argc, char **argv)
-    {{solver_name}}_data *{{solver_name}}_setup_data(int *NumberOfFields,
+    int predator_prey_main(int argc, char **argv)
+    predator_prey_data *predator_prey_setup_data(int *NumberOfFields,
             char ***FieldNames)
-    void {{ solver_name }}_read_rate_tables({{solver_name}}_data*)
-    void {{ solver_name }}_read_cooling_tables({{solver_name}}_data*)
-    double dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
+    void predator_prey_read_rate_tables(predator_prey_data*)
+    void predator_prey_read_cooling_tables(predator_prey_data*)
+    double dengo_evolve_predator_prey (double dtf, double &dt, double z,
                                          double *input, double *rtol,
                                          double *atol, int dims,
-                                         {{solver_name}}_data *data)
+                                         predator_prey_data *data)
     int BE_chem_solve(rhs_f f, jac_f J,
 		    double *u, double dt, double *rtol, 
                     double *atol, int nstrip, int nchem, 
 		    double *scaling, void *sdata, double *u0, double *s,
             double *gu, double *Ju
            )
-    int calculate_jacobian_{{solver_name}}(double *input, double *Joutput,
+    int calculate_jacobian_predator_prey(double *input, double *Joutput,
             int nstrip, int nchem, void *sdata)
-    int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
+    int calculate_rhs_predator_prey(double *input, double *rhs, int nstrip,
                       int nchem, void *sdata)
     int ensure_electron_consistency(double *input, int nstrip, int nchem)
     void setting_up_extra_variables( simpleBE_data * data, double * input, int nstrip  )
 
-def main_run_{{solver_name}}():
+def main_run_predator_prey():
     t1 = time.time()
-    {{solver_name}}_main(0, NULL)
+    predator_prey_main(0, NULL)
     t2 = time.time()
     print "Total elapsed time: %0.3e" % (t2-t1)
 
-def run_{{solver_name}}(ics, double tf, int niter = 10000,
+def run_predator_prey(ics, double tf, int niter = 10000,
                         int intermediate = 1, z = -1.0, reltol=1.0e-5, floor_value=1.0e-20):
     assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
-    {%- for s in network.required_species | sort %}
-    cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
+    cdef np.ndarray[np.float64_t, ndim=1] dead_predator_arr = ics["dead_predator"]
     # All of the intermediate variables get declared, but not necessarily assigned
-    cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
-    {%- endfor %}
+    cdef np.ndarray[np.float64_t, ndim=2] dead_predator_int
+    cdef np.ndarray[np.float64_t, ndim=1] dead_prey_arr = ics["dead_prey"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] dead_prey_int
+    cdef np.ndarray[np.float64_t, ndim=1] ge_arr = ics["ge"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] ge_int
+    cdef np.ndarray[np.float64_t, ndim=1] predator_arr = ics["predator"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] predator_int
+    cdef np.ndarray[np.float64_t, ndim=1] prey_arr = ics["prey"]
+    # All of the intermediate variables get declared, but not necessarily assigned
+    cdef np.ndarray[np.float64_t, ndim=2] prey_int
     cdef np.ndarray[np.uint8_t, ndim=1] result_int
     cdef np.ndarray[np.float64_t, ndim=2] temp_int
     cdef np.ndarray[np.float64_t, ndim=1] t_int
     cdef np.ndarray[np.float64_t, ndim=1] dt_int
 
     cdef int i, j, k, iter
-    cdef int dims = {{network.energy_term.name}}_arr.shape[0]
+    cdef int dims = ge_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
     cdef double *input = <double *> malloc(NTOT * sizeof(double))
     cdef double *prev = <double *> malloc(NTOT * sizeof(double))
@@ -393,9 +456,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double *scale = <double *> malloc(NTOT * sizeof(double))
 
     if intermediate == 1:
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_int = np.zeros((dims, niter), "float64")
-        {%- endfor %}
+        dead_predator_int = np.zeros((dims, niter), "float64")
+        dead_prey_int = np.zeros((dims, niter), "float64")
+        ge_int = np.zeros((dims, niter), "float64")
+        predator_int = np.zeros((dims, niter), "float64")
+        prey_int = np.zeros((dims, niter), "float64")
         temp_int = np.zeros((dims, niter), "float64")
         result_int = np.zeros(niter, "uint8")
         t_int = np.zeros(niter, "float64")
@@ -403,19 +468,37 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     j = 0
     for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        input[j] = prev[j] = {{s.name}}_arr[i] / {{s.weight}}
+        input[j] = prev[j] = dead_predator_arr[i] / 1.0
         atol[j] = input[j] * reltol
         rtol[j] = reltol
         scale[j] = input[j]
         j += 1
-        {%- endfor %}
+        input[j] = prev[j] = dead_prey_arr[i] / 1.0
+        atol[j] = input[j] * reltol
+        rtol[j] = reltol
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = ge_arr[i] / 1.0
+        atol[j] = input[j] * reltol
+        rtol[j] = reltol
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = predator_arr[i] / 1.0
+        atol[j] = input[j] * reltol
+        rtol[j] = reltol
+        scale[j] = input[j]
+        j += 1
+        input[j] = prev[j] = prey_arr[i] / 1.0
+        atol[j] = input[j] * reltol
+        rtol[j] = reltol
+        scale[j] = input[j]
+        j += 1
 
     ensure_electron_consistency(input, dims, NSPECIES);
 
-    cdef {{solver_name}}_data *data = {{solver_name}}_setup_data(NULL, NULL)
-    cdef rhs_f f = calculate_rhs_{{solver_name}}
-    cdef jac_f jf = calculate_jacobian_{{solver_name}}
+    cdef predator_prey_data *data = predator_prey_setup_data(NULL, NULL)
+    cdef rhs_f f = calculate_rhs_predator_prey
+    cdef jac_f jf = calculate_jacobian_predator_prey
 
     cdef double dt = tf / niter
     cdef double ttot = 0.0
@@ -424,23 +507,29 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int Enzo_Fail    = 0;
     # Allocate some temporary data
     # Now we manually evolve
-    #ttot = dengo_evolve_{{solver_name}}(tf, dt, input, rtol, atol, dims, data)
+    #ttot = dengo_evolve_predator_prey(tf, dt, input, rtol, atol, dims, data)
     data.current_z = z
     cdef double *u0 = <double *> malloc(sizeof(double) * dims * NSPECIES)
     cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
     cdef double *gu = <double *> malloc(sizeof(double) * dims * NSPECIES)
     cdef double *Ju = <double *> malloc(sizeof(double) * dims * NSPECIES * NSPECIES)
-    setting_up_extra_variables( <{{solver_name}}_data *> data, input, dims )
+    setting_up_extra_variables( <predator_prey_data *> data, input, dims )
     for iter in range(niter):
         status = BE_chem_solve(f, jf, input, dt, rtol, atol, dims, NSPECIES, scale,
                                <void *> data, u0, s, gu, Ju)
         if intermediate == 1:
             j = 0
             for i in range(dims):
-                {%- for s in network.required_species | sort %}
-                {{s.name}}_int[i, iter] = input[j]
+                dead_predator_int[i, iter] = input[j]
                 j += 1
-                {%- endfor %}
+                dead_prey_int[i, iter] = input[j]
+                j += 1
+                ge_int[i, iter] = input[j]
+                j += 1
+                predator_int[i, iter] = input[j]
+                j += 1
+                prey_int[i, iter] = input[j]
+                j += 1
                 # temp_int[i, iter] = data.Ts[i]
             if status == Enzo_Success:
                 result_int[iter] = 1
@@ -482,13 +571,17 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}
-    {%- for s in network.required_species | sort %}
-    {{s.name}}_arr = rv["{{s.name}}"] = np.zeros(dims, "float64")
-    {%- endfor %}
+    dead_predator_arr = rv["dead_predator"] = np.zeros(dims, "float64")
+    dead_prey_arr = rv["dead_prey"] = np.zeros(dims, "float64")
+    ge_arr = rv["ge"] = np.zeros(dims, "float64")
+    predator_arr = rv["predator"] = np.zeros(dims, "float64")
+    prey_arr = rv["prey"] = np.zeros(dims, "float64")
     if intermediate:
-        {%- for s in network.required_species | sort %}
-        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]* {{s.weight}}
-        {%- endfor %}
+        rv_t["dead_predator"] = dead_predator_int[:niter]* 1.0
+        rv_t["dead_prey"] = dead_prey_int[:niter]* 1.0
+        rv_t["ge"] = ge_int[:niter]* 1.0
+        rv_t["predator"] = predator_int[:niter]* 1.0
+        rv_t["prey"] = prey_int[:niter]* 1.0
         rv_t["successful"] = result_int.astype("bool")
         rv_t['T'] = temp_int
         rv_t['t'] = t_int
@@ -496,10 +589,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     j = 0
     for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_arr[i] = input[j] * {{s.weight}}
+        dead_predator_arr[i] = input[j] * 1.0
         j += 1
-        {%- endfor %}
+        dead_prey_arr[i] = input[j] * 1.0
+        j += 1
+        ge_arr[i] = input[j] * 1.0
+        j += 1
+        predator_arr[i] = input[j] * 1.0
+        j += 1
+        prey_arr[i] = input[j] * 1.0
+        j += 1
     return rv, rv_t
 
 cdef copy_array(double *input, double *output, int dims):

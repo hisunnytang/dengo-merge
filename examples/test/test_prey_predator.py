@@ -191,11 +191,12 @@ def conserved_variables(results, filename=None, make_plot=True):
 
 def TestConvergence(init_values, rtol_array, setup_solver_options):
     f, ax = plt.subplots()
-    init = copy.deepcopy(init_values)
     for reltol in rtol_array:
+        init = copy.deepcopy(init_values)
         setup_solver_options["reltol"] = reltol
-        results = run_solver(init, **setup_solver_options, make_plot=False, dtf=10.0)
+        results = run_solver(init, make_plot=False, dtf=10.0, adaptive_step=False, **setup_solver_options)
         v0, vt = conserved_variables(results, make_plot=False)
+        #conserved_variables(results, make_plot=True)
         print(setup_solver_options)
         print(v0, vt)
         ones = np.ones_like(vt)
@@ -281,7 +282,7 @@ def run_prey_predator(network, options):
 
     options["niters"] = 1e2
     options["reltol"] = 1.0e-4
-    results = run_solver(init_values, make_plot=False, dtf=100.0, **options)
+    results = run_solver(init_values, make_plot=False, dtf=10.0, **options)
     phase_plot(results)
     os.chdir("../")
 
@@ -346,20 +347,32 @@ def prey_predator_convergence(network, option):
 
     write_network(network, option)
 
-    init_values = write_initial_conditions(network)
+    init_values = write_initial_conditions(network, N = 1)
     os.chdir(option["output_dir"])
-    results = run_solver(init_values, **option, make_plot=False, dtf=10.0)
-    phase_plot(results)
+    #results = run_solver(init_values, **option, make_plot=False, dtf=100.0,)
+    #phase_plot(results)
+
+    init_values = write_initial_conditions(network, N = 1)
     TestConvergence(
-        init_values, rtol_array=np.logspace(-8, -4, 5), setup_solver_options=option
+        init_values, rtol_array=np.logspace(-6, -4, 3), setup_solver_options=option
     )
     os.chdir("../")
 
 
-@pytest.mark.last
 @pytest.mark.parametrize(
     "setup_solver_options",
     (
+        pytest.param(
+            {
+                "use_omp": False,
+                "use_cvode": False,
+                "use_suitesparse": False,
+                "output_dir": "be_chem_solve",
+            },
+            marks=pytest.mark.xfail(
+                reason="BE_chem_solve is unstable to stiff equations?"
+            )
+        ),
         {
             "use_omp": False,
             "use_cvode": True,

@@ -8,12 +8,6 @@ from dengo.chemistry_constants import tiny, kboltz, mh, G
 import os
 import jinja2
 
-os.environ['HDF5_PATH'] = '/home/kwoksun2/anaconda3'
-os.environ['DENGO_INSTALL_PATH'] = '/home/kwoksun2/dengo_install'
-os.environ['CVODE_PATH'] = "/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir"
-os.environ['SUITESPARSE_PATH'] = "/home/kwoksun2/SuiteSparse"
-
-
 def setup_primordial_network():
     """Initial a ChemicalNetwork object
        for primordial network 9-species model

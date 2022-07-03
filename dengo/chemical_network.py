@@ -808,7 +808,7 @@ class ChemicalNetwork(object):
         self.update_ode_species()
 
         if solver_option == 'CVODE':
-            solver_template = "rates_and_rate_tables"
+            solver_template = "be_chem_solve/rates_and_rate_tables"
             ode_solver_source = "BE_chem_solve.C"
         elif solver_option == 'BE_CHEM_SOLVE':
             solver_template = "cv_omp/sundials_CVDls",
@@ -853,7 +853,7 @@ class ChemicalNetwork(object):
             )
             print("In that case, please set ode_solver_source to 'BE_chem_solve.C'")
             print("and solver_template to 'rates_and_rate_tables'. ")
-            solver_template = "rates_and_rate_tables"
+            solver_template = "be_chem_solve/rates_and_rate_tables"
             ode_solver_source = "BE_chem_solve.C"
             #raise ValueError()
 
@@ -874,7 +874,6 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(
             extensions=["jinja2.ext.loopcontrols"],
-            #loader=jinja2.PackageLoader("dengo", "templates"),
             loader=jinja2.FileSystemLoader(root_path)
         )
         template_vars = dict(

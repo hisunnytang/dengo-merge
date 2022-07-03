@@ -39,7 +39,7 @@ LIBTOOL   = {{network._libtool_path}}/libtool
 LIBTOOL = libtool
 {%endif%}
 
-CC      = gcc
+CC      = $(GCC)
 LIBS     = -L$(HDF5_PATH)/lib -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES

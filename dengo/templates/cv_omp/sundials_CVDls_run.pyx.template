@@ -1,3 +1,4 @@
+#cython: language_level=3
 cimport numpy as np
 import numpy as np
 import time
@@ -246,19 +247,19 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     {%- endfor %}
     if intermediate:
         {%- for s in network.required_species | sort %}
-        rv_t["{{s.name}}"] = {{s.name}}_int[:niter]
+        rv_t["{{s.name}}"] = {{s.name}}_int[:,:iter+1]
         {%- endfor %}
-        rv_t["successful"] = result_int.astype("bool")
-        rv_t['T'] = temp_int
-        rv_t['t'] = t_int
-        rv_t['dt'] = dt_int
+        rv_t["successful"] = result_int.astype("bool")[:iter+1]
+        rv_t['T'] = temp_int[:,:iter+1]
+        rv_t['t'] = t_int[:iter+1]
+        rv_t['dt'] = dt_int[:iter+1]
 
-    j = 0
-    for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        {{s.name}}_arr[i] = input[j] #* {{s.weight}}
-        j += 1
-        {%- endfor %}
+#    j = 0
+#    for i in range(dims):
+#        {%- for s in network.required_species | sort %}
+#        {{s.name}}_arr[i] = input[j] #* {{s.weight}}
+#        j += 1
+#        {%- endfor %}
     return rv, rv_t
 
 cdef copy_array(double *input, double *output, int dims):

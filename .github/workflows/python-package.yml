@@ -1,0 +1,51 @@
+name: Dengo Testing
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -l {0}
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9"]
+
+    steps:
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+            auto-update-conda: true
+            auto-activate-base: true
+            python-version: ${{matrix.python-version}}
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          conda install -c conda-forge "sundials>=6.2"
+          conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
+          pip install -e .
+          sudo apt-get update
+          sudo apt-get install -y libtool libtool-bin build-essential
+      - name: Run Pytest
+        run: |
+          export HDF5_PATH=${CONDA}/envs/test
+          export SUITESPARSE_PATH=${CONDA}/envs/test
+          export CVODE_PATH=${CONDA}/envs/test
+          export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
+          export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBRARY_PATH
+          export GCC=gcc
+
+          echo "$HDF5_PATH"
+          echo "$DENGO_INSTALL_PATH"
+          echo "$LD_LIBRARY_PATH"
+          gcc --version
+          
+          #ls ${CONDA}/envs/test/lib/libsundials_*
+          #python examples/test/run_prey_predator.py 
+          pytest -vv
+          #pytest -vv -s --pdb 
+          #- name: setup tmate session
+          #uses: mxschmitt/action-tmate@v3
+          #timeout-minutes: 45

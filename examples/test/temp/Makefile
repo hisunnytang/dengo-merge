@@ -13,21 +13,19 @@
 # MAX_NCELLS: number of strip solved per solver call 
 
 # INSTALL PATHS
-DENGO_INSTALL_PATH = {{network._dengo_install_path}}
-HDF5_PATH = {{network._hdf5_path}}
+DENGO_INSTALL_PATH = /home/kwoksun2/dengo_install
+HDF5_PATH = /home/kwoksun2/anaconda3
 
-{%if network._libtool is defined%}
-LIBTOOL   = {{network._libtool}}
-{%else%}
+
 LIBTOOL = /usr/bin/libtool
-{%endif%}
 
-CC      = $(GCC)
+
+CC      = gcc
 LIBS    = -lhdf5 -lhdf5_hl -lm -lstdc++
 
 # REQUIRED FILES
-OBJ = {{solver_name}}_solver.C BE_chem_solve.C
-TEST_OBJ = {{solver_name}}_solver_main.C
+OBJ = predator_prey_solver.C BE_chem_solve.C
+TEST_OBJ = predator_prey_solver_main.C
 
 includedir   = $(HDF5_PATH)/include
 libdir       = $(HDF5_PATH)/lib
@@ -53,10 +51,10 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 	mkdir -p $(DENGO_INSTALL_PATH)/include
 	$(LIBTOOL) --mode=link --tag=CC $(CC) $(LDFLAGS) -o $@ $^ $(OPTIONS)  ${CFLAGS} ${LDFLAGS} ${INCLUDES} ${LIBDIR} ${LIBRARIES} $(LINKFLAGS) -rpath $(DENGO_INSTALL_PATH)/lib
 	$(LIBTOOL) --mode=install install -c libdengo.la $(DENGO_INSTALL_PATH)/lib
-	cp {{solver_name}}_solver.h $(DENGO_INSTALL_PATH)/include/
-	cp {{solver_name}}_tables.h5 $(DENGO_INSTALL_PATH)
+	cp predator_prey_solver.h $(DENGO_INSTALL_PATH)/include/
+	cp predator_prey_tables.h5 $(DENGO_INSTALL_PATH)
 
-run_dengo: {{solver_name}}_solver_main.C
+run_dengo: predator_prey_solver_main.C
 	$(CC) -o $@ $^ $(OPTIONS) -I$(DENGO_INSTALL_PATH)/include -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
 test: run_dengo 
@@ -83,6 +81,5 @@ clean:
 	rm -f libdengo.la
 	rm -f *.lo
 	libtool --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
-
 
 

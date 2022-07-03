@@ -144,12 +144,12 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
     #ifndef CVSPILS
     /* Call CVDlsSetLinearSolver to attach the matrix 
      * and linear solver to CVode */
-    flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
-    if(check_flag(&flag, "CVDlsSetLinearSolver", 1)) return(NULL);
+    flag = CVodeSetLinearSolver(cvode_mem, LS, A);
+    if(check_flag(&flag, "CVodeSetLinearSolver", 1)) return(NULL);
     
     /* Set the user-supplied Jacobian routine Jac */
-    flag = CVDlsSetJacFn(cvode_mem, Jac);
-    if(check_flag(&flag, "CVDlsSetJacFn", 1)) return(NULL);
+    flag = CVodeSetJacFn(cvode_mem, Jac);
+    if(check_flag(&flag, "CVodeSetJacFn", 1)) return(NULL);
     #endif 
 
     #ifdef CVSPILS

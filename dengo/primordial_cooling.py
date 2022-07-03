@@ -146,6 +146,7 @@ def cool(eq):
         return vals
 
 # -- brema --
+#bremsstrahlung (free-free) for all the ions as charge**2*n_ion
 @cooling_action("brem", "-brem * (HII + HeII + 4.0*HeIII) * de")
 def cool(eq):
     @eq.table
@@ -193,6 +194,40 @@ def cool(eq):
 
     @eq.table
     def gaHI(state):
+        # Updated rates from Lique
+        #h2_h_cooling_rate == 1 :
+        #Revised low density H2 cooling rate due to H collisions, based on
+        #Lique (2015, MNRAS, 453, 810). This fit is accurate to within ~5% over the temperature
+        #range 100 < T < 5000 K. Lique (2015) doesn't present data above 5000 K, so at higher
+        #temperatures the rate has been calculated assuming that the de-excitation rate
+        #coefficients have the same values that they have at 5000 K. Lique also doesn't give
+        #rates for T < 100 K, but since we don't expect H2 cooling to be important there, it
+        #should be OK to just set the rate to zero.
+
+        #h2_h_cooling_rate == 2:
+
+        #Formula from Glover and Abel 2008.
+        #
+        tm = np.maximum(state.T, 10.0)
+        tm = np.minimum(state.T, 1e4)
+        lt3 = np.log10(tm/1e3)
+
+        vals = np.zeros_like(state.T)
+        tmp = 10**(
+            -24.07950609
+            + 4.54182810 * lt3
+            - 2.40206896 * (lt3** 2)
+            - 0.75355292 * (lt3** 3)
+            + 4.69258178 * (lt3** 4)
+            - 2.79573574 * (lt3** 5)
+            - 3.14766075 * (lt3** 6)
+            + 2.50751333 * (lt3** 7)
+        )
+        vals[tm>=1e2] = tmp[tm>=1e2]
+        return vals
+
+
+
         # Low density rates from Glover & Abel 2008
         tm  = np.maximum(state.T, 10.0e0)
         tm  = np.minimum(tm, 1.e4)
@@ -348,6 +383,15 @@ def cool(eq):
                  - 2.2148338 * lt3**7 \
                  + 1.8161874 * lt3**8)
 
+
+        # high density limit from HM79, GP98 below Tgas = 2d3
+        # UPDATED USING GLOVER 2015 for high temperature corrections, MNRAS
+        # N THE HIGH DENSITY REGIME LAMBDA_H2 = LAMBDA_H2(LTE) = HDL
+        # he following mix of functions ensures the right behaviour
+        # at low (T<10 K) and high temperatures (T>2000 K) by
+        # using both the original Hollenbach and the new Glover data
+        # merged in a smooth way.
+
         vals[_i1] = 7.0-27 * tm[_i1]**1.5 * np.exp(-512./tm[_i1])
         return vals
 
@@ -380,11 +424,11 @@ def cool(eq):
 #  with epsilon=0.05, G_0=1.7 (rate in erg s^-1 cm^-3)
 # -- gammah --
 # FIX THIS
-@cooling_action("gammah", "0.0*gammah * HI * HII")
+@cooling_action("gammah", "gammah * HI * HII")
 def cool(eq):
     @eq.table
     def gammah(state):
-        vals = 8.5e-26 + state.T
+        vals = 8.5e-26* np.ones_like(state.T)
         return vals
 
 @cooling_action("h2formation", "h2heatfrac*(h2mheat*HI*HI*HI - h2mcool*H2I*HI)")
