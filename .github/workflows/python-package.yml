@@ -27,7 +27,7 @@ jobs:
           conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
           pip install -e .
           sudo apt-get update
-          sudo apt-get install -y libtool build-essential
+          sudo apt-get install -y libtool libtool-bin build-essential
       - name: Run Pytest
         run: |
           export HDF5_PATH=${CONDA}/envs/test
