@@ -933,18 +933,18 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data,
 	
         // TODO: pull the rates from {{solver_name}}_data
         // these species usually contribute negligbly to the number density (?)
-	// it is a little tricky here,
-	// since these species depends on the temperature 
-	// and the abundance of the rest of the species
-	// BUT, without their abundance, temperature CANNOT be evaluated....
-	// FOR NOW, a not entirely correct physically, 
-	// BUT a not-too-bad surrogate is:
-	// assume these species has negligible abundance....
-	{%- if network.equilibrium_species | length > 0 %}
+        // it is a little tricky here,
+        // since these species depends on the temperature 
+        // and the abundance of the rest of the species
+        // BUT, without their abundance, temperature CANNOT be evaluated....
+        // FOR NOW, a not entirely correct physically, 
+        // BUT a not-too-bad surrogate is:
+        // assume these species has negligible abundance....
+	    {%- if network.equilibrium_species | length > 0 %}
         {%- for species in network.equilibrium_species | sort %}
-	{{species.name}} = 0.0;
+	    {{species.name}} = 0.0;
         {%- endfor %}
-	{%- endif %}
+	    {%- endif %}
 
         density = {{network.print_mass_density()}};
         
@@ -1088,7 +1088,7 @@ void ensure_electron_consistency(double *input, double *equil_array, unsigned lo
     for (i = 0; i<nstrip; i++) {
 	    total_e = 0.0;
     	{%- for species in network.equilibrium_species | sort %}
-	{{species.name}} = {{species.name}}_arr[i];
+	    {{species.name}} = {{species.name}}_arr[i];
     	{%- endfor %}
         j = i * nchem;
         {%- for species in network.ode_species | sort %}
@@ -1102,7 +1102,12 @@ void ensure_electron_consistency(double *input, double *equil_array, unsigned lo
         {%-endif%}
         j++;
         {%- endfor %}
+
+        {%- for species in network.required_species | sort %}
+        {%-if species.name == "de" or species.name == "us_e_0" -%}
         input[e_indx] = total_e;
+        {%-endif%}
+        {% endfor %}
     }
 }
 
@@ -2467,9 +2472,9 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         j++;
         {%- endfor %}
 
-	{%- for species in network.equilibrium_species | sort %}
-	{{network.solve_equilibrium_abundance(species.name)}}
-	{% endfor %}
+	    {%- for species in network.equilibrium_species | sort %}
+	    {{network.solve_equilibrium_abundance(species.name)}}
+	    {% endfor %}
 	
         mdensity = data->mdensity[threadID][i];
         inv_mdensity = 1.0 / mdensity;
@@ -2978,7 +2983,7 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
         j++;
         {%- endfor-%}
         
-	{%- for species in network.equilibrium_species | sort %}
+	    {%- for species in network.equilibrium_species | sort %}
         {{species.name}} = {{species.name}}_arr[i];
         {%- endfor %}
 
@@ -2994,9 +2999,9 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
         c = ccount * N;
-	idx = ((k* jdim + j)*idim + i);
+	    idx = ((k* jdim + j)*idim + i);
 	
-	{%- for species in network.equilibrium_species | sort %}
+	    {%- for species in network.equilibrium_species | sort %}
         field_data->{{species.name}}_density[idx] = {{species.name}}_arr[ccount];
         field_data->{{species.name}}_density[idx] /= dom;
         {%- endfor %}
@@ -3009,9 +3014,9 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
         {%- if species == network.energy_term %}
         field_data->{{species.name}}_density[idx] /= UNIT_E_per_M;
         {%- endif %}
-	c++;
-	{%- endfor %}
-	ccount += 1;
+        c++;
+        {%- endfor %}
+        ccount += 1;
     }}}
 
     {%- if network.enforce_conservation %}
@@ -3024,18 +3029,17 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
         c = ccount * N;
-	idx = ((k* jdim + j)*idim + i);
-	rho = density[idx]*units->density_units/m_amu; // density in cgs units
-	// given a speices, return the element it belongs to
+	    idx = ((k* jdim + j)*idim + i);
+	    rho = density[idx]*units->density_units/m_amu; // density in cgs units
+	    // given a speices, return the element it belongs to
         {%- for species in network.ode_species | sort %}
         // {{species.name}}
-	{%- for element in species.elements %}
-	field_data->{{species.name}}_density[idx] *= f{{element}}*rho/total_{{element}}[ccount];
-	{%- endfor %}
+	    {%- for element in species.elements %}
+	    field_data->{{species.name}}_density[idx] *= f{{element}}*rho/total_{{element}}[ccount];
+	    {%- endfor %}
         {%- endfor %}
-
-	//fprintf(stderr, "fractional difference: %0.5g\n", fH*rho/total_H[ccount]);
-	ccount += 1;
+	    //fprintf(stderr, "fractional difference: %0.5g\n", fH*rho/total_H[ccount]);
+	    ccount += 1;
     }}}
     {%- endif %}
 
