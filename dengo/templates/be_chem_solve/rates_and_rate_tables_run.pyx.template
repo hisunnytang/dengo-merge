@@ -102,9 +102,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
     if not {{s.name}}_arr.flags['C_CONTIGUOUS']:
         {{s.name}}_arr = np.ascontiguousarray( {{s.name}}_arr )
+    
     cdef double[::1] {{s.name}}_memview = {{s.name}}_arr
     cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
     {%- endfor %}
+    
+    cdef np.ndarray[np.float64_t, ndim=1] density_arr = ics["density"]
+    if not density_arr.flags['C_CONTIGUOUS']:
+        density_arr = np.ascontiguousarray( density_arr )
+    cdef double[::1] density_memview = density_arr
+
     cdef np.ndarray[np.float64_t, ndim=1] CoolingTime;
     cdef np.ndarray[np.float64_t, ndim=1] Gamma;
     cdef np.ndarray[np.float64_t, ndim=1] Temperature;
@@ -141,6 +148,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     {%- for species in network.required_species | sort %}
     field_data.{{species.name}}_density = &{{species.name}}_memview[0];
     {%- endfor %}
+    field_data.density     = &density_memview[0]
     field_data.CoolingTime = &ctime_memview[0]
     field_data.Gamma       = &gamma_memview[0]
     field_data.temperature = &temp_memview[0]
