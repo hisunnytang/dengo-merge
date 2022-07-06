@@ -40,6 +40,12 @@ pytest_dir = os.getcwd()
     (
         {
             "use_omp": False,
+            "use_cvode": False,
+            "use_suitesparse": False,
+            "output_dir": "be_chem_solve",
+        },
+        {
+            "use_omp": False,
             "use_cvode": True,
             "use_suitesparse": False,
             "output_dir": "cvode_dls",
