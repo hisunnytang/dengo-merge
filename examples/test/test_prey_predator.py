@@ -196,8 +196,10 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
     for reltol in rtol_array:
         init = copy.deepcopy(init_values)
         setup_solver_options["reltol"] = reltol
+        print(init)
+        del init["NCELLS"]
         results = run_solver(
-            init, make_plot=False, dtf=10.0, adaptive_step=False, **setup_solver_options
+            init, make_plot=False, dtf=10.0, adaptive_step=True, **setup_solver_options
         )
         v0, vt = conserved_variables(results, make_plot=False)
         # conserved_variables(results, make_plot=True)
