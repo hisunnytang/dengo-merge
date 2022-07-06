@@ -11,7 +11,7 @@ import setuptools
 from setuptools import find_packages, setup
 
 this_directory = Path(__file__).parent
-long_description = (this_directory / "README").read_text()
+long_description = (this_directory / "README.md").read_text()
 
 
 VERSION = "0.1.1"
