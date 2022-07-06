@@ -20,7 +20,30 @@ def setup_solver_options(update_options={}):
     return solver_options
 
 
-@pytest.mark.skip(reason="seg fault on github action?")
+# @pytest.mark.xfail(reason="seg fault on github action?")
+@pytest.mark.parametrize(
+    "setup_solver_options",
+    (
+        {
+            "use_omp": False,
+            "use_cvode": False,
+            "use_suitesparse": False,
+            "output_dir": "be_chem_solve",
+        },
+        {
+            "use_omp": False,
+            "use_cvode": True,
+            "use_suitesparse": False,
+            "output_dir": "cvode_dls",
+        },
+        {
+            "use_omp": True,
+            "use_cvode": True,
+            "use_suitesparse": True,
+            "output_dir": "cvode_klu",
+        },
+    ),
+)
 def test_freefall(setup_solver_options):
 
     run_dengo_freefall(setup_solver_options)
