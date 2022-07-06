@@ -210,6 +210,14 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
 int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *input, int nstrip, {{solver_name}}_data *data);
 
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data );
+int dengo_calculate_pressure_enzo( code_units*, dengo_field_data* );
+int dengo_calculate_gamma_enzo( code_units*, dengo_field_data* );
+int dengo_calculate_temperature_enzo( code_units*, dengo_field_data* );
+
+int dengo_calculate_pressure( code_units*, dengo_field_data* );
+int dengo_calculate_temperature( code_units*, dengo_field_data* );
+int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data*, double* input, int nstrip);
+int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );
 
 int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input,
     int nstrip, unsigned long d, unsigned long dims, double *equil_array);
