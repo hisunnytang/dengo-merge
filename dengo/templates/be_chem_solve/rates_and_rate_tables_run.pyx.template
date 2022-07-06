@@ -84,6 +84,7 @@ cdef extern from "{{solver_name}}_solver.h":
     int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double* atol, double dt)
     int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
     int {{solver_name}}_main(int argc, char **argv);
+    int dengo_calculate_temperature_enzo( code_units*, dengo_field_data* );
 
 
 
@@ -95,7 +96,7 @@ def main_run_{{solver_name}}():
 
 def run_{{solver_name}}(ics, double tf, int niter = 10000,
                         int intermediate = 1, float z = -1.0, bool adaptive_step = True,
-			float reltol = 1.0e-5, float floor_value = 1.0e-20):
+			float reltol = 1.0e-5, float floor_value = 1.0e-20, bool verbose=True):
     #assert(_MAX_NCELLS == MAX_NCELLS)
     assert(_NSPECIES == NSPECIES)
     {%- for s in network.required_species | sort %}
@@ -137,6 +138,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     units.length_units  = 1.0;
     units.time_units    = 1.0;
     units.velocity_units = 1.0;
+    units.a_units = 1.0;
+    if z == -1:
+        units.a_value = 1;
+    else:
+        units.a_value = 1 / (1+z);
     CoolingTime = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
     Gamma       = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
     Temperature = np.ascontiguousarray(np.zeros((dims), dtype=np.double))
@@ -216,6 +222,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
     for iter in range(niter):
         status = {{solver_name}}_solve_chemistry_enzo( units, field_data, dt);
+        dengo_calculate_temperature_enzo( units, field_data);
         j = 0;
 
         for i in range(dims):
@@ -235,7 +242,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         dt_int[iter] = dt
 
         if status == Enzo_Success:
-            if iter % 100 == 0:
+            if iter % 100 == 0 and verbose:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
             if adaptive_step:
@@ -262,7 +269,8 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     free(field_data)
     free(units)
 
-    print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
+    if verbose:
+        print("End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot))
 
     rv, rv_t = {}, {}
     {%- for s in network.required_species | sort %}
