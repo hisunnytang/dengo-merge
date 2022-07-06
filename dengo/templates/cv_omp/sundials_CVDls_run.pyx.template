@@ -28,6 +28,9 @@ cdef extern from "{{solver_name}}_solver.h":
         double reltol;
         double floor_value;
         const char *dengo_data_file;
+        int *grid_start;
+        int *grid_end;
+        int *grid_dimension;
 
     ctypedef struct code_units:
         int comoving_coordinates
@@ -80,6 +83,7 @@ cdef extern from "{{solver_name}}_solver.h":
                                          {{solver_name}}_data *data, double *temp)
     int {{solver_name}}_solve_chemistry_dt( code_units *units, dengo_field_data *field_data, double* rtol, double* atol, double dt)
     int {{solver_name}}_solve_chemistry( code_units *units, dengo_field_data *field_data, double dt );
+    int {{solver_name}}_solve_chemistry_enzo( code_units *units, dengo_field_data *field_data, double dt );
     int {{solver_name}}_main(int argc, char **argv);
 
 
@@ -120,8 +124,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int i, j, k, iter
     cdef int dims = {{network.energy_term.name}}_arr.shape[0]
     cdef int NTOT = NSPECIES * dims
-    cdef double *input = <double *> malloc(NTOT * sizeof(double))
-    cdef double *prev = <double *> malloc(NTOT * sizeof(double))
 
     cdef dengo_field_data *field_data = <dengo_field_data *> malloc(sizeof(dengo_field_data));
     cdef code_units       * units     = <code_units *> malloc(sizeof(code_units));
@@ -164,13 +166,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
         t_int = np.zeros(niter, "float64")
         dt_int = np.zeros(niter, "float64")
 
-    j = 0
-    for i in range(dims):
-        {%- for s in network.required_species | sort %}
-        input[j] = prev[j] = {{s.name}}_arr[i]
-        j += 1
-        {%- endfor %}
-
     cdef double ttot = 0.0
     cdef int status
     # Allocate some temporary data
@@ -182,6 +177,29 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef double *ttot_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *temp = <double *> malloc(sizeof(double) * niter)
 
+
+    cdef int    *grid_dimension = <int *> malloc(sizeof(int)*3)
+    cdef int    *grid_start     = <int *> malloc(sizeof(int)*3)
+    cdef int    *grid_end       = <int *> malloc(sizeof(int)*3)
+
+
+    grid_dimension[0] = dims;
+    grid_start[0]     = 0
+    grid_end  [0]     = dims-1;
+
+    grid_dimension[1] = 1;
+    grid_start[1]     = 0
+    grid_end  [1]     = 0;
+
+    grid_dimension[2] = 1;
+    grid_start[2]     = 0
+    grid_end  [2]     = 0;
+
+    field_data.grid_dimension = grid_dimension
+    field_data.grid_start     = grid_start
+    field_data.grid_end       = grid_end
+
+
     cdef int niter_cvodes = niter
     cdef double dt  = tf / float(niter)
     field_data.dengo_data_file = "{{solver_name}}_tables.h5"
@@ -189,8 +207,10 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     field_data.reltol = reltol;
     field_data.floor_value = floor_value;
 
+    cdef int Enzo_Success = 1;
+    cdef int Enzo_Fail    = 0;
     for iter in range(niter):
-        status = {{solver_name}}_solve_chemistry( units, field_data, dt);
+        status = {{solver_name}}_solve_chemistry_enzo( units, field_data, dt);
         j = 0;
 
         for i in range(dims):
@@ -200,16 +220,16 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             {%- endfor %}
             temp_int[ i, iter ] = field_data.temperature[i]
 
-        if status == 0:
+        if status == Enzo_Success:
             result_int[iter] = 1
             ttot += dt
-        elif status == 1:
+        elif status == Enzo_Fail:
             result_int[iter] = 0
 
         t_int[iter] = ttot
         dt_int[iter] = dt
 
-        if status == 0:
+        if status == Enzo_Success:
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
@@ -218,7 +238,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
 
             if tf - ttot < dt:
                 dt = tf - ttot
-        elif status == 1:
+        elif status == Enzo_Fail:
             dt /= 2.0;
             # copy_array(prev, input, NTOT)
             # Reset the scaling array to match the new values
@@ -229,8 +249,6 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             continue
         if ttot >= tf: break
 
-    free(input)
-    free(prev)
     free(t_now)
     free(temp)
     free(dt_arr)
