@@ -491,18 +491,6 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     double {{species.name}};
     {%- endfor %}
 
-    {%- if not network.input_is_number %}
-    for (i = 0; i < dims; i++) {
-        j = i * N;
-        {%- for species in network.ode_species | sort %}
-        {%- if species.name != "ge" %}
-        input[j] /= {{species.weight}}; // {{species.name}}
-        {%- endif%}
-        j++;
-        {%- endfor%}
-    }
-    {%- endif %}
-
     double floor_value = data->floor_value;
     for (i = 0; i < dims*N; i++) input[i] = fmax(floor_value, input[i]);
 
@@ -1156,7 +1144,7 @@ void ensure_species_conservation(double *input, double *mdensity, double *equil_
         j++;
         {%- endfor-%}
 
-	{%- for species in network.equilibrium_species | sort %}
+	    {%- for species in network.equilibrium_species | sort %}
         {{network.solve_equilibrium_abundance(species.name) }}
         {{species.name}} = {{species.name}}_arr[i];
         {%- endfor %}
@@ -1259,6 +1247,11 @@ int dengo_calculate_pressure_enzo( code_units* units, dengo_field_data *field_da
     }
 
     if (nstrip_res > 0){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
         input_batch        = &input[ntimes*nstrip*nchem];
         gamma_eff_batch    = &gamma_eff[ntimes*nstrip];
         pressure           = &field_data->Pressure[ntimes*nstrip];
@@ -1341,6 +1334,11 @@ int dengo_calculate_gamma_enzo(code_units* units, dengo_field_data *field_data){
     }
 
     if (nstrip_res > 0){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
         input_batch        = &input[ntimes*nstrip*nchem];
         gamma_eff_batch    = &field_data->Gamma[ntimes*nstrip];
 
@@ -1418,6 +1416,11 @@ int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_
     }
 
     if (nstrip_res > 0){
+        #ifdef _OPENMP
+        threadID = omp_get_thread_num();
+        #else
+        threadID = 0;
+        #endif
         input_batch        = &input[ntimes * nchem];
         gamma_eff_batch    = &gamma_eff[ntimes*nstrip];
 
@@ -1432,6 +1435,7 @@ int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_
 
     free(input);
     free(data);
+    free(gamma_eff_batch);
 
     return 1;
 
@@ -2897,7 +2901,7 @@ int flatten_dengo_field_data_enzo(code_units *units, dengo_field_data *field_dat
     for (j = js; j <= je; j++){
     for (i = is; i <= ie; i++){
         c = ccount * N;
-	idx = ((k* jdim + j)*idim + i);
+	    idx = ((k* jdim + j)*idim + i);
 
         {%- for species in network.ode_species | sort %}
         input[c]  = field_data->{{species.name}}_density[idx];
@@ -2907,11 +2911,22 @@ int flatten_dengo_field_data_enzo(code_units *units, dengo_field_data *field_dat
         {%- if species == network.energy_term %}
         input[c] *= UNIT_E_per_M;
         {%- endif %}
-    c++;
-    {%- endfor %}
-    ccount += 1;
+        c++;
+        {%- endfor %}
+        ccount += 1;
 
-    }}}
+        }}}
+    // convert to number density now before evolve
+    for (i = 0; i < dims; i++) {
+        j = i * N;
+        {%- for species in network.ode_species | sort %}
+        {%- if species.name != "ge" %}
+        input[j] /= {{species.weight}}; // {{species.name}}
+        {%- endif%}
+        j++;
+        {%- endfor%}
+    }
+    return 0;
 }
 {% endblock flatten_dengo_field_data_enzo %}
 
