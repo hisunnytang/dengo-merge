@@ -239,7 +239,7 @@ def evaluate_gamma_factor(init, primordial, temperature):
     gamma = 5.0 / 3.0
     num_den = {}
     for sp in primordial.required_species:
-        num_den[sp.name] = init[sp.name].item()  # / sp.weight
+        num_den[sp.name] = init[sp.name].item()
 
     x = 6100.0 / temperature
     gammaH2 = (
@@ -296,7 +296,7 @@ def calculate_temperature(init, primordial):
         # gamma_factor = primordial.gamma_factor().subs(nden).subs(
         #    {'gammaH2_1': gammaH2, "gammaH2_2": gammaH2, 'gamma': 5./3., 'T': temperature})
 
-        gamma_factor = evaluate_gamma_factor(init, primordial, temperature)
+        gamma_factor = evaluate_gamma_factor(nden, primordial, temperature)
         # with ge updated from compressional heating
         ge = init["ge"]
 
@@ -537,7 +537,7 @@ def run_dengo_freefall(update_options):
     # new_init, primordial = Init_values(np.array([temperature]),
     #                                   np.array([density]) ,
     #                                   n_species = 9)
-    print(grackle_init)
+    # print(grackle_init)
     for i in new_init.keys():
         if i not in ["density", "ge"]:
             # print(i, grackle_init[i])
@@ -547,7 +547,7 @@ def run_dengo_freefall(update_options):
 
     new_init["de"] = network.calculate_free_electrons(new_init)
     new_init["ge"] = calculate_energy(new_init, network)
-    rv, rv_int = chemistry_run.run_primordial(new_init, 1e-4, niter=1e0)
+    rv, rv_int = chemistry_run.run_test_freefall(new_init, 1e-4, niter=1e0)
     count = 0
     time0 = time.time()
     while current_density < final_density:
@@ -563,9 +563,10 @@ def run_dengo_freefall(update_options):
         ) = update_initial_condition(
             new_init, network, pressure_array, density_array, safety_factor=1.0e-2
         )
-        # print("\t time on generating init = {}".format(toc - tic))
         tic = time.time()
-        rv, rv_int = chemistry_run.run_primordial(init, dt, niter=1, intermediate=1)
+        rv, rv_int = chemistry_run.run_test_freefall(
+            init, dt, niter=1, intermediate=1, verbose=False
+        )
         toc = time.time()
         total_t += dt
         ttt.append(float(total_t))
@@ -587,8 +588,8 @@ def run_dengo_freefall(update_options):
                 )
             )
         count += 1
-        # if count > 10:
-        #    break
+        # if count > 5:
+        #   break
     all_data["density"] = density_array
     all_data["run_time"] = run_time
     for k, v in all_data.items():
