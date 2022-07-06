@@ -1,7 +1,6 @@
-import logging
+"""ChemicalNetwork Module"""
 import os
 import pkgutil
-import types
 import warnings
 from collections import defaultdict
 
@@ -12,7 +11,7 @@ import sympy
 from sympy.printing import ccode
 from sympy.utilities import lambdify
 
-from .chemistry_constants import mh, tevk, tiny
+from .chemistry_constants import tevk
 from .periodic_table import periodic_table_by_name
 from .reaction_classes import (
     ChemicalSpecies,
@@ -28,7 +27,7 @@ ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name="Electrons")
 
 
-class ChemicalNetwork(object):
+class ChemicalNetwork:
     """A chemical network that gathers all the species and reactions.
 
     Parameters
@@ -66,6 +65,13 @@ class ChemicalNetwork(object):
         self.threebody = 4
         self.equilibrium_species = set()
         self.enforce_conservation = False
+
+        # store paths locations
+        self._hdf5_path = None
+        self._dengo_install_path = None
+        self._libtool_path = None
+        self._cvode_path = None
+        self._suitesparse_path = None
 
     def add_collection(self, species_names, cooling_names, reaction_names):
         for s in species_names:
@@ -133,21 +139,21 @@ class ChemicalNetwork(object):
         if reaction.name in self.reactions:
             raise RuntimeError
         if auto_add:
-            for n, s in reaction.left_side:
+            for _, s in reaction.left_side:
                 self.required_species.add(s)
 
                 if s.name in self.interpolate_gamma_species_name:
                     self.interpolate_gamma_species.add(s)
-            for n, s in reaction.right_side:
+            for _, s in reaction.right_side:
                 self.required_species.add(s)
 
                 if s.name in self.interpolate_gamma_species_name:
                     self.interpolate_gamma_species.add(s)
         else:
-            for n, s in reaction.left_side:
+            for _, s in reaction.left_side:
                 if s not in self.required_species:
                     raise RuntimeError
-            for n, s in reaction.right_side:
+            for _, s in reaction.right_side:
                 if s not in self.required_species:
                     raise RuntimeError
         self.reactions[reaction.name] = reaction
@@ -230,13 +236,13 @@ class ChemicalNetwork(object):
             the dydt (RHS function) in sympy expressions
         """
         eq = sympy.sympify("0")
-        for rn, rxn in sorted(self.reactions.items()):
+        for _, rxn in sorted(self.reactions.items()):
             eq += rxn.species_equation(species)
         return eq
 
     def species_reactions(self, species):
         tr = []
-        for rn, rxn in sorted(self.reactions.items()):
+        for _, rxn in sorted(self.reactions.items()):
             if species in rxn:
                 tr.append(rxn)
         return tr
@@ -248,7 +254,7 @@ class ChemicalNetwork(object):
         return species_list
 
     def __iter__(self):
-        for rname, rxn in sorted(self.reactions.items()):
+        for _, rxn in sorted(self.reactions.items()):
             yield rxn
 
     def print_ccode(self, species, assign_to=None):
@@ -325,6 +331,7 @@ class ChemicalNetwork(object):
         return ciefudge
 
     def print_jacobian_component(self, s1, s2, assign_to=None, print_zeros=True):
+        """Prints the jacobian of d (ds1/dt)/ ds2"""
 
         if s1 == self.energy_term:
             st = sum(
@@ -350,13 +357,14 @@ class ChemicalNetwork(object):
         # )
 
         if eq == sympy.sympify("0") and not print_zeros:
-            return
+            return ""
 
         return ccode(eq, assign_to=assign_to)
 
     def get_sparse_matrix_component(
         self, sparse_type="CSR", return_type="component", assign_to="data"
     ):
+        """Return a sparse CSR matrix for the jacobian, primarily used in templating"""
 
         k = 0
         colvals = []
@@ -460,7 +468,7 @@ class ChemicalNetwork(object):
         return ccode(eq)
 
     def interpolate_species_gamma(self, sp, deriv=False):
-        if (sp.name == "H2_1") or (sp.name == "H2_2"):
+        if sp.name in ("H2_1", "H2_2"):
             expr_gammaH2 = self.species_gamma(
                 species_registry["H2_1"], temp=True, name=False
             )
@@ -473,18 +481,21 @@ class ChemicalNetwork(object):
                 dgammaH2_dT[_i1] = 0.0
 
                 return dgammaH2_dT
-            else:
-                f_gammaH2 = lambdify("T", expr_gammaH2)
-                gammaH2_T = f_gammaH2(self.T)
-                _i1 = np.isnan(gammaH2_T)
-                gammaH2_T[_i1] = 7.0 / 5.0
-                return gammaH2_T
 
-        else:
-            print("Provide your gamma function for {}".format(sp.name))
-            raise RuntimeError
+            f_gammaH2 = lambdify("T", expr_gammaH2)
+            gammaH2_T = f_gammaH2(self.T)
+            _i1 = np.isnan(gammaH2_T)
+            gammaH2_T[_i1] = 7.0 / 5.0
+            return gammaH2_T
+
+        print("Provide your gamma function for {}".format(sp.name))
+        raise RuntimeError
 
     def species_gamma(self, species, temp=False, name=True):
+        """create an expression for the species gamma
+        This should be depracated, as species gamma should be attached to each species!
+        and move to ChemicalSpecies
+        """
         if species in self.interpolate_gamma_species:
             sp_name = species.name
             T = sympy.Symbol("T")
@@ -528,15 +539,15 @@ class ChemicalNetwork(object):
                 # gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1
 
                 return gammaH2_expr
-            else:
-                gammaH2 = sympy.Symbol("gamma%s" % sp_name)
-                return gammaH2
 
-        else:
-            gamma = sympy.Symbol("gamma")
+            gammaH2 = sympy.Symbol("gamma%s" % sp_name)
+            return gammaH2
+
+        gamma = sympy.Symbol("gamma")
         return gamma
 
     def gamma_factor(self, temp=False):
+        """Return an sympy expression of sum ( 1 / (gamma - 1) )"""
         eq = sympy.sympify("0")
         for s in sorted(self.required_species):
             if s.name != "ge":
@@ -546,6 +557,7 @@ class ChemicalNetwork(object):
     def temperature_calculation(
         self, derivative=False, derivative_dge_dT=False, get_dge=False
     ):
+        """Evaluate Temperature symbolically"""
         # If derivative=True, returns the derivative of
         # temperature with respect to ge.  Otherwise,
         # returns just the temperature function
@@ -555,10 +567,10 @@ class ChemicalNetwork(object):
         )
         # function_eq = (ge) / \
         #    (sympy.Symbol('kb') * (self.gamma_factor()))
-        if derivative == True:
+        if derivative is True:
             deriv_eq = sympy.diff(function_eq, ge)
             return ccode(deriv_eq)
-        elif derivative_dge_dT == True:
+        elif derivative_dge_dT is True:
             # when H2 presents, the gamma is dependent on  temperature
             # therefore temperature must iterate to a convergence for a given ge
             # this part evaluates the derivatives of the function ge with respect to T
@@ -599,7 +611,7 @@ class ChemicalNetwork(object):
             )
 
             return ccode(dge_dT)
-        elif get_dge == True:
+        elif get_dge is True:
             T = sympy.Symbol("T")
             dge = self.gamma_factor(temp=True) * sympy.Symbol("kb") * T / sympy.Symbol(
                 "mh"
@@ -628,26 +640,26 @@ class ChemicalNetwork(object):
             )
 
             return ccode(dge)
-        else:
-            gamma = sympy.Symbol("gamma")
-            _gamma_m1 = sympy.Symbol("_gamma_m1")
-            tmp = sympy.Symbol("tmp")
-            T = sympy.Symbol("T")
-            for sp in self.interpolate_gamma_species:
-                # substitute the sympy function with sympy Symbols
-                sym_fgamma = sympy.Function("gamma%s" % sp.name)(T)
-                _fgamma_m1 = sympy.Symbol("_gamma%s_m1" % sp.name)
-                function_eq = function_eq.subs({1 / (sym_fgamma - 1): tmp})
-                function_eq = function_eq.subs({tmp: _fgamma_m1})
 
-            function_eq = function_eq.subs({1 / (gamma - 1): _gamma_m1})
-            gamma = sympy.Symbol("gamma")
-            _gamma_m1 = sympy.Symbol("_gamma_m1")
+        gamma = sympy.Symbol("gamma")
+        _gamma_m1 = sympy.Symbol("_gamma_m1")
+        tmp = sympy.Symbol("tmp")
+        T = sympy.Symbol("T")
+        for sp in self.interpolate_gamma_species:
+            # substitute the sympy function with sympy Symbols
+            sym_fgamma = sympy.Function("gamma%s" % sp.name)(T)
+            _fgamma_m1 = sympy.Symbol("_gamma%s_m1" % sp.name)
+            function_eq = function_eq.subs({1 / (sym_fgamma - 1): tmp})
+            function_eq = function_eq.subs({tmp: _fgamma_m1})
 
-            return ccode(function_eq)
+        function_eq = function_eq.subs({1 / (gamma - 1): _gamma_m1})
+        gamma = sympy.Symbol("gamma")
+        _gamma_m1 = sympy.Symbol("_gamma_m1")
+
+        return ccode(function_eq)
 
     # This function computes the total number density
-    def calculate_number_density(self, values, skip=()):
+    def calculate_number_density(self, values):
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -659,7 +671,18 @@ class ChemicalNetwork(object):
 
     # This function counts up the total number of free electrons
     def calculate_free_electrons(self, values):
-        # values should be a dict with all of the required species in it
+        """evaluate the number density of free electrons
+        Parameters
+        ----------
+        values: dict[np.ndarray]
+            the abundance vectors specified by the user, it is assumed to be in mass density
+
+        Returns
+        -------
+        n: np.ndarray
+            the numpy array that holds the number density of electrons
+        """
+        # values should be add dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
         for s in self.required_species:
@@ -682,6 +705,21 @@ class ChemicalNetwork(object):
     # This function sums the densities (mass or number depending on what
     # is fed in) of non-electron species
     def calculate_total_density(self, values):
+        """evalue the total density by summing over species with mass
+        Parameters
+        ----------
+        values: dict[values]
+            the abundance vectors specified by the used
+
+        Note
+        ----
+        Depending on what the
+
+        Returns
+        -------
+        n: np.ndarray
+            an numpy array of total density
+        """
         # values should be a dict with all of the required species in it
         # The values should be in *mass* density
         n = np.zeros_like(list(values.values())[0])
@@ -691,8 +729,8 @@ class ChemicalNetwork(object):
             n += values[s.name]
         return n
 
-    # This function converts from fractional abundance to mass density
-    def convert_to_mass_density(self, values, skip=()):
+    def convert_to_mass_density(self, values):
+        """converts from number density to mass density"""
         for s in self.required_species:
             if s.name in self.skip_weight:
                 continue
@@ -727,7 +765,7 @@ class ChemicalNetwork(object):
             oname = os.path.join(output_dir, "%s_solver%s" % (solver_name, suffix))
             template_inst = env.get_template(iname + ".template")
             solver_out = template_inst.render(**template_vars)
-            with open(oname, "w") as f:
+            with open(oname, "w", encoding="UTF-8") as f:
                 f.write(solver_out)
 
         # now we create a Makefile
@@ -737,7 +775,7 @@ class ChemicalNetwork(object):
             oname = os.path.join(output_dir, "Makefile")
             template_inst = env.get_template(iname + ".template")
             solver_out = template_inst.render(**template_vars)
-            with open(oname, "w") as f:
+            with open(oname, "w", encoding="UTF-8") as f:
                 f.write(solver_out)
         except:
             print("This does not have a Makefile.template")
@@ -779,6 +817,20 @@ class ChemicalNetwork(object):
                 data=self.interpolate_species_gamma(sp, deriv=True).astype("float64"),
             )
         f.close()
+
+    def set_library_paths(self):
+        if "HDF5_PATH" in os.environ:
+            self._hdf5_path = os.environ["HDF5_PATH"]
+        else:
+            raise ValueError("Need to supply HDF5_PATH")
+
+        if "DENGO_INSTALL_PATH" in os.environ:
+            self._dengo_install_path = os.environ["DENGO_INSTALL_PATH"]
+        else:
+            raise ValueError("Need to supply DENGO_INSTALL_PATH")
+
+        if "LIBTOOL_PATH" in os.environ:
+            self._libtool_path = os.environ["LIBTOOL_PATH"]
 
     def write_solver(
         self,
@@ -823,20 +875,7 @@ class ChemicalNetwork(object):
 
         # Only HDF5_PATH and DENGO_INSTALL_PATH is needed for
         # running dengo, but then it can only be coupled with the 1st order BDF solver
-
-        if "HDF5_PATH" in os.environ:
-            self._hdf5_path = os.environ["HDF5_PATH"]
-        else:
-            raise ValueError("Need to supply HDF5_PATH")
-
-        if "DENGO_INSTALL_PATH" in os.environ:
-            self._dengo_install_path = os.environ["DENGO_INSTALL_PATH"]
-        else:
-            raise ValueError("Need to supply DENGO_INSTALL_PATH")
-
-        if "LIBTOOL_PATH" in os.environ:
-            self._libtool_path = os.environ["LIBTOOL_PATH"]
-
+        self.set_library_paths()
         # CVODE is optional, but recommended for performance boost
         if "CVODE_PATH" in os.environ:
             self._cvode_path = os.environ["CVODE_PATH"]
@@ -858,6 +897,48 @@ class ChemicalNetwork(object):
 
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
+
+        self.write_templates(
+            solver_name, ode_solver_source, solver_template, output_dir, init_values
+        )
+        self.write_rates_to_file(output_dir, solver_name)
+        self.write_initial_condition_to_file(solver_name, init_values, output_dir)
+
+    def write_initial_condition_to_file(self, solver_name, init_values, output_dir):
+        """write initial value to a hdf5 file,this serves as an input to the C-solver
+
+        Parameters
+        ----------
+        solver_name: str
+            name of the solver, the output is of the form f"{solver_name}_initial_conditions.h5"
+        init_values: dict[np.array]
+            an dictionary that holds the initial abundance to feed into the solver
+
+        Returns
+        -------
+        None
+
+        """
+        if init_values is None:
+            return
+
+        # This write outs a set of initial conditions for to be fed
+        # into C++ code for testing purposes
+        ofn = os.path.join(output_dir, f"{solver_name}_initial_conditions.h5")
+        f = h5py.File(ofn, "w")
+        for name, init_value in init_values.items():
+            f.create_dataset("/%s" % name, data=init_value.astype("float64"))
+        f.close()
+
+    def write_templates(
+        self,
+        solver_name,
+        ode_solver_source,
+        solver_template,
+        output_dir=".",
+        init_values=None,
+    ):
+        """Write the ODE solver based on the specified ChemicalNetwork"""
         # What we are handed here is:
         #   * self, a python object which holds all of the species, reactions,
         #     rate, etc. that we're keeping track of and will be solving in Enzo
@@ -893,7 +974,7 @@ class ChemicalNetwork(object):
             oname = os.path.join(output_dir, "%s_solver%s" % (solver_name, suffix))
             template_inst = env.get_template(iname + ".template")
             solver_out = template_inst.render(**template_vars)
-            with open(oname, "w") as f:
+            with open(oname, "w", encoding="UTF-8") as f:
                 f.write(solver_out)
 
         # now we create a Makefile
@@ -903,7 +984,7 @@ class ChemicalNetwork(object):
             oname = os.path.join(output_dir, "Makefile")
             template_inst = env.get_template(iname + ".template")
             solver_out = template_inst.render(**template_vars)
-            with open(oname, "w") as f:
+            with open(oname, "w", encoding="UTF-8") as f:
                 f.write(solver_out)
         except:
             print("This does not have a Makefile.template")
@@ -924,37 +1005,27 @@ class ChemicalNetwork(object):
             template_inst = env.get_template(ode_solver_source)
             solver_out = template_inst.render(**template_vars)
 
-            with open(os.path.join(output_dir, ode_solver_source), "w") as f:
+            with open(
+                os.path.join(output_dir, ode_solver_source), "w", encoding="UTF-8"
+            ) as f:
                 f.write(solver_out)
         if solver_template.endswith(".c.template"):
             hfn = solver_template.rsplit(".", 2)[0] + ".h"
             src = pkgutil.get_data("dengo", os.path.join("templates", hfn))
-            with open(os.path.join(output_dir, hfn), "w") as f:
+            with open(os.path.join(output_dir, hfn), "w", encoding="UTF-8") as f:
                 f.write(src)
-        # This writes out the rates for the species in the
-        # chemical network to HDF5 files which can later be
-        # read by the C++ code that is output by the template
-        ofn = os.path.join(output_dir, "%s_tables.h5" % solver_name)
+
+    def write_rates_to_file(self, output_dir, solver_name):
+        """This writes out the rates for the species in the
+        chemical network to HDF5 files which can later be
+        read by the C++ code that is output by the template
+
+        f"{solver_name}_tables.h5" is the file that contains all the reaction rates and cooling rates
+
+
+        """
+        ofn = os.path.join(output_dir, f"{solver_name}_tables.h5")
         f = h5py.File(ofn, "w")
-
-        # construct a 2d array of reaction rates
-        # reaction_rates[ T ][ k0i ]
-        all_rates = []
-        for rxn in sorted(self.reactions.values()):
-            data = rxn.coeff_fn(self).astype("float64")
-            all_rates.append(data)
-        all_rates = np.array(all_rates).transpose().flatten()
-        # f.create_dataset("/all_reaction_rates" , data = all_rates)
-
-        # construct a 2d array of cooling rates
-        # cooling_rates [ T ][ cooling ]
-        all_cooling = []
-        for action in sorted(self.cooling_actions.values()):
-            for tab in sorted(action.tables):
-                data = action.tables[tab](self).astype("float64")
-                all_cooling.append(data)
-        all_cooling = np.array(all_cooling).transpose().flatten()
-        # f.create_dataset("/all_cooling_rates", data= all_cooling)
 
         for rxn in sorted(self.reactions.values()):
             f.create_dataset(
@@ -984,15 +1055,4 @@ class ChemicalNetwork(object):
                 "/dgamma%s_dT" % name,
                 data=self.interpolate_species_gamma(sp, deriv=True).astype("float64"),
             )
-        f.close()
-
-        if init_values is None:
-            return
-
-        # This write outs a set of initial conditions for to be fed
-        # into C++ code for testing purposes
-        ofn = os.path.join(output_dir, "%s_initial_conditions.h5" % solver_name)
-        f = h5py.File(ofn, "w")
-        for name, init_value in init_values.items():
-            f.create_dataset("/%s" % name, data=init_value.astype("float64"))
         f.close()
