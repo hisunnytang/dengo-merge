@@ -35,7 +35,7 @@ __device__ void eval_dfgedt( const double t, const double pres, const double * _
     y_shared[S_INDEX(i)] = y_in[INDEX(i)];
   }
   #endif
-  
+
   evaluate_temperature ( &T_local, &Tge, y_shared, mdensity, rate_data );
   interpolate_reaction_rates( local_reaction_rates, T_local, rate_data);
   interpolate_cooling_rates ( local_cooling_rates , T_local, rate_data);
@@ -47,7 +47,7 @@ __device__ void eval_dfgedt( const double t, const double pres, const double * _
 
 /*
 __device__ void eval_fd_dfge_ge( const double t, const double pres, const double * __restrict__ y_in, double * __restrict__ dfge_ge, const mechanism_memory * d_mem ){
-   
+
    // temporary array to hold the ewt vector
    // should change it to work array if we were to do full fd
    double *ewt = d_mem->temp_array;
@@ -128,7 +128,7 @@ __device__ void eval_jacob (const double t, const double pres, const double * __
 
   {{solver_name}}_evaluate_temperature ( &T_local, &Tge, y_shared, mdensity, rate_data );
 //  interpolate_reaction_rates ( local_reaction_rates, T_local, rate_data);
-//  interpolate_cooling_rates  ( local_cooling_rates , T_local, rate_data); 
+//  interpolate_cooling_rates  ( local_cooling_rates , T_local, rate_data);
 
 
 #ifdef USE_DRRATE
@@ -144,205 +144,205 @@ __device__ void eval_jacob (const double t, const double pres, const double * __
 
   // df_H2_1 / H2_1:
   jac[INDEX(0)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(20)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H2_2 / H2_1:
   jac[INDEX(1)] = local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_1 / H2_1:
   jac[INDEX(2)] = local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)] + 2*local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(8)] + 2*local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(2)] - 2*local_reaction_rates[INDEX(20)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H_2 / H2_1:
   jac[INDEX(3)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)];
- 
+
   // df_ge / H2_1:
   jac[INDEX(9)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - 0.5*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)]*1.0/(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0) - 2.01588*local_cooling_rates[INDEX(25)]*mdensity - local_cooling_rates[INDEX(17)]*h2_optical_depth_approx/(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0) + 0.5*local_cooling_rates[INDEX(24)]*local_cooling_rates[INDEX(22)]*pow(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0, -2.0)*(-y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)] + pow(y_shared[S_INDEX(2)], 3)*local_cooling_rates[INDEX(20)])/pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)], 2);
   jac[INDEX(9)] *= inv_mdensity;
- 
+
   // df_H2_1 / H2_2:
   jac[INDEX(10)] = local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H2_2 / H2_2:
   jac[INDEX(11)] = -local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_1 / H2_2:
   jac[INDEX(12)] = -local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_2 / H2_2:
   jac[INDEX(13)] = local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)];
- 
+
   // df_H_m0 / H2_2:
   jac[INDEX(14)] = -local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H2_2:
   jac[INDEX(18)] = -local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)];
- 
+
   // df_H2_1 / H_1:
   jac[INDEX(20)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] + local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)] - local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)] + 2*local_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + 3*local_reaction_rates[INDEX(21)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H2_2 / H_1:
   jac[INDEX(21)] = local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / H_1:
   jac[INDEX(22)] = -local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)] + 2*local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)] - 4*local_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] - 6*local_reaction_rates[INDEX(21)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H_2 / H_1:
   jac[INDEX(23)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_m0 / H_1:
   jac[INDEX(24)] = local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H_1:
   jac[INDEX(28)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)];
- 
+
   // df_ge / H_1:
   jac[INDEX(29)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(12)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(4)]*y_shared[S_INDEX(8)] + 0.5*local_cooling_rates[INDEX(23)]*local_cooling_rates[INDEX(22)]*pow(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0, -2.0)*(-y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)] + pow(y_shared[S_INDEX(2)], 3)*local_cooling_rates[INDEX(20)])/pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)], 2) + 0.5*(-y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(21)] + 3*pow(y_shared[S_INDEX(2)], 2)*local_cooling_rates[INDEX(20)])*1.0/(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0);
   jac[INDEX(29)] *= inv_mdensity;
- 
+
   // df_H2_1 / H_2:
   jac[INDEX(30)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)];
- 
+
   // df_H2_2 / H_2:
   jac[INDEX(31)] = local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_1 / H_2:
   jac[INDEX(32)] = local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] + 2*local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_2 / H_2:
   jac[INDEX(33)] = -local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] - local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_m0 / H_2:
   jac[INDEX(34)] = -local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H_2:
   jac[INDEX(38)] = -local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_ge / H_2:
   jac[INDEX(39)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(15)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(7)];
   jac[INDEX(39)] *= inv_mdensity;
- 
+
   // df_H2_1 / H_m0:
   jac[INDEX(40)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H2_2 / H_m0:
   jac[INDEX(41)] = local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / H_m0:
   jac[INDEX(42)] = -local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_2 / H_m0:
   jac[INDEX(43)] = -local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_m0 / H_m0:
   jac[INDEX(44)] = -local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_de / H_m0:
   jac[INDEX(48)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)];
- 
+
   // df_He_1 / He_1:
   jac[INDEX(55)] = -local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_2 / He_1:
   jac[INDEX(56)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_1:
   jac[INDEX(58)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_1:
   jac[INDEX(59)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(14)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(5)]*y_shared[S_INDEX(8)];
   jac[INDEX(59)] *= inv_mdensity;
- 
+
   // df_He_1 / He_2:
   jac[INDEX(65)] = local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_2 / He_2:
   jac[INDEX(66)] = -local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_3 / He_2:
   jac[INDEX(67)] = local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_2:
   jac[INDEX(68)] = -local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_2:
   jac[INDEX(69)] = -local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(2)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(1)]*pow(y_shared[S_INDEX(8)], 2) - local_cooling_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(3)]*pow(y_shared[S_INDEX(8)], 2) - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(9)];
   jac[INDEX(69)] *= inv_mdensity;
- 
+
   // df_He_2 / He_3:
   jac[INDEX(76)] = local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_3 / He_3:
   jac[INDEX(77)] = -local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_3:
   jac[INDEX(78)] = -local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_3:
   jac[INDEX(79)] = -4.0*local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(10)];
   jac[INDEX(79)] *= inv_mdensity;
- 
+
   // df_H2_1 / de:
   jac[INDEX(80)] = -local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)];
- 
+
   // df_H2_2 / de:
   jac[INDEX(81)] = -local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / de:
   jac[INDEX(82)] = -local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)] + 2*local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_2 / de:
   jac[INDEX(83)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_m0 / de:
   jac[INDEX(84)] = local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)];
- 
+
   // df_He_1 / de:
   jac[INDEX(85)] = -local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] + local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)];
- 
+
   // df_He_2 / de:
   jac[INDEX(86)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] - local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] + local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)];
- 
+
   // df_He_3 / de:
   jac[INDEX(87)] = local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)];
- 
+
   // df_de / de:
   jac[INDEX(88)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] - local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)] + local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_ge / de:
   jac[INDEX(89)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(16)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(0)] - y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(4)] - y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(7)] - y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(5)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(2)] - 2*y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(1)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(6)] - 2*y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(3)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(9)] - y_shared[S_INDEX(7)]*local_cooling_rates[INDEX(10)] - local_cooling_rates[INDEX(11)]*(y_shared[S_INDEX(3)] + y_shared[S_INDEX(6)] + 4.0*y_shared[S_INDEX(7)]) - local_cooling_rates[INDEX(18)]*(T_local - 2.73);
   jac[INDEX(89)] *= inv_mdensity;
- 
+
   // df_H2_1 / ge:
   jac[INDEX(90)] = rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] - rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(21)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)];
   jac[INDEX(90)] *= Tge;
- 
+
   // df_H2_2 / ge:
   jac[INDEX(91)] = rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] + rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)];
   jac[INDEX(91)] *= Tge;
- 
+
   // df_H_1 / ge:
   jac[INDEX(92)] = -rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] + 2*rlocal_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(8)] + 2*rlocal_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + 2*rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] + 2*rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)] - 2*rlocal_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)] - 2*rlocal_reaction_rates[INDEX(21)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)];
   jac[INDEX(92)] *= Tge;
- 
+
   // df_H_2 / ge:
   jac[INDEX(93)] = rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] + rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] - rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)];
   jac[INDEX(93)] *= Tge;
- 
+
   // df_H_m0 / ge:
   jac[INDEX(94)] = rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)];
   jac[INDEX(94)] *= Tge;
- 
+
   // df_He_1 / ge:
   jac[INDEX(95)] = -rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)];
   jac[INDEX(95)] *= Tge;
- 
+
   // df_He_2 / ge:
   jac[INDEX(96)] = rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)];
   jac[INDEX(96)] *= Tge;
- 
+
   // df_He_3 / ge:
   jac[INDEX(97)] = rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)];
   jac[INDEX(97)] *= Tge;
- 
+
   // df_de / ge:
   jac[INDEX(98)] = rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)];
   jac[INDEX(98)] *= Tge;
@@ -370,7 +370,7 @@ __device__ void eval_jacob (const double t, const double pres, const double * __
   //jac[INDEX(99)] = 0.0;
 */
 
-  
+
 //  double fd_jac = 0.0;
 //  eval_fd_dfge_ge( t, pres, y_in, &fd_jac, d_mem);
 //  jac[INDEX(99)] = fd_jac;
@@ -446,7 +446,7 @@ __device__ void eval_jacob (const double t, const double pres, const double * __
     *d_mem->jac_call += 1;
      printf("at t = %0.5g; jac_call = %d\n", t, *d_mem->jac_call);
      for (int i = 0; i< 10; i++){
-         printf("Jac[%d] = %0.5g \n", i*NSP + i, jac[INDEX( i*NSP + i )] );   
+         printf("Jac[%d] = %0.5g \n", i*NSP + i, jac[INDEX( i*NSP + i )] );
      }
    }
 
@@ -517,7 +517,7 @@ __device__ void eval_jacob_accurate (const double t, const double pres, const do
 
   evaluate_temperature ( &T_local, &Tge, y_shared, mdensity, rate_data );
 //  interpolate_reaction_rates ( local_reaction_rates, T_local, rate_data);
-//  interpolate_cooling_rates  ( local_cooling_rates , T_local, rate_data); 
+//  interpolate_cooling_rates  ( local_cooling_rates , T_local, rate_data);
 
 
 #ifdef USE_DRRATE
@@ -550,205 +550,205 @@ __device__ void eval_jacob_accurate (const double t, const double pres, const do
 
   // df_H2_1 / H2_1:
   jac[INDEX(0)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(20)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H2_2 / H2_1:
   jac[INDEX(1)] = local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_1 / H2_1:
   jac[INDEX(2)] = local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)] + 2*local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(8)] + 2*local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(2)] - 2*local_reaction_rates[INDEX(20)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H_2 / H2_1:
   jac[INDEX(3)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(3)];
- 
+
   // df_ge / H2_1:
   jac[INDEX(9)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - 0.5*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)]*1.0/(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0) - 2.01588*local_cooling_rates[INDEX(25)]*mdensity - local_cooling_rates[INDEX(17)]*h2_optical_depth_approx/(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0) + 0.5*local_cooling_rates[INDEX(24)]*local_cooling_rates[INDEX(22)]*pow(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0, -2.0)*(-y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)] + pow(y_shared[S_INDEX(2)], 3)*local_cooling_rates[INDEX(20)])/pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)], 2);
   jac[INDEX(9)] *= inv_mdensity;
- 
+
   // df_H2_1 / H2_2:
   jac[INDEX(10)] = local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H2_2 / H2_2:
   jac[INDEX(11)] = -local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_1 / H2_2:
   jac[INDEX(12)] = -local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_2 / H2_2:
   jac[INDEX(13)] = local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(2)];
- 
+
   // df_H_m0 / H2_2:
   jac[INDEX(14)] = -local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H2_2:
   jac[INDEX(18)] = -local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(8)];
- 
+
   // df_H2_1 / H_1:
   jac[INDEX(20)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] + local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)] - local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)] + 2*local_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + 3*local_reaction_rates[INDEX(21)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H2_2 / H_1:
   jac[INDEX(21)] = local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / H_1:
   jac[INDEX(22)] = -local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)] + 2*local_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)] - 4*local_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] - 6*local_reaction_rates[INDEX(21)]*pow(y_shared[S_INDEX(2)], 2);
- 
+
   // df_H_2 / H_1:
   jac[INDEX(23)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_m0 / H_1:
   jac[INDEX(24)] = local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H_1:
   jac[INDEX(28)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(4)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(4)];
- 
+
   // df_ge / H_1:
   jac[INDEX(29)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(12)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(0)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(4)]*y_shared[S_INDEX(8)] + 0.5*local_cooling_rates[INDEX(23)]*local_cooling_rates[INDEX(22)]*pow(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0, -2.0)*(-y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(21)] + pow(y_shared[S_INDEX(2)], 3)*local_cooling_rates[INDEX(20)])/pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)], 2) + 0.5*(-y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(21)] + 3*pow(y_shared[S_INDEX(2)], 2)*local_cooling_rates[INDEX(20)])*1.0/(local_cooling_rates[INDEX(22)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(24)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(23)]) + 1.0);
   jac[INDEX(29)] *= inv_mdensity;
- 
+
   // df_H2_1 / H_2:
   jac[INDEX(30)] = -local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)];
- 
+
   // df_H2_2 / H_2:
   jac[INDEX(31)] = local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_1 / H_2:
   jac[INDEX(32)] = local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] + 2*local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_2 / H_2:
   jac[INDEX(33)] = -local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)] - local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_H_m0 / H_2:
   jac[INDEX(34)] = -local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_de / H_2:
   jac[INDEX(38)] = -local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(4)];
- 
+
   // df_ge / H_2:
   jac[INDEX(39)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(15)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(7)];
   jac[INDEX(39)] *= inv_mdensity;
- 
+
   // df_H2_1 / H_m0:
   jac[INDEX(40)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H2_2 / H_m0:
   jac[INDEX(41)] = local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / H_m0:
   jac[INDEX(42)] = -local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_2 / H_m0:
   jac[INDEX(43)] = -local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_m0 / H_m0:
   jac[INDEX(44)] = -local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)];
- 
+
   // df_de / H_m0:
   jac[INDEX(48)] = local_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)];
- 
+
   // df_He_1 / He_1:
   jac[INDEX(55)] = -local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_2 / He_1:
   jac[INDEX(56)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_1:
   jac[INDEX(58)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_1:
   jac[INDEX(59)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(14)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - local_cooling_rates[INDEX(5)]*y_shared[S_INDEX(8)];
   jac[INDEX(59)] *= inv_mdensity;
- 
+
   // df_He_1 / He_2:
   jac[INDEX(65)] = local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_2 / He_2:
   jac[INDEX(66)] = -local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)] - local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_3 / He_2:
   jac[INDEX(67)] = local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_2:
   jac[INDEX(68)] = -local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(8)] + local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_2:
   jac[INDEX(69)] = -local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(2)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(1)]*pow(y_shared[S_INDEX(8)], 2) - local_cooling_rates[INDEX(6)]*y_shared[S_INDEX(8)] - local_cooling_rates[INDEX(3)]*pow(y_shared[S_INDEX(8)], 2) - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(9)];
   jac[INDEX(69)] *= inv_mdensity;
- 
+
   // df_He_2 / He_3:
   jac[INDEX(76)] = local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_He_3 / He_3:
   jac[INDEX(77)] = -local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_de / He_3:
   jac[INDEX(78)] = -local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(8)];
- 
+
   // df_ge / He_3:
   jac[INDEX(79)] = -4.0*local_cooling_rates[INDEX(11)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(10)];
   jac[INDEX(79)] *= inv_mdensity;
- 
+
   // df_H2_1 / de:
   jac[INDEX(80)] = -local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)];
- 
+
   // df_H2_2 / de:
   jac[INDEX(81)] = -local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_1 / de:
   jac[INDEX(82)] = -local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] + 2*local_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)] + 2*local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_H_2 / de:
   jac[INDEX(83)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)];
- 
+
   // df_H_m0 / de:
   jac[INDEX(84)] = local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)];
- 
+
   // df_He_1 / de:
   jac[INDEX(85)] = -local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] + local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)];
- 
+
   // df_He_2 / de:
   jac[INDEX(86)] = local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] - local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] + local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)];
- 
+
   // df_He_3 / de:
   jac[INDEX(87)] = local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)];
- 
+
   // df_de / de:
   jac[INDEX(88)] = local_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)] - local_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)] + local_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)] - local_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)] + local_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)] - local_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)] - local_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)] + local_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)] - local_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)];
- 
+
   // df_ge / de:
   jac[INDEX(89)] = -y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(16)]*pow(local_cooling_rates[INDEX(17)], 2)*h2_optical_depth_approx/(pow(local_cooling_rates[INDEX(17)]/(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)]) + 1.0, 2)*pow(y_shared[S_INDEX(0)]*local_cooling_rates[INDEX(13)] + y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(12)] + y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(15)] + y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(14)] + y_shared[S_INDEX(8)]*local_cooling_rates[INDEX(16)], 2)) - y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(0)] - y_shared[S_INDEX(2)]*local_cooling_rates[INDEX(4)] - y_shared[S_INDEX(3)]*local_cooling_rates[INDEX(7)] - y_shared[S_INDEX(5)]*local_cooling_rates[INDEX(5)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(2)] - 2*y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(1)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(6)] - 2*y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(3)]*y_shared[S_INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(8)] - y_shared[S_INDEX(6)]*local_cooling_rates[INDEX(9)] - y_shared[S_INDEX(7)]*local_cooling_rates[INDEX(10)] - local_cooling_rates[INDEX(11)]*(y_shared[S_INDEX(3)] + y_shared[S_INDEX(6)] + 4.0*y_shared[S_INDEX(7)]) - local_cooling_rates[INDEX(18)]*(T_local - 2.73);
   jac[INDEX(89)] *= inv_mdensity;
- 
+
   // df_H2_1 / ge:
   jac[INDEX(90)] = rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] - rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(21)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)];
   jac[INDEX(90)] *= Tge;
- 
+
   // df_H2_2 / ge:
   jac[INDEX(91)] = rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] + rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)];
   jac[INDEX(91)] *= Tge;
- 
+
   // df_H_1 / ge:
   jac[INDEX(92)] = -rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] + 2*rlocal_reaction_rates[INDEX(11)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(8)] + 2*rlocal_reaction_rates[INDEX(12)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)] + rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + 2*rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] + 2*rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)] - 2*rlocal_reaction_rates[INDEX(20)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)] - 2*rlocal_reaction_rates[INDEX(21)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(2)];
   jac[INDEX(92)] *= Tge;
- 
+
   // df_H_2 / ge:
   jac[INDEX(93)] = rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(8)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(3)] + rlocal_reaction_rates[INDEX(9)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(2)] - rlocal_reaction_rates[INDEX(10)]*y_shared[S_INDEX(0)]*y_shared[S_INDEX(3)] - rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)];
   jac[INDEX(93)] *= Tge;
- 
+
   // df_H_m0 / ge:
   jac[INDEX(94)] = rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(15)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(18)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(4)];
   jac[INDEX(94)] *= Tge;
- 
+
   // df_He_1 / ge:
   jac[INDEX(95)] = -rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)];
   jac[INDEX(95)] *= Tge;
- 
+
   // df_He_2 / ge:
   jac[INDEX(96)] = rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)];
   jac[INDEX(96)] *= Tge;
- 
+
   // df_He_3 / ge:
   jac[INDEX(97)] = rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)];
   jac[INDEX(97)] *= Tge;
- 
+
   // df_de / ge:
   jac[INDEX(98)] = rlocal_reaction_rates[INDEX(0)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(1)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(2)]*y_shared[S_INDEX(5)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(3)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(4)]*y_shared[S_INDEX(6)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(5)]*y_shared[S_INDEX(7)]*y_shared[S_INDEX(8)] - rlocal_reaction_rates[INDEX(6)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(7)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(13)]*y_shared[S_INDEX(4)]*y_shared[S_INDEX(8)] + rlocal_reaction_rates[INDEX(14)]*y_shared[S_INDEX(2)]*y_shared[S_INDEX(4)] + rlocal_reaction_rates[INDEX(16)]*y_shared[S_INDEX(3)]*y_shared[S_INDEX(4)] - rlocal_reaction_rates[INDEX(17)]*y_shared[S_INDEX(1)]*y_shared[S_INDEX(8)];
   jac[INDEX(98)] *= Tge;
@@ -847,7 +847,7 @@ __device__ void eval_jacob_accurate (const double t, const double pres, const do
     *d_mem->jac_call += 1;
      printf("at t = %0.5g; jac_call = %d\n", t, *d_mem->jac_call);
      for (int i = 0; i< 10; i++){
-         printf("Jac[%d] = %0.5g \n", i*NSP + i, jac[INDEX( i*NSP + i )] );   
+         printf("Jac[%d] = %0.5g \n", i*NSP + i, jac[INDEX( i*NSP + i )] );
      }
    }
 
@@ -879,4 +879,3 @@ __device__ void eval_jacob_accurate (const double t, const double pres, const do
 
 
 } // end eval_jacob
-

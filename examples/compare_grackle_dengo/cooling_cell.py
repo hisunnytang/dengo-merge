@@ -15,29 +15,27 @@
 # software.
 ########################################################################
 
-from matplotlib import pyplot
 import os
-import yt
 
-from pygrackle import \
-    FluidContainer, \
-    chemistry_data, \
-    evolve_constant_density
-
-from pygrackle.utilities.physical_constants import \
-    mass_hydrogen_cgs, \
-    sec_per_Myr, \
-    cm_per_mpc
 import numpy as np
+import yt
+from matplotlib import pyplot
+from pygrackle import FluidContainer, chemistry_data, evolve_constant_density
+from pygrackle.utilities.physical_constants import (
+    cm_per_mpc,
+    mass_hydrogen_cgs,
+    sec_per_Myr,
+)
+
 tiny_number = 1e-20
 
 if __name__ == "__main__":
-    current_redshift = 0.
+    current_redshift = 0.0
 
     # Set initial values
-    density             = 1.0e10 # g /cm^3
-    initial_temperature = 2000.0 # K
-    final_time          = 3.15e7 # Myr
+    density = 1.0e10  # g /cm^3
+    initial_temperature = 2000.0  # K
+    final_time = 3.15e7  # Myr
 
     # Set solver parameters
     my_chemistry = chemistry_data()
@@ -49,22 +47,27 @@ if __name__ == "__main__":
     my_chemistry.UVbackground = 0
     my_chemistry.self_shielding_method = 0
     my_chemistry.H2_self_shielding = 0
-    grackle_dir = os.path.dirname(os.path.dirname(
-        os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+    grackle_dir = os.path.dirname(
+        os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    )
     my_chemistry.grackle_data_file = os.sep.join(
-        [grackle_dir, "input", "CloudyData_UVB=HM2012.h5"])
+        [grackle_dir, "input", "CloudyData_UVB=HM2012.h5"]
+    )
 
     # Set units
-    my_chemistry.comoving_coordinates = 0 # proper units
+    my_chemistry.comoving_coordinates = 0  # proper units
     my_chemistry.a_units = 1.0
-    my_chemistry.a_value = 1. / (1. + current_redshift) / \
+    my_chemistry.a_value = 1.0 / (1.0 + current_redshift) / my_chemistry.a_units
+    my_chemistry.density_units = (
+        1.66053904e-24  # mass_hydrogen_cgs # rho = 1.0 is 1.67e-24 g
+    )
+    my_chemistry.length_units = 1.0  # 1 Mpc in cm
+    my_chemistry.time_units = 1.0  # 1 Myr in s
+    my_chemistry.velocity_units = (
         my_chemistry.a_units
-    my_chemistry.density_units = 1.66053904e-24 #mass_hydrogen_cgs # rho = 1.0 is 1.67e-24 g
-    my_chemistry.length_units = 1.0         # 1 Mpc in cm
-    my_chemistry.time_units = 1.0          # 1 Myr in s
-    my_chemistry.velocity_units = my_chemistry.a_units * \
-        (my_chemistry.length_units / my_chemistry.a_value) / \
-        my_chemistry.time_units
+        * (my_chemistry.length_units / my_chemistry.a_value)
+        / my_chemistry.time_units
+    )
 
     rval = my_chemistry.initialize()
 
@@ -86,15 +89,13 @@ if __name__ == "__main__":
         fc["DII"][:] = tiny_number * fc["density"]
         fc["HDI"][:] = tiny_number * fc["density"]
     if my_chemistry.metal_cooling == 1:
-        fc["metal"][:] = 0.1 * fc["density"] * \
-          my_chemistry.SolarMetalFractionByMass
+        fc["metal"][:] = 0.1 * fc["density"] * my_chemistry.SolarMetalFractionByMass
 
     fc["x-velocity"][:] = 0.0
     fc["y-velocity"][:] = 0.0
     fc["z-velocity"][:] = 0.0
 
-    fc["energy"][:] = initial_temperature / \
-        fc.chemistry_data.temperature_units
+    fc["energy"][:] = initial_temperature / fc.chemistry_data.temperature_units
     fc.calculate_temperature()
     fc["energy"][:] *= initial_temperature / fc["temperature"]
 
@@ -105,23 +106,26 @@ if __name__ == "__main__":
     # print(dt_arr)
     # let gas cool at constant density
     data = evolve_constant_density(
-        fc, final_time=final_time,
-        safety_factor=safety_factor)
+        fc, final_time=final_time, safety_factor=safety_factor
+    )
 
-    p1, = pyplot.loglog(data["time"].to("Myr"), data["temperature"],
-                        color="black", label="T")
+    (p1,) = pyplot.loglog(
+        data["time"].to("Myr"), data["temperature"], color="black", label="T"
+    )
     pyplot.xlabel("Time [Myr]")
     pyplot.ylabel("T [K]")
 
-    data["mu"] = data["temperature"] / \
-        (data["energy"] * (my_chemistry.Gamma - 1.) *
-         fc.chemistry_data.temperature_units)
+    data["mu"] = data["temperature"] / (
+        data["energy"]
+        * (my_chemistry.Gamma - 1.0)
+        * fc.chemistry_data.temperature_units
+    )
     pyplot.twinx()
-    p2, = pyplot.semilogx(data["time"].to("Myr"), data["mu"],
-                          color="red", label="$\\mu$")
+    (p2,) = pyplot.semilogx(
+        data["time"].to("Myr"), data["mu"], color="red", label="$\\mu$"
+    )
     pyplot.ylabel("$\\mu$")
-    pyplot.legend([p1,p2],["T","$\\mu$"], fancybox=True,
-                  loc="center left")
+    pyplot.legend([p1, p2], ["T", "$\\mu$"], fancybox=True, loc="center left")
     pyplot.savefig("cooling_cell.png")
 
     # save data arrays as a yt dataset

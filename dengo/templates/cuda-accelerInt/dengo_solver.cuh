@@ -9,7 +9,7 @@
 #include "hdf5.h"
 #include "hdf5_hl.h"
 #include "stdio.h"
-#include "string.h" 
+#include "string.h"
 
 // Defining constants
 #define RDATA_NBINS  (1024)    // number of bins beween the bounds
@@ -73,12 +73,12 @@ struct cuArray_ratedata {
   cudaArray *c_reHII_reHII;
   cudaArray *c_reHeII1_reHeII1;
   cudaArray *c_reHeII2_reHeII2;
-  cudaArray *c_reHeIII_reHeIII;  
-  
+  cudaArray *c_reHeIII_reHeIII;
+
   // gamma as a function of temperature
   cudaArray *g_gammaH2_1;
   cudaArray *g_dgammaH2_1dT;
-    
+
   cudaArray *g_gammaH2_2;
   float *g_dgammaH2_2_dT;
 
@@ -146,18 +146,18 @@ struct cvklu_data {
     float c_gloverabel08_gphdl[1024];
     float c_gloverabel08_gpldl[1024];
     float c_gloverabel08_h2lte[1024];
-    
+
     float c_h2formation_h2mcool[1024];
     float c_h2formation_h2mheat[1024];
     float c_h2formation_ncrd1[1024];
     float c_h2formation_ncrd2[1024];
     float c_h2formation_ncrn[1024];
-    
+
     float c_reHeII1_reHeII1[1024];
     float c_reHeII2_reHeII2[1024];
     float c_reHeIII_reHeIII[1024];
     float c_reHII_reHII[1024];
-    
+
     int ncells;
 
     // gamma as a function of temperature
@@ -187,5 +187,3 @@ __global__ void interpolate_rates_double( double *reaction_rates_out, float * te
 
 
 #endif
-
-

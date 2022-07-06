@@ -2,5 +2,5 @@ wget https://support.hdfgroup.org/ftp/HDF5/releases/hdf5-1.10/hdf5-1.10.5/src/hd
 tar -xvzf hdf5-1.10.5.tar.gz
 cd hdf5-1.10.5
 ./configure --prefix="${TRAVIS_BUILD_DIR}/hdf5_install"
-make 
-make install 
+make
+make install

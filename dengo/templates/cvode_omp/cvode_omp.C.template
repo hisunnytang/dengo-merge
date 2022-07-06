@@ -101,19 +101,19 @@ static int check_retval(void *returnvalue, const char *funcname, int opt)
 
     //-----------------------------------------------------
     // Function : {{solver_name}}_setup_data
-    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    // Description: Initialize a data object that stores the reaction/ cooling rate data
     //-----------------------------------------------------
 
     int i, n;
-    
+
     {{solver_name}}_data *data = ({{solver_name}}_data *) malloc(sizeof({{solver_name}}_data));
-    
+
     // point the module to look for {{solver_name}}_tables.h5
     data->dengo_data_file = FileLocation;
 
     /* allocate space for the scale related pieces */
 
-    // Number of cells to be solved in a batch 
+    // Number of cells to be solved in a batch
     data->nstrip = MAX_NCELLS;
     /*initialize temperature so it wont crash*/
     for ( i = 0; i < MAX_NCELLS; i++ ){
@@ -134,13 +134,13 @@ static int check_retval(void *returnvalue, const char *funcname, int opt)
     data->n_zbins = {{ network.z | length }} - 1;
     data->d_zbin = (log(data->z_bounds[1] + 1.0) - log(data->z_bounds[0] + 1.0)) / data->n_zbins;
     data->id_zbin = 1.0L / data->d_zbin;
-    
+
     {{ solver_name }}_read_rate_tables(data);
     //fprintf(stderr, "Successfully read in rate tables.\n");
 
     {{ solver_name }}_read_cooling_tables(data);
     //fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    
+
     {{ solver_name }}_read_gamma(data);
     //fprintf(stderr, "Successfully read in gamma tables. \n");
 
@@ -164,18 +164,18 @@ void {{ solver_name }}_read_rate_tables({{solver_name}}_data *data)
 {
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "{{solver_name}}_tables.h5";   
+        filedir = "{{solver_name}}_tables.h5";
     }
 
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
-    
+
     {%- for name, rate in network.reactions | dictsort %}
     H5LTread_dataset_double(file_id, "/{{ name }}", data->r_{{name}});
     {%- endfor %}
-    
+
     H5Fclose(file_id);
 }
 
@@ -185,9 +185,9 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "{{solver_name}}_tables.h5";   
+        filedir = "{{solver_name}}_tables.h5";
     }
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
@@ -207,20 +207,20 @@ void {{ solver_name }}_read_gamma({{solver_name}}_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "{{solver_name}}_tables.h5";   
+        filedir = "{{solver_name}}_tables.h5";
     }
-    
+
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
-    
+
 
     {%- for sp in network.interpolate_gamma_species | sort %}
     H5LTread_dataset_double(file_id, "/gamma{{sp.name}}",
                             data->g_gamma{{sp.name}} );
     H5LTread_dataset_double(file_id, "/dgamma{{sp.name}}_dT",
-                            data->g_dgamma{{sp.name}}_dT );   
+                            data->g_dgamma{{sp.name}}_dT );
     {% endfor %}
 
     H5Fclose(file_id);
@@ -319,14 +319,14 @@ static void SetIC(N_Vector u, N_Vector atol, long NSYSTEM)
     // Parameter    :   dtf     : Desired time to be reached by the solver
     //                  dt      : Pointer to the actual time reached by the solver
     //                  z       : Current redshift
-    //                  input   : Array to store the initial value of each species, 
+    //                  input   : Array to store the initial value of each species,
     //                            it will be updated with the value at time dt
     //                  rtol    : relative tolerance required for convergenece in each internal CVODE timesteps
     //                  atol    : absolute tolerance required for convergence in each interanl CVODE timesteps
     //                  dims    : dimension of the input array, i.e. no. of species * no. of cells
-    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations 
+    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations
     //                  temp_array: temperature of each cell by the end of the evolution
-    //                           
+    //
     //-----------------------------------------------------
 int main()
 {
@@ -360,7 +360,7 @@ int main()
     cvode_mem = NULL;
 
     neq = BATCHSIZE*nchem;
-    
+
     const char *FileLocation = "{{solver_name}}_tables.h5";
     {{solver_name}}_data *data = {{solver_name}}_setup_data( FileLocation, NULL, NULL);
     /////////////////////////////////////////////////////////////////
@@ -437,7 +437,7 @@ int main()
     for(iout=1, tout=T1; iout <= NOUT; iout++, tout += DTOUT) {
         retval = CVodeReInit(cvode_mem, 0.0, y);
         retval = CVode(cvode_mem, tout, y, &t, CV_NORMAL);
-        
+
         if(check_retval(&retval, "CVode", 1)) break;
         umax = N_VMaxNorm(y);
         long nst;
@@ -473,7 +473,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     int i, j;
 
     int nstrip = data->nstrip;
-    
+
     /* change N_Vector back to an array */
     {%- for species in network.required_species | sort %}
     double {{species.name}};
@@ -487,12 +487,12 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     flag = {{solver_name}}_calculate_temperature(data, ydata, nstrip, nchem );
     if (flag > 0){
         // check if the temperature failed to converged
-        return -1;    
+        return -1;
     }
     {{solver_name}}_interpolate_rates(data, nstrip);
 
     /* Now we set up some temporaries */
-    
+
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}};
     {%- endfor %}
@@ -502,9 +502,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
     {%- endfor %}
     {%- endfor %}
-    
+
     {%- if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;    
+    double h2_optical_depth_approx;
     {% endif %}
     {%- if "cie_cooling" in network.cooling_actions %}
     double cie_optical_depth_approx;
@@ -516,9 +516,9 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
     double mdensity, inv_mdensity;
 
     #pragma omp parallel for default(shared) \
-    private(i, j, {%- for s in network.required_species -%} {{s.name}}, {%- endfor %} T, z, mdensity, inv_mdensity) 
+    private(i, j, {%- for s in network.required_species -%} {{s.name}}, {%- endfor %} T, z, mdensity, inv_mdensity)
     for ( i = 0; i < BATCHSIZE; i++ ){
-        
+
         T            = data->Ts[i];
         z            = data->current_z;
         {%- if "gloverabel08" in network.cooling_actions %}
@@ -539,7 +539,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         {%- for species in network.equilibrium_species %}
         {{network.solve_equilibrium_abundance(species.name)}}
         {%- endfor %}
-    
+
         j = i * nchem;
         {%- for species in network.required_species | sort %}
         // Species: {{species.name}}
@@ -551,7 +551,7 @@ int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *u
         //fprintf(stderr, "ydot = %0.5g \n", ydot_ptr[j]*scale[j] );
         j++;
         {% endfor %}
-    
+
     //fprintf(stderr, "----------------\n");
     }
     return 0;
@@ -591,7 +591,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data, int nstri
         /*fprintf(stderr, "INTERP: %d, bin_id = %d, dT = % 0.16g, T = % 0.16g, logT = % 0.16g\n",
                 i, data->bin_id[i], data->dT[i], data->Ts[i],
                 data->logTs[i]);*/
-    
+
     if ((data->current_z >= data->z_bounds[0]) && (data->current_z < data->z_bounds[1])) {
         zbin_id = (int) (data->id_zbin * (log(data->current_z + 1.0) - lbz));
         if (zbin_id <= 0) {
@@ -609,10 +609,10 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data, int nstri
     }
 
     zdef   = data->zdef;
-    
+
     {% for name, rate in network.reactions | dictsort %}
     {%- if 'pi' not in name %}
-    
+
 #pragma omp parallel for default(shared) private(i, bin_id, Tdef)
     for ( i = 0; i < nstrip; i++ ){
         bin_id = data->bin_id[i];
@@ -635,7 +635,7 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data, int nstri
     }
     {% endif -%}
     {% endfor %}
-    
+
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     {%- if 'ph' not in name %}
@@ -660,10 +660,10 @@ void {{ solver_name }}_interpolate_rates({{ solver_name }}_data *data, int nstri
                 zdef * (data->c_{{name}}_{{name2}}[zbin_id+1] - data->c_{{name}}_{{name2}}[zbin_id]);
         }
     }
-    {%- endif -%}          
+    {%- endif -%}
     {% endfor %}
     {% endfor %}
-    
+
 }
 {% endblock %} {# interpolate_rates #}
 
@@ -676,7 +676,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
     double _gamma_m1 = 1.0 / (gamma - 1);
 
     double dge_dT;
-    
+
     {%- if 'H2_1' in network.species_list() %}
     double gammaH2 = 7.e0/5.e0; // Should be a function of temperature
     double dge;
@@ -685,7 +685,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
     double dgamma{{sp.name}}_dT;
     double _gamma{{sp.name}}_m1;
     {%- endfor %}
-        
+
     double Tdiff = 1.0;
     double reltol = data->reltol;
     int MAX_T_ITERATION = 100;
@@ -696,29 +696,29 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
     {%- for species in network.required_species | sort %}
     double {{species.name}};
     {%- endfor %}
-    
+
 
 #pragma omp parallel for default(shared) private(i, j, {%- for s in network.required_species | sort %} {{s.name}}, {%- endfor %} density, T, Tnew, Tdiff, count, dge, dge_dT)
     for ( i = 0; i < BATCHSIZE; i++ ){
         j = i * nchem;
-    
+
         {%- for species in network.required_species | sort %}
         {{species.name}} = input[j+{{loop.index0}}];
         {%- endfor %}
-    
+
         /*
         {%- for species in network.equilibrium_species | sort %}
         {{network.solve_equilibrium_abundance(species.name)}}
         {%- endfor %}
         */
-	
+
         // TODO: pull the rates from {{solver_name}}_data
         // these species usually contribute negligbly to the number density (?)
 	// it is a little tricky here,
-	// since these species depends on the temperature 
+	// since these species depends on the temperature
 	// and the abundance of the rest of the species
 	// BUT, without their abundance, temperature CANNOT be evaluated....
-	// FOR NOW, a not entirely correct physically, 
+	// FOR NOW, a not entirely correct physically,
 	// BUT a not-too-bad surrogate is:
 	// assume these species has negligible abundance....
 	{%- if network.equilibrium_species | length > 0 %}
@@ -728,7 +728,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
 	{%- endif %}
 
         density = {{network.print_mass_density()}};
-        
+
         // Requires iteration on the convergence of temperature
         // since the gammaH2 is not fixed
         {%- if 'H2_1' in network.species_list() %}
@@ -743,7 +743,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
             // Since gammaH2 is dependent on the temperature too!
 
             T = data->Ts[i];
-        
+
             //{{ solver_name }}_interpolate_gamma(data, i);
             {% for sp in network.interpolate_gamma_species | sort %}
             gamma{{sp.name}} = 7./5.;// data->gamma{{sp.name}}[i];
@@ -751,20 +751,20 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
             _gamma{{sp.name}}_m1 = 1.0 / (gamma{{sp.name}} - 1.0);
             // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
             {% endfor %}
-       
-        
+
+
             // update gammaH2
             // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
             // This is the function we want to minimize
             // which should only be dependent on the first part
             dge_dT = {{network.temperature_calculation(derivative_dge_dT=True)}};
-        
+
             //This is the change in ge for each iteration
             dge = {{network.temperature_calculation(get_dge=True)}};
 
             Tnew = T - dge/dge_dT;
             data->Ts[i] = Tnew;
-        
+
             Tdiff = fabs(T - Tnew);
             // fprintf(stderr, "T: %0.5g ; Tnew: %0.5g; dge_dT: %.5g, dge: %.5g, ge: %.5g \n", T,Tnew, dge_dT, dge, ge);
             count += 1;
@@ -776,7 +776,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
             }
             */
         } // while loop
-    
+
         data->Ts[i] = Tnew;
 
 
@@ -799,7 +799,7 @@ int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double
         data->dTs_{{ network.energy_term.name }}[i] = 1.0 / dge_dT;
     } // for i in nstrip loop
     return 0;
-         
+
 }
 {% endblock %} {# calculate_temperature #}
 
@@ -814,10 +814,10 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 {
     /* We iterate over all of the rates */
     /* Calcuate temperature first */
-    
 
-    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
-    
+
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data;
+
     int nstrip = data->nstrip;
     int i, j;
 
@@ -829,7 +829,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     flag = {{solver_name}}_calculate_temperature(data, y_arr, nstrip, nchem );
     if (flag > 0){
         // check if the temperature failed to converged
-        return -1;    
+        return -1;
     }
     {{solver_name}}_interpolate_rates(data, nstrip);
     */
@@ -844,7 +844,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
     double *{{name}} = data->rs_{{name}};
     double *r{{name}}= data->drs_{{name}};
     {%- endfor %}
-    
+
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}};
@@ -860,12 +860,12 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 
     double mdensity, inv_mdensity;
     {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
+    double h2_optical_depth_approx;
     {% endif %}
     {% if "cie_cooling" in network.cooling_actions %}
-    double cie_optical_depth_approx; 
+    double cie_optical_depth_approx;
     {% endif %}
-  
+
 
     j = 0;
     mdensity = 0.0;
@@ -881,14 +881,14 @@ int calculate_jacobian_{{solver_name}}( realtype t,
 	{%- for species in network.equilibrium_species | sort %}
 	{{network.solve_equilibrium_abundance(species.name)}}
 	{% endfor %}
-	
+
         mdensity = mh*({{network.print_mass_density()}});
         inv_mdensity = 1.0 / mdensity;
         {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx  = data->h2_optical_depth_approx[i];  
+        h2_optical_depth_approx  = data->h2_optical_depth_approx[i];
         {% endif %}
         {% if "cie_cooling" in network.cooling_actions %}
-        cie_optical_depth_approx = data->cie_optical_depth_approx[i]; 
+        cie_optical_depth_approx = data->cie_optical_depth_approx[i];
         {% endif %}
 
         j = i * nchem;
@@ -910,7 +910,7 @@ int calculate_jacobian_{{solver_name}}( realtype t,
         {%- if s2.name == 'ge' %}
         SM_ELEMENT_B( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= inv_mdensity;
         {%- endif %}
-        
+
         {%- if s1.name == 'ge' %}
         SM_ELEMENT_B( J, j + {{i_s2.index0}}, j + {{i_s1.index0}} ) *= T{{ network.energy_term.name }}[i];
         {%- endif %}
@@ -932,46 +932,46 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 {
     /* We iterate over all of the rates */
     /* Calcuate temperature first */
-    
 
-    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data; 
-    
+
+    {{solver_name}}_data *data = ({{solver_name}}_data*)user_data;
+
     int nchem = {{network.ode_species | length }};
     int nstrip = data->nstrip;
     int i, j;
     int NSPARSE = {{network.get_sparse_matrix_component( return_type = "nsparse" )}};
-    
+
     #ifdef _OPENMP
     int threadID = omp_get_thread_num();
     #else
     int threadID = 0;
     #endif
-    
+
     /* change N_Vector back to an array */
     double y_arr[ {{network.ode_species | length }} * nstrip ];
     double *scale     = data->scale[threadID];
-    double *inv_scale = data->inv_scale[threadID];   
+    double *inv_scale = data->inv_scale[threadID];
     {%- if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;  
+    double h2_optical_depth_approx;
     {%- endif %}
     {%- if "cie_cooling" in network.cooling_actions %}
     double cie_optical_depth_approx;
     {%- endif %}
 
     //TODO: Here we assumed during the evaluation of jacobian
-    // temperature is approximately constant, 
+    // temperature is approximately constant,
     // i.e. close enough to the point evaluation of f(y)
-    // such that the rates and temperature need not be interpolated or evalulated 
+    // such that the rates and temperature need not be interpolated or evalulated
     // again during the jacobian evaluation.
     // We havent really fully explored the effect of this `assumption`...
-    // But it definitely boost the performance 
-    
+    // But it definitely boost the performance
+
     /*
     int flag;
     flag = {{solver_name}}_calculate_temperature(data, y_arr , nstrip, nchem );
     if (flag > 0){
         // check if the temperature failed to converged
-        return -1;    
+        return -1;
     }
     {{solver_name}}_interpolate_rates(data, nstrip);
     */
@@ -984,16 +984,16 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
     sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(J);
     sunindextype *colvals = SUNSparseMatrix_IndexValues(J);
     realtype *matrix_data = SUNSparseMatrix_Data(J);
-    
+
     SUNMatZero(J);
-   
+
     double *T{{ network.energy_term.name }} = data->dTs_{{network.energy_term.name }}[threadID];
 
     {%- for name, rate in network.reactions | dictsort %}
     double *{{name}} = data->rs_{{name}}[threadID];
     double *r{{name}}= data->drs_{{name}}[threadID];
     {%- endfor %}
-    
+
     {%- for name, rate in network.cooling_actions | dictsort %}
     {%- for name2 in rate.tables | sort %}
     double *{{name}}_{{name2}} = data->cs_{{name}}_{{name2}}[threadID];
@@ -1009,15 +1009,15 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 
     double mh = 1.66054e-24;
     double mdensity, inv_mdensity;
-    
+
     double scale2, inv_scale1;
 
     j = 0;
     mdensity = 0.0;
     z = data->current_z;
-   
+
     int k = 0;
-    
+
     double *yvec_ptr = N_VGetArrayPointer(y);
 
     for ( i = 0; i < nstrip; i++ ){
@@ -1035,17 +1035,17 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         j++;
         {% endfor %}
         #endif
-	
+
 	{%- for species in network.equilibrium_species | sort %}
 	{{network.solve_equilibrium_abundance(species.name)}}
 	{% endfor %}
 
         mdensity = data->mdensity[threadID][i];
-        inv_mdensity = 1.0 / mdensity; 
+        inv_mdensity = 1.0 / mdensity;
         {% if "gloverabel08" in network.cooling_actions %}
-        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];  
+        h2_optical_depth_approx = data->h2_optical_depth_approx[threadID][i];
         {% endif %}
-        
+
         {% if "cie_cooling" in network.cooling_actions %}
         cie_optical_depth_approx = data->cie_optical_depth_approx[threadID][i];
         {% endif %}
@@ -1063,17 +1063,17 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
         matrix_data[ j + {{k}}] *= T{{ network.energy_term.name }}[i];
         {%- endif %}
         {%- endfor %}
-        
+
         {%- for rowptrs in network.get_sparse_matrix_component(sparse_type = "CSR", return_type = "indexptrs") %}
         rowptrs[ i * nchem +  {{loop.index0}}] = i * NSPARSE + {{rowptrs}};
         {%- endfor %}
-       
+
         #ifdef SCALE_INPUT
         j = i * nchem;
         {%- for i1, i2, k in network.get_sparse_matrix_component(sparse_type = "CSR", return_type="index")%}
         inv_scale1 = inv_scale[ j + {{i1}} ];
         scale2     = scale    [ j + {{i2}} ];
-        matrix_data[ i * NSPARSE + {{k}}]  *= inv_scale1*scale2; 
+        matrix_data[ i * NSPARSE + {{k}}]  *= inv_scale1*scale2;
         {%- endfor %}
         #endif
 
@@ -1085,4 +1085,3 @@ int calculate_sparse_jacobian_{{solver_name}}( realtype t,
 
 #endif
 {% endblock %}
-

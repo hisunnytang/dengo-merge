@@ -7,12 +7,12 @@
 /
 / Distributed under the terms of the Enzo Public Licence.
 /
-/ The full license is in the file LICENSE, distributed with this 
+/ The full license is in the file LICENSE, distributed with this
 / software.
 ************************************************************************/
 
 /***********************************************************************
-/  
+/
 / VARIABLE TYPES
 /
 ************************************************************************/
@@ -26,12 +26,12 @@ typedef struct
   int *grid_end;
   long int ncells;
   double grid_dx;
-    
-  // This should be updated dynamically 
+
+  // This should be updated dynamically
   // with dengo
   double *density;
 
-  
+
   {%- for species in network.required_species | sort %}
   double *{{species.name}}_density;
   {% endfor %}
@@ -50,4 +50,3 @@ typedef struct
   double a_value;
 
 } code_units;
-

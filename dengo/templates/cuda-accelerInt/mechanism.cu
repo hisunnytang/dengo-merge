@@ -41,7 +41,7 @@
     }
 */
 
-void set_same_initial_conditions(int NUM, double** y_host, double** var_host) 
+void set_same_initial_conditions(int NUM, double** y_host, double** var_host)
 {
 
 /*
@@ -70,7 +70,7 @@ void set_same_initial_conditions(int NUM, double** y_host, double** var_host)
     (*y_host) = (double*)malloc(NUM * NSP * sizeof(double));
     (*var_host) = (double*)malloc(NUM * sizeof(double));
     //load temperature and mass fractions for all threads (cells)
-    printf("NUM = %d; NSP = %d \n", NUM, NSP ); 
+    printf("NUM = %d; NSP = %d \n", NUM, NSP );
     int j = 1;
     for (int i = 0; i < NUM; ++i) {
         (*y_host)[i] = T0;
@@ -109,4 +109,3 @@ void set_same_initial_conditions(int NUM, double** y_host, double** var_host)
     }
 
 }
-

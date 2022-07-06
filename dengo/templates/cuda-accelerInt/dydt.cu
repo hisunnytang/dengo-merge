@@ -3,7 +3,7 @@
 
 extern __shared__ double y_shared[];
 
-__device__ void {{solver_name}}_interpolate_gamma( {{solver_name}}_data *rate_data, double T 
+__device__ void {{solver_name}}_interpolate_gamma( {{solver_name}}_data *rate_data, double T
         {%- for sp in network.interpolate_gamma_species_name  -%}
         ,double *gamma{{sp}}, double *dgamma{{sp}}_dT
         {%- endfor} )
@@ -13,7 +13,7 @@ __device__ void {{solver_name}}_interpolate_gamma( {{solver_name}}_data *rate_da
   double Tdef, log_temp_out;
   int no_photo = 0;
   double lb = log(rate_data->bounds[0]);
- 
+
   log_temp_out = log(T);
   bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
   if ( bin_id <= 0) {
@@ -21,7 +21,7 @@ __device__ void {{solver_name}}_interpolate_gamma( {{solver_name}}_data *rate_da
   } else if ( bin_id >= rate_data->nbins) {
     bin_id = rate_data->nbins - 1;
   }
-    
+
   //printf( "bin_id = %d; temp_out = %0.5g \n", bin_id, temp_out[tid]);
   t1 = (lb + (bin_id    ) * rate_data->dbin);
   t2 = (lb + (bin_id + 1) * rate_data->dbin);
@@ -33,14 +33,14 @@ __device__ void {{solver_name}}_interpolate_gamma( {{solver_name}}_data *rate_da
   *dgamma{{sp}}_dT = data->g_dgamma{{sp}}_dT[bin_id] +
         Tdef * (rate_data->g_dgamma{{sp}}_dT[bin_id+1] - rate_data->g_dgamma{{sp}}_dT[bin_id]);
   {% endfor %}
- 
+
 }
 
 
 __device__ void evaluate_temperature( double* T, double* dTs_ge, const double *y, const double mdensity, cvklu_data *rate_data )
 {
   // note that y array is loaded into the shared memory
-  // the indexing of y has to be access with S_INDEX instead 
+  // the indexing of y has to be access with S_INDEX instead
 
   // iterate temperature to convergence
   double t, tnew, tdiff;
@@ -48,10 +48,10 @@ __device__ void evaluate_temperature( double* T, double* dTs_ge, const double *y
   double gammaH2, dgammaH2_dT, _gammaH2_m1;
 
   int count = 0;
-  int MAX_ITERATION = 100; 
+  int MAX_ITERATION = 100;
   double gamma     = 5./3.;
   double _gamma_m1 = 1.0 / (gamma - 1.0);
-  double kb = 1.3806504e-16; // Boltzamann constant [erg/K] 
+  double kb = 1.3806504e-16; // Boltzamann constant [erg/K]
   // prepare t, tnew for the newton's iteration;
 
   {% for sp in network.interpolate_gamma_species_name | sort %}
@@ -59,12 +59,12 @@ __device__ void evaluate_temperature( double* T, double* dTs_ge, const double *y
   double dgamma{{sp}}_dT;
   double _gamma{{sp}}_m1;
   {% endfor %}
- 
+
   t     = *T;
   if (t != t) t = 1000.0;
   tnew  = 1.1*t;
   tdiff = tnew - t;
- 
+
   while ( tdiff/ tnew > 1.0e-8 ){
     // We do Newton's Iteration to calculate the temperature
     // Since gammaH2 is dependent on the temperature too!
@@ -79,15 +79,15 @@ __device__ void evaluate_temperature( double* T, double* dTs_ge, const double *y
     _gamma{{sp}}_m1 = 1.0 / (gamma{{sp}} - 1.0);
     // fprintf(stderr, ":gamma{{sp}} %0.5g , dgamma{{sp}}_dT: %.5g \n", gamma{{sp}}, dgamma{{sp}}_dT  );
     {% endfor %}
-       
-        
+
+
     // update gammaH2
     // The derivatives of  sum (nkT/(gamma - 1)/mh/density) - ge
     // This is the function we want to minimize
     // which should only be dependent on the first part
-    dge_dT = {{network.temperature_calculation(derivative_dge_dT=True, replace_by_array = True, 
+    dge_dT = {{network.temperature_calculation(derivative_dge_dT=True, replace_by_array = True,
                array_name = "y", array_index = "S_INDEX" )}};
-        
+
     //This is the change in ge for each iteration
     dge = {{network.temperature_calculation(get_dge=True, replace_by_array = True,
               array_name = "y", array_index = "S_INDEX" )}};
@@ -115,20 +115,20 @@ __device__ void evaluate_temperature( double* T, double* dTs_ge, const double *y
   // update the temperature;
   *T = t;
 
-  // update the dge_dT with the converged temp 
-  dge_dT = {{network.temperature_calculation(derivative_dge_dT=True, replace_by_array = True, 
+  // update the dge_dT with the converged temp
+  dge_dT = {{network.temperature_calculation(derivative_dge_dT=True, replace_by_array = True,
                array_name = "y", array_index = "S_INDEX" )}};
 
   *dTs_ge = 1.0 / dge_dT;
 
   // printf("T[tid = %d] is %0.5g, count = %d; ge = %0.5g, gamma_H2 = %0.5g \n", tid, t, count, y[INDEX(9)], gammaH2);
-  
+
 }
 
 
 __device__ void interpolate_reaction_rates( double *reaction_rates_out, double temp_out, cvklu_data *rate_data)
 {
-    
+
     int tid, bin_id, zbin_id;
     double t1, t2;
     double Tdef, dT, invTs, log_temp_out;
@@ -136,7 +136,7 @@ __device__ void interpolate_reaction_rates( double *reaction_rates_out, double t
     double lb = log(rate_data->bounds[0]);
 
     tid = threadIdx.x + blockDim.x * blockIdx.x;
- 
+
     log_temp_out = log(temp_out);
     bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
     if ( bin_id <= 0) {
@@ -144,14 +144,14 @@ __device__ void interpolate_reaction_rates( double *reaction_rates_out, double t
     } else if ( bin_id >= rate_data->nbins) {
         bin_id = rate_data->nbins - 1;
     }
-    
+
     //printf( "bin_id = %d; temp_out = %0.5g \n", bin_id, temp_out[tid]);
     t1 = (lb + (bin_id    ) * rate_data->dbin);
     t2 = (lb + (bin_id + 1) * rate_data->dbin);
     Tdef = (log_temp_out - t1)/(t2 - t1);
     dT    = t2 - t1;
     invTs = 1.0 / temp_out;
- 
+
     // rate_out is a long 1D array
     // NRATE is the number of rate required by the solver network
     {%- for name, rate in network.reactions | dictsort %}
@@ -163,7 +163,7 @@ __device__ void interpolate_reaction_rates( double *reaction_rates_out, double t
 
 __device__ void interpolate_cooling_rates( double *cooling_rates_out, double temp_out, cvklu_data *rate_data)
 {
-    
+
     int tid, bin_id, zbin_id;
     double t1, t2;
     double Tdef, log_temp_out;
@@ -171,7 +171,7 @@ __device__ void interpolate_cooling_rates( double *cooling_rates_out, double tem
     double lb = log(rate_data->bounds[0]);
 
     tid = threadIdx.x + blockDim.x * blockIdx.x;
- 
+
     log_temp_out = log(temp_out);
     bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
 
@@ -208,7 +208,7 @@ __device__ void interpolate_dcrate_dT(double *dcr_dT, const double temp_out, cvk
     double lb = log(rate_data->bounds[0]);
 
     tid = threadIdx.x + blockDim.x * blockIdx.x;
- 
+
     log_temp_out = log(temp_out);
     bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
     if ( bin_id <= 0) {
@@ -216,7 +216,7 @@ __device__ void interpolate_dcrate_dT(double *dcr_dT, const double temp_out, cvk
     } else if ( bin_id >= rate_data->nbins) {
         bin_id = rate_data->nbins - 1;
     }
-    
+
     //printf( "bin_id = %d; temp_out = %0.5g \n", bin_id, temp_out[tid]);
     t1 = (lb + (bin_id    ) * rate_data->dbin);
     t2 = (lb + (bin_id + 1) * rate_data->dbin);
@@ -232,8 +232,8 @@ __device__ void interpolate_dcrate_dT(double *dcr_dT, const double temp_out, cvk
     {% endfor %}
 
     //cie_optical_depth_approx: 26
-    dcr_dT[INDEX(26)] = 0.0; 
- 
+    dcr_dT[INDEX(26)] = 0.0;
+
 }
 
 __device__ void interpolate_drrate_dT(double *drr_dT, const double temp_out, cvklu_data *rate_data ){
@@ -244,7 +244,7 @@ __device__ void interpolate_drrate_dT(double *drr_dT, const double temp_out, cvk
     double lb = log(rate_data->bounds[0]);
 
     tid = threadIdx.x + blockDim.x * blockIdx.x;
- 
+
     log_temp_out = log(temp_out);
     bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
     if ( bin_id <= 0) {
@@ -252,7 +252,7 @@ __device__ void interpolate_drrate_dT(double *drr_dT, const double temp_out, cvk
     } else if ( bin_id >= rate_data->nbins) {
         bin_id = rate_data->nbins - 1;
     }
-    
+
     //printf( "bin_id = %d; temp_out = %0.5g \n", bin_id, temp_out[tid]);
     t1 = (lb + (bin_id    ) * rate_data->dbin);
     t2 = (lb + (bin_id + 1) * rate_data->dbin);
@@ -265,7 +265,7 @@ __device__ void interpolate_drrate_dT(double *drr_dT, const double temp_out, cvk
     {%- for name, rate in network.reactions | dictsort %}
     drr_dT[INDEX({{loop.index0}})] = (rate_data->r_{{name}}[bin_id+1] - rate_data->r_{{name}}[bin_id]) *_dT ;
     {% endfor %}
- 
+
 }
 
 
@@ -307,21 +307,21 @@ __device__ void dydt (const double t, const double pres, const double * __restri
     y_shared[S_INDEX(i)] = y_in[INDEX(i)];
   }
   #endif
-  
+
   evaluate_temperature ( &T_local, &Tge, y_shared, mdensity, rate_data );
   interpolate_reaction_rates( local_reaction_rates, T_local, rate_data);
   interpolate_cooling_rates ( local_cooling_rates , T_local, rate_data);
 
   {%- for sp in network.required_species %}
   // {{sp.name}}
-  {{ network.print_ccode( sp, assign_to = "dy[INDEX({{loop.index0}})]", 
-          replace_species = True, species_name = "y_shared", species_index = "S_INDEX", 
+  {{ network.print_ccode( sp, assign_to = "dy[INDEX({{loop.index0}})]",
+          replace_species = True, species_name = "y_shared", species_index = "S_INDEX",
           replace_reaction = True, reaction_name = "local_reaction_rates", reaction_index = "INDEX",
           replace_cooling  = True, cooling_name = "local_cooling_rates", cooling_index = "INDEX") }}
   {% if species.name == "ge" %}
   dy[INDEX({{loop.index0}})] *= inv_mdensity;
   {% endif %}
-  
+
   {% endfor %}
 
   #ifdef SCALE_INPUT
@@ -351,4 +351,3 @@ __device__ void dydt (const double t, const double pres, const double * __restri
 //  printf(" \n");
 //  }
 }
-

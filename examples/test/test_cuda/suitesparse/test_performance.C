@@ -31,7 +31,7 @@ void initialize_long_ydata(double *ydata, unsigned long NSYSTEM, double density,
         // de
         ydata[i*nchem+8] = density*efraction;
         // ge
-        ydata[i*nchem+9] = 3./2.*kb* temperature / mh; 
+        ydata[i*nchem+9] = 3./2.*kb* temperature / mh;
 
     }
 }
@@ -41,7 +41,7 @@ int run_dengo_struct(double density, double temperature, double h2fraction, doub
 {
     primordial_data *data = primordial_setup_data("primordial_tables.h5", NULL, NULL);
 
-    double *input, *rtol, *atol, *temp; 
+    double *input, *rtol, *atol, *temp;
     input = new double[dims*nchem];
     rtol  = new double[1];
     atol  = new double[dims*nchem];
@@ -109,7 +109,7 @@ int test_scaling_dims()
         end = omp_get_wtime();
         cpu_time_used = end - start;
 
-        printf("took %f seconds to execute %lu \n", cpu_time_used, dims); 
+        printf("took %f seconds to execute %lu \n", cpu_time_used, dims);
         // measured the time lapsed
         // and the cells needed
         ncells[i] = dims;
@@ -164,9 +164,9 @@ int grid_performance()
             end = omp_get_wtime();
             cpu_time_used = end - start;
 
-            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims); 
+            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims);
 
-            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims); 
+            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims);
 
             timelapsed[i*nT+j] = cpu_time_used;
             darray    [i*nT+j] = d;
@@ -198,7 +198,7 @@ int writefile()
 {
     double *Tarray = new double[10];
     double *darray = new double[10];
-    
+
     for (int i = 0; i < 10; i++){
         Tarray[i] = i;
         darray[i] = i;

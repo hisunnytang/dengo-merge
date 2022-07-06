@@ -23,7 +23,7 @@ int PrintDeviceInfo() {
 
 int main(int argc, char* argv[])
 {
-    // read the rate data 
+    // read the rate data
     PrintDeviceInfo();
 
     cudaDeviceSynchronize();
@@ -51,7 +51,7 @@ int main(int argc, char* argv[])
     launchJacobianKernel(&data);
 
     // printf("rk01 = %0.5g\n", data.r_k22[213]);
-    // printf("h2mheat = %0.5g\n", data.c_h2formation_h2mheat[1020]);  
+    // printf("h2mheat = %0.5g\n", data.c_h2formation_h2mheat[1020]);
 
     // test interpolation first
     // test_interpolation_kernel(data);

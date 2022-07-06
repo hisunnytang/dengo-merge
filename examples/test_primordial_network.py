@@ -1,9 +1,9 @@
-from dengo.chemical_network import ChemicalNetwork, reaction_registry
 import dengo.primordial_rates
+from dengo.chemical_network import ChemicalNetwork, reaction_registry
 
 primordial = ChemicalNetwork()
 for i in range(23):
-    n = "k%02i" % (i+1)
+    n = "k%02i" % (i + 1)
     if n in reaction_registry:
         primordial.add_reaction(n)
 

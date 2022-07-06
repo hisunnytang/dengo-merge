@@ -1,7 +1,11 @@
 cimport numpy as np
-import numpy as np
+
 import time
-from libc.stdlib cimport malloc, free
+
+import numpy as np
+
+from libc.stdlib cimport free, malloc
+
 
 cdef extern from "alloca.h":
     void *alloca(int)
@@ -9,10 +13,10 @@ cdef extern from "alloca.h":
 ##############################################################################
 
 cdef extern from "sundials/sundials_types.h":
-    
+
     ctypedef double realtype
     ctypedef int booleantype
-    
+
     enum: TRUE
     enum: FALSE
 
@@ -20,8 +24,8 @@ cdef extern from "sundials/sundials_nvector.h":
 
     cdef struct _generic_N_Vector_Ops
     ctypedef _generic_N_Vector_Ops *N_Vector_Ops
-    
-    cdef struct _generic_N_Vector 
+
+    cdef struct _generic_N_Vector
     ctypedef _generic_N_Vector *N_Vector
 
     ctypedef N_Vector *N_Vector_S
@@ -52,42 +56,42 @@ cdef extern from "sundials/sundials_nvector.h":
         booleantype (*nvinvtest)(N_Vector, N_Vector)
         booleantype (*nvconstrmask)(N_Vector, N_Vector, N_Vector)
         realtype    (*nvminquotient)(N_Vector, N_Vector)
-    
+
     cdef struct _generic_N_Vector:
         void *content
-        _generic_N_Vector_Ops *ops   
+        _generic_N_Vector_Ops *ops
 
-cdef extern from "sundials/sundials_direct.h":        
+cdef extern from "sundials/sundials_direct.h":
 #    /*
 #     * =================================================================
 #     *                C O N S T A N T S
 #     * =================================================================
 #     */
-#    
+#
 #    /*
 #     *  SUNDIALS_DENSE: dense matrix
 #     *  SUNDIALS_BAND:  banded matrix
 #     */
-#    
+#
     enum: SUNDIALS_DENSE
     enum: SUNDIALS_BAND
-#    
+#
 #    /*
 #     * ==================================================================
 #     * Type definitions
 #     * ==================================================================
 #     */
-#    
+#
 #    /*
 #     * -----------------------------------------------------------------
 #     * Type : DlsMat
 #     * -----------------------------------------------------------------
 #     * The type DlsMat is defined to be a pointer to a structure
 #     * with various sizes, a data field, and an array of pointers to
-#     * the columns which defines a dense or band matrix for use in 
-#     * direct linear solvers. The M and N fields indicates the number 
-#     * of rows and columns, respectively. The data field is a one 
-#     * dimensional array used for component storage. The cols field 
+#     * the columns which defines a dense or band matrix for use in
+#     * direct linear solvers. The M and N fields indicates the number
+#     * of rows and columns, respectively. The data field is a one
+#     * dimensional array used for component storage. The cols field
 #     * stores the pointers in data for the beginning of each column.
 #     * -----------------------------------------------------------------
 #     * For DENSE matrices, the relevant fields in DlsMat are:
@@ -97,19 +101,19 @@ cdef extern from "sundials/sundials_direct.h":
 #     *    ldim  - leading dimension (ldim >= M)
 #     *    data  - pointer to a contiguous block of realtype variables
 #     *    ldata - length of the data array =ldim*N
-#     *    cols  - array of pointers. cols[j] points to the first element 
+#     *    cols  - array of pointers. cols[j] points to the first element
 #     *            of the j-th column of the matrix in the array data.
 #     *
-#     * The elements of a dense matrix are stored columnwise (i.e columns 
-#     * are stored one on top of the other in memory). 
-#     * If A is of type DlsMat, then the (i,j)th element of A (with 
-#     * 0 <= i < M and 0 <= j < N) is given by (A->data)[j*n+i]. 
+#     * The elements of a dense matrix are stored columnwise (i.e columns
+#     * are stored one on top of the other in memory).
+#     * If A is of type DlsMat, then the (i,j)th element of A (with
+#     * 0 <= i < M and 0 <= j < N) is given by (A->data)[j*n+i].
 #     *
-#     * The DENSE_COL and DENSE_ELEM macros below allow a user to access 
-#     * efficiently individual matrix elements without writing out explicit 
-#     * data structure references and without knowing too much about the 
-#     * underlying element storage. The only storage assumption needed is 
-#     * that elements are stored columnwise and that a pointer to the 
+#     * The DENSE_COL and DENSE_ELEM macros below allow a user to access
+#     * efficiently individual matrix elements without writing out explicit
+#     * data structure references and without knowing too much about the
+#     * underlying element storage. The only storage assumption needed is
+#     * that elements are stored columnwise and that a pointer to the
 #     * jth column of elements can be obtained via the DENSE_COL macro.
 #     * -----------------------------------------------------------------
 #     * For BAND matrices, the relevant fields in DlsMat are:
@@ -119,31 +123,31 @@ cdef extern from "sundials/sundials_direct.h":
 #     *    mu    - upper bandwidth, 0 <= mu <= min(M,N)
 #     *    ml    - lower bandwidth, 0 <= ml <= min(M,N)
 #     *    s_mu  - storage upper bandwidth, mu <= s_mu <= N-1.
-#     *            The dgbtrf routine writes the LU factors into the storage 
-#     *            for A. The upper triangular factor U, however, may have 
-#     *            an upper bandwidth as big as MIN(N-1,mu+ml) because of 
-#     *            partial pivoting. The s_mu field holds the upper 
+#     *            The dgbtrf routine writes the LU factors into the storage
+#     *            for A. The upper triangular factor U, however, may have
+#     *            an upper bandwidth as big as MIN(N-1,mu+ml) because of
+#     *            partial pivoting. The s_mu field holds the upper
 #     *            bandwidth allocated for A.
 #     *    ldim  - leading dimension (ldim >= s_mu)
 #     *    data  - pointer to a contiguous block of realtype variables
 #     *    ldata - length of the data array =ldim*(s_mu+ml+1)
-#     *    cols  - array of pointers. cols[j] points to the first element 
+#     *    cols  - array of pointers. cols[j] points to the first element
 #     *            of the j-th column of the matrix in the array data.
 #     *
-#     * The BAND_COL, BAND_COL_ELEM, and BAND_ELEM macros below allow a 
-#     * user to access individual matrix elements without writing out 
-#     * explicit data structure references and without knowing too much 
-#     * about the underlying element storage. The only storage assumption 
-#     * needed is that elements are stored columnwise and that a pointer 
-#     * into the jth column of elements can be obtained via the BAND_COL 
+#     * The BAND_COL, BAND_COL_ELEM, and BAND_ELEM macros below allow a
+#     * user to access individual matrix elements without writing out
+#     * explicit data structure references and without knowing too much
+#     * about the underlying element storage. The only storage assumption
+#     * needed is that elements are stored columnwise and that a pointer
+#     * into the jth column of elements can be obtained via the BAND_COL
 #     * macro. The BAND_COL_ELEM macro selects an element from a column
-#     * which has already been isolated via BAND_COL. The macro 
-#     * BAND_COL_ELEM allows the user to avoid the translation 
-#     * from the matrix location (i,j) to the index in the array returned 
-#     * by BAND_COL at which the (i,j)th element is stored. 
+#     * which has already been isolated via BAND_COL. The macro
+#     * BAND_COL_ELEM allows the user to avoid the translation
+#     * from the matrix location (i,j) to the index in the array returned
+#     * by BAND_COL at which the (i,j)th element is stored.
 #     * -----------------------------------------------------------------
 #     */
-#    
+#
     cdef struct _DlsMat:
         int type
         long int M
@@ -155,105 +159,105 @@ cdef extern from "sundials/sundials_direct.h":
         realtype *data
         long int ldata
         realtype **cols
-        
+
     ctypedef _DlsMat *DlsMat
-    
+
 #    /*
 #     * ==================================================================
 #     * Data accessor macros
 #     * ==================================================================
 #     */
-#    
+#
 #    /*
 #     * -----------------------------------------------------------------
 #     * DENSE_COL and DENSE_ELEM
 #     * -----------------------------------------------------------------
 #     *
 #     * DENSE_COL(A,j) references the jth column of the M-by-N dense
-#     * matrix A, 0 <= j < N. The type of the expression DENSE_COL(A,j) 
-#     * is (realtype *). After the assignment in the usage above, col_j 
-#     * may be treated as an array indexed from 0 to M-1. The (i,j)-th 
+#     * matrix A, 0 <= j < N. The type of the expression DENSE_COL(A,j)
+#     * is (realtype *). After the assignment in the usage above, col_j
+#     * may be treated as an array indexed from 0 to M-1. The (i,j)-th
 #     * element of A is thus referenced by col_j[i].
 #     *
-#     * DENSE_ELEM(A,i,j) references the (i,j)th element of the dense 
+#     * DENSE_ELEM(A,i,j) references the (i,j)th element of the dense
 #     * M-by-N matrix A, 0 <= i < M ; 0 <= j < N.
 #     *
 #     * -----------------------------------------------------------------
 #     */
-#    
+#
 #    #define DENSE_COL(A,j) ((A->cols)[j])
     void DENSE_COL(DlsMat A, long int j)
 #    #define DENSE_ELEM(A,i,j) ((A->cols)[j][i])
-    void DENSE_ELEM(DlsMat A, long int i, long int j)    
-#    
+    void DENSE_ELEM(DlsMat A, long int i, long int j)
+#
 #    /*
 #     * -----------------------------------------------------------------
 #     * BAND_COL, BAND_COL_ELEM, and BAND_ELEM
 #     * -----------------------------------------------------------------
-#     *  
-#     * BAND_COL(A,j) references the diagonal element of the jth column 
-#     * of the N by N band matrix A, 0 <= j <= N-1. The type of the 
-#     * expression BAND_COL(A,j) is realtype *. The pointer returned by 
-#     * the call BAND_COL(A,j) can be treated as an array which is 
+#     *
+#     * BAND_COL(A,j) references the diagonal element of the jth column
+#     * of the N by N band matrix A, 0 <= j <= N-1. The type of the
+#     * expression BAND_COL(A,j) is realtype *. The pointer returned by
+#     * the call BAND_COL(A,j) can be treated as an array which is
 #     * indexed from -(A->mu) to (A->ml).
-#     * 
-#     * BAND_COL_ELEM references the (i,j)th entry of the band matrix A 
-#     * when used in conjunction with BAND_COL. The index (i,j) should 
+#     *
+#     * BAND_COL_ELEM references the (i,j)th entry of the band matrix A
+#     * when used in conjunction with BAND_COL. The index (i,j) should
 #     * satisfy j-(A->mu) <= i <= j+(A->ml).
 #     *
-#     * BAND_ELEM(A,i,j) references the (i,j)th element of the M-by-N 
-#     * band matrix A, where 0 <= i,j <= N-1. The location (i,j) should 
-#     * further satisfy j-(A->mu) <= i <= j+(A->ml). 
+#     * BAND_ELEM(A,i,j) references the (i,j)th element of the M-by-N
+#     * band matrix A, where 0 <= i,j <= N-1. The location (i,j) should
+#     * further satisfy j-(A->mu) <= i <= j+(A->ml).
 #     *
 #     * -----------------------------------------------------------------
 #     */
-#     
+#
 #    #define BAND_COL(A,j) (((A->cols)[j])+(A->s_mu))
 #    #define BAND_COL_ELEM(col_j,i,j) (col_j[(i)-(j)])
-#    #define BAND_ELEM(A,i,j) ((A->cols)[j][(i)-(j)+(A->s_mu)])    
-        
+#    #define BAND_ELEM(A,i,j) ((A->cols)[j][(i)-(j)+(A->s_mu)])
+
 cdef extern from "sundials/sundials_iterative.h":
     #/*
     # * -----------------------------------------------------------------
-    # * enum : types of preconditioning                                
+    # * enum : types of preconditioning
     # * -----------------------------------------------------------------
-    # * PREC_NONE  : The iterative linear solver should not use             
-    # *              preconditioning.                                       
-    # *                                                                
-    # * PREC_LEFT  : The iterative linear solver uses preconditioning on    
-    # *              the left only.                                         
-    # *                                                                
-    # * PREC_RIGHT : The iterative linear solver uses preconditioning on    
-    # *              the right only.                                        
-    # *                                                                
-    # * PREC_BOTH  : The iterative linear solver uses preconditioning on    
-    # *              both the left and the right.                           
+    # * PREC_NONE  : The iterative linear solver should not use
+    # *              preconditioning.
+    # *
+    # * PREC_LEFT  : The iterative linear solver uses preconditioning on
+    # *              the left only.
+    # *
+    # * PREC_RIGHT : The iterative linear solver uses preconditioning on
+    # *              the right only.
+    # *
+    # * PREC_BOTH  : The iterative linear solver uses preconditioning on
+    # *              both the left and the right.
     # * -----------------------------------------------------------------
     # */
 
     enum: PREC_NONE
     enum: PREC_LEFT
     enum: PREC_RIGHT
-    enum: PREC_BOTH 
-    
+    enum: PREC_BOTH
+
     #/*
     # * -----------------------------------------------------------------
-    # * enum : types of Gram-Schmidt routines                          
+    # * enum : types of Gram-Schmidt routines
     # * -----------------------------------------------------------------
-    # * MODIFIED_GS  : The iterative solver uses the modified          
-    # *                Gram-Schmidt routine ModifiedGS listed in this  
-    # *                file.                                           
-    # *                                                                
-    # * CLASSICAL_GS : The iterative solver uses the classical         
-    # *                Gram-Schmidt routine ClassicalGS listed in this 
-    # *                file.                                           
+    # * MODIFIED_GS  : The iterative solver uses the modified
+    # *                Gram-Schmidt routine ModifiedGS listed in this
+    # *                file.
+    # *
+    # * CLASSICAL_GS : The iterative solver uses the classical
+    # *                Gram-Schmidt routine ClassicalGS listed in this
+    # *                file.
     # * -----------------------------------------------------------------
     # */
     #
     enum: MODIFIED_GS
     enum: CLASSICAL_GS
-    
-    
+
+
 cdef extern from "sundials/sundials_dense.h":
     #/*
     # * -----------------------------------------------------------------
@@ -298,9 +302,9 @@ cdef extern from "sundials/sundials_dense.h":
     # * -----------------------------------------------------------------
     # */
     long int denseGETRF(realtype **a, long int m, long int n, long int *p)
-    void denseGETRS(realtype **a, long int n, long int *p, realtype *b) 
-        
-    
+    void denseGETRS(realtype **a, long int n, long int *p, realtype *b)
+
+
     #/*
     # * -----------------------------------------------------------------
     # * Functions : DensePOTRF and DensePOTRS
@@ -308,7 +312,7 @@ cdef extern from "sundials/sundials_dense.h":
     # * DensePOTRF computes the Cholesky factorization of a real symmetric
     # * positive definite matrix A.
     # * -----------------------------------------------------------------
-    # * DensePOTRS solves a system of linear equations A*X = B with a 
+    # * DensePOTRS solves a system of linear equations A*X = B with a
     # * symmetric positive definite matrix A using the Cholesky factorization
     # * A = L*L**T computed by DensePOTRF.
     # *
@@ -321,20 +325,20 @@ cdef extern from "sundials/sundials_dense.h":
     #
     #SUNDIALS_EXPORT long int DensePOTRF(DlsMat A);
     #SUNDIALS_EXPORT void DensePOTRS(DlsMat A, realtype *b);
-    
+
     long int densePOTRF(realtype **a, long int m)
     void densePOTRS(realtype **a, long int m, realtype *b)
-    
+
     #/*
     # * -----------------------------------------------------------------
     # * Functions : DenseGEQRF and DenseORMQR
     # * -----------------------------------------------------------------
     # * DenseGEQRF computes a QR factorization of a real M-by-N matrix A:
     # * A = Q * R (with M>= N).
-    # * 
+    # *
     # * DenseGEQRF requires a temporary work vector wrk of length M.
     # * -----------------------------------------------------------------
-    # * DenseORMQR computes the product w = Q * v where Q is a real 
+    # * DenseORMQR computes the product w = Q * v where Q is a real
     # * orthogonal matrix defined as the product of k elementary reflectors
     # *
     # *        Q = H(1) H(2) . . . H(k)
@@ -352,7 +356,7 @@ cdef extern from "sundials/sundials_dense.h":
     # */
     #
     #SUNDIALS_EXPORT int DenseGEQRF(DlsMat A, realtype *beta, realtype *wrk);
-    #SUNDIALS_EXPORT int DenseORMQR(DlsMat A, realtype *beta, realtype *vn, realtype *vm, 
+    #SUNDIALS_EXPORT int DenseORMQR(DlsMat A, realtype *beta, realtype *vn, realtype *vm,
     #			       realtype *wrk);
     #
     int denseGEQRF(realtype **a, long int m, long int n, realtype *beta, realtype *v)
@@ -365,15 +369,15 @@ cdef extern from "sundials/sundials_dense.h":
     # * -----------------------------------------------------------------
     # * DenseCopy copies the contents of the M-by-N matrix A into the
     # * M-by-N matrix B.
-    # * 
+    # *
     # * DenseCopy is a wrapper around denseCopy which accesses the data
     # * in the DlsMat A and B (i.e. the fields cols)
     # * -----------------------------------------------------------------
     # */
-    
+
     #SUNDIALS_EXPORT void DenseCopy(DlsMat A, DlsMat B);
     void denseCopy(realtype **a, realtype **b, long int m, long int n)
-    
+
     #/*
     # * -----------------------------------------------------------------
     # * Function: DenseScale
@@ -389,8 +393,8 @@ cdef extern from "sundials/sundials_dense.h":
     #
     #SUNDIALS_EXPORT void DenseScale(realtype c, DlsMat A);
     void denseScale(realtype c, realtype **a, long int m, long int n)
-    
-    
+
+
     #/*
     # * -----------------------------------------------------------------
     # * Function: denseAddIdentity
@@ -402,7 +406,7 @@ cdef extern from "sundials/sundials_dense.h":
     #
     void denseAddIdentity(realtype **a, long int n)
     #
-    #    
+    #
 
 
 ##############################################################################
@@ -505,47 +509,47 @@ cdef extern from "cvdls_9species_solver.h":
         double c_brem_brem[1024]
         double cs_brem_brem[MAX_NCELLS]
         double dcs_brem_brem[MAX_NCELLS]
-        
+
         double c_ceHeI_ceHeI[1024]
         double cs_ceHeI_ceHeI[MAX_NCELLS]
         double dcs_ceHeI_ceHeI[MAX_NCELLS]
-        
+
         double c_ceHeII_ceHeII[1024]
         double cs_ceHeII_ceHeII[MAX_NCELLS]
         double dcs_ceHeII_ceHeII[MAX_NCELLS]
-        
+
         double c_ceHI_ceHI[1024]
         double cs_ceHI_ceHI[MAX_NCELLS]
         double dcs_ceHI_ceHI[MAX_NCELLS]
-        
+
         double c_cie_cooling_cieco[1024]
         double cs_cie_cooling_cieco[MAX_NCELLS]
         double dcs_cie_cooling_cieco[MAX_NCELLS]
-        
+
         double c_ciHeI_ciHeI[1024]
         double cs_ciHeI_ciHeI[MAX_NCELLS]
         double dcs_ciHeI_ciHeI[MAX_NCELLS]
-        
+
         double c_ciHeII_ciHeII[1024]
         double cs_ciHeII_ciHeII[MAX_NCELLS]
         double dcs_ciHeII_ciHeII[MAX_NCELLS]
-        
+
         double c_ciHeIS_ciHeIS[1024]
         double cs_ciHeIS_ciHeIS[MAX_NCELLS]
         double dcs_ciHeIS_ciHeIS[MAX_NCELLS]
-        
+
         double c_ciHI_ciHI[1024]
         double cs_ciHI_ciHI[MAX_NCELLS]
         double dcs_ciHI_ciHI[MAX_NCELLS]
-        
+
         double c_compton_comp_[1024]
         double cs_compton_comp_[MAX_NCELLS]
         double dcs_compton_comp_[MAX_NCELLS]
-        
+
         double c_gammah_gammah[1024]
         double cs_gammah_gammah[MAX_NCELLS]
         double dcs_gammah_gammah[MAX_NCELLS]
-        
+
         double c_gloverabel08_gael[1024]
         double cs_gloverabel08_gael[MAX_NCELLS]
         double dcs_gloverabel08_gael[MAX_NCELLS]
@@ -570,7 +574,7 @@ cdef extern from "cvdls_9species_solver.h":
         double c_gloverabel08_h2lte[1024]
         double cs_gloverabel08_h2lte[MAX_NCELLS]
         double dcs_gloverabel08_h2lte[MAX_NCELLS]
-        
+
         double c_h2formation_h2mcool[1024]
         double cs_h2formation_h2mcool[MAX_NCELLS]
         double dcs_h2formation_h2mcool[MAX_NCELLS]
@@ -586,26 +590,26 @@ cdef extern from "cvdls_9species_solver.h":
         double c_h2formation_ncrn[1024]
         double cs_h2formation_ncrn[MAX_NCELLS]
         double dcs_h2formation_ncrn[MAX_NCELLS]
-        
+
         double c_reHeII1_reHeII1[1024]
         double cs_reHeII1_reHeII1[MAX_NCELLS]
         double dcs_reHeII1_reHeII1[MAX_NCELLS]
-        
+
         double c_reHeII2_reHeII2[1024]
         double cs_reHeII2_reHeII2[MAX_NCELLS]
         double dcs_reHeII2_reHeII2[MAX_NCELLS]
-        
+
         double c_reHeIII_reHeIII[1024]
         double cs_reHeIII_reHeIII[MAX_NCELLS]
         double dcs_reHeIII_reHeIII[MAX_NCELLS]
-        
+
         double c_reHII_reHII[1024]
         double cs_reHII_reHII[MAX_NCELLS]
         double dcs_reHII_reHII[MAX_NCELLS]
-        
+
         int bin_id[MAX_NCELLS]
         int ncells
-    
+
     # Declare ctype RHS and Jacobian
     ctypedef int(*rhs_f)( realtype, N_Vector , N_Vector , void * )
     ctypedef int(*jac_f)( long int, realtype, N_Vector , N_Vector , DlsMat , void *, N_Vector, N_Vector, N_Vector)
@@ -623,17 +627,17 @@ cdef extern from "cvdls_9species_solver.h":
                                          cvdls_9species_data *data)
 
     # Declare the Jacobian and RHS function
-    
+
     int calculate_jacobian_cvdls_9species(long int N, realtype t,
                    N_Vector y, N_Vector fy, DlsMat J, void *user_data,
                    N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
-    int calculate_rhs_cvdls_9species(realtype t, N_Vector y, 
+    int calculate_rhs_cvdls_9species(realtype t, N_Vector y,
                     N_Vector ydot, void *user_data);
 
-   
+
     int ensure_electron_consistency(double *input, int nstrip, int nchem);
-    
+
     int cvodes_main_solver( rhs_f f, jac_f jf, double *input, double *rtol, double *atol, int nchem, void *sdata, double *dt_now);
 
 
@@ -762,7 +766,7 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
         rtol[j] = 1e-06
         scale[j] = input[j]
         j += 1
-        
+
     ensure_electron_consistency(input, dims, NSPECIES);
 
     cdef cvdls_9species_data *data = cvdls_9species_setup_data(NULL, NULL)
@@ -779,19 +783,19 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     cdef double *s = <double *> malloc(sizeof(double) * NSPECIES)
     cdef double *gu = <double *> malloc(sizeof(double) * dims * NSPECIES)
     cdef double *Ju = <double *> malloc(sizeof(double) * dims * NSPECIES * NSPECIES)
-   
+
     cdef double *t_now = <double *> malloc( sizeof(double) )
 
-    
+
     cdef double *dt_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *success_arr = <double *> malloc(sizeof(double) * dims * niter)
     cdef double *ttot_arr = <double *> malloc(sizeof(double) * dims * niter)
 
     cdef int niter_cvodes = niter
-    
-    cdef double dt_local;  
+
+    cdef double dt_local;
     dt0 = dt
-    
+
     # Initialize initial temperature
     for i in range(dims):
         data.Ts[i] = ics['T'][i]
@@ -801,7 +805,7 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
     for iter in range(niter):
 
         status = cvodes_main_solver( f, jf, input, rtol ,  atol, NSPECIES, <void *> data, dt)
-        j = 0; 
+        j = 0;
         dt_local = dt[0];
 
         for i in range(dims):
@@ -836,7 +840,7 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
 
         t_int[iter] = ttot
         dt_int[iter] = dt_local
-        
+
         if status == 0:
             if iter % 100 == 0:
                 print "Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt_local, ttot, tf)
@@ -860,17 +864,17 @@ def run_cvdls_9species(ics, double tf, int niter = 10000,
                 break
             continue
         if ttot >= tf: break
-    
+
 
     free(dt_arr)
     free(ttot_arr)
     free(success_arr)
-    
+
     free(u0)
     free(s)
     free(gu)
     free(Ju)
-    
+
     print "End in %s iterations: %0.5e / %0.5e (%0.5e)" % (iter + 1, ttot, tf, tf - ttot)
 
     rv, rv_t = {}, {}

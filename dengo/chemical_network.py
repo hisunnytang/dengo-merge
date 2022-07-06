@@ -1,6 +1,8 @@
+import logging
 import os
 import pkgutil
 import types
+import warnings
 from collections import defaultdict
 
 import h5py
@@ -21,9 +23,6 @@ from .reaction_classes import (
     reaction_registry,
     species_registry,
 )
-
-import warnings
-import logging
 
 ge = Species("ge", 1.0, "Gas Energy")
 de = ChemicalSpecies("de", 1.0, pretty_name="Electrons")
@@ -519,7 +518,7 @@ class ChemicalNetwork(object):
                 a9 = 0.689708
 
                 gammaH2_expr = (
-                    sympy.exp(-a0 * T0 ** a1) * (a2 + T0 ** -a3)
+                    sympy.exp(-a0 * T0**a1) * (a2 + T0**-a3)
                     + a4 * sympy.exp(-((T0 - a5) ** 2) / a6)
                     + a7 * sympy.exp(-((T0 - a8) ** 2) / a9)
                     + 5.0 / 3.0
@@ -784,7 +783,7 @@ class ChemicalNetwork(object):
     def write_solver(
         self,
         solver_name,
-        solver_option = None,
+        solver_option=None,
         solver_template="rates_and_rate_tables",
         ode_solver_source="BE_chem_solve.C",
         output_dir=".",
@@ -807,16 +806,16 @@ class ChemicalNetwork(object):
         """
         self.update_ode_species()
 
-        if solver_option == 'CVODE':
+        if solver_option == "CVODE":
             solver_template = "be_chem_solve/rates_and_rate_tables"
             ode_solver_source = "BE_chem_solve.C"
-        elif solver_option == 'BE_CHEM_SOLVE':
-            solver_template = "cv_omp/sundials_CVDls",
+        elif solver_option == "BE_CHEM_SOLVE":
+            solver_template = ("cv_omp/sundials_CVDls",)
             ode_solver_source = "initialize_cvode_solver.C"
         else:
             warnings.warn(
                 "going to be replaced solver_template and ode_solver_source with solver_option",
-                PendingDeprecationWarning
+                PendingDeprecationWarning,
             )
 
         # with Dan suggestions, I have included the path to write the solver!
@@ -855,7 +854,7 @@ class ChemicalNetwork(object):
             print("and solver_template to 'rates_and_rate_tables'. ")
             solver_template = "be_chem_solve/rates_and_rate_tables"
             ode_solver_source = "BE_chem_solve.C"
-            #raise ValueError()
+            # raise ValueError()
 
         if not os.path.isdir(output_dir):
             os.makedirs(output_dir)
@@ -874,7 +873,7 @@ class ChemicalNetwork(object):
         root_path = os.path.join(os.path.dirname(__file__), "templates")
         env = jinja2.Environment(
             extensions=["jinja2.ext.loopcontrols"],
-            loader=jinja2.FileSystemLoader(root_path)
+            loader=jinja2.FileSystemLoader(root_path),
         )
         template_vars = dict(
             network=self, solver_name=solver_name, init_values=init_values

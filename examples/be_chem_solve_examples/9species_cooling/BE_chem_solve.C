@@ -15,13 +15,13 @@
 /
 /  PURPOSE: This routine solves the coupled equations,
 /               du/dt = f(u),
-/           using an implicit backward Euler method with stopping criteria 
+/           using an implicit backward Euler method with stopping criteria
 /               ||(xnew - xold)/(atol + rtol*xnew)||_RMS < 1
 /
-/ Solver API: 
-/ int BE_chem_solve(int (*f)(double *, double *, int, int), 
-/                   int (*J)(double *, double *, int, int), 
-/                   double *u, double dt, double *rtol, 
+/ Solver API:
+/ int BE_chem_solve(int (*f)(double *, double *, int, int),
+/                   int (*J)(double *, double *, int, int),
+/                   double *u, double dt, double *rtol,
 /                   double *atol, int nstrip, int nchem)
 /
 / output: integer flag denoting success (0) or failure (1)
@@ -34,30 +34,30 @@
 /       nstrip that contains nchem species per cell, and outputs an array
 /       *fu of the same size/shape as *u that gives the ODE RHS
 /       corresponding to  du/dt = f(u).  The integer return value should
-/       denote success (0) or failure (1). 
+/       denote success (0) or failure (1).
 /
 /   int *J -- function pointer that has the form
 /             int J(double *u, double *Ju, int nstrip, int nchem)
 /       Here the Jacobian Ju should be a 1D array of length
 /       nchem*nchem*nstrip.  Here, for spatial location k, with Jacobian
 /       matrix row i and column j, the entries should be ordered as i
-/       (fastest) then j (middle) then k (slowest), i.e. the Jacobian 
-/       matrix for each cell is stored in a contiguous block, in 
+/       (fastest) then j (middle) then k (slowest), i.e. the Jacobian
+/       matrix for each cell is stored in a contiguous block, in
 /       column-major (Fortran) ordering.
 /
-/   double *u -- initial conditions, stored in the form u[nstrip*nchem], 
+/   double *u -- initial conditions, stored in the form u[nstrip*nchem],
 /       with the nchem variables in a given cell stored contiguously.
 /
 /   double dt -- desired time step size
 /
-/   double *rtol -- relative tolerance in each equation, of same size 
+/   double *rtol -- relative tolerance in each equation, of same size
 /       and ordering as u.
 /
-/   double *atol -- absolute tolerance in each equation, of the same 
+/   double *atol -- absolute tolerance in each equation, of the same
 /       size and ordering as u.
 /
 /   int nstrip, int nchem -- inputs denoting the size of the spatial
-/       strip and the number of species per cell. 
+/       strip and the number of species per cell.
 /
 ************************************************************************/
 
@@ -68,17 +68,17 @@ typedef int(*rhs_f)(double *, double *, int, int, void *);
 typedef int(*jac_f)(double *, double *, int, int, void *);
 
 // function prototypes
-int BE_Resid_Fun(rhs_f, double *u, double *u0, double *gu, double dt, 
+int BE_Resid_Fun(rhs_f, double *u, double *u0, double *gu, double dt,
                  int nstrip, int nchem, double *scaling, double *inv_scaling, void *sdata);
-int BE_Resid_Jac(jac_f, double *u, double *Ju, double dt, 
+int BE_Resid_Jac(jac_f, double *u, double *Ju, double dt,
                  int nstrip, int nchem, double *scaling, double *inv_scaling, void *sdata);
 int Gauss_Elim(double *A, double *x, double *b, int n);
 
 
 // solver function
 int BE_chem_solve(rhs_f f, jac_f J,
-		  double *u, double dt, double *rtol, 
-                  double *atol, int nstrip, int nchem, 
+		  double *u, double dt, double *rtol,
+                  double *atol, int nstrip, int nchem,
 		  double *scaling, void *sdata,
           double *u0, double *s, double *gu, double *Ju) {
 
@@ -107,7 +107,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
   //double *s  = new double[nchem];               // Newton update (each cell)
   //double *gu = new double[nchem*nstrip];        // nonlinear residual
   //double *Ju = new double[nchem*nchem*nstrip];  // Jacobian
-  
+
   for (i=0; i<nstrip*nchem; i++) {
     u0[i] = u[i];
     //fprintf(stderr, "u[i]: %0.6g (for %d)\n", u[i], i);
@@ -133,7 +133,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
       delete[] inv_scaling;
       return 1;
     }
-   
+
     if (BE_Resid_Jac(J, u, Ju, dt, nstrip, nchem, scaling, inv_scaling, sdata) != 0) {
       ///*
       // rescale back to input variables
@@ -163,7 +163,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
           for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
           //*/
           fprintf(stderr, "There was an unsolved case in Gauss_Elim! \n");
-          
+
           delete[] inv_scaling;
           return 1;
           //break;
@@ -196,7 +196,7 @@ int BE_chem_solve(rhs_f f, jac_f J,
             // also rescale the absolute tolerances back
             for (i=0; i<nstrip*nchem; i++)  atol[i] *= scaling[i];
 	    //*/
-            
+
             delete[] inv_scaling;
             return 1;
             //found_nan = 1;
@@ -241,10 +241,10 @@ int BE_chem_solve(rhs_f f, jac_f J,
 }
 
 
-// nonlinear residual calculation function, forms nonlinear residual defined 
+// nonlinear residual calculation function, forms nonlinear residual defined
 // by backwards Euler discretization, using user-provided RHS function f.
-int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt, 
-                 int nstrip, int nchem, double *scaling, double*inv_scaling, void *sdata) 
+int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt,
+                 int nstrip, int nchem, double *scaling, double*inv_scaling, void *sdata)
 {
   // local variables
   int i;
@@ -277,7 +277,7 @@ int BE_Resid_Fun(rhs_f f, double *u, double *u0, double *gu, double dt,
 
 // nonlinear residual Jacobian function, forms Jacobian defined by backwards
 //  Euler discretization, using user-provided Jacobian function J.
-int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt, 
+int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
 		 int nstrip, int nchem, double *scaling, double*inv_scaling, void *sdata)
 {
   // local variables
@@ -299,14 +299,14 @@ int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
 
   // rescale Jacobian rows to use normalization
   for (ix=0; ix<nstrip; ix++)
-    for (jvar=0; jvar<nchem; jvar++) 
-      for (ivar=0; ivar<nchem; ivar++) 
+    for (jvar=0; jvar<nchem; jvar++)
+      for (ivar=0; ivar<nchem; ivar++)
 	Ju[(ix*nchem+jvar)*nchem+ivar] *= inv_scaling[ix*nchem+ivar];
 
   // rescale Jacobian columns to account for normalization
   for (ix=0; ix<nstrip; ix++)
-    for (ivar=0; ivar<nchem; ivar++) 
-      for (jvar=0; jvar<nchem; jvar++) 
+    for (ivar=0; ivar<nchem; ivar++)
+      for (jvar=0; jvar<nchem; jvar++)
 	Ju[(ix*nchem+jvar)*nchem+ivar] *= scaling[ix*nchem+jvar];
   //*/
 
@@ -316,15 +316,15 @@ int BE_Resid_Jac(jac_f J, double *u, double *Ju, double dt,
   for (ix=0; ix<nstrip; ix++)
     for (ivar=0; ivar<nchem; ivar++)
       Ju[ix*nchem*nchem + ivar*nchem + ivar] += 1.0;
-  
+
   return 0;
 }
 
 
 
-// Gaussian Elimination with partial pivoting, followed by backwards 
-// substitution, to solve a linear system Ax=b, where A is an n*n matrix, 
-// stored in column-major (Fortran) ordering, and where x and b are vectors 
+// Gaussian Elimination with partial pivoting, followed by backwards
+// substitution, to solve a linear system Ax=b, where A is an n*n matrix,
+// stored in column-major (Fortran) ordering, and where x and b are vectors
 // of length n.
 #define idx(i,j,n) ( j*n + i )
 int Gauss_Elim(double *A, double *x, double *b, int n)
@@ -342,7 +342,7 @@ int Gauss_Elim(double *A, double *x, double *b, int n)
     p = k;
     for (i=k+1; i<n; i++)
       if (fabs(A[idx(i,k,n)]) > fabs(A[idx(p,k,n)]))  p = i;
-    
+
     // perform row swap
     for (j=k; j<n; j++)  {
       dtmp = A[idx(k,j,n)];
@@ -356,21 +356,21 @@ int Gauss_Elim(double *A, double *x, double *b, int n)
     // check for singular matrix
     //if (fabs(A[idx(k,k,n)]) < 1.e-14*fabs(A[0]))
       //fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate\n");
-    
+
     // elimination of submatrix (column-major ordering)
-    for (i=k+1; i<n; i++) 
+    for (i=k+1; i<n; i++)
       A[idx(i,k,n)] /= A[idx(k,k,n)];
     for (j=k+1; j<n; j++)
-      for (i=k+1; i<n; i++) 
+      for (i=k+1; i<n; i++)
 	A[idx(i,j,n)] -= A[idx(i,k,n)]*A[idx(k,j,n)];
-    for (i=k+1; i<n; i++) 
+    for (i=k+1; i<n; i++)
       x[i] -= A[idx(i,k,n)]*x[k];
   } // k loop
-  
+
   // check for singular matrix in last row
   //if (fabs(A[idx(n-1,n-1,n)]) < 1.e-14*fabs(A[0]))
     //fprintf(stderr,"Gauss Elim warning: singular matrix, results may be inaccurate (in last row)\n");
-  
+
   // backwards substitution stage:
   for (i=n-1; i>=0; i--) {
     for (j=i+1; j<n; j++)

@@ -20,10 +20,10 @@ before_install:
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$DENGO_INSTALL_PATH/lib:$HDF5_PATH/lib
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$SUITESPARSE_PATH/lib
     - export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CVODE_PATH/lib
-    - ./install-suitesparse.sh 
+    - ./install-suitesparse.sh
     - ./install-cvode.sh &> cvode_install.out
     - ./install-chiantipy.sh &> chiantipy_install.out
-    - ./install-hdf5.sh  
+    - ./install-hdf5.sh
     - ./install-yt.sh &> yt_install.out
 #    - ./install-grackle.sh
 # command to install dependencies
@@ -40,5 +40,3 @@ script:
     - echo $DENGO_INSTALL_PATH
     - echo $LD_LIBRARY_PATH
     - pytest --ignore-glob="*cuda*" -v examples/test/
-
-

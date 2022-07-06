@@ -23,7 +23,7 @@
 9  ge
 */
 
-// should also print the reactions here 
+// should also print the reactions here
 // or separate files
 
 //Number of species
@@ -71,4 +71,3 @@ void set_same_initial_conditions(int, double**, double**);
 void apply_mask(double*);
 void apply_reverse_mask(double*);
 #endif
-

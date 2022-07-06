@@ -19,7 +19,7 @@ typedef struct {
     double *Tdef;
 } rateData;
 
-typedef struct 
+typedef struct
 {
     double nbins;
     double ib;
@@ -34,11 +34,11 @@ typedef struct
     double *r_exp_growth_prey;
     double *rs_exp_growth_prey;
     double *drs_exp_growth_prey;
-    
+
     double *r_natural_death_predator;
     double *rs_natural_death_predator;
     double *drs_natural_death_predator;
-    
+
     double *r_predation;
     double *rs_predation;
     double *drs_predation;
@@ -46,22 +46,22 @@ typedef struct
 
 rateData use_unified_memory(void)
 {
-    
+
     // read data from hdf5 file
     rateData UnifiedRateData;
 
     // initialize memory space for rates;
-    cudaMallocManaged(&UnifiedRateData.r_exp_growth_prey, 
+    cudaMallocManaged(&UnifiedRateData.r_exp_growth_prey,
             sizeof(double)*1024);
 
     // temperature related pieces
-    cudaMallocManaged(&UnifiedRateData.logTs, 
+    cudaMallocManaged(&UnifiedRateData.logTs,
             sizeof(double)*256);
-    cudaMallocManaged(&UnifiedRateData.Tdef, 
+    cudaMallocManaged(&UnifiedRateData.Tdef,
             sizeof(double)*256);
 
     // to store the rates
-    cudaMallocManaged(&UnifiedRateData.rs_exp_growth_prey, 
+    cudaMallocManaged(&UnifiedRateData.rs_exp_growth_prey,
             sizeof(double)*256);
 
     for (int i = 0; i< 256; i++)
@@ -82,7 +82,7 @@ rateData use_unified_memory(void)
     H5LTread_dataset_double(file_id, "/k22", UnifiedRateData.r_exp_growth_prey);
     H5Fclose(file_id);
 
-    cudaMallocManaged(&UnifiedRateData.float_rate, 
+    cudaMallocManaged(&UnifiedRateData.float_rate,
             sizeof(float)*1024);
     convert_double2float( UnifiedRateData.float_rate, UnifiedRateData.r_exp_growth_prey, 1024);
 
@@ -147,7 +147,7 @@ void interpolate_kernel(rateData data)
         Tdef = (data.logTs[j] - t1) * data.idbin;
 
         printf("Tdef[%d] = %0.5g; k = %d\n", j, data.logTs[j], k);
-        
+
         rates_out[j] = Tdef*rates_in[k+1] + (-rates_in[k]*Tdef + rates_in[k]);
         printf("rates_out[%d] = %0.5g; @ Tdef = %0.5g\n", j, rates_out[j], Tdef);
     }
@@ -159,7 +159,7 @@ void checkIndex(void) {
               "gridDim:(%d, %d, %d)\n", threadIdx.x, threadIdx.y, threadIdx.z,
                blockIdx.x, blockIdx.y, blockIdx.z, blockDim.x, blockDim.y, blockDim.z,
                 gridDim.x,gridDim.y,gridDim.z);
-     
+
 }
 
 
@@ -173,7 +173,7 @@ __global__ void linear_interpolation_texture(rateData data)
 
     if (j < 256)
     {
-        
+
         int k = __float2int_rz(data.idbin*data.logTs[j] - data.lb);
         float t1 = data.lb + k*data.dbin;
         float Tdef = (data.logTs[j] - t1) * data.idbin;
@@ -191,7 +191,7 @@ void copy2texture(const rateData data)
     ////////////////////////////////////
     // Copy data to device
     // load data to device memory
-    
+
     int N = 256;
     int BLOCK_SIZE = 8;
     dim3 block(BLOCK_SIZE);
@@ -203,7 +203,7 @@ void copy2texture(const rateData data)
     //  printf("block.x %d block.y %d block.z %d\n",block.x, block.y, block.z);
     ///////////////////////////////////
     // load data to device memory
-    
+
     printf("begore float");
 
     ///////////////////////////////////
@@ -213,9 +213,9 @@ void copy2texture(const rateData data)
     //cudaMemcpy()
 
 
-    
+
     cudaBindTexture(NULL, rate_tex, data.float_rate, sizeof(float)*1024);
-    
+
     printf("done bining texture\n");
     linear_interpolation_texture<<<grid, block>>>(data);
 
@@ -231,37 +231,37 @@ void copy2device(const rateData data)
     dA.dbin = (log(100000000.0)-log(1.0)) / 1023;
     dA.idbin = 1.0 / dA.dbin;
     dA.lb   = log(1.0);
-    
+
     // allocate memory in CUDA
-    cudaMalloc(&dA.r_exp_growth_prey, 
+    cudaMalloc(&dA.r_exp_growth_prey,
             sizeof(double)*1024);
 
     int N = 256;
     int BLOCK_SIZE = 8;
 
     // to hold interpolated rates
-    cudaMalloc(&dA.rs_exp_growth_prey, 
+    cudaMalloc(&dA.rs_exp_growth_prey,
             sizeof(double)*N);
-    cudaMalloc(&dA.logTs, 
+    cudaMalloc(&dA.logTs,
             sizeof(double)*N);
-    cudaMalloc(&dA.Tdef, 
+    cudaMalloc(&dA.Tdef,
             sizeof(double)*N);
 
 
     // copy it to device such that they can be accessed
     // from the kernel
-    cudaMemcpy(dA.r_exp_growth_prey, 
+    cudaMemcpy(dA.r_exp_growth_prey,
             data.r_exp_growth_prey,
             sizeof(double) *N,
             cudaMemcpyHostToDevice);
 
     // copy the temperature to device
-    cudaMemcpy(dA.logTs, 
-            data.logTs, 
+    cudaMemcpy(dA.logTs,
+            data.logTs,
             sizeof(double) *N,
             cudaMemcpyHostToDevice);
-    cudaMemcpy(dA.Tdef, 
-            data.Tdef, 
+    cudaMemcpy(dA.Tdef,
+            data.Tdef,
             sizeof(double) *N,
             cudaMemcpyHostToDevice);
 
@@ -288,28 +288,28 @@ void convert_double2float(float *outrate, double *inrate, int N)
 {
     for (int i = 0; i< N; i++)
     {
-        outrate[i] = (float) inrate[i];    
+        outrate[i] = (float) inrate[i];
     }
 }
 
 rateData use_unified_memory(void)
 {
-    
+
     // read data from hdf5 file
     rateData UnifiedRateData;
 
     // initialize memory space for rates;
-    cudaMallocManaged(&UnifiedRateData.r_exp_growth_prey, 
+    cudaMallocManaged(&UnifiedRateData.r_exp_growth_prey,
             sizeof(double)*1024);
 
     // temperature related pieces
-    cudaMallocManaged(&UnifiedRateData.logTs, 
+    cudaMallocManaged(&UnifiedRateData.logTs,
             sizeof(double)*256);
-    cudaMallocManaged(&UnifiedRateData.Tdef, 
+    cudaMallocManaged(&UnifiedRateData.Tdef,
             sizeof(double)*256);
 
     // to store the rates
-    cudaMallocManaged(&UnifiedRateData.rs_exp_growth_prey, 
+    cudaMallocManaged(&UnifiedRateData.rs_exp_growth_prey,
             sizeof(double)*256);
 
     for (int i = 0; i< 256; i++)
@@ -330,7 +330,7 @@ rateData use_unified_memory(void)
     H5LTread_dataset_double(file_id, "/k22", UnifiedRateData.r_exp_growth_prey);
     H5Fclose(file_id);
 
-    cudaMallocManaged(&UnifiedRateData.float_rate, 
+    cudaMallocManaged(&UnifiedRateData.float_rate,
             sizeof(float)*1024);
     convert_double2float( UnifiedRateData.float_rate, UnifiedRateData.r_exp_growth_prey, 1024);
 
@@ -380,4 +380,3 @@ int main()
     copy2texture(uRateData);
 
 }
-

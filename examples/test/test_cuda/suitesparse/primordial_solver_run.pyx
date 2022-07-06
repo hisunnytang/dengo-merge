@@ -1,9 +1,12 @@
 cimport numpy as np
-import numpy as np
+
 import time
-from libc.stdlib cimport malloc, free
-from libcpp cimport bool
+
+import numpy as np
+
 from cpython cimport array
+from libc.stdlib cimport free, malloc
+from libcpp cimport bool
 
 # NSPECIES here is N in the .C.template file
 DEF NSPECIES = 10
@@ -134,47 +137,47 @@ cdef extern from "primordial_solver.h":
         double c_brem_brem[1024]
         double cs_brem_brem[MAX_NCELLS]
         double dcs_brem_brem[MAX_NCELLS]
-        
+
         double c_ceHeI_ceHeI[1024]
         double cs_ceHeI_ceHeI[MAX_NCELLS]
         double dcs_ceHeI_ceHeI[MAX_NCELLS]
-        
+
         double c_ceHeII_ceHeII[1024]
         double cs_ceHeII_ceHeII[MAX_NCELLS]
         double dcs_ceHeII_ceHeII[MAX_NCELLS]
-        
+
         double c_ceHI_ceHI[1024]
         double cs_ceHI_ceHI[MAX_NCELLS]
         double dcs_ceHI_ceHI[MAX_NCELLS]
-        
+
         double c_cie_cooling_cieco[1024]
         double cs_cie_cooling_cieco[MAX_NCELLS]
         double dcs_cie_cooling_cieco[MAX_NCELLS]
-        
+
         double c_ciHeI_ciHeI[1024]
         double cs_ciHeI_ciHeI[MAX_NCELLS]
         double dcs_ciHeI_ciHeI[MAX_NCELLS]
-        
+
         double c_ciHeII_ciHeII[1024]
         double cs_ciHeII_ciHeII[MAX_NCELLS]
         double dcs_ciHeII_ciHeII[MAX_NCELLS]
-        
+
         double c_ciHeIS_ciHeIS[1024]
         double cs_ciHeIS_ciHeIS[MAX_NCELLS]
         double dcs_ciHeIS_ciHeIS[MAX_NCELLS]
-        
+
         double c_ciHI_ciHI[1024]
         double cs_ciHI_ciHI[MAX_NCELLS]
         double dcs_ciHI_ciHI[MAX_NCELLS]
-        
+
         double c_compton_comp_[1024]
         double cs_compton_comp_[MAX_NCELLS]
         double dcs_compton_comp_[MAX_NCELLS]
-        
+
         double c_gammah_gammah[1024]
         double cs_gammah_gammah[MAX_NCELLS]
         double dcs_gammah_gammah[MAX_NCELLS]
-        
+
         double c_gloverabel08_gael[1024]
         double cs_gloverabel08_gael[MAX_NCELLS]
         double dcs_gloverabel08_gael[MAX_NCELLS]
@@ -199,7 +202,7 @@ cdef extern from "primordial_solver.h":
         double c_gloverabel08_h2lte[1024]
         double cs_gloverabel08_h2lte[MAX_NCELLS]
         double dcs_gloverabel08_h2lte[MAX_NCELLS]
-        
+
         double c_h2formation_h2mcool[1024]
         double cs_h2formation_h2mcool[MAX_NCELLS]
         double dcs_h2formation_h2mcool[MAX_NCELLS]
@@ -215,23 +218,23 @@ cdef extern from "primordial_solver.h":
         double c_h2formation_ncrn[1024]
         double cs_h2formation_ncrn[MAX_NCELLS]
         double dcs_h2formation_ncrn[MAX_NCELLS]
-        
+
         double c_reHeII1_reHeII1[1024]
         double cs_reHeII1_reHeII1[MAX_NCELLS]
         double dcs_reHeII1_reHeII1[MAX_NCELLS]
-        
+
         double c_reHeII2_reHeII2[1024]
         double cs_reHeII2_reHeII2[MAX_NCELLS]
         double dcs_reHeII2_reHeII2[MAX_NCELLS]
-        
+
         double c_reHeIII_reHeIII[1024]
         double cs_reHeIII_reHeIII[MAX_NCELLS]
         double dcs_reHeIII_reHeIII[MAX_NCELLS]
-        
+
         double c_reHII_reHII[1024]
         double cs_reHII_reHII[MAX_NCELLS]
         double dcs_reHII_reHII[MAX_NCELLS]
-        
+
         int bin_id[MAX_NCELLS]
         int ncells
 
@@ -463,7 +466,7 @@ def run_primordial(ics, double tf, int niter = 10000,
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
-            if adaptive_step: 
+            if adaptive_step:
                  dt *= 1.1
 
             if tf - ttot < dt:

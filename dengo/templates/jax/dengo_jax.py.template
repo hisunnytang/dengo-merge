@@ -9,7 +9,7 @@ rates_table = 'reaction_rates.h5'
 ratef = h5py.File(rates_table, 'r')
 {% for k in network.reactions.keys()%}
 out{{k}}dev = ratef['{{k}}'][:]
-{%- endfor %} 
+{%- endfor %}
 tdev = ratef['T'][:]
 ratef.close()
 
@@ -19,10 +19,10 @@ def interpolate_rates(T):
   """
   {% for k in network.reactions.keys()%}
   {{k}} = jnp.interp(T, tdev, out{{k}}dev)
-  {%- endfor %} 
+  {%- endfor %}
   return (
   {%- for k in network.reactions.keys() -%}
-  {{k}}, 
+  {{k}},
   {%- endfor -%}
   )
 
@@ -34,15 +34,15 @@ def calculate_temperature(state):
   ----------
   state : ndarray with shape [NSPECIES + 1, N]
     Abundances sorted by name, and the last dimension corresponds to the current check_time
-  
+
   Returns
   -------
   Temperature: ndarray
 
   """
-  # retreive the species 
+  # retreive the species
   {% for s in network.required_species | sort -%}
-  {{s.name}}, 
+  {{s.name}},
   {%- endfor -%}
   _= state
 
@@ -67,15 +67,15 @@ def f(state):
   ----------
   state : ndarray with shape [NSPECIES + 1, N]
     Abundances sorted by name, and the last dimension corresponds to the current check_time
-  
+
   Returns
   -------
   dy/dt: rate of change of each species
   """
 
-  # retreive the species 
+  # retreive the species
   {% for s in network.required_species | sort -%}
-  {{s.name}}, 
+  {{s.name}},
   {%- endfor -%}
   current_time= state
 
@@ -84,18 +84,18 @@ def f(state):
 
   # interpolate the rates
   {% for k in network.reactions.keys() -%}
-  {{k}}, 
+  {{k}},
   {%- endfor -%} = interpolate_rates(T)
 
 
   # rhs function
   {% for s in network.required_species | sort %}
   d{{s.name}} = {{rhs_dict[s]}}*jnp.ones_like(ge)
-  {%- endfor %} 
+  {%- endfor %}
 
   return jnp.array([
   {%- for s in network.required_species | sort -%}
-  d{{s.name}}, 
+  d{{s.name}},
   {%- endfor -%}
   0.0*current_time
   ])
@@ -104,7 +104,7 @@ def main():
   state = (1,2,1e11)
   print(rhs(state))
 
-  
+
 from jax import partial, jit
 import jax
 import jax.ops as ops
@@ -133,7 +133,7 @@ def BE_resid_jac(state, t, dt):
 
 @jit
 def be_chem_solve_whileloop(xold, xnew, tnow, dt):
-  
+
   @jit
   def iterate_while(inputs):
     _, xnew = inputs
@@ -146,7 +146,7 @@ def be_chem_solve_whileloop(xold, xnew, tnow, dt):
   def check_convergence(inputs, rtol=1e-8, atol = 1e-20):
     dx, xnew = inputs
     return (jnp.abs((dx)/ (rtol*xnew + atol)) > 1).all()
-  
+
   dx = jnp.ones_like(xnew)*1e9
   inputs = (dx, xnew)
   return jax.lax.while_loop(check_convergence, iterate_while, inputs)
@@ -154,19 +154,19 @@ def be_chem_solve_whileloop(xold, xnew, tnow, dt):
 @partial(jit, static_argnums=(1,2,3,4))
 def solve_chemistry_whileloop(state0, T_start, T_end, init_dt, max_steps):
   """Integrate ODE with 1st Order BDF method
-  
+
   Parameters
   ----------
   state0 : ndarray with shape [NSPECIES + 1, N]
     Abundances sorted by name, and the last dimension corresponds to the current check_time
   T_start: float
-    initial time 
+    initial time
   T_end  : float
     end time
-  init_dt: float 
+  init_dt: float
     Initial step for integration
   max_steps:
-    Maximum number of steps 
+    Maximum number of steps
 
   Returns:
   --------
@@ -177,14 +177,14 @@ def solve_chemistry_whileloop(state0, T_start, T_end, init_dt, max_steps):
   def check_time(inputs):
     state0, dt, current_time, T_end = inputs
     return current_time < T_end
-  
+
   @jit
   def evolve_onestep(inputs):
     state0, dt, current_time, T_end = inputs
     _, newstate = be_chem_solve_whileloop(state0, state0, current_time, dt)
 
     state0 = newstate
-    dt = jnp.minimum( 1.1*dt, T_end - current_time) 
+    dt = jnp.minimum( 1.1*dt, T_end - current_time)
     current_time += dt
     return state0, dt, current_time, T_end
 
@@ -207,18 +207,18 @@ def rk4_whileloop(ys, T_final, init_dt, N):
     current_time = ys[i-1,-1,-1]
 
     last_dt = jnp.where(i<=1, init_dt, ys[i-1,-1,-1] - ys[i-2,-1,-1])
-    
+
     # last_dt = init_dt
     h = last_dt * 1.1
     t = current_time + h
     h = jnp.where( T_final - current_time > h, h, T_final - current_time)
     print(h, t, current_time)
-    
+
     k1 = h * f(ys[i-1], t)
     k2 = h * f(ys[i-1] + k1/2., current_time + h/2.)
     k3 = h * f(ys[i-1] + k2/2., current_time + h/2.)
     k4 = h * f(ys[i-1] + k3,    current_time + h)
-    
+
     ysi = ys[i-1] + 1./6 * (k1 + 2 * k2 + 2 * k3 + k4)
     ys = ops.index_update(ys, ops.index[i], ysi)
 
@@ -232,4 +232,3 @@ def rk4_whileloop(ys, T_final, init_dt, N):
     return jnp.where(dt< 0, t, 0).sum() < T_final #and jnp.isfinite(ys).all()
 
   return jax.lax.while_loop(cond_func, step, ys )
-  

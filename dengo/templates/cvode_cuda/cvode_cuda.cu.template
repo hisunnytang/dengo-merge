@@ -188,7 +188,7 @@ int DengoSolver::EvolveChemistry(double dtf, double z, double *input, double *rt
 
     //-----------------------------------------------------
     // Function : {{solver_name}}_setup_data
-    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    // Description: Initialize a data object that stores the reaction/ cooling rate data
     //-----------------------------------------------------
 
 
@@ -309,14 +309,14 @@ void {{ solver_name }}_read_cooling_tables({{solver_name}}_data *data)
    {
 
    hid_t file_id = H5Fopen("{{ solver_name }}_tables.h5", H5F_ACC_RDONLY, H5P_DEFAULT);
-// Allocate the correct number of rate tables 
+// Allocate the correct number of rate tables
 
 
 {%- for sp in network.interpolate_gamma_species_name | sort %}
 H5LTread_dataset_double(file_id, "/gamma{{sp}}",
 data->g_gamma{{sp}} );
 H5LTread_dataset_double(file_id, "/dgamma{{sp}}_dT",
-data->g_dgamma{{sp}}_dT );   
+data->g_dgamma{{sp}}_dT );
 {% endfor %}
 
 H5Fclose(file_id);
@@ -378,7 +378,7 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, {{solver_name}
 {
     int i = blockIdx.x* blockDim.x + threadIdx.x;
 
-    int groupi = i * nchem; 
+    int groupi = i * nchem;
 
     // get rate pointer
     {%- for name, rate in network.reactions | dictsort %}
@@ -393,7 +393,7 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, {{solver_name}
 
 
     {% if "gloverabel08" in network.cooling_actions %}
-    double h2_optical_depth_approx;    
+    double h2_optical_depth_approx;
     {% endif %}
     {% if "cie_cooling" in network.cooling_actions %}
     double cie_optical_depth_approx;
@@ -449,7 +449,7 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, {{solver_name}
 void temperature_kernel(double* ydata, {{solver_name}}_data data)
 {
     int i = blockIdx.x* blockDim.x + threadIdx.x;
-    int groupi = i * nchem; 
+    int groupi = i * nchem;
 
     double *temperature = data.Ts;
     double *logTs      = data.logTs;
@@ -554,7 +554,7 @@ static int blockJacInit(SUNMatrix J)
     int bIdx;
     for (int c = 0; c < nnz; c++)
     {
-        bIdx = c /nnz; 
+        bIdx = c /nnz;
         colvals[c] = bIdx*nchem + c%nchem;
         // printf("colvals[%d] = %d\n", c, colvals[c]);
     }
@@ -611,7 +611,7 @@ static void jacobian_kernel(realtype *ydata, realtype *Jdata, {{solver_name}}_da
     {% if "cie_cooling" in network.cooling_actions %}
     double *cie_optical_depth_approx_arr = data.cie_optical_depth_approx;
     {% endif %}
-    groupj = blockIdx.x*blockDim.x + threadIdx.x; 
+    groupj = blockIdx.x*blockDim.x + threadIdx.x;
 
     T = 1000.0;
     z = 0.0;
@@ -699,7 +699,7 @@ static void sparse_jacobian_kernel(realtype *ydata, realtype *Jdata, {{solver_na
     {%- if "cie_cooling" in network.cooling_actions %}
     double *cie_optical_depth_approx_arr = data.cie_optical_depth_approx;
     {%- endif %}
-    groupj = blockIdx.x*blockDim.x + threadIdx.x; 
+    groupj = blockIdx.x*blockDim.x + threadIdx.x;
 
     T = 1000.0;
     z = 0.0;
@@ -1257,16 +1257,16 @@ int grid_performance()
             start = clock();
             cudaEventRecord(startCuda);
             run_dengo_struct(d, T, h2fraction, efraction, dims, &output[(i*nT+j)*nchem]);
-            
+
             cudaEventRecord(stopCuda);
             end = clock();
             cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims); 
+            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims);
             cudaEventSynchronize(stopCuda);
             cudaEventElapsedTime(&milliseconds, startCuda, stopCuda);
 
-            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims); 
+            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims);
 
             timelapsed[i*nT+j] = milliseconds*1e-3;
             darray    [i*nT+j] = d;
@@ -1323,18 +1323,18 @@ int test_scaling_dims()
         cudaEventRecord(startCuda);
 
         run_dengo_struct(density, temperature, h2fraction, efraction, dims, &output[i*nchem]);
-        
+
         dims *= 2;
         cudaEventRecord(stopCuda);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-        printf("took %f seconds to execute %lu \n", cpu_time_used, dims); 
+        printf("took %f seconds to execute %lu \n", cpu_time_used, dims);
         cudaEventSynchronize(stopCuda);
 
         cudaEventElapsedTime(&milliseconds, startCuda, stopCuda);
 
-        printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims); 
+        printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims);
         // measured the time lapsed
         // and the cells needed
         ncells[i] = dims;
@@ -1363,7 +1363,7 @@ int run_dengo_struct(double density, double temperature, double h2fraction, doub
     // dengo solver interface
     DengoSolver s;
 
-    double *input, *rtol, *atol; 
+    double *input, *rtol, *atol;
     input = new double[dims*nchem];
     rtol  = new double[1];
     atol  = new double[dims*nchem];
@@ -1410,14 +1410,14 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
     // Parameter    :   dtf     : Desired time to be reached by the solver
     //                  dt      : Pointer to the actual time reached by the solver
     //                  z       : Current redshift
-    //                  input   : Array to store the initial value of each species, 
+    //                  input   : Array to store the initial value of each species,
     //                            it will be updated with the value at time dt
     //                  rtol    : relative tolerance required for convergenece in each internal CVODE timesteps
     //                  atol    : absolute tolerance required for convergence in each interanl CVODE timesteps
     //                  dims    : dimension of the input array, i.e. no. of species * no. of cells
-    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations 
+    //                  data    : {{solver_name}}_data object that relay the reaction/cooling rates, and normalizations
     //                  temp_array: temperature of each cell by the end of the evolution
-    //                           
+    //
     //-----------------------------------------------------
 
     unsigned long i, j;
@@ -1505,7 +1505,7 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z, double *inpu
 
     realtype t;
     realtype reltol = rtol[0];
-    // split the input by batchsize, 
+    // split the input by batchsize,
     for (count = 0; count < ntimes; count++)
     {
         // update the yvector, and abstol
@@ -1555,7 +1555,7 @@ void initialize_long_ydata(double *ydata, unsigned long NSYSTEM, double density,
         // de
         ydata[i*nchem+8] = density*efraction;
         // ge
-        ydata[i*nchem+9] = 3./2.*kb* temperature / mh; 
+        ydata[i*nchem+9] = 3./2.*kb* temperature / mh;
 
     }
 }
@@ -1637,8 +1637,8 @@ void launchInterpolationKernel({{solver_name}}_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            linear_interpolation_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            linear_interpolation_kernel, blockSize,
             0);
 
     int device;
@@ -1646,13 +1646,13 @@ void launchInterpolationKernel({{solver_name}}_data *data)
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
 
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
 
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
-    printf("Launched blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 
 
@@ -1712,20 +1712,20 @@ void launchTemperatureKernel({{solver_name}}_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            temperature_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            temperature_kernel, blockSize,
             0);
     int device;
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
 
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
-    printf("Launched temperature Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched temperature Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 
     // end launch temp kernel
@@ -1773,20 +1773,20 @@ void launchRhsKernel({{solver_name}}_data *data)
     }
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            rhs_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            rhs_kernel, blockSize,
             0);
     int device;
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
 
-    printf("Launched Rhs Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched Rhs Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
     cudaDeviceSynchronize();
 }
@@ -1837,8 +1837,8 @@ void launchJacobianKernel({{solver_name}}_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            jacobian_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            jacobian_kernel, blockSize,
             0);
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
@@ -1849,13 +1849,12 @@ void launchJacobianKernel({{solver_name}}_data *data)
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
 
-    printf("Launched Jacobian Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched Jacobian Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 }
-

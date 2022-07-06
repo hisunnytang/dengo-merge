@@ -21,8 +21,10 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
+
 class DengoException(Exception):
     pass
+
 
 class UnknownReaction(DengoException):
     def __init__(self, name):
@@ -30,6 +32,7 @@ class UnknownReaction(DengoException):
 
     def __str__(self):
         return "Dengo doesn't know about reaction %s" % (self.name)
+
 
 class UnknownSpecies(DengoException):
     def __init__(self, name):

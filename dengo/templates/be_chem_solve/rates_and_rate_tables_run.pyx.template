@@ -102,11 +102,11 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef np.ndarray[np.float64_t, ndim=1] {{s.name}}_arr = ics["{{s.name}}"]
     if not {{s.name}}_arr.flags['C_CONTIGUOUS']:
         {{s.name}}_arr = np.ascontiguousarray( {{s.name}}_arr )
-    
+
     cdef double[::1] {{s.name}}_memview = {{s.name}}_arr
     cdef np.ndarray[np.float64_t, ndim=2] {{s.name}}_int
     {%- endfor %}
-    
+
     cdef np.ndarray[np.float64_t, ndim=1] density_arr = ics["density"]
     if not density_arr.flags['C_CONTIGUOUS']:
         density_arr = np.ascontiguousarray( density_arr )
@@ -190,7 +190,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
     cdef int    *grid_start     = <int *> malloc(sizeof(int)*3)
     cdef int    *grid_end       = <int *> malloc(sizeof(int)*3)
 
-    
+
     grid_dimension[0] = dims;
     grid_start[0]     = 0
     grid_end  [0]     = dims-1;
@@ -238,7 +238,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
-            if adaptive_step: 
+            if adaptive_step:
                  dt *= 1.1
 
             if tf - ttot < dt:
@@ -359,8 +359,8 @@ cdef extern from "{{solver_name}}_solver.h":
                                          double *atol, int dims,
                                          {{solver_name}}_data *data)
     int BE_chem_solve(rhs_f f, jac_f J,
-		    double *u, double dt, double *rtol, 
-                    double *atol, int nstrip, int nchem, 
+		    double *u, double dt, double *rtol,
+                    double *atol, int nstrip, int nchem,
 		    double *scaling, void *sdata, double *u0, double *s,
             double *gu, double *Ju
            )

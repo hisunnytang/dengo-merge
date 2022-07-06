@@ -39,7 +39,7 @@ static void prey_predator_f_kernel(realtype t, realtype* ydata, realtype* ydotda
     double *natural_death_predator = data->r_natural_death_predator;
     double *predation              = data->r_predation;
     double *exp_growth_prey        = data->r_exp_growth_prey;
-    
+
     int i = blockIdx.x*blockDim.x + threadIdx.x;
     int groupj = i*GROUPSIZE;
     if (i < neq)
@@ -73,8 +73,8 @@ static void prey_predator_f_kernel(realtype t, realtype* ydata, realtype* ydotda
     }
 }
 
-__global__ 
-static void prey_predator_temperature_kernel(realtype t, realtype* Ts, realtype *logTs, 
+__global__
+static void prey_predator_temperature_kernel(realtype t, realtype* Ts, realtype *logTs,
         realtype* ydata)
 {
 
@@ -83,7 +83,7 @@ static void prey_predator_temperature_kernel(realtype t, realtype* Ts, realtype 
     double ge;
     double predator;
     double prey;
-    
+
     int i = blockIdx.x*blockDim.x + threadIdx.x;
     int groupj = i*GROUPSIZE;
     if (i < neq)
@@ -95,9 +95,9 @@ static void prey_predator_temperature_kernel(realtype t, realtype* Ts, realtype 
         prey          = ydata[j+4];
         // calculate temperature here
         // quasi equil cases we might need the rates data, ignore it for now.
-        
+
         // sample
-        // density = 
+        // density =
         // density = 1.0*dead_predator + 1.0*dead_prey + 1.0*predator + 1.0*prey;
         // data->Ts[threadID][i] = density*ge*mh/(kb*(_gamma_m1*dead_predator + _gamma_m1*dead_prey + _gamma_m1*predator + _gamma_m1*prey));
         /* if (data->Ts[threadID][i] < data->bounds[0]) {
@@ -196,40 +196,40 @@ int calculate_sparse_jacobian_predator_prey( realtype t,
 {
     /* We iterate over all of the rates */
     /* Calcuate temperature first */
-    
 
-    predator_prey_data *data = (predator_prey_data*)user_data; 
-    
+
+    predator_prey_data *data = (predator_prey_data*)user_data;
+
     int nchem = 5;
     int nstrip = data->nstrip;
     int i, j;
     int NSPARSE = 11;
-    
+
     #ifdef _OPENMP
     int threadID = omp_get_thread_num();
     #else
     int threadID = 0;
     #endif
-    
+
     /* change N_Vector back to an array */
     double y_arr[ 5 * nstrip ];
     double *scale     = data->scale[threadID];
     double *inv_scale = data->inv_scale[threadID];
 
     //TODO: Here we assumed during the evaluation of jacobian
-    // temperature is approximately constant, 
+    // temperature is approximately constant,
     // i.e. close enough to the point evaluation of f(y)
-    // such that the rates and temperature need not be interpolated or evalulated 
+    // such that the rates and temperature need not be interpolated or evalulated
     // again during the jacobian evaluation.
     // We havent really fully explored the effect of this `assumption`...
-    // But it definitely boost the performance 
-    
+    // But it definitely boost the performance
+
     /*
     int flag;
     flag = predator_prey_calculate_temperature(data, y_arr , nstrip, nchem );
     if (flag > 0){
         // check if the temperature failed to converged
-        return -1;    
+        return -1;
     }
     predator_prey_interpolate_rates(data, nstrip);
     */
@@ -242,9 +242,9 @@ int calculate_sparse_jacobian_predator_prey( realtype t,
     sunindextype *rowptrs = SUNSparseMatrix_IndexPointers(J);
     sunindextype *colvals = SUNSparseMatrix_IndexValues(J);
     realtype *matrix_data = SUNSparseMatrix_Data(J);
-    
+
     SUNMatZero(J);
-   
+
     double *Tge = data->dTs_ge[threadID];
     double *exp_growth_prey = data->rs_exp_growth_prey[threadID];
     double *rexp_growth_prey= data->drs_exp_growth_prey[threadID];
@@ -262,15 +262,15 @@ int calculate_sparse_jacobian_predator_prey( realtype t,
 
     double mh = 1.66054e-24;
     double mdensity, inv_mdensity;
-    
+
     double scale2, inv_scale1;
 
     j = 0;
     mdensity = 0.0;
     z = data->current_z;
-   
+
     int k = 0;
-    
+
     double *yvec_ptr = N_VGetArrayPointer(y);
 
     for ( i = 0; i < nstrip; i++ ){
@@ -279,110 +279,110 @@ int calculate_sparse_jacobian_predator_prey( realtype t,
         j = i * nchem;
         dead_predator = yvec_ptr[j]*scale[j];
         j++;
-        
+
         dead_prey = yvec_ptr[j]*scale[j];
         j++;
-        
+
         ge = yvec_ptr[j]*scale[j];
         j++;
-        
+
         predator = yvec_ptr[j]*scale[j];
         j++;
-        
+
         prey = yvec_ptr[j]*scale[j];
         j++;
-        
+
         #else
         j = i * nchem;
         dead_predator = yvec_ptr[j];
         j++;
-        
+
         dead_prey = yvec_ptr[j];
         j++;
-        
+
         ge = yvec_ptr[j];
         j++;
-        
+
         predator = yvec_ptr[j];
         j++;
-        
+
         prey = yvec_ptr[j];
         j++;
-        
+
         #endif
 
         mdensity = data->mdensity[threadID][i];
-        inv_mdensity = 1.0 / mdensity; 
-        
-        
-        
+        inv_mdensity = 1.0 / mdensity;
+
+
+
 
         j = i * NSPARSE;
         // dead_predator by ge
         colvals[j + 0] = i * nchem + 2 ;
         matrix_data[ j + 0 ] = predator*rnatural_death_predator[i];
 
-        
+
         matrix_data[ j + 0] *= Tge[i];
         // dead_predator by predator
         colvals[j + 1] = i * nchem + 3 ;
         matrix_data[ j + 1 ] = natural_death_predator[i];
 
-        
+
         // dead_prey by ge
         colvals[j + 2] = i * nchem + 2 ;
         matrix_data[ j + 2 ] = predator*prey*rpredation[i];
 
-        
+
         matrix_data[ j + 2] *= Tge[i];
         // dead_prey by predator
         colvals[j + 3] = i * nchem + 3 ;
         matrix_data[ j + 3 ] = predation[i]*prey;
 
-        
+
         // dead_prey by prey
         colvals[j + 4] = i * nchem + 4 ;
         matrix_data[ j + 4 ] = predation[i]*predator;
 
-        
+
         // predator by ge
         colvals[j + 5] = i * nchem + 2 ;
         matrix_data[ j + 5 ] = 0.75*predator*prey*rpredation[i] - predator*rnatural_death_predator[i];
 
-        
+
         matrix_data[ j + 5] *= Tge[i];
         // predator by predator
         colvals[j + 6] = i * nchem + 3 ;
         matrix_data[ j + 6 ] = -natural_death_predator[i] + 0.75*predation[i]*prey;
 
-        
+
         // predator by prey
         colvals[j + 7] = i * nchem + 4 ;
         matrix_data[ j + 7 ] = 0.75*predation[i]*predator;
 
-        
+
         // prey by ge
         colvals[j + 8] = i * nchem + 2 ;
         matrix_data[ j + 8 ] = -predator*prey*rpredation[i] + prey*rexp_growth_prey[i];
 
-        
+
         matrix_data[ j + 8] *= Tge[i];
         // prey by predator
         colvals[j + 9] = i * nchem + 3 ;
         matrix_data[ j + 9 ] = -predation[i]*prey;
 
-        
+
         // prey by prey
         colvals[j + 10] = i * nchem + 4 ;
         matrix_data[ j + 10 ] = exp_growth_prey[i] - predation[i]*predator;
 
-        
+
         rowptrs[ i * nchem +  0] = i * NSPARSE + 0;
         rowptrs[ i * nchem +  1] = i * NSPARSE + 2;
         rowptrs[ i * nchem +  2] = i * NSPARSE + 5;
         rowptrs[ i * nchem +  3] = i * NSPARSE + 5;
         rowptrs[ i * nchem +  4] = i * NSPARSE + 8;
-       
+
         #ifdef SCALE_INPUT
         j = i * nchem;
         inv_scale1 = inv_scale[ j + 0 ];
@@ -575,4 +575,3 @@ int main(int argc, char *argv[])
 
   return(0);
 }
-

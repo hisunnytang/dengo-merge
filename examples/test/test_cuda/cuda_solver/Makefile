@@ -47,7 +47,7 @@ SUNDIALSLIBS     = $(addprefix -l, ${TMP_SUNDIALSLIBS})
 LIBRARIES = ${SUNDIALSLIBS} ${LIBS}
 
 EXAMPLES =  primordial_cuda_solver primordial_cuda_solver_main
-EXAMPLES_DEPENDENCIES = 
+EXAMPLES_DEPENDENCIES =
 
 OBJECTS = ${EXAMPLES:=.o}
 OBJECTS_DEPENDENCIES = ${EXAMPLES_DEPENDENCIES:=.o}
@@ -65,8 +65,8 @@ OBJECTS_DEPENDENCIES = ${EXAMPLES_DEPENDENCIES:=.o}
 # -----------------------------------------------------------------------------------------
 
 all: ${OBJECTS}
-	echo "${NVCC} -o run_dengo ${OBJECTS} ${OBJECTS_DEPENDENCIES} ${INCLUDES} ${LIBDIRS} ${LIBRARIES} ${LDFLAGS}" 
-	${NVCC} -o run_dengo ${OBJECTS} ${OBJECTS_DEPENDENCIES} ${INCLUDES} ${LIBDIRS} ${LIBRARIES} ${LDFLAGS}; 
+	echo "${NVCC} -o run_dengo ${OBJECTS} ${OBJECTS_DEPENDENCIES} ${INCLUDES} ${LIBDIRS} ${LIBRARIES} ${LDFLAGS}"
+	${NVCC} -o run_dengo ${OBJECTS} ${OBJECTS_DEPENDENCIES} ${INCLUDES} ${LIBDIRS} ${LIBRARIES} ${LDFLAGS};
 
 ${OBJECTS}: ${OBJECTS_DEPENDENCIES}
 
@@ -76,6 +76,3 @@ clean:
 	rm -f ${EXAMPLES}
 
 # -----------------------------------------------------------------------------------------
-
-
-

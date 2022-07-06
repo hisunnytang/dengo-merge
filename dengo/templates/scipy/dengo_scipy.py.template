@@ -15,7 +15,7 @@ ratef = h5py.File(rates_table, 'r')
 # Reaction Rates
 {% for k in network.reactions.keys()%}
 out{{k}}dev = ratef['{{k}}'][:]
-{%- endfor %} 
+{%- endfor %}
 
 # Cooling Rates
 {%- for name, rate in network.cooling_actions | dictsort %}
@@ -31,10 +31,10 @@ def interpolate_rates(T):
     """
     {% for k in network.reactions.keys()%}
     {{k}} = np.interp(T, tdev, out{{k}}dev)
-    {%- endfor %} 
+    {%- endfor %}
     return (
     {%- for k in network.reactions.keys() -%}
-    {{k}}, 
+    {{k}},
     {%- endfor -%}
     )
 def interpolate_cooling_rates(T):
@@ -48,7 +48,7 @@ def interpolate_cooling_rates(T):
     return (
     {%- for name, rate in network.cooling_actions | dictsort -%}
     {%- for name2 in rate.tables | sort -%}
-    {{name}}_{{name2}}, 
+    {{name}}_{{name2}},
     {%- endfor -%}
     {%- endfor -%}
     )
@@ -66,9 +66,9 @@ def calculate_temperature(state):
     Temperature: ndarray
 
     """
-# retreive the species 
+# retreive the species
     {% for s in network.required_species | sort -%}
-    {{s.name}}, 
+    {{s.name}},
     {%- endfor -%}
     _= state
 
@@ -92,46 +92,46 @@ def f(state):
     dy/dt: rate of change of each species
     """
 
-# retreive the species 
+# retreive the species
     {% for s in network.required_species | sort -%}
-    {{s.name}}, 
+    {{s.name}},
     {%- endfor -%}
     current_time= state
 
 # calculate temperature
     T = calculate_temperature(state)
-    
+
 # calculate mass density
     mdensity = {{network.print_mass_density()}}*mh;
     inv_mdensity = 1/mdensity;
-        
-# calculate the h2 optical depth approximation        
+
+# calculate the h2 optical depth approximation
     h2_optical_depth_approx  = min( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
-    
+
     tau      = pow( (mdensity / 3.3e-8 ), 2.8);
     tau      = max( tau, 1.0e-5 );
     cie_optical_depth_approx = min( 1.0, (1.0 - exp(-tau) ) / tau );
 
 # interpolate the rates
     {% for k in network.reactions.keys() -%}
-    {{k}}, 
+    {{k}},
     {%- endfor %} = interpolate_rates(T)
 
-    
+
     {% for name, rate in network.cooling_actions | dictsort -%}
     {%- for name2 in rate.tables | sort -%}
-    {{name}}_{{name2}}, 
+    {{name}}_{{name2}},
     {%- endfor -%}
     {%- endfor -%} = interpolate_cooling_rates(T)
 
 # rhs function
     {% for s in network.required_species | sort %}
     d{{s.name}} = {{rhs_dict[s]}}*np.ones_like(ge)
-    {%- endfor %} 
+    {%- endfor %}
 
     return np.array([
     {%- for s in network.required_species | sort -%}
-    d{{s.name}}, 
+    d{{s.name}},
     {%- endfor -%}
     0.0*current_time
     ])
@@ -151,9 +151,9 @@ def Jac(state):
     """
     jac = np.zeros({{network.required_species | length}}, {{network.required_species | length}})
 
-    # retreive the species 
+    # retreive the species
     {% for s in network.required_species | sort -%}
-    {{s.name}}, 
+    {{s.name}},
     {%- endfor -%}
     current_time= state
 
@@ -162,13 +162,13 @@ def Jac(state):
 
     # interpolate the rates
     {% for k in network.reactions.keys() -%}
-    {{k}}, 
+    {{k}},
     {%- endfor %} = interpolate_rates(T)
 
-    
+
     {% for name, rate in network.cooling_actions | dictsort -%}
     {%- for name2 in rate.tables | sort -%}
-    {{name}}_{{name2}}, 
+    {{name}}_{{name2}},
     {%- endfor -%}
     {%- endfor -%} = interpolate_cooling_rates(T)
 
@@ -186,14 +186,12 @@ def Jac(state):
     {%- if s2.name == 'ge' %}
     jac[{{i_s2.index0}}, {{i_s1.index0}}] *= inv_mdensity;
     {%- endif %}
-    
+
     {%- if s1.name == 'ge' %}
     jac[{{i_s2.index0}}, {{i_s1.index0}}] *= 0.0
     {%- endif %}
 
     {%- endfor %}
     {%- endfor %}
-    
+
     return jac
-
-

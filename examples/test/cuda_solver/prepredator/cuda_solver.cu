@@ -257,7 +257,7 @@ static void f_kernel(realtype t, realtype* ydata, realtype* ydotdata,
 static void temperature_kernel(realtype t, realtype* ydata, int neq, int ngroups)
 {
     if (i < neq){
-        
+
     }
 
 }
@@ -292,7 +292,7 @@ int calculate_rhs_predator_prey(realtype t, N_Vector y, N_Vector ydot, void *use
     }
 
     return(0);
-    
+
 }
 
 /*

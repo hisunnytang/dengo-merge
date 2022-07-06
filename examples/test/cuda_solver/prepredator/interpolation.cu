@@ -134,7 +134,7 @@ void interpolation_kernel(double *rates_out, double *rate_in, int *bin_id, doubl
     }
 }
 
-__global__ 
+__global__
 void find_binID_Tdef(int *bin_id, double *Tdef, double *logTs, double dbin, double idbin, double lb)
 {
     int j = threadIdx.x + blockDim.x*blockIdx.x;
@@ -272,4 +272,3 @@ int main()
 
 }
 */
-

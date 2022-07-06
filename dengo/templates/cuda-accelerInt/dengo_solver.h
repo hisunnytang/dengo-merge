@@ -9,7 +9,7 @@
 #include "hdf5.h"
 #include "hdf5_hl.h"
 #include "stdio.h"
-#include "string.h" 
+#include "string.h"
 
 
 struct cvklu_data {
@@ -73,18 +73,18 @@ struct cvklu_data {
     double c_gloverabel08_gphdl[1024];
     double c_gloverabel08_gpldl[1024];
     double c_gloverabel08_h2lte[1024];
-    
+
     double c_h2formation_h2mcool[1024];
     double c_h2formation_h2mheat[1024];
     double c_h2formation_ncrd1[1024];
     double c_h2formation_ncrd2[1024];
     double c_h2formation_ncrn[1024];
-    
+
     double c_reHeII1_reHeII1[1024];
     double c_reHeII2_reHeII2[1024];
     double c_reHeIII_reHeIII[1024];
     double c_reHII_reHII[1024];
-    
+
     int ncells;
 
     // gamma as a function of temperature
@@ -108,5 +108,3 @@ void dengo_set_initial_conditions( double density, double T0, double fH2, int NU
 void dengo_set_additional_constant( double denisty, double temperature, int NUM, double **y_host, double **temperature_array, double **density_array, double **h2_optical_depth_approx );
 
 #endif
-
-

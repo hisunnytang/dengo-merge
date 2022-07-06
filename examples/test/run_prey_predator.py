@@ -1,25 +1,27 @@
-import numpy as np
-from dengo.reaction_classes import (
-    reaction,
-    ChemicalSpecies,
-    registry_setup,
-    species_registry,
-)
-from dengo.chemical_network import ChemicalNetwork
+import copy
 import os
-import pyximport
+
+import h5py
 import matplotlib
 import matplotlib.pyplot as plt
-import copy
+import numpy as np
 import pytest
-import h5py
+import pyximport
 from utilities import (
-    setup_solver_options,
-    write_network,
-    run_solver,
     check_defined_envpath,
     run_c_solver,
+    run_solver,
+    setup_solver_options,
     write_init_to_file,
+    write_network,
+)
+
+from dengo.chemical_network import ChemicalNetwork
+from dengo.reaction_classes import (
+    ChemicalSpecies,
+    reaction,
+    registry_setup,
+    species_registry,
 )
 
 plt.switch_backend("agg")
@@ -93,17 +95,18 @@ def predator_prey_network():
     cN.init_temperature((1e0, 1e8))
     return cN
 
+
 from test_prey_predator import run_prey_predator
+
 if __name__ == "__main__":
-    solver_options = {"output_dir": "temp",
-                      "solver_name": "primordial",
-                      "use_omp": False,
-                      "use_cvode": False,
-                      "use_suitesparse": False,
-                      "niters": 1e3,
-                      "NCELLS": 128,
-                      "reltol": 1.0e-6}
-    run_prey_predator(
-        predator_prey_network(),
-        solver_options
-    )
+    solver_options = {
+        "output_dir": "temp",
+        "solver_name": "primordial",
+        "use_omp": False,
+        "use_cvode": False,
+        "use_suitesparse": False,
+        "niters": 1e3,
+        "NCELLS": 128,
+        "reltol": 1.0e-6,
+    }
+    run_prey_predator(predator_prey_network(), solver_options)

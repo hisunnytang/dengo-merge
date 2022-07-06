@@ -9,7 +9,7 @@
 #include <sundials/sundials_types.h>                  /* defs. of realtype, int              */
 // copy the data thing to the device
 
-typedef struct 
+typedef struct
 {
     double nbins;
     double lb;
@@ -24,11 +24,11 @@ typedef struct
     double *r_exp_growth_prey;
     double *rs_exp_growth_prey;
     double *drs_exp_growth_prey;
-    
+
     double *r_natural_death_predator;
     double *rs_natural_death_predator;
     double *drs_natural_death_predator;
-    
+
     double *r_predation;
     double *rs_predation;
     double *drs_predation;
@@ -100,11 +100,11 @@ void interpolate_kernel(predator_prey_data data)
         Tdef = (data.logTs[j] - t1) * data.idbin;
 
         // printf("Tdef[%d] = %0.5g; k = %d\n", j, data.logTs[j], k);
-        
+
         rates_in1  = data.r_exp_growth_prey;
         rates_out1 = data.rs_exp_growth_prey;
         rates_out1[j] = Tdef*rates_in1[k+1] + (-rates_in1[k]*Tdef + rates_in1[k]);
-        
+
 
         rates_in2  = data.r_predation;
         rates_out2 = data.rs_predation;
@@ -127,7 +127,7 @@ static void f_kernel(double y, double* ydata, double* ydotdata,
         predator_prey_data data, int neq, int ngroups)
 {
     int i = blockIdx.x* blockDim.x + threadIdx.x;
-    
+
     // GROUPSIZE: number of equations per group;
     int GROUPSIZE = 5;
     int groupj = i*GROUPSIZE;
@@ -192,9 +192,9 @@ static int f(realtype t, N_Vector y, N_Vector ydot, void *user_data)
     return 0;
 }
 
-int Jacobian(realtype t, 
-        N_Vector y, 
-        N_Vector fy, 
+int Jacobian(realtype t,
+        N_Vector y,
+        N_Vector fy,
         SUNMatrix J,
         void *user_data,
         N_Vector tmp1,
@@ -245,7 +245,7 @@ int Jacobian(realtype t,
         ge            = ydata[GROUPSIZE*i+2];
         predator      = ydata[GROUPSIZE*i+3];
         prey          = ydata[GROUPSIZE*i+4];
-        
+
         j         = i*nnzper;
         rowptrs[i*GROUPSIZE+0] = j+ 5;
         rowptrs[i*GROUPSIZE+1] = j+10;
@@ -265,7 +265,7 @@ int Jacobian(realtype t,
         colvals[nnzper*i+2] = GROUPSIZE*i+2;
         colvals[nnzper*i+3] = GROUPSIZE*i+3;
         colvals[nnzper*i+4] = GROUPSIZE*i+4;
-        
+
         // second row of block: dead prey
         matrix_data[nnzper*i+5] = 0.0;
         matrix_data[nnzper*i+6] = 0.0;
@@ -305,7 +305,7 @@ int Jacobian(realtype t,
         colvals[nnzper*i+17] = GROUPSIZE*i+2;
         colvals[nnzper*i+18] = GROUPSIZE*i+3;
         colvals[nnzper*i+19] = GROUPSIZE*i+4;
-        
+
         // fifth row of block: predator
         matrix_data[nnzper*i+20] = 0.0;
         matrix_data[nnzper*i+21] = 0.0;
@@ -352,7 +352,7 @@ int Jacobian(realtype t,
         matrix_data[j+10]= exp_growth_prey[i] - predation[i]* predator;
 */
 
-        
+
     }
 
     //SUNSparseMatrix_Print(J, stderr);
@@ -485,7 +485,7 @@ int main(int argc, char *argv[])
      Break out of loop when NOUT preset output times have been reached.  */
   int NOUT = 1;
   int TMULT = 1.5;
-  
+
   printf(" \nGroup of independent 3-species kinetics problems\n\n");
   printf("number of groups = %d\n\n", ngroups);
 

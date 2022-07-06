@@ -12,3 +12,23 @@ For more information, please contact the authors:
     Matthew Turk (matthew.turk@gmail.com)
     Devin Silvia (devin.silvia@gmail.com)
 
+
+## Installation
+While dengo can work standlone with the solver available in the shipped package, it is advisible to install `dengo` with the environement maintained by `conda`. This allows user to use the [Sundials CVODE](https://computing.llnl.gov/projects/sundials) with [SuiteSparse](https://github.com/DrTimothyAldenDavis/SuiteSparse) sparse matrix algorithms.
+
+```bash
+# Clone the Current Repo
+git clone https://github.com/hisunnytang/dengo-merge.git
+
+# Create the Conda Environment
+conda create -n dengo
+# Activate the Environment
+conda activate dengo
+
+# Install all the neccessary packages
+conda install -c conda-forge "sundials>=6.2" ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip
+
+# Install dengo
+cd dengo-merge
+pip install -e .
+```

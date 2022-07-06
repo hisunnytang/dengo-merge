@@ -35,7 +35,7 @@
         /** type of rational approximant (n, n) */
         #define N_RA (10)
 
-        
+
         /* CVodes Parameters */
         //#define CV_MAX_ORD (5) //maximum order for method, default for BDF is 5
         /*! Maximum steps the solver will take in one timestep set to -1 (disabled) by default */
@@ -46,15 +46,14 @@
         #define CV_MAX_HNIL (1)
         /*! Maximum number of CVODE error test fails before an error is thrown */
         #define CV_MAX_ERRTEST_FAILS (5) //maximum number of error test fails before an error is thrown
-        
+
         /*! Load same initial conditions (defined in mechanism.c or mechanism.cu) for all threads */
         #define SAME_IC
-            
+
         /*! Log output to binary file */
         #define LOG_OUTPUT
-            
+
         /*! Turn on to log the krylov space and step sizes */
         #define LOG_KRYLOV_AND_STEPSIZES
-        
+
         #endif
-            

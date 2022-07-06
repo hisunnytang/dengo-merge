@@ -118,11 +118,11 @@ typedef struct {{solver_name}}_data {
     {% endfor %}
     int bin_id[MAX_NCELLS];
     int ncells;
-    
+
 
     double reaction_rates_T[ {{network.T | length }} * {{network.reactions | length }}];
     double interpolated_rates[ {{network.reactions | length }} ];
-    
+
     double cooling_rates_T[{{network.T | length}} * {{network.cooling_actions | length}}];
     double interpolated_cooling[ {{network.cooling_actions | length}} ];
 
@@ -135,14 +135,14 @@ typedef struct {{solver_name}}_data {
     // store the gamma for that particular step
     double gamma{{sp}}[MAX_NCELLS];
     double dgamma{{sp}}_dT[MAX_NCELLS];
-    
+
     // store 1 / (gamma - 1)
     double _gamma{{sp}}_m1[MAX_NCELLS];
     {% endfor %}
 
     double scale[{{network.required_species | length}} * MAX_NCELLS ];
     double inv_scale[{{network.required_species | length}} * MAX_NCELLS];
-    
+
 
     int nstrip;
     double mdensity[MAX_NCELLS];
@@ -170,13 +170,13 @@ typedef int(*jac_f)(N_Vector , N_Vector , realtype,
 #endif
 
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
         {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data * data, N_Vector y, double reltol, N_Vector abstol );
 
-double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
-                          double reltol,double *input, int v_size, int d, int start_idx, 
+double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
+                          double reltol,double *input, int v_size, int d, int start_idx,
                           int MAX_ITERATION, double dtf, {{solver_name}}_data *data );
 
 void {{ solver_name }}_read_rate_tables({{solver_name}}_data*);
@@ -218,7 +218,7 @@ int calculate_JacTimesVec_{{solver_name}}
 
 int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, int nstrip, int nchem);
-void temperature_from_mass_density(double *input, int nstrip, int nchem, 
+void temperature_from_mass_density(double *input, int nstrip, int nchem,
                                    double *strip_temperature);
 
 int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double *input, int nstrip, int nchem);
@@ -235,18 +235,18 @@ typedef struct
   int *grid_end;
   long int ncells;
   double grid_dx;
-   
-  // This should be updated dynamically 
+
+  // This should be updated dynamically
   // with dengo
   double *density;
-    
+
   // GAMMA
   double Gamma;
-  
+
   {%- for species in network.required_species | sort %}
   double *{{species.name}}_density;
   {% endfor %}
-   
+
   // directory to the rate data
   char *dengo_data_file;
 
@@ -264,4 +264,3 @@ typedef struct
   double a_value;
 
 } code_units;
-

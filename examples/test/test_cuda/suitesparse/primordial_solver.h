@@ -63,7 +63,7 @@ The generalized rate data type holders.
 #define DMAX(A,B) ((A) > (B) ? (A) : (B))
 #define DMIN(A,B) ((A) < (B) ? (A) : (B))
 
- 
+
 
 int primordial_main(int argc, char **argv);
 
@@ -99,135 +99,135 @@ typedef struct primordial_data {
     double r_k01[1024];
     double rs_k01[NTHREADS][MAX_NCELLS];
     double drs_k01[NTHREADS][MAX_NCELLS];
-    
+
     double r_k02[1024];
     double rs_k02[NTHREADS][MAX_NCELLS];
     double drs_k02[NTHREADS][MAX_NCELLS];
-    
+
     double r_k03[1024];
     double rs_k03[NTHREADS][MAX_NCELLS];
     double drs_k03[NTHREADS][MAX_NCELLS];
-    
+
     double r_k04[1024];
     double rs_k04[NTHREADS][MAX_NCELLS];
     double drs_k04[NTHREADS][MAX_NCELLS];
-    
+
     double r_k05[1024];
     double rs_k05[NTHREADS][MAX_NCELLS];
     double drs_k05[NTHREADS][MAX_NCELLS];
-    
+
     double r_k06[1024];
     double rs_k06[NTHREADS][MAX_NCELLS];
     double drs_k06[NTHREADS][MAX_NCELLS];
-    
+
     double r_k07[1024];
     double rs_k07[NTHREADS][MAX_NCELLS];
     double drs_k07[NTHREADS][MAX_NCELLS];
-    
+
     double r_k08[1024];
     double rs_k08[NTHREADS][MAX_NCELLS];
     double drs_k08[NTHREADS][MAX_NCELLS];
-    
+
     double r_k09[1024];
     double rs_k09[NTHREADS][MAX_NCELLS];
     double drs_k09[NTHREADS][MAX_NCELLS];
-    
+
     double r_k10[1024];
     double rs_k10[NTHREADS][MAX_NCELLS];
     double drs_k10[NTHREADS][MAX_NCELLS];
-    
+
     double r_k11[1024];
     double rs_k11[NTHREADS][MAX_NCELLS];
     double drs_k11[NTHREADS][MAX_NCELLS];
-    
+
     double r_k12[1024];
     double rs_k12[NTHREADS][MAX_NCELLS];
     double drs_k12[NTHREADS][MAX_NCELLS];
-    
+
     double r_k13[1024];
     double rs_k13[NTHREADS][MAX_NCELLS];
     double drs_k13[NTHREADS][MAX_NCELLS];
-    
+
     double r_k14[1024];
     double rs_k14[NTHREADS][MAX_NCELLS];
     double drs_k14[NTHREADS][MAX_NCELLS];
-    
+
     double r_k15[1024];
     double rs_k15[NTHREADS][MAX_NCELLS];
     double drs_k15[NTHREADS][MAX_NCELLS];
-    
+
     double r_k16[1024];
     double rs_k16[NTHREADS][MAX_NCELLS];
     double drs_k16[NTHREADS][MAX_NCELLS];
-    
+
     double r_k17[1024];
     double rs_k17[NTHREADS][MAX_NCELLS];
     double drs_k17[NTHREADS][MAX_NCELLS];
-    
+
     double r_k18[1024];
     double rs_k18[NTHREADS][MAX_NCELLS];
     double drs_k18[NTHREADS][MAX_NCELLS];
-    
+
     double r_k19[1024];
     double rs_k19[NTHREADS][MAX_NCELLS];
     double drs_k19[NTHREADS][MAX_NCELLS];
-    
+
     double r_k21[1024];
     double rs_k21[NTHREADS][MAX_NCELLS];
     double drs_k21[NTHREADS][MAX_NCELLS];
-    
+
     double r_k22[1024];
     double rs_k22[NTHREADS][MAX_NCELLS];
     double drs_k22[NTHREADS][MAX_NCELLS];
-    
+
     double r_k23[1024];
     double rs_k23[NTHREADS][MAX_NCELLS];
     double drs_k23[NTHREADS][MAX_NCELLS];
-    
+
     double c_brem_brem[1024];
     double cs_brem_brem[NTHREADS][MAX_NCELLS];
     double dcs_brem_brem[NTHREADS][MAX_NCELLS];
-    
+
     double c_ceHeI_ceHeI[1024];
     double cs_ceHeI_ceHeI[NTHREADS][MAX_NCELLS];
     double dcs_ceHeI_ceHeI[NTHREADS][MAX_NCELLS];
-    
+
     double c_ceHeII_ceHeII[1024];
     double cs_ceHeII_ceHeII[NTHREADS][MAX_NCELLS];
     double dcs_ceHeII_ceHeII[NTHREADS][MAX_NCELLS];
-    
+
     double c_ceHI_ceHI[1024];
     double cs_ceHI_ceHI[NTHREADS][MAX_NCELLS];
     double dcs_ceHI_ceHI[NTHREADS][MAX_NCELLS];
-    
+
     double c_cie_cooling_cieco[1024];
     double cs_cie_cooling_cieco[NTHREADS][MAX_NCELLS];
     double dcs_cie_cooling_cieco[NTHREADS][MAX_NCELLS];
-    
+
     double c_ciHeI_ciHeI[1024];
     double cs_ciHeI_ciHeI[NTHREADS][MAX_NCELLS];
     double dcs_ciHeI_ciHeI[NTHREADS][MAX_NCELLS];
-    
+
     double c_ciHeII_ciHeII[1024];
     double cs_ciHeII_ciHeII[NTHREADS][MAX_NCELLS];
     double dcs_ciHeII_ciHeII[NTHREADS][MAX_NCELLS];
-    
+
     double c_ciHeIS_ciHeIS[1024];
     double cs_ciHeIS_ciHeIS[NTHREADS][MAX_NCELLS];
     double dcs_ciHeIS_ciHeIS[NTHREADS][MAX_NCELLS];
-    
+
     double c_ciHI_ciHI[1024];
     double cs_ciHI_ciHI[NTHREADS][MAX_NCELLS];
     double dcs_ciHI_ciHI[NTHREADS][MAX_NCELLS];
-    
+
     double c_compton_comp_[1024];
     double cs_compton_comp_[NTHREADS][MAX_NCELLS];
     double dcs_compton_comp_[NTHREADS][MAX_NCELLS];
-    
+
     double c_gammah_gammah[1024];
     double cs_gammah_gammah[NTHREADS][MAX_NCELLS];
     double dcs_gammah_gammah[NTHREADS][MAX_NCELLS];
-    
+
     double c_gloverabel08_gael[1024];
     double cs_gloverabel08_gael[NTHREADS][MAX_NCELLS];
     double dcs_gloverabel08_gael[NTHREADS][MAX_NCELLS];
@@ -252,7 +252,7 @@ typedef struct primordial_data {
     double c_gloverabel08_h2lte[1024];
     double cs_gloverabel08_h2lte[NTHREADS][MAX_NCELLS];
     double dcs_gloverabel08_h2lte[NTHREADS][MAX_NCELLS];
-    
+
     double c_h2formation_h2mcool[1024];
     double cs_h2formation_h2mcool[NTHREADS][MAX_NCELLS];
     double dcs_h2formation_h2mcool[NTHREADS][MAX_NCELLS];
@@ -268,26 +268,26 @@ typedef struct primordial_data {
     double c_h2formation_ncrn[1024];
     double cs_h2formation_ncrn[NTHREADS][MAX_NCELLS];
     double dcs_h2formation_ncrn[NTHREADS][MAX_NCELLS];
-    
+
     double c_reHeII1_reHeII1[1024];
     double cs_reHeII1_reHeII1[NTHREADS][MAX_NCELLS];
     double dcs_reHeII1_reHeII1[NTHREADS][MAX_NCELLS];
-    
+
     double c_reHeII2_reHeII2[1024];
     double cs_reHeII2_reHeII2[NTHREADS][MAX_NCELLS];
     double dcs_reHeII2_reHeII2[NTHREADS][MAX_NCELLS];
-    
+
     double c_reHeIII_reHeIII[1024];
     double cs_reHeIII_reHeIII[NTHREADS][MAX_NCELLS];
     double dcs_reHeIII_reHeIII[NTHREADS][MAX_NCELLS];
-    
+
     double c_reHII_reHII[1024];
     double cs_reHII_reHII[NTHREADS][MAX_NCELLS];
     double dcs_reHII_reHII[NTHREADS][MAX_NCELLS];
-    
+
     int bin_id[NTHREADS][MAX_NCELLS];
     int ncells;
-    
+
 
 
     // gamma as a function of temperature
@@ -297,38 +297,38 @@ typedef struct primordial_data {
     // store the gamma for that particular step
     double gammaH2_1[NTHREADS][MAX_NCELLS];
     double dgammaH2_1_dT[NTHREADS][MAX_NCELLS];
-    
+
     // store 1 / (gamma - 1)
     double _gammaH2_1_m1[NTHREADS][MAX_NCELLS];
-    
+
     double g_gammaH2_2[1024];
     double g_dgammaH2_2_dT[1024];
 
     // store the gamma for that particular step
     double gammaH2_2[NTHREADS][MAX_NCELLS];
     double dgammaH2_2_dT[NTHREADS][MAX_NCELLS];
-    
+
     // store 1 / (gamma - 1)
     double _gammaH2_2_m1[NTHREADS][MAX_NCELLS];
-    
+
 
     double scale[NTHREADS][10 * MAX_NCELLS ];
     double inv_scale[NTHREADS][10 * MAX_NCELLS];
-    
+
 
     int nstrip;
     double mdensity[NTHREADS][MAX_NCELLS];
     double inv_mdensity[NTHREADS][MAX_NCELLS];
 
-    
+
     double cie_optical_depth_approx[NTHREADS][MAX_NCELLS];
-    
-    
+
+
     double h2_optical_depth_approx[NTHREADS][MAX_NCELLS];
-    
-    
+
+
     const char *dengo_data_file;
-    
+
     double reltol;
     double floor_value;
 } primordial_data;
@@ -346,7 +346,7 @@ typedef int(*jac_f)(N_Vector , N_Vector , realtype,
 #endif
 
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
         primordial_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, primordial_data * data, N_Vector y, double reltol, N_Vector abstol );
@@ -365,12 +365,12 @@ int dengo_evolve_primordial (double dtf, double &dt, double z,
                                      double *atol, unsigned long dims,
                                      primordial_data *data, double *temp);
 
-double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
-                          double reltol,double *input, int v_size, int d, int start_idx, 
+double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
+                          double reltol,double *input, int v_size, int d, int start_idx,
                           int MAX_ITERATION, double dtf, primordial_data *data );
 
 
- 
+
 
 
 
@@ -398,7 +398,7 @@ int calculate_JacTimesVec_primordial
 
 int calculate_rhs_primordial(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, double *equil_array, unsigned long nstrip, int nchem);
-void temperature_from_mass_density(double *input, int nstrip, int nchem, 
+void temperature_from_mass_density(double *input, int nstrip, int nchem,
                                    double *strip_temperature);
 
 int primordial_calculate_temperature(primordial_data *data, double *input, int nstrip, int nchem);
@@ -424,11 +424,11 @@ typedef struct dengo_field_data
 {
 
   unsigned long int nstrip;
-  unsigned long int ncells; 
+  unsigned long int ncells;
   // let's just pass them passively through field_data
   double reltol;
   double floor_value;
-  // This should be updated dynamically 
+  // This should be updated dynamically
   // with dengo
   double *density;
   double *H2_1_density;
@@ -441,7 +441,7 @@ typedef struct dengo_field_data
   double *He_3_density;
   double *de_density;
   double *ge_density;
-    
+
   double *CoolingTime;
   double *MolecularWeight;
   double *temperature;
@@ -468,7 +468,7 @@ int dengo_calculate_temperature( code_units*, dengo_field_data* );
 int dengo_calculate_gamma( double* gamma_eff, primordial_data*, double*, int );
 int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );
 
-int calculate_equilibrium_abundance( primordial_data *data, double *input, 
+int calculate_equilibrium_abundance( primordial_data *data, double *input,
 	int nstrip, unsigned long d, unsigned long dims, double *equil_array);
 // Enzo interface
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data );

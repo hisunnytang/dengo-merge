@@ -51,8 +51,8 @@ cdef extern from "{{solver_name}}_solver.h":
                                          double *atol, int dims,
                                          {{solver_name}}_data *data)
     int BE_chem_solve(rhs_f f, jac_f J,
-		    double *u, double dt, double *rtol, 
-                    double *atol, int nstrip, int nchem, 
+		    double *u, double dt, double *rtol,
+                    double *atol, int nstrip, int nchem,
 		    double *scaling, void *sdata, double *u0, double *s,
             double *gu, double *Ju
            )
@@ -61,4 +61,3 @@ cdef extern from "{{solver_name}}_solver.h":
     int calculate_rhs_{{solver_name}}(double *input, double *rhs, int nstrip,
                       int nchem, void *sdata)
     int ensure_electron_consistency(double *input, int nstrip, int nchem)
-

@@ -188,7 +188,7 @@ primordial_cuda_data primordial_cuda_setup_data(int *NumberOfFields, char ***Fie
 
     //-----------------------------------------------------
     // Function : primordial_cuda_setup_data
-    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    // Description: Initialize a data object that stores the reaction/ cooling rate data
     //-----------------------------------------------------
 
 
@@ -504,18 +504,18 @@ void primordial_cuda_read_cooling_tables(primordial_cuda_data *data)
 H5LTread_dataset_double(file_id, "/gammaH2_1",
 data->g_gammaH2_1 );
 H5LTread_dataset_double(file_id, "/dgammaH2_1_dT",
-data->g_dgammaH2_1_dT );   
+data->g_dgammaH2_1_dT );
 
 H5LTread_dataset_double(file_id, "/gammaH2_2",
 data->g_gammaH2_2 );
 H5LTread_dataset_double(file_id, "/dgammaH2_2_dT",
-data->g_dgammaH2_2_dT );   
+data->g_dgammaH2_2_dT );
 
 
 H5Fclose(file_id);
 
 }
- 
+
  */
 
 
@@ -746,7 +746,7 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, primordial_cud
 {
     int i = blockIdx.x* blockDim.x + threadIdx.x;
 
-    int groupi = i * nchem; 
+    int groupi = i * nchem;
 
     // get rate pointer
     double *k01 = data.rs_k01;
@@ -801,12 +801,12 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, primordial_cud
     double *reHII_reHII = data.cs_reHII_reHII;
 
 
-    
-    double h2_optical_depth_approx;    
-    
-    
+
+    double h2_optical_depth_approx;
+
+
     double cie_optical_depth_approx;
-    
+
 
     int j;
     double z, T, mdensity, inv_mdensity;
@@ -816,12 +816,12 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, primordial_cud
         T = data.Ts[i];
         z = data.current_z;
 
-        
+
         h2_optical_depth_approx = 1.0; // data.h2_optical_depth_approx[i];
-        
-        
+
+
         cie_optical_depth_approx = 1.0; // data.cie_optical_depth_approx[i];
-        
+
         double H2_1 = ydata[groupi+0];
         double H2_2 = ydata[groupi+1];
         double H_1 = ydata[groupi+2];
@@ -840,72 +840,72 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, primordial_cud
         //
         j = 0;
         ydotdata[groupi+j] = k08[i]*H_1*H_m0 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k12[i]*H2_1*de - k13[i]*H2_1*H_1 + k19[i]*H2_2*H_m0 + k21[i]*H2_1*H_1*H_1 + k22[i]*H_1*H_1*H_1 - k23[i]*H2_1*H2_1;
-        
+
         j++;
         //
         // Species: H2_2
         //
         j = 1;
         ydotdata[groupi+j] = k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de - k19[i]*H2_2*H_m0;
-        
+
         j++;
         //
         // Species: H_1
         //
         j = 2;
         ydotdata[groupi+j] = -k01[i]*H_1*de + k02[i]*H_2*de - k07[i]*H_1*de - k08[i]*H_1*H_m0 - k09[i]*H_1*H_2 - k10[i]*H2_2*H_1 + k11[i]*H2_1*H_2 + 2*k12[i]*H2_1*de + 2*k13[i]*H2_1*H_1 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + 2*k16[i]*H_2*H_m0 + 2*k18[i]*H2_2*de + k19[i]*H2_2*H_m0 - 2*k21[i]*H2_1*H_1*H_1 - 2*k22[i]*H_1*H_1*H_1 + 2*k23[i]*H2_1*H2_1;
-        
+
         j++;
         //
         // Species: H_2
         //
         j = 3;
         ydotdata[groupi+j] = k01[i]*H_1*de - k02[i]*H_2*de - k09[i]*H_1*H_2 + k10[i]*H2_2*H_1 - k11[i]*H2_1*H_2 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0;
-        
+
         j++;
         //
         // Species: H_m0
         //
         j = 4;
         ydotdata[groupi+j] = k07[i]*H_1*de - k08[i]*H_1*H_m0 - k14[i]*H_m0*de - k15[i]*H_1*H_m0 - k16[i]*H_2*H_m0 - k17[i]*H_2*H_m0 - k19[i]*H2_2*H_m0;
-        
+
         j++;
         //
         // Species: He_1
         //
         j = 5;
         ydotdata[groupi+j] = -k03[i]*He_1*de + k04[i]*He_2*de;
-        
+
         j++;
         //
         // Species: He_2
         //
         j = 6;
         ydotdata[groupi+j] = k03[i]*He_1*de - k04[i]*He_2*de - k05[i]*He_2*de + k06[i]*He_3*de;
-        
+
         j++;
         //
         // Species: He_3
         //
         j = 7;
         ydotdata[groupi+j] = k05[i]*He_2*de - k06[i]*He_3*de;
-        
+
         j++;
         //
         // Species: de
         //
         j = 8;
         ydotdata[groupi+j] = k01[i]*H_1*de - k02[i]*H_2*de + k03[i]*He_1*de - k04[i]*He_2*de + k05[i]*He_2*de - k06[i]*He_3*de - k07[i]*H_1*de + k08[i]*H_1*H_m0 + k14[i]*H_m0*de + k15[i]*H_1*H_m0 + k17[i]*H_2*H_m0 - k18[i]*H2_2*de;
-        
+
         j++;
         //
         // Species: ge
         //
         j = 9;
         ydotdata[groupi+j] = -brem_brem[i]*cie_optical_depth_approx*de*(H_2 + He_2 + 4.0*He_3) - ceHI_ceHI[i]*H_1*cie_optical_depth_approx*de - ceHeII_ceHeII[i]*He_2*cie_optical_depth_approx*de - ceHeI_ceHeI[i]*He_2*cie_optical_depth_approx*pow(de, 2) - ciHI_ciHI[i]*H_1*cie_optical_depth_approx*de - ciHeII_ciHeII[i]*He_2*cie_optical_depth_approx*de - ciHeIS_ciHeIS[i]*He_2*cie_optical_depth_approx*pow(de, 2) - ciHeI_ciHeI[i]*He_1*cie_optical_depth_approx*de - 2.0158800000000001*cie_cooling_cieco[i]*H2_1*cie_optical_depth_approx*mdensity - compton_comp_[i]*cie_optical_depth_approx*de*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) - gloverabel08_h2lte[i]*H2_1*cie_optical_depth_approx*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0) - reHII_reHII[i]*H_2*cie_optical_depth_approx*de - reHeII1_reHeII1[i]*He_2*cie_optical_depth_approx*de - reHeII2_reHeII2[i]*He_2*cie_optical_depth_approx*de - reHeIII_reHeIII[i]*He_3*cie_optical_depth_approx*de + 0.5*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3));
-        
+
         ydotdata[groupi+j] *= inv_mdensity;
-        
+
         j++;
 
     }
@@ -924,7 +924,7 @@ static void rhs_kernel(double y, double *ydata, double *ydotdata, primordial_cud
 void temperature_kernel(double* ydata, primordial_cuda_data data)
 {
     int i = blockIdx.x* blockDim.x + threadIdx.x;
-    int groupi = i * nchem; 
+    int groupi = i * nchem;
 
     double *temperature = data.Ts;
     double *logTs      = data.logTs;
@@ -1165,7 +1165,7 @@ static int blockJacInit(SUNMatrix J)
     int bIdx;
     for (int c = 0; c < nnz; c++)
     {
-        bIdx = c /nnz; 
+        bIdx = c /nnz;
         colvals[c] = bIdx*nchem + c%nchem;
         // printf("colvals[%d] = %d\n", c, colvals[c]);
     }
@@ -1195,7 +1195,7 @@ static int JacInit(SUNMatrix J)
     rowptrs[7] = 7 * 10;
     rowptrs[8] = 8 * 10;
     rowptrs[9] = 9 * 10;
-    
+
     // 0 row of block
     colvals[0] = 0;
     colvals[1] = 1;
@@ -1207,7 +1207,7 @@ static int JacInit(SUNMatrix J)
     colvals[7] = 7;
     colvals[8] = 8;
     colvals[9] = 9;
-    
+
     // 1 row of block
     colvals[10] = 0;
     colvals[11] = 1;
@@ -1219,7 +1219,7 @@ static int JacInit(SUNMatrix J)
     colvals[17] = 7;
     colvals[18] = 8;
     colvals[19] = 9;
-    
+
     // 2 row of block
     colvals[20] = 0;
     colvals[21] = 1;
@@ -1231,7 +1231,7 @@ static int JacInit(SUNMatrix J)
     colvals[27] = 7;
     colvals[28] = 8;
     colvals[29] = 9;
-    
+
     // 3 row of block
     colvals[30] = 0;
     colvals[31] = 1;
@@ -1243,7 +1243,7 @@ static int JacInit(SUNMatrix J)
     colvals[37] = 7;
     colvals[38] = 8;
     colvals[39] = 9;
-    
+
     // 4 row of block
     colvals[40] = 0;
     colvals[41] = 1;
@@ -1255,7 +1255,7 @@ static int JacInit(SUNMatrix J)
     colvals[47] = 7;
     colvals[48] = 8;
     colvals[49] = 9;
-    
+
     // 5 row of block
     colvals[50] = 0;
     colvals[51] = 1;
@@ -1267,7 +1267,7 @@ static int JacInit(SUNMatrix J)
     colvals[57] = 7;
     colvals[58] = 8;
     colvals[59] = 9;
-    
+
     // 6 row of block
     colvals[60] = 0;
     colvals[61] = 1;
@@ -1279,7 +1279,7 @@ static int JacInit(SUNMatrix J)
     colvals[67] = 7;
     colvals[68] = 8;
     colvals[69] = 9;
-    
+
     // 7 row of block
     colvals[70] = 0;
     colvals[71] = 1;
@@ -1291,7 +1291,7 @@ static int JacInit(SUNMatrix J)
     colvals[77] = 7;
     colvals[78] = 8;
     colvals[79] = 9;
-    
+
     // 8 row of block
     colvals[80] = 0;
     colvals[81] = 1;
@@ -1303,7 +1303,7 @@ static int JacInit(SUNMatrix J)
     colvals[87] = 7;
     colvals[88] = 8;
     colvals[89] = 9;
-    
+
     // 9 row of block
     colvals[90] = 0;
     colvals[91] = 1;
@@ -1335,13 +1335,13 @@ static void jacobian_kernel(realtype *ydata, realtype *Jdata, primordial_cuda_da
     double *Tge = data.Tge;
     double z, T;
 
-    
+
     double *h2_optical_depth_approx_arr = data.h2_optical_depth_approx;
-    
-    
+
+
     double *cie_optical_depth_approx_arr = data.cie_optical_depth_approx;
-    
-    groupj = blockIdx.x*blockDim.x + threadIdx.x; 
+
+    groupj = blockIdx.x*blockDim.x + threadIdx.x;
 
     T = 1000.0;
     z = 0.0;
@@ -1349,12 +1349,12 @@ static void jacobian_kernel(realtype *ydata, realtype *Jdata, primordial_cuda_da
     if (groupj < BATCHSIZE)
     {
         i = groupj;
-        
+
         double h2_optical_depth_approx = 1.0; //h2_optical_depth_approx_arr[i];
-        
-        
+
+
         double cie_optical_depth_approx = 1.0; //cie_optical_depth_approx_arr[i];
-        
+
         // pulled the species data
         double H2_1 = ydata[nchem*groupj+0];
         double H2_2 = ydata[nchem*groupj+1];
@@ -1471,1119 +1471,1119 @@ static void jacobian_kernel(realtype *ydata, realtype *Jdata, primordial_cuda_da
         //
         // Species: H2_1
         //
-        
-        
+
+
         // H2_1 by H2_1
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 0] = -k11[i]*H_2 - k12[i]*de - k13[i]*H_1 + k21[i]*pow(H_1, 2) - 2*k23[i]*H2_1;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by H2_2
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 1] = k10[i]*H_1 + k19[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by H_1
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 2] = k08[i]*H_m0 + k10[i]*H2_2 - k13[i]*H2_1 + 2*k21[i]*H2_1*H_1 + 3*k22[i]*pow(H_1, 2);
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by H_2
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 3] = -k11[i]*H2_1;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by H_m0
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 4] = k08[i]*H_1 + k19[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 0*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by He_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 0*nchem+ 6] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 0*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by de
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 8] = -k12[i]*H2_1;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_1 by ge
 
-        
+
         Jdata[nnzper*groupj + 0*nchem+ 9] = -pow(H2_1, 2)*rk23[i] + H2_1*pow(H_1, 2)*rk21[i] - H2_1*H_1*rk13[i] - H2_1*H_2*rk11[i] - H2_1*de*rk12[i] + H2_2*H_1*rk10[i] + H2_2*H_m0*rk19[i] + pow(H_1, 3)*rk22[i] + H_1*H_m0*rk08[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 0*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: H2_2
         //
-        
-        
+
+
         // H2_2 by H2_1
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 0] = k11[i]*H_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by H2_2
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 1] = -k10[i]*H_1 - k18[i]*de - k19[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by H_1
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 2] = k09[i]*H_2 - k10[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by H_2
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 3] = k09[i]*H_1 + k11[i]*H2_1 + k17[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by H_m0
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 4] = k17[i]*H_2 - k19[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 1*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by He_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 1*nchem+ 6] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 1*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by de
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 8] = -k18[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H2_2 by ge
 
-        
+
         Jdata[nnzper*groupj + 1*nchem+ 9] = H2_1*H_2*rk11[i] - H2_2*H_1*rk10[i] - H2_2*H_m0*rk19[i] - H2_2*de*rk18[i] + H_1*H_2*rk09[i] + H_2*H_m0*rk17[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 1*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: H_1
         //
-        
-        
+
+
         // H_1 by H2_1
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 0] = k11[i]*H_2 + 2*k12[i]*de + 2*k13[i]*H_1 - 2*k21[i]*pow(H_1, 2) + 4*k23[i]*H2_1;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by H2_2
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 1] = -k10[i]*H_1 + 2*k18[i]*de + k19[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by H_1
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 2] = -k01[i]*de - k07[i]*de - k08[i]*H_m0 - k09[i]*H_2 - k10[i]*H2_2 + 2*k13[i]*H2_1 + k15[i]*H_m0 - 4*k21[i]*H2_1*H_1 - 6*k22[i]*pow(H_1, 2);
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by H_2
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 3] = k02[i]*de - k09[i]*H_1 + k11[i]*H2_1 + 2*k16[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by H_m0
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 4] = -k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + 2*k16[i]*H_2 + k19[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 2*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by He_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 2*nchem+ 6] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 2*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by de
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 8] = -k01[i]*H_1 + k02[i]*H_2 - k07[i]*H_1 + 2*k12[i]*H2_1 + k14[i]*H_m0 + 2*k18[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_1 by ge
 
-        
+
         Jdata[nnzper*groupj + 2*nchem+ 9] = 2*pow(H2_1, 2)*rk23[i] - 2*H2_1*pow(H_1, 2)*rk21[i] + 2*H2_1*H_1*rk13[i] + H2_1*H_2*rk11[i] + 2*H2_1*de*rk12[i] - H2_2*H_1*rk10[i] + H2_2*H_m0*rk19[i] + 2*H2_2*de*rk18[i] - 2*pow(H_1, 3)*rk22[i] - H_1*H_2*rk09[i] - H_1*H_m0*rk08[i] + H_1*H_m0*rk15[i] - H_1*de*rk01[i] - H_1*de*rk07[i] + 2*H_2*H_m0*rk16[i] + H_2*de*rk02[i] + H_m0*de*rk14[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 2*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: H_2
         //
-        
-        
+
+
         // H_2 by H2_1
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 0] = -k11[i]*H_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by H2_2
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 1] = k10[i]*H_1;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by H_1
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 2] = k01[i]*de - k09[i]*H_2 + k10[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by H_2
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 3] = -k02[i]*de - k09[i]*H_1 - k11[i]*H2_1 - k16[i]*H_m0 - k17[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by H_m0
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 4] = -k16[i]*H_2 - k17[i]*H_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 3*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by He_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 3*nchem+ 6] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 3*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by de
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 8] = k01[i]*H_1 - k02[i]*H_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_2 by ge
 
-        
+
         Jdata[nnzper*groupj + 3*nchem+ 9] = -H2_1*H_2*rk11[i] + H2_2*H_1*rk10[i] - H_1*H_2*rk09[i] + H_1*de*rk01[i] - H_2*H_m0*rk16[i] - H_2*H_m0*rk17[i] - H_2*de*rk02[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 3*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: H_m0
         //
-        
-        
+
+
         // H_m0 by H2_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 4*nchem+ 0] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by H2_2
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 1] = -k19[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by H_1
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 2] = k07[i]*de - k08[i]*H_m0 - k15[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by H_2
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 3] = -k16[i]*H_m0 - k17[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by H_m0
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 4] = -k08[i]*H_1 - k14[i]*de - k15[i]*H_1 - k16[i]*H_2 - k17[i]*H_2 - k19[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 4*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by He_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 4*nchem+ 6] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 4*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by de
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 8] = k07[i]*H_1 - k14[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // H_m0 by ge
 
-        
+
         Jdata[nnzper*groupj + 4*nchem+ 9] = -H2_2*H_m0*rk19[i] - H_1*H_m0*rk08[i] - H_1*H_m0*rk15[i] + H_1*de*rk07[i] - H_2*H_m0*rk16[i] - H_2*H_m0*rk17[i] - H_m0*de*rk14[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 4*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: He_1
         //
-        
-        
+
+
         // He_1 by H2_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 0] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by H2_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 1] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by H_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 2] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by H_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 3] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by H_m0
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 4] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by He_1
 
-        
+
         Jdata[nnzper*groupj + 5*nchem+ 5] = -k03[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by He_2
 
-        
+
         Jdata[nnzper*groupj + 5*nchem+ 6] = k04[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by He_3
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 5*nchem+ 7] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by de
 
-        
+
         Jdata[nnzper*groupj + 5*nchem+ 8] = -k03[i]*He_1 + k04[i]*He_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_1 by ge
 
-        
+
         Jdata[nnzper*groupj + 5*nchem+ 9] = -He_1*de*rk03[i] + He_2*de*rk04[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 5*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: He_2
         //
-        
-        
+
+
         // He_2 by H2_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 6*nchem+ 0] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by H2_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 6*nchem+ 1] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by H_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 6*nchem+ 2] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by H_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 6*nchem+ 3] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by H_m0
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 6*nchem+ 4] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by He_1
 
-        
+
         Jdata[nnzper*groupj + 6*nchem+ 5] = k03[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by He_2
 
-        
+
         Jdata[nnzper*groupj + 6*nchem+ 6] = -k04[i]*de - k05[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by He_3
 
-        
+
         Jdata[nnzper*groupj + 6*nchem+ 7] = k06[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by de
 
-        
+
         Jdata[nnzper*groupj + 6*nchem+ 8] = k03[i]*He_1 - k04[i]*He_2 - k05[i]*He_2 + k06[i]*He_3;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_2 by ge
 
-        
+
         Jdata[nnzper*groupj + 6*nchem+ 9] = He_1*de*rk03[i] - He_2*de*rk04[i] - He_2*de*rk05[i] + He_3*de*rk06[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 6*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: He_3
         //
-        
-        
+
+
         // He_3 by H2_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 0] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by H2_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 1] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by H_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 2] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by H_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 3] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by H_m0
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 4] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by He_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 7*nchem+ 5] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by He_2
 
-        
+
         Jdata[nnzper*groupj + 7*nchem+ 6] = k05[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by He_3
 
-        
+
         Jdata[nnzper*groupj + 7*nchem+ 7] = -k06[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by de
 
-        
+
         Jdata[nnzper*groupj + 7*nchem+ 8] = k05[i]*He_2 - k06[i]*He_3;
-        
 
-        
 
-        
-        
+
+
+
+
         // He_3 by ge
 
-        
+
         Jdata[nnzper*groupj + 7*nchem+ 9] = He_2*de*rk05[i] - He_3*de*rk06[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 7*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: de
         //
-        
-        
+
+
         // de by H2_1
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 8*nchem+ 0] = ZERO;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by H2_2
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 1] = -k18[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by H_1
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 2] = k01[i]*de - k07[i]*de + k08[i]*H_m0 + k15[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by H_2
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 3] = -k02[i]*de + k17[i]*H_m0;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by H_m0
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 4] = k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + k17[i]*H_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by He_1
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 5] = k03[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by He_2
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 6] = -k04[i]*de + k05[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by He_3
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 7] = -k06[i]*de;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by de
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 8] = k01[i]*H_1 - k02[i]*H_2 + k03[i]*He_1 - k04[i]*He_2 + k05[i]*He_2 - k06[i]*He_3 - k07[i]*H_1 + k14[i]*H_m0 - k18[i]*H2_2;
-        
 
-        
 
-        
-        
+
+
+
+
         // de by ge
 
-        
+
         Jdata[nnzper*groupj + 8*nchem+ 9] = -H2_2*de*rk18[i] + H_1*H_m0*rk08[i] + H_1*H_m0*rk15[i] + H_1*de*rk01[i] - H_1*de*rk07[i] + H_2*H_m0*rk17[i] - H_2*de*rk02[i] + H_m0*de*rk14[i] + He_1*de*rk03[i] - He_2*de*rk04[i] + He_2*de*rk05[i] - He_3*de*rk06[i];
-        
 
-        
 
-        
+
+
+
         Jdata[nnzper*groupj+ 8*nchem+ 9] *= Tge[i];
-        
+
         //
         // Species: ge
         //
-        
-        
+
+
         // ge by H2_1
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 0] = -2.0158800000000001*cie_cooling_cieco[i]*mdensity - gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0) - 0.5*h2formation_h2mcool[i]*H_1*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2);
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 0] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by H2_2
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 9*nchem+ 1] = ZERO;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 1] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by H_1
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 2] = -ceHI_ceHI[i]*de - ciHI_ciHI[i]*de - gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2) + 0.5*(-h2formation_h2mcool[i]*H2_1 + 3*h2formation_h2mheat[i]*pow(H_1, 2))*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0);
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 2] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by H_2
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 3] = -brem_brem[i]*de - gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - reHII_reHII[i]*de;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 3] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by H_m0
 
-        
+
         // because the Jacobian is initialized to zeros by default
         Jdata[nnzper*groupj+ 9*nchem+ 4] = ZERO;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 4] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by He_1
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 5] = -ciHeI_ciHeI[i]*de - gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2));
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 5] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by He_2
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 6] = -brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - reHeII1_reHeII1[i]*de - reHeII2_reHeII2[i]*de;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 6] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by He_3
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 7] = -4.0*brem_brem[i]*de - reHeIII_reHeIII[i]*de;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 7] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by de
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 8] = brem_brem[i]*(-H_2 - He_2 - 4.0*He_3) - ceHI_ceHI[i]*H_1 - ceHeII_ceHeII[i]*He_2 - 2*ceHeI_ceHeI[i]*He_2*de - ciHI_ciHI[i]*H_1 - ciHeII_ciHeII[i]*He_2 - 2*ciHeIS_ciHeIS[i]*He_2*de - ciHeI_ciHeI[i]*He_1 - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) - gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - reHII_reHII[i]*H_2 - reHeII1_reHeII1[i]*He_2 - reHeII2_reHeII2[i]*He_2 - reHeIII_reHeIII[i]*He_3;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 8] *= inv_mdensity;
-        
 
-        
-        
+
+
+
         // ge by ge
 
-        
+
         Jdata[nnzper*groupj + 9*nchem+ 9] = -gloverabel08_h2lte[i]*H2_1*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2) - rgloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de))/pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0) - 2.0158800000000001*H2_1*mdensity*rcie_cooling_cieco[i] - H_1*de*rceHI_ceHI[i] - H_1*de*rciHI_ciHI[i] - H_2*de*rreHII_reHII[i] - He_1*de*rciHeI_ciHeI[i] - He_2*pow(de, 2)*rceHeI_ceHeI[i] - He_2*pow(de, 2)*rciHeIS_ciHeIS[i] - He_2*de*rceHeII_ceHeII[i] - He_2*de*rciHeII_ciHeII[i] - He_2*de*rreHeII1_reHeII1[i] - He_2*de*rreHeII2_reHeII2[i] - He_3*de*rreHeIII_reHeIII[i] - de*rbrem_brem[i]*(H_2 + He_2 + 4.0*He_3) - de*rcompton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2) - 1.0*rh2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1)) + 0.5*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 9] *= inv_mdensity;
-        
 
-        
+
+
         Jdata[nnzper*groupj+ 9*nchem+ 9] *= Tge[i];
-        
+
 
     }
     /*
@@ -2608,7 +2608,7 @@ static void sparse_jacobian_kernel(realtype *ydata, realtype *Jdata, primordial_
     double z, T;
     double *h2_optical_depth_approx_arr = data.h2_optical_depth_approx;
     double *cie_optical_depth_approx_arr = data.cie_optical_depth_approx;
-    groupj = blockIdx.x*blockDim.x + threadIdx.x; 
+    groupj = blockIdx.x*blockDim.x + threadIdx.x;
 
     T = 1000.0;
     z = 0.0;
@@ -2734,275 +2734,275 @@ static void sparse_jacobian_kernel(realtype *ydata, realtype *Jdata, primordial_
         // H2_1 by H2_1
         Jdata[nnzper*groupj+0] = -k11[i]*H_2 - k12[i]*de - k13[i]*H_1 + k21[i]*pow(H_1, 2) - 2*k23[i]*H2_1;
 
-        
+
         // H2_1 by H2_2
         Jdata[nnzper*groupj+1] = k10[i]*H_1 + k19[i]*H_m0;
 
-        
+
         // H2_1 by H_1
         Jdata[nnzper*groupj+2] = k08[i]*H_m0 + k10[i]*H2_2 - k13[i]*H2_1 + 2*k21[i]*H2_1*H_1 + 3*k22[i]*pow(H_1, 2);
 
-        
+
         // H2_1 by H_2
         Jdata[nnzper*groupj+3] = -k11[i]*H2_1;
 
-        
+
         // H2_1 by H_m0
         Jdata[nnzper*groupj+4] = k08[i]*H_1 + k19[i]*H2_2;
 
-        
+
         // H2_1 by de
         Jdata[nnzper*groupj+5] = -k12[i]*H2_1;
 
-        
+
         // H2_1 by ge
         Jdata[nnzper*groupj+6] = -pow(H2_1, 2)*rk23[i] + H2_1*pow(H_1, 2)*rk21[i] - H2_1*H_1*rk13[i] - H2_1*H_2*rk11[i] - H2_1*de*rk12[i] + H2_2*H_1*rk10[i] + H2_2*H_m0*rk19[i] + pow(H_1, 3)*rk22[i] + H_1*H_m0*rk08[i];
 
-        
+
         Jdata[nnzper*groupj+6] *= Tge[i];
         // H2_2 by H2_1
         Jdata[nnzper*groupj+7] = k11[i]*H_2;
 
-        
+
         // H2_2 by H2_2
         Jdata[nnzper*groupj+8] = -k10[i]*H_1 - k18[i]*de - k19[i]*H_m0;
 
-        
+
         // H2_2 by H_1
         Jdata[nnzper*groupj+9] = k09[i]*H_2 - k10[i]*H2_2;
 
-        
+
         // H2_2 by H_2
         Jdata[nnzper*groupj+10] = k09[i]*H_1 + k11[i]*H2_1 + k17[i]*H_m0;
 
-        
+
         // H2_2 by H_m0
         Jdata[nnzper*groupj+11] = k17[i]*H_2 - k19[i]*H2_2;
 
-        
+
         // H2_2 by de
         Jdata[nnzper*groupj+12] = -k18[i]*H2_2;
 
-        
+
         // H2_2 by ge
         Jdata[nnzper*groupj+13] = H2_1*H_2*rk11[i] - H2_2*H_1*rk10[i] - H2_2*H_m0*rk19[i] - H2_2*de*rk18[i] + H_1*H_2*rk09[i] + H_2*H_m0*rk17[i];
 
-        
+
         Jdata[nnzper*groupj+13] *= Tge[i];
         // H_1 by H2_1
         Jdata[nnzper*groupj+14] = k11[i]*H_2 + 2*k12[i]*de + 2*k13[i]*H_1 - 2*k21[i]*pow(H_1, 2) + 4*k23[i]*H2_1;
 
-        
+
         // H_1 by H2_2
         Jdata[nnzper*groupj+15] = -k10[i]*H_1 + 2*k18[i]*de + k19[i]*H_m0;
 
-        
+
         // H_1 by H_1
         Jdata[nnzper*groupj+16] = -k01[i]*de - k07[i]*de - k08[i]*H_m0 - k09[i]*H_2 - k10[i]*H2_2 + 2*k13[i]*H2_1 + k15[i]*H_m0 - 4*k21[i]*H2_1*H_1 - 6*k22[i]*pow(H_1, 2);
 
-        
+
         // H_1 by H_2
         Jdata[nnzper*groupj+17] = k02[i]*de - k09[i]*H_1 + k11[i]*H2_1 + 2*k16[i]*H_m0;
 
-        
+
         // H_1 by H_m0
         Jdata[nnzper*groupj+18] = -k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + 2*k16[i]*H_2 + k19[i]*H2_2;
 
-        
+
         // H_1 by de
         Jdata[nnzper*groupj+19] = -k01[i]*H_1 + k02[i]*H_2 - k07[i]*H_1 + 2*k12[i]*H2_1 + k14[i]*H_m0 + 2*k18[i]*H2_2;
 
-        
+
         // H_1 by ge
         Jdata[nnzper*groupj+20] = 2*pow(H2_1, 2)*rk23[i] - 2*H2_1*pow(H_1, 2)*rk21[i] + 2*H2_1*H_1*rk13[i] + H2_1*H_2*rk11[i] + 2*H2_1*de*rk12[i] - H2_2*H_1*rk10[i] + H2_2*H_m0*rk19[i] + 2*H2_2*de*rk18[i] - 2*pow(H_1, 3)*rk22[i] - H_1*H_2*rk09[i] - H_1*H_m0*rk08[i] + H_1*H_m0*rk15[i] - H_1*de*rk01[i] - H_1*de*rk07[i] + 2*H_2*H_m0*rk16[i] + H_2*de*rk02[i] + H_m0*de*rk14[i];
 
-        
+
         Jdata[nnzper*groupj+20] *= Tge[i];
         // H_2 by H2_1
         Jdata[nnzper*groupj+21] = -k11[i]*H_2;
 
-        
+
         // H_2 by H2_2
         Jdata[nnzper*groupj+22] = k10[i]*H_1;
 
-        
+
         // H_2 by H_1
         Jdata[nnzper*groupj+23] = k01[i]*de - k09[i]*H_2 + k10[i]*H2_2;
 
-        
+
         // H_2 by H_2
         Jdata[nnzper*groupj+24] = -k02[i]*de - k09[i]*H_1 - k11[i]*H2_1 - k16[i]*H_m0 - k17[i]*H_m0;
 
-        
+
         // H_2 by H_m0
         Jdata[nnzper*groupj+25] = -k16[i]*H_2 - k17[i]*H_2;
 
-        
+
         // H_2 by de
         Jdata[nnzper*groupj+26] = k01[i]*H_1 - k02[i]*H_2;
 
-        
+
         // H_2 by ge
         Jdata[nnzper*groupj+27] = -H2_1*H_2*rk11[i] + H2_2*H_1*rk10[i] - H_1*H_2*rk09[i] + H_1*de*rk01[i] - H_2*H_m0*rk16[i] - H_2*H_m0*rk17[i] - H_2*de*rk02[i];
 
-        
+
         Jdata[nnzper*groupj+27] *= Tge[i];
         // H_m0 by H2_2
         Jdata[nnzper*groupj+28] = -k19[i]*H_m0;
 
-        
+
         // H_m0 by H_1
         Jdata[nnzper*groupj+29] = k07[i]*de - k08[i]*H_m0 - k15[i]*H_m0;
 
-        
+
         // H_m0 by H_2
         Jdata[nnzper*groupj+30] = -k16[i]*H_m0 - k17[i]*H_m0;
 
-        
+
         // H_m0 by H_m0
         Jdata[nnzper*groupj+31] = -k08[i]*H_1 - k14[i]*de - k15[i]*H_1 - k16[i]*H_2 - k17[i]*H_2 - k19[i]*H2_2;
 
-        
+
         // H_m0 by de
         Jdata[nnzper*groupj+32] = k07[i]*H_1 - k14[i]*H_m0;
 
-        
+
         // H_m0 by ge
         Jdata[nnzper*groupj+33] = -H2_2*H_m0*rk19[i] - H_1*H_m0*rk08[i] - H_1*H_m0*rk15[i] + H_1*de*rk07[i] - H_2*H_m0*rk16[i] - H_2*H_m0*rk17[i] - H_m0*de*rk14[i];
 
-        
+
         Jdata[nnzper*groupj+33] *= Tge[i];
         // He_1 by He_1
         Jdata[nnzper*groupj+34] = -k03[i]*de;
 
-        
+
         // He_1 by He_2
         Jdata[nnzper*groupj+35] = k04[i]*de;
 
-        
+
         // He_1 by de
         Jdata[nnzper*groupj+36] = -k03[i]*He_1 + k04[i]*He_2;
 
-        
+
         // He_1 by ge
         Jdata[nnzper*groupj+37] = -He_1*de*rk03[i] + He_2*de*rk04[i];
 
-        
+
         Jdata[nnzper*groupj+37] *= Tge[i];
         // He_2 by He_1
         Jdata[nnzper*groupj+38] = k03[i]*de;
 
-        
+
         // He_2 by He_2
         Jdata[nnzper*groupj+39] = -k04[i]*de - k05[i]*de;
 
-        
+
         // He_2 by He_3
         Jdata[nnzper*groupj+40] = k06[i]*de;
 
-        
+
         // He_2 by de
         Jdata[nnzper*groupj+41] = k03[i]*He_1 - k04[i]*He_2 - k05[i]*He_2 + k06[i]*He_3;
 
-        
+
         // He_2 by ge
         Jdata[nnzper*groupj+42] = He_1*de*rk03[i] - He_2*de*rk04[i] - He_2*de*rk05[i] + He_3*de*rk06[i];
 
-        
+
         Jdata[nnzper*groupj+42] *= Tge[i];
         // He_3 by He_2
         Jdata[nnzper*groupj+43] = k05[i]*de;
 
-        
+
         // He_3 by He_3
         Jdata[nnzper*groupj+44] = -k06[i]*de;
 
-        
+
         // He_3 by de
         Jdata[nnzper*groupj+45] = k05[i]*He_2 - k06[i]*He_3;
 
-        
+
         // He_3 by ge
         Jdata[nnzper*groupj+46] = He_2*de*rk05[i] - He_3*de*rk06[i];
 
-        
+
         Jdata[nnzper*groupj+46] *= Tge[i];
         // de by H2_2
         Jdata[nnzper*groupj+47] = -k18[i]*de;
 
-        
+
         // de by H_1
         Jdata[nnzper*groupj+48] = k01[i]*de - k07[i]*de + k08[i]*H_m0 + k15[i]*H_m0;
 
-        
+
         // de by H_2
         Jdata[nnzper*groupj+49] = -k02[i]*de + k17[i]*H_m0;
 
-        
+
         // de by H_m0
         Jdata[nnzper*groupj+50] = k08[i]*H_1 + k14[i]*de + k15[i]*H_1 + k17[i]*H_2;
 
-        
+
         // de by He_1
         Jdata[nnzper*groupj+51] = k03[i]*de;
 
-        
+
         // de by He_2
         Jdata[nnzper*groupj+52] = -k04[i]*de + k05[i]*de;
 
-        
+
         // de by He_3
         Jdata[nnzper*groupj+53] = -k06[i]*de;
 
-        
+
         // de by de
         Jdata[nnzper*groupj+54] = k01[i]*H_1 - k02[i]*H_2 + k03[i]*He_1 - k04[i]*He_2 + k05[i]*He_2 - k06[i]*He_3 - k07[i]*H_1 + k14[i]*H_m0 - k18[i]*H2_2;
 
-        
+
         // de by ge
         Jdata[nnzper*groupj+55] = -H2_2*de*rk18[i] + H_1*H_m0*rk08[i] + H_1*H_m0*rk15[i] + H_1*de*rk01[i] - H_1*de*rk07[i] + H_2*H_m0*rk17[i] - H_2*de*rk02[i] + H_m0*de*rk14[i] + He_1*de*rk03[i] - He_2*de*rk04[i] + He_2*de*rk05[i] - He_3*de*rk06[i];
 
-        
+
         Jdata[nnzper*groupj+55] *= Tge[i];
         // ge by H2_1
         Jdata[nnzper*groupj+56] = -2.0158800000000001*cie_cooling_cieco[i]*mdensity - gloverabel08_gaH2[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - gloverabel08_h2lte[i]*h2_optical_depth_approx/(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0) - 0.5*h2formation_h2mcool[i]*H_1*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0) + 0.5*h2formation_ncrd2[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2);
 
-        
+
         Jdata[nnzper*groupj+56] *= inv_mdensity;
         // ge by H_1
         Jdata[nnzper*groupj+57] = -ceHI_ceHI[i]*de - ciHI_ciHI[i]*de - gloverabel08_gaHI[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) + 0.5*h2formation_ncrd1[i]*h2formation_ncrn[i]*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2) + 0.5*(-h2formation_h2mcool[i]*H2_1 + 3*h2formation_h2mheat[i]*pow(H_1, 2))*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0);
 
-        
+
         Jdata[nnzper*groupj+57] *= inv_mdensity;
         // ge by H_2
         Jdata[nnzper*groupj+58] = -brem_brem[i]*de - gloverabel08_gaHp[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - reHII_reHII[i]*de;
 
-        
+
         Jdata[nnzper*groupj+58] *= inv_mdensity;
         // ge by He_1
         Jdata[nnzper*groupj+59] = -ciHeI_ciHeI[i]*de - gloverabel08_gaHe[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2));
 
-        
+
         Jdata[nnzper*groupj+59] *= inv_mdensity;
         // ge by He_2
         Jdata[nnzper*groupj+60] = -brem_brem[i]*de - ceHeII_ceHeII[i]*de - ceHeI_ceHeI[i]*pow(de, 2) - ciHeII_ciHeII[i]*de - ciHeIS_ciHeIS[i]*pow(de, 2) - reHeII1_reHeII1[i]*de - reHeII2_reHeII2[i]*de;
 
-        
+
         Jdata[nnzper*groupj+60] *= inv_mdensity;
         // ge by He_3
         Jdata[nnzper*groupj+61] = -4.0*brem_brem[i]*de - reHeIII_reHeIII[i]*de;
 
-        
+
         Jdata[nnzper*groupj+61] *= inv_mdensity;
         // ge by de
         Jdata[nnzper*groupj+62] = brem_brem[i]*(-H_2 - He_2 - 4.0*He_3) - ceHI_ceHI[i]*H_1 - ceHeII_ceHeII[i]*He_2 - 2*ceHeI_ceHeI[i]*He_2*de - ciHI_ciHI[i]*H_1 - ciHeII_ciHeII[i]*He_2 - 2*ciHeIS_ciHeIS[i]*He_2*de - ciHeI_ciHeI[i]*He_1 - compton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) - gloverabel08_gael[i]*pow(gloverabel08_h2lte[i], 2)*H2_1*h2_optical_depth_approx/(pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2)*pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2)) - reHII_reHII[i]*H_2 - reHeII1_reHeII1[i]*He_2 - reHeII2_reHeII2[i]*He_2 - reHeIII_reHeIII[i]*He_3;
 
-        
+
         Jdata[nnzper*groupj+62] *= inv_mdensity;
         // ge by ge
         Jdata[nnzper*groupj+63] = -gloverabel08_h2lte[i]*H2_1*h2_optical_depth_approx*(-gloverabel08_h2lte[i]*(-H2_1*rgloverabel08_gaH2[i] - H_1*rgloverabel08_gaHI[i] - H_2*rgloverabel08_gaHp[i] - He_1*rgloverabel08_gaHe[i] - de*rgloverabel08_gael[i])/pow(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de, 2) - rgloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de))/pow(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0, 2) - H2_1*h2_optical_depth_approx*rgloverabel08_h2lte[i]/(gloverabel08_h2lte[i]/(gloverabel08_gaH2[i]*H2_1 + gloverabel08_gaHI[i]*H_1 + gloverabel08_gaHe[i]*He_1 + gloverabel08_gaHp[i]*H_2 + gloverabel08_gael[i]*de) + 1.0) - 2.0158800000000001*H2_1*mdensity*rcie_cooling_cieco[i] - H_1*de*rceHI_ceHI[i] - H_1*de*rciHI_ciHI[i] - H_2*de*rreHII_reHII[i] - He_1*de*rciHeI_ciHeI[i] - He_2*pow(de, 2)*rceHeI_ceHeI[i] - He_2*pow(de, 2)*rciHeIS_ciHeIS[i] - He_2*de*rceHeII_ceHeII[i] - He_2*de*rciHeII_ciHeII[i] - He_2*de*rreHeII1_reHeII1[i] - He_2*de*rreHeII2_reHeII2[i] - He_3*de*rreHeIII_reHeIII[i] - de*rbrem_brem[i]*(H_2 + He_2 + 4.0*He_3) - de*rcompton_comp_[i]*pow(z + 1.0, 4)*(T - 2.73*z - 2.73) + 0.5*pow(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0, -2.0)*(-h2formation_h2mcool[i]*H2_1*H_1 + h2formation_h2mheat[i]*pow(H_1, 3))*(-1.0*h2formation_ncrn[i]*(-H2_1*rh2formation_ncrd2[i] - H_1*rh2formation_ncrd1[i])/pow(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1, 2) - 1.0*rh2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1)) + 0.5*1.0/(h2formation_ncrn[i]/(h2formation_ncrd1[i]*H_1 + h2formation_ncrd2[i]*H2_1) + 1.0)*(-H2_1*H_1*rh2formation_h2mcool[i] + pow(H_1, 3)*rh2formation_h2mheat[i]);
 
-        
+
         Jdata[nnzper*groupj+63] *= inv_mdensity;
         Jdata[nnzper*groupj+63] *= Tge[i];
     }
@@ -3519,16 +3519,16 @@ int grid_performance()
             start = clock();
             cudaEventRecord(startCuda);
             run_dengo_struct(d, T, h2fraction, efraction, dims, &output[(i*nT+j)*nchem]);
-            
+
             cudaEventRecord(stopCuda);
             end = clock();
             cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims); 
+            printf("d=%0.5g; T=%0.5g;  %f seconds %lu cells; %0.5g percell \n", d, T, cpu_time_used, dims, cpu_time_used/ dims);
             cudaEventSynchronize(stopCuda);
             cudaEventElapsedTime(&milliseconds, startCuda, stopCuda);
 
-            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims); 
+            //printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims);
 
             timelapsed[i*nT+j] = milliseconds*1e-3;
             darray    [i*nT+j] = d;
@@ -3585,18 +3585,18 @@ int test_scaling_dims()
         cudaEventRecord(startCuda);
 
         run_dengo_struct(density, temperature, h2fraction, efraction, dims, &output[i*nchem]);
-        
+
         dims *= 2;
         cudaEventRecord(stopCuda);
         end = clock();
         cpu_time_used = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-        printf("took %f seconds to execute %lu \n", cpu_time_used, dims); 
+        printf("took %f seconds to execute %lu \n", cpu_time_used, dims);
         cudaEventSynchronize(stopCuda);
 
         cudaEventElapsedTime(&milliseconds, startCuda, stopCuda);
 
-        printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims); 
+        printf("took %f milliseconds to execute %lu; %0.5g percell \n", milliseconds, dims, milliseconds/ dims);
         // measured the time lapsed
         // and the cells needed
         ncells[i] = dims;
@@ -3625,7 +3625,7 @@ int run_dengo_struct(double density, double temperature, double h2fraction, doub
     // dengo solver interface
     DengoSolver s;
 
-    double *input, *rtol, *atol; 
+    double *input, *rtol, *atol;
     input = new double[dims*nchem];
     rtol  = new double[1];
     atol  = new double[dims*nchem];
@@ -3672,14 +3672,14 @@ int dengo_evolve_primordial_cuda (double dtf, double &dt, double z, double *inpu
     // Parameter    :   dtf     : Desired time to be reached by the solver
     //                  dt      : Pointer to the actual time reached by the solver
     //                  z       : Current redshift
-    //                  input   : Array to store the initial value of each species, 
+    //                  input   : Array to store the initial value of each species,
     //                            it will be updated with the value at time dt
     //                  rtol    : relative tolerance required for convergenece in each internal CVODE timesteps
     //                  atol    : absolute tolerance required for convergence in each interanl CVODE timesteps
     //                  dims    : dimension of the input array, i.e. no. of species * no. of cells
-    //                  data    : primordial_cuda_data object that relay the reaction/cooling rates, and normalizations 
+    //                  data    : primordial_cuda_data object that relay the reaction/cooling rates, and normalizations
     //                  temp_array: temperature of each cell by the end of the evolution
-    //                           
+    //
     //-----------------------------------------------------
 
     unsigned long i, j;
@@ -3783,7 +3783,7 @@ int dengo_evolve_primordial_cuda (double dtf, double &dt, double z, double *inpu
 
     realtype t;
     realtype reltol = rtol[0];
-    // split the input by batchsize, 
+    // split the input by batchsize,
     for (count = 0; count < ntimes; count++)
     {
         // update the yvector, and abstol
@@ -3833,7 +3833,7 @@ void initialize_long_ydata(double *ydata, unsigned long NSYSTEM, double density,
         // de
         ydata[i*nchem+8] = density*efraction;
         // ge
-        ydata[i*nchem+9] = 3./2.*kb* temperature / mh; 
+        ydata[i*nchem+9] = 3./2.*kb* temperature / mh;
 
     }
 }
@@ -3915,8 +3915,8 @@ void launchInterpolationKernel(primordial_cuda_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            linear_interpolation_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            linear_interpolation_kernel, blockSize,
             0);
 
     int device;
@@ -3924,13 +3924,13 @@ void launchInterpolationKernel(primordial_cuda_data *data)
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
 
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
 
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
-    printf("Launched blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 
 
@@ -3990,20 +3990,20 @@ void launchTemperatureKernel(primordial_cuda_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            temperature_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            temperature_kernel, blockSize,
             0);
     int device;
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
 
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
-    printf("Launched temperature Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched temperature Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 
     // end launch temp kernel
@@ -4051,20 +4051,20 @@ void launchRhsKernel(primordial_cuda_data *data)
     }
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            rhs_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            rhs_kernel, blockSize,
             0);
     int device;
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
 
-    printf("Launched Rhs Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched Rhs Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
     cudaDeviceSynchronize();
 }
@@ -4115,8 +4115,8 @@ void launchJacobianKernel(primordial_cuda_data *data)
     cudaDeviceSynchronize();
     // calculate theoretical occupancy
     int maxActiveBlocks;
-    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks, 
-            jacobian_kernel, blockSize, 
+    cudaOccupancyMaxActiveBlocksPerMultiprocessor( &maxActiveBlocks,
+            jacobian_kernel, blockSize,
             0);
     cudaError_t cuerr = cudaGetLastError();
     if (cuerr != cudaSuccess) {
@@ -4127,12 +4127,12 @@ void launchJacobianKernel(primordial_cuda_data *data)
     cudaDeviceProp props;
     cudaGetDevice(&device);
     cudaGetDeviceProperties(&props, device);
-    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) / 
-        (float)(props.maxThreadsPerMultiProcessor / 
+    float occupancy = (maxActiveBlocks * blockSize / props.warpSize) /
+        (float)(props.maxThreadsPerMultiProcessor /
                 props.warpSize);
     printf("maxActiveBlocks: %d; blockSize: %d; props.warpSize: %d\n", maxActiveBlocks, blockSize, props.warpSize);
     printf("MaxThreadsperSM: %d\n", props.maxThreadsPerMultiProcessor);
 
-    printf("Launched Jacobian Kernel blocks of size %d. Theoretical occupancy: %f\n", 
+    printf("Launched Jacobian Kernel blocks of size %d. Theoretical occupancy: %f\n",
             blockSize, occupancy);
 }

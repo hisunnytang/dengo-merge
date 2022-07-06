@@ -19,7 +19,7 @@
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
 /* Define the data structures */
 #include <cvdls_9species_solver.h>
- 
+
 
 /* Accessor macros */
 
@@ -49,7 +49,7 @@ typedef int(*jac_f)( realtype, N_Vector  , N_Vector , SUNMatrix , void *, N_Vect
 
 int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
-int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J, 
+int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 
 /* Private functions to output results */
@@ -73,12 +73,12 @@ static int check_flag(void *flagvalue, const char *funcname, int opt);
  * -------------------------------------------------------
  */
 
-int cvodes_main_solver( rhs_f f, jac_f Jac, 
+int cvodes_main_solver( rhs_f f, jac_f Jac,
                  double *input , double *rtol, double *atol, int NEQ, void *sdata, double *dt_now)
 {
     void *cvode_mem;
     int i, flag, flagr, iout;
-    realtype t, reltol; 
+    realtype t, reltol;
     N_Vector y, abstol;
     SUNLinearSolver LS;
     SUNMatrix A;
@@ -98,7 +98,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     abstol = N_VNew_Serial(NEQ);
     if (check_flag((void *)abstol, "N_VNew_Serial", 0)) return(1);
 
-    /* Initialize y 
+    /* Initialize y
      * Rescale the input variables to unity
      */
     double scale;
@@ -106,15 +106,15 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         data->scale[i] = input[i];
         scale = data->scale[i];
         Ith(y,i+1)      = input[i] / scale;
-        fprintf(stderr, "scale[%d]: %0.5g \n", i, scale);     
+        fprintf(stderr, "scale[%d]: %0.5g \n", i, scale);
     }
-    
+
     /* fixed the incoming abs tolerance */
     /* Set the vector absolute tolerance */
     for (i=0; i<NEQ; i++) {
         Ith(abstol,i+1) = 1.0e-9 ;
         }
-    
+
     /* Set the scalar relative tolerance */
     reltol = 1.0e-9;
 
@@ -122,7 +122,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Create CVODES object */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
-    
+
     /* Allocate space for CVODES */
     /* f: RHS function
      * y: Array of initial values
@@ -139,12 +139,12 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
      * and vector absolute tolerances */
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
     if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
-    
+
     /* Attach User Data */
     flag = CVodeSetUserData(cvode_mem, sdata);
     if (check_flag(&flag, "CVodeSetUserDatr", 1)) return(1);
-    
-    
+
+
     /*Create dense SUNMatrix for use in linear solves*/
     A = SUNDenseMatrix(NEQ, NEQ);
     /* Create dense SUNLinearSolver object for use by CVode */
@@ -154,39 +154,39 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Call CVDlsSetLinearSolver to attach the matrix and linear solver to CVode */
     flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
     if(check_flag(&flag, "CVDlsSetLinearSolver", 1)) return(1);
-    
+
     /* Set the user-supplied Jacobian routine Jac */
     flag = CVDlsSetJacFn(cvode_mem, Jac);
     if(check_flag(&flag, "CVDlsSetJacFn", 1)) return(1);
-    
+
     // /* Attach Linear Solver */
     //flag = CVDense(cvode_mem, NEQ);
     //if (check_flag(&flag,"CVDense", 1)) return(1);
-    
-    /* Attach the Jacobian Function */ 
+
+    /* Attach the Jacobian Function */
     //flag = CVDlsSetDenseJacFn(cvode_mem, Jac);
     //if (check_flag(&flag, "CVDlsSetDenseJacFn", 1)) return(1);
-    
-    
+
+
 
     t = 0;
     double tout = dt_now[0];
-    
+
     // tout is the desired output time
     // evolve CVODE in one dt
     flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
     /* t is the actual evolved time */
     dt_now[0]   = t;
-    
+
 
     // rescale the input
     for (i=0; i<NEQ; i++) {
-        scale = data->scale[i];    
+        scale = data->scale[i];
         input[i] = Ith(y,i+1)*scale;
         }
 
     /* Free Memory */
-    N_VDestroy(y); 
+    N_VDestroy(y);
     N_VDestroy(abstol);
     CVodeFree(&cvode_mem);
 
@@ -195,17 +195,17 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         /* The solver took mxstep internal steps but still could not reach tout */
         return 1;
     }
-    
+
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
          */
         return 1;
-    } 
+    }
     if (flag == CV_TOO_CLOSE){
-        /* The initial time t0 and the final time 
+        /* The initial time t0 and the final time
          * tout are too close to each other
-         * and the user did not specify an 
+         * and the user did not specify an
          * initial step size
          */
         return 1;
@@ -225,7 +225,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
  *   opt == 1 means SUNDIALS function returns a flag so check if
  *            flag >= 0
  *   opt == 2 means function allocates memory so check if returned
- *            NULL pointer 
+ *            NULL pointer
  */
 
 static int check_flag(void *flagvalue, const char *funcname, int opt)

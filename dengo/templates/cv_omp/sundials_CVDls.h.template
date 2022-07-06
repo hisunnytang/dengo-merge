@@ -122,7 +122,7 @@ typedef struct {{solver_name}}_data {
     {% endfor %}
     int bin_id[NTHREADS][MAX_NCELLS];
     int ncells;
-    
+
 
 
     // gamma as a function of temperature
@@ -133,14 +133,14 @@ typedef struct {{solver_name}}_data {
     // store the gamma for that particular step
     double gamma{{sp}}[NTHREADS][MAX_NCELLS];
     double dgamma{{sp}}_dT[NTHREADS][MAX_NCELLS];
-    
+
     // store 1 / (gamma - 1)
     double _gamma{{sp}}_m1[NTHREADS][MAX_NCELLS];
     {% endfor %}
 
     double scale[NTHREADS][{{network.required_species | length}} * MAX_NCELLS ];
     double inv_scale[NTHREADS][{{network.required_species | length}} * MAX_NCELLS];
-    
+
 
     int nstrip;
     double mdensity[NTHREADS][MAX_NCELLS];
@@ -152,9 +152,9 @@ typedef struct {{solver_name}}_data {
     {% if "gloverabel08" in network.cooling_actions %}
     double h2_optical_depth_approx[NTHREADS][MAX_NCELLS];
     {% endif %}
-    
+
     const char *dengo_data_file;
-    
+
     double reltol;
     double floor_value;
 } {{ solver_name }}_data;
@@ -172,7 +172,7 @@ typedef int(*jac_f)(N_Vector , N_Vector , realtype,
 #endif
 
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
         {{solver_name}}_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol, SUNContext sunctx);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, {{solver_name}}_data * data, N_Vector y, double reltol, N_Vector abstol );
@@ -191,8 +191,8 @@ int dengo_evolve_{{solver_name}} (double dtf, double &dt, double z,
                                      double *atol, unsigned long dims,
                                      {{solver_name}}_data *data, double *temp);
 
-double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,  
-                          double reltol,double *input, int v_size, int d, int start_idx, 
+double evolve_in_batches( void * cvode_mem, N_Vector y_vec, N_Vector abstol,
+                          double reltol,double *input, int v_size, int d, int start_idx,
                           int MAX_ITERATION, double dtf, {{solver_name}}_data *data );
 
 
@@ -224,7 +224,7 @@ int calculate_JacTimesVec_{{solver_name}}
 
 int calculate_rhs_{{solver_name}}(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 void ensure_electron_consistency(double *input, double *equil_array, unsigned long nstrip, int nchem);
-void temperature_from_mass_density(double *input, int nstrip, int nchem, 
+void temperature_from_mass_density(double *input, int nstrip, int nchem,
                                    double *strip_temperature);
 
 int {{ solver_name }}_calculate_temperature({{ solver_name }}_data *data, double *input, int nstrip, int nchem);
@@ -250,18 +250,18 @@ typedef struct dengo_field_data
 {
 
   unsigned long int nstrip;
-  unsigned long int ncells; 
+  unsigned long int ncells;
   // let's just pass them passively through field_data
   double reltol;
   double floor_value;
-  // This should be updated dynamically 
+  // This should be updated dynamically
   // with dengo
   double *density;
-  
+
   {%- for species in network.required_species | sort %}
   double *{{species.name}}_density;
   {%- endfor %}
-    
+
   double *CoolingTime;
   double *MolecularWeight;
   double *temperature;
@@ -294,7 +294,7 @@ int dengo_calculate_temperature( code_units*, dengo_field_data* );
 int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data*, double* input, int nstrip);
 int dengo_calculate_mean_molecular_weight( code_units*, dengo_field_data * );
 
-int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input, 
+int calculate_equilibrium_abundance( {{solver_name}}_data *data, double *input,
 	int nstrip, unsigned long d, unsigned long dims, double *equil_array);
 // Enzo interface
 int dengo_estimate_cooling_time_enzo( code_units* units, dengo_field_data *field_data );

@@ -5,9 +5,9 @@ void cvklu_read_rate_tables(cvklu_data *data)
 {
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
 
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -33,7 +33,7 @@ void cvklu_read_rate_tables(cvklu_data *data)
     H5LTread_dataset_double(file_id, "/k19", data->r_k19);
     H5LTread_dataset_double(file_id, "/k21", data->r_k21);
     H5LTread_dataset_double(file_id, "/k22", data->r_k22);
-    
+
     H5Fclose(file_id);
 }
 
@@ -43,9 +43,9 @@ void cvklu_read_cooling_tables(cvklu_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
@@ -114,23 +114,23 @@ void cvklu_read_gamma(cvklu_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
-    
+
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     H5LTread_dataset_double(file_id, "/gammaH2_1",
                             data->g_gammaH2_1 );
     H5LTread_dataset_double(file_id, "/dgammaH2_1_dT",
-                            data->g_dgammaH2_1_dT );   
-    
+                            data->g_dgammaH2_1_dT );
+
     H5LTread_dataset_double(file_id, "/gammaH2_2",
                             data->g_gammaH2_2 );
     H5LTread_dataset_double(file_id, "/dgammaH2_2_dT",
-                            data->g_dgammaH2_2_dT );   
-    
+                            data->g_dgammaH2_2_dT );
+
 
     H5Fclose(file_id);
 
@@ -142,13 +142,13 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
 
     //-----------------------------------------------------
     // Function : cvklu_setup_data
-    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    // Description: Initialize a data object that stores the reaction/ cooling rate data
     //-----------------------------------------------------
 
     int i, n;
-    
+
     cvklu_data *data = (cvklu_data *) malloc(sizeof(cvklu_data));
-    
+
     // point the module to look for cvklu_tables.h5
     data->dengo_data_file = FileLocation;
 
@@ -167,13 +167,13 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
     data->n_zbins = 0 - 1;
     data->d_zbin = (log(data->z_bounds[1] + 1.0) - log(data->z_bounds[0] + 1.0)) / data->n_zbins;
     data->id_zbin = 1.0L / data->d_zbin;
-    
+
     cvklu_read_rate_tables(data);
     //fprintf(stderr, "Successfully read in rate tables.\n");
 
     cvklu_read_cooling_tables(data);
     //fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    
+
     cvklu_read_gamma(data);
     //fprintf(stderr, "Successfully read in gamma tables. \n");
 
@@ -181,27 +181,27 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
         NumberOfFields[0] = 10;
         FieldNames[0] = new char*[10];
         i = 0;
-        
+
         FieldNames[0][i++] = strdup("H2_1");
-        
+
         FieldNames[0][i++] = strdup("H2_2");
-        
+
         FieldNames[0][i++] = strdup("H_1");
-        
+
         FieldNames[0][i++] = strdup("H_2");
-        
+
         FieldNames[0][i++] = strdup("H_m0");
-        
+
         FieldNames[0][i++] = strdup("He_1");
-        
+
         FieldNames[0][i++] = strdup("He_2");
-        
+
         FieldNames[0][i++] = strdup("He_3");
-        
+
         FieldNames[0][i++] = strdup("de");
-        
+
         FieldNames[0][i++] = strdup("ge");
-        
+
     }
 
     data->dengo_data_file = NULL;
@@ -234,9 +234,9 @@ void dengo_set_initial_conditions( double density, double T0, double fH2, int NU
     (*y_host) = (double*)malloc(NUM * NSP * sizeof(double));
     (*var_host) = (double*)malloc(NUM * sizeof(double));
     //load temperature and mass fractions for all threads (cells)
-    printf("NUM = %d; NSP = %d \n", NUM, NSP ); 
-    
-    
+    printf("NUM = %d; NSP = %d \n", NUM, NSP );
+
+
     double m_amu = 1.66053904e-24;
     density *= mH/ m_amu;
 
@@ -296,10 +296,8 @@ void dengo_set_additional_constant( double density, double temperature, int NUM,
     for (int i = 0; i < NUM; ++i) {
         (*temperature_array)[i] = temperature;
         (*density_array)    [i] = 1.0 * density * mH;
-        (*h2_optical_depth_approx)[i] = fmin( 1.0, pow(( mH *density / (1.34e-14)), -0.45) ); 
+        (*h2_optical_depth_approx)[i] = fmin( 1.0, pow(( mH *density / (1.34e-14)), -0.45) );
     }
 
 
 }
-
-

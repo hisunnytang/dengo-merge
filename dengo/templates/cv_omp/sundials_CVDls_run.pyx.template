@@ -213,7 +213,7 @@ def run_{{solver_name}}(ics, double tf, int niter = 10000,
             if iter % 100 == 0:
                 print("Successful iteration[% 5i]: (%0.3e) %0.3e / %0.3e" % (iter, dt, ttot, tf))
 
-            if adaptive_step: 
+            if adaptive_step:
                  dt *= 1.1
 
             if tf - ttot < dt:

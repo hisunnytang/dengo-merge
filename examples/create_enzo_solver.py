@@ -21,14 +21,21 @@ License:
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-from dengo.write_cvode_solver import create_tables, create_cvode_solver
-from dengo.primordial_rates import reaction_rates_table, reaction_table, \
-    species_table
-from dengo.primordial_cooling import cooling_action_table, CVODEPrinter, \
-    cooling_rates_table
+from dengo.primordial_cooling import (
+    CVODEPrinter,
+    cooling_action_table,
+    cooling_rates_table,
+)
+from dengo.primordial_rates import reaction_rates_table, reaction_table, species_table
+from dengo.write_cvode_solver import create_cvode_solver, create_tables
 
 create_tables(reaction_rates_table, cooling_rates_table, "enzo_primordial")
-create_cvode_solver(reaction_rates_table, reaction_table, species_table,
-                    "enzo_primordial",
-                    cooling_rates_table,
-                    cooling_action_table, CVODEPrinter)
+create_cvode_solver(
+    reaction_rates_table,
+    reaction_table,
+    species_table,
+    "enzo_primordial",
+    cooling_rates_table,
+    cooling_action_table,
+    CVODEPrinter,
+)

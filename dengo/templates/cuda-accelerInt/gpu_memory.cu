@@ -94,8 +94,8 @@ cudaErrorCheck( cudaMalloc(&((*h_mem)->work2), NSP * padded* sizeof(double) ));
 
 
   cudaErrorCheck( cudaMalloc(&((*h_mem)->var), 1 * padded * sizeof(double)) );
-  cudaErrorCheck( cudaMalloc(&((*h_mem)->chemistry_data), sizeof( cvklu_data ) )); 
-  //jacobian is not needed yet: 
+  cudaErrorCheck( cudaMalloc(&((*h_mem)->chemistry_data), sizeof( cvklu_data ) ));
+  //jacobian is not needed yet:
   cudaErrorCheck( cudaMalloc(&((*h_mem)->jac), NSP * NSP * padded * sizeof(double)) );
   cudaErrorCheck( cudaMalloc(&((*h_mem)->drrate_dT), REACTION_RATES * padded * sizeof(double)) );
   cudaErrorCheck( cudaMalloc(&((*h_mem)->dcrate_dT), COOLING_RATES  * padded * sizeof(double)) );
@@ -106,7 +106,7 @@ cudaErrorCheck( cudaMalloc(&((*h_mem)->work2), NSP * padded* sizeof(double) ));
   cudaErrorCheck( cudaMalloc(&((*h_mem)->rhs_call), sizeof(int)));
   cudaErrorCheck( cudaMalloc(&((*h_mem)->jac_call), sizeof(int)));
 
- 
+
   // initialize the arrays with values
   cudaErrorCheck( cudaMemset((*h_mem)->y,1.0, NSP * padded * sizeof(double)) );
   cudaErrorCheck( cudaMemset((*h_mem)->dy, 0, NSP * padded * sizeof(double)) );
@@ -120,8 +120,8 @@ cudaErrorCheck( cudaMalloc(&((*h_mem)->work2), NSP * padded* sizeof(double) ));
 
   cudaErrorCheck( cudaMemset((*h_mem)->temperature, 0, 1 * padded * sizeof(double)) );
   cudaErrorCheck( cudaMemcpy((*h_mem)->chemistry_data, *h_chem_data, sizeof(cvklu_data), cudaMemcpyHostToDevice ));
- 
- 
+
+
   cudaErrorCheck( cudaMemcpy(*d_mem, *h_mem, sizeof(mechanism_memory), cudaMemcpyHostToDevice) );
 
 

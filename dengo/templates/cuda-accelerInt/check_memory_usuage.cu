@@ -165,7 +165,7 @@ int main (int argc, char *argv[])
     double density = 1.0e10; // cm**-3
     double temperature = 1000.0; // K
     double fH2  = 1.0e-6;
-    
+
     // check for problem size given as command line option
     if (argc > 2)
     {
@@ -214,7 +214,7 @@ int main (int argc, char *argv[])
         printf("temperature = %0.5g\n", temperature);
         printf("fH2         = %0.5g\n", fH2);
 
-    } else{ 
+    } else{
         printf("no input specified...\n");
         printf("using default test parameter\n");
         printf("NUM = %d \n",NUM);
@@ -228,7 +228,7 @@ int main (int argc, char *argv[])
     cudaDeviceProp devProp;
     cudaErrorCheck (cudaSetDevice (0) );
     cudaErrorCheck (cudaGetDeviceProperties(&devProp, 0));
-    
+
 
     cudaErrorCheck( cudaDeviceReset() );
     cudaErrorCheck( cudaPeekAtLastError() );
@@ -283,8 +283,8 @@ int main (int argc, char *argv[])
     double *temperature_array;
     double *density_array;
     double *h2_optical_depth_array;
-    dengo_set_additional_constant(density, temperature, NUM, &y_host, 
-                                 &temperature_array, &density_array, &h2_optical_depth_array ); 
+    dengo_set_additional_constant(density, temperature, NUM, &y_host,
+                                 &temperature_array, &density_array, &h2_optical_depth_array );
     double* temp_temp = 0;
     temp_temp = (double*)malloc(padded * sizeof(double));
     double* density_temp = 0;
@@ -297,7 +297,7 @@ int main (int argc, char *argv[])
     #ifdef SCALE_INPUT
     double* _y_host;
     _y_host = (double*) malloc(NUM*NSP*sizeof(double));
-    
+
     for (int i = 0; i < NSP*NUM; i++){
        _y_host[i] = 1.0 / y_host[i];
     }
@@ -318,7 +318,7 @@ int main (int argc, char *argv[])
     printf ("grid size: %d \t block size: %d\n", padded / TARGET_BLOCK_SIZE, TARGET_BLOCK_SIZE);
     printf ("max_threads: %d \n", max_threads);
     printf ("padded: %d\n ", padded);
-    
+
     double* y_temp = 0;
     y_temp = (double*)malloc(padded * NSP * sizeof(double));
     #ifdef SCALE_INPUT
@@ -370,7 +370,7 @@ int main (int argc, char *argv[])
                             num_solved, num_cond * sizeof(double), 1);
 
 
-	    // 
+	    //
 
             #ifdef SCALE_INPUT
             // copy additional inv_scale into _y_temp
@@ -381,7 +381,7 @@ int main (int argc, char *argv[])
             cudaErrorCheck( cudaMemcpy2D ( host_mech->y, padded * sizeof(double),
                                             ones, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
-                                            cudaMemcpyHostToDevice) );           
+                                            cudaMemcpyHostToDevice) );
             cudaErrorCheck( cudaMemcpy2D ( host_mech->scale, padded * sizeof(double),
                                             y_temp, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
@@ -405,14 +405,14 @@ int main (int argc, char *argv[])
                                             cudaMemcpyHostToDevice) );
 
 
-         
+
             cudaErrorCheck( cudaMemcpy( device_mech, host_mech, sizeof(mechanism_memory), cudaMemcpyHostToDevice) );
 
 
 /*
             cudaErrorCheck( cudaMemcpy(device_mech->scale, y_temp, num_cond* NSP * sizeof(double), cudaMemcpyHostToDevice) );
             cudaErrorCheck( cudaMemcpy(device_mech->inv_scale, _y_temp, num_cond* NSP * sizeof(double), cudaMemcpyHostToDevice) );
-*/            
+*/
             #else
             // transfer memory to GPU
             cudaErrorCheck( cudaMemcpy2D (host_mech->y, padded * sizeof(double),
@@ -478,7 +478,7 @@ int main (int argc, char *argv[])
         t = t_next;
        // t_next = fmin(end_time, pow(1.1, (numSteps + 1 )) * t_step);
         t_next = fmin(end_time, (numSteps + 1) * t_step);
-        
+
         for (int i = 0; i < 10; i++){
            printf("y_final[%d] = %0.5g\n", i, y_host[i*NUM]);
         }
@@ -496,7 +496,7 @@ int main (int argc, char *argv[])
           }
           printf("\n");
         }
-        
+
         // check if within bounds
         if (y_host[0] != y_host[0] ){
           printf("Error, out of bounds.\n");
@@ -524,10 +524,9 @@ int main (int argc, char *argv[])
     free(host_mech);
     free(host_solver);
     free(result_flag);
-    
+
     cudaErrorCheck( cudaDeviceReset() );
     cudaErrorCheck( cudaPeekAtLastError() );
- 
+
     return 0;
 }
-

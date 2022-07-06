@@ -1,13 +1,13 @@
-from dengo.chemical_network import \
-    ChemicalNetwork, \
-    reaction_registry, \
-    cooling_registry
-from dengo.reaction_classes import index_i, count_m
-import dengo.primordial_rates, dengo.primordial_cooling
-import dengo.oxygen_rates, dengo.oxygen_cooling
-from dengo.write_rate_reader import create_rate_tables, create_rate_reader
 import sympy
 from sympy.printing import print_ccode
+
+import dengo.oxygen_cooling
+import dengo.oxygen_rates
+import dengo.primordial_cooling
+import dengo.primordial_rates
+from dengo.chemical_network import ChemicalNetwork, cooling_registry, reaction_registry
+from dengo.reaction_classes import count_m, index_i
+from dengo.write_rate_reader import create_rate_reader, create_rate_tables
 
 oxygen = ChemicalNetwork()
 for ca in list(cooling_registry.values()):
@@ -26,7 +26,7 @@ print(("\n".join([s.name for s in sorted(oxygen.required_species)])))
 
 functions = []
 
-cooling = sum(v.equation for n,v in sorted(oxygen.cooling_actions.items()))
+cooling = sum(v.equation for n, v in sorted(oxygen.cooling_actions.items()))
 
 for species in oxygen.required_species:
     print()
@@ -35,8 +35,8 @@ for species in oxygen.required_species:
     eq = oxygen.species_total(species)
     oxygen.print_ccode(species)
     oxygen.print_jacobian(species)
-    #ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
-    #print_ccode(eq, assign_to = ds_dt)
+    # ds_dt = sympy.IndexedBase("d_%s[i]" % species.name, (count_m,))
+    # print_ccode(eq, assign_to = ds_dt)
 
 T_bounds = [1.0e4, 1.0e8]
 oxygen.init_temperature(T_bounds)

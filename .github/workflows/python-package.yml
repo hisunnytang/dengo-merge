@@ -41,11 +41,11 @@ jobs:
           echo "$DENGO_INSTALL_PATH"
           echo "$LD_LIBRARY_PATH"
           gcc --version
-          
+
           #ls ${CONDA}/envs/test/lib/libsundials_*
-          #python examples/test/run_prey_predator.py 
+          #python examples/test/run_prey_predator.py
           pytest -vv
-          #pytest -vv -s --pdb 
+          #pytest -vv -s --pdb
           #- name: setup tmate session
           #uses: mxschmitt/action-tmate@v3
           #timeout-minutes: 45

@@ -725,7 +725,7 @@ __device__ void integrate (const double t_start,
 				} else {
 					eval_jacob_accurate (t, var, y, A, mech);
 				}
-#else	
+#else
 				eval_jacob (t, var, y, A, mech, work1, work2);
 #endif
 			}
@@ -876,7 +876,7 @@ __device__ void integrate (const double t_start,
 				SkipJac = false;
 				SkipLU = false;
 				FailedIntegration = true;
-				UseAccurateJac = true;	
+				UseAccurateJac = true;
 				if (FirstStep || Reject) {
 					H = FacRej * H;
 				} else {
@@ -925,7 +925,7 @@ __device__ void integrate (const double t_start,
 					SkipLU  = false;
 					FirstStep = false;
 					break;
-				}				
+				}
 
 			}
 			// Construct the solution quadratic interpolant Q(c_i) = Z_i, i=1:3
@@ -946,7 +946,7 @@ __device__ void integrate (const double t_start,
 	            // Reuse the LU decomposition
 	            SkipLU = (Theta <= ThetaMin) && (Hratio>=Qmin) && (Hratio<=Qmax);
                 /*
-                if (T_ID ==0 ) 
+                if (T_ID ==0 )
                 {
                     printf("SkipLU = %d, H = %0.5g; Hnew = %0.5g; Fac = %0.5g\n", SkipLU, H, Hnew, Fac);
                 }
@@ -965,7 +965,7 @@ __device__ void integrate (const double t_start,
 /////////////////////////////////////////////////////////////////////////
 		// try to rescale the input when some value of the y
 		// falls below the ATOL;
-	
+
 #ifdef RESCALE_SOLVER
 	if (Nsteps % 10000 == 0){
 		#pragma unroll 8
@@ -973,7 +973,7 @@ __device__ void integrate (const double t_start,
 			if ( y[INDEX(i)] < RTOL ){
 				mech->scale[INDEX(i)] *= y[INDEX(i)];
 				mech->inv_scale[INDEX(i)] = 1.0 / mech->scale[INDEX(i)];
-				y[INDEX(i)] = 1.0;			
+				y[INDEX(i)] = 1.0;
 				if (T_ID == 0) {
 					printf("rescaling at t= %0.5g\n", t);
 				}
@@ -999,7 +999,7 @@ __device__ void integrate (const double t_start,
 			Reject = true;
 			SkipJac = true;
 			SkipLU = false;
-		/*	
+		/*
 			if ( T_ID == 0){
 				printf("at time = %0.5g\n", t);
 				for ( int i = 0; i < NSP; i++){

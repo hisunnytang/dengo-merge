@@ -26,8 +26,7 @@ import csv, os
 periodic_table_by_name = {}
 periodic_table_by_number = {}
 
-fn = os.path.join(os.path.dirname(__file__),
-                  "periodictabledump.csv")
+fn = os.path.join(os.path.dirname(__file__), "periodictabledump.csv")
 
 with open(fn, "r") as csvfile:
     pt_reader = csv.reader(csvfile)

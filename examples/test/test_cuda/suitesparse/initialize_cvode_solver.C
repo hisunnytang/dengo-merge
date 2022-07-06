@@ -51,7 +51,7 @@
 int f(realtype t, N_Vector y, N_Vector ydot, void *user_data);
 
 #ifndef CVSPILS
-int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J, 
+int Jac(realtype t, N_Vector y, N_Vector fy, SUNMatrix J,
         void *user_data, N_Vector tmp1, N_Vector tmp2, N_Vector tmp3);
 #endif
 
@@ -64,31 +64,31 @@ int Jac(N_Vector v, N_Vector Jv, realtype t,
 static int check_flag(void *flagvalue, const char *funcname, int opt);
 
 int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, primordial_data * data, N_Vector y , double reltol, N_Vector abstol){
-    
+
     int flag, cvode_flag, i;
 
     flag = CVodeReInit( cvode_mem, 0.0, y);
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol  );
-    
+
     double tout = dt[0];
     cvode_flag = CVode( cvode_mem, tout, y, dt, CV_NORMAL);
-    
+
     for ( i = 0; i < NEQ; i++){
        output[i] = NV_Ith_S(y, i);
     }
-    
+
     #ifdef PRINT_CVODE_STATS
     long int nsteps, nfevals, nlinsetups, netfails;
     int qlast, qcur;
     realtype hinused, hlast, hcur, tcur;
     flag = CVodeGetIntegratorStats(cvode_mem, &nsteps, &nfevals, &nlinsetups, &netfails, &qlast, &qcur, &hinused, &hlast, &hcur, &tcur);
-    
+
     fprintf(stderr, "-----Printing Integrator Stats------- \n");
     fprintf(stderr, "nsteps    : %ld \n", nsteps);
     fprintf(stderr, "nfevals   : %ld \n", nfevals);
     fprintf(stderr, "nlinsetups: %ld \n", nlinsetups);
     fprintf(stderr, "netfails  : %ld \n", netfails);
-    
+
     N_Vector ele, eweight;
     ele = NULL;
     eweight = NULL;
@@ -97,9 +97,9 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, primordi
 
     flag = CVodeGetEstLocalErrors(cvode_mem, ele);
     flag = CVodeGetErrWeights(cvode_mem, eweight);
-    fprintf(stderr, "-----Printing Local Errors   ------- \n");    
+    fprintf(stderr, "-----Printing Local Errors   ------- \n");
     for ( i = 0; i < NEQ; i++){
-        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) ); 
+        fprintf(stderr, "Local Error[ %d ] = %0.5g \n", i, NV_Ith_S( ele, i) );
         fprintf(stderr, "Error Weight      = %0.5g \n", NV_Ith_S(eweight, i) );
         fprintf(stderr, "contributions to error test = %0.5g \n",  NV_Ith_S( ele, i) * NV_Ith_S(eweight, i) );
         fprintf(stderr, "-------------------------------\n");
@@ -114,19 +114,19 @@ int cvode_solver( void *cvode_mem, double *output, int NEQ, double *dt, primordi
 
 }
 
-void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ, 
+void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
         primordial_data *data, SUNLinearSolver LS, SUNMatrix A, N_Vector y, double reltol, N_Vector abstol){
-    
+
     void *cvode_mem;
     cvode_mem = NULL;
-    
+
     int i, flag;
 
     /* Create CVODES object */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(NULL);
-    
-    
+
+
     /* Allocate space for CVODES */
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(NULL);
@@ -136,35 +136,35 @@ void *setup_cvode_solver( rhs_f f, jac_f Jac,  int NEQ,
 
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
     if (check_flag(&flag, "CVodeSStolerances", 1)) return(NULL);
-    
+
     /* Attach User Data */
     flag = CVodeSetUserData(cvode_mem, data);
     if (check_flag(&flag, "CVodeSetUserData", 1)) return(NULL);
-        
+
     #ifndef CVSPILS
-    /* Call CVDlsSetLinearSolver to attach the matrix 
+    /* Call CVDlsSetLinearSolver to attach the matrix
      * and linear solver to CVode */
     flag = CVDlsSetLinearSolver(cvode_mem, LS, A);
     if(check_flag(&flag, "CVDlsSetLinearSolver", 1)) return(NULL);
-    
+
     /* Set the user-supplied Jacobian routine Jac */
     flag = CVDlsSetJacFn(cvode_mem, Jac);
     if(check_flag(&flag, "CVDlsSetJacFn", 1)) return(NULL);
-    #endif 
+    #endif
 
     #ifdef CVSPILS
     LS = SUNSPGMR(y, PREC_NONE, 0);
     if(check_flag(&flag, "SUNSPGMR", 1)) return(NULL);
-    
+
 
     flag = CVSpilsSetLinearSolver(cvode_mem, LS);
     if(check_flag(&flag, "CVSpilsSetLinearSolver", 1)) return(NULL);
     /* Set the JAcobian-times-vector function */
     // flag = CVSpilsSetJacTimes(cvode_mem, NULL,Jac);
     // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(NULL);
- 
+
     #endif
-    
+
 
 
     return cvode_mem;

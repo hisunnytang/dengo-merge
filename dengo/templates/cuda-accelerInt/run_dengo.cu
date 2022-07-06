@@ -160,7 +160,7 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
 #ifdef DEBUG
     feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
 #endif
-   
+
     cudaProfilerStart();
     // set & initialize device using command line argument (if any)
     cudaDeviceProp devProp;
@@ -218,8 +218,8 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
     double *temperature_array;
     double *density_array;
     double *h2_optical_depth_array;
-    dengo_set_additional_constant(density, temperature, NUM, &y_host, 
-                                 &temperature_array, &density_array, &h2_optical_depth_array ); 
+    dengo_set_additional_constant(density, temperature, NUM, &y_host,
+                                 &temperature_array, &density_array, &h2_optical_depth_array );
     double* temp_temp = 0;
     temp_temp = (double*)malloc(padded * sizeof(double));
     double* density_temp = 0;
@@ -304,7 +304,7 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
                             num_solved, num_cond * sizeof(double), 1);
 
 
-	    // 
+	    //
 
             #ifdef SCALE_INPUT
             // copy additional inv_scale into _y_temp
@@ -315,7 +315,7 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
             cudaErrorCheck( cudaMemcpy2D ( host_mech->y, padded * sizeof(double),
                                             ones, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
-                                            cudaMemcpyHostToDevice) );           
+                                            cudaMemcpyHostToDevice) );
             cudaErrorCheck( cudaMemcpy2D ( host_mech->scale, padded * sizeof(double),
                                             y_temp, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
@@ -339,10 +339,10 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
                                             cudaMemcpyHostToDevice) );
 
 
-         
+
             cudaErrorCheck( cudaMemcpy( device_mech, host_mech, sizeof(mechanism_memory), cudaMemcpyHostToDevice) );
 
-            
+
             #else
             // transfer memory to GPU
             cudaErrorCheck( cudaMemcpy2D (host_mech->y, padded * sizeof(double),
@@ -407,7 +407,7 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
         t = t_next;
        // t_next = fmin(end_time, pow(1.1, (numSteps + 1 )) * t_step);
         t_next = fmin(end_time, (numSteps + 1) * t_step);
-        
+
         for (int i = 0; i < 10; i++){
            printf("%.5g\t %0.5g\n", t, y_host[i*NUM + 10]);
         }
@@ -444,4 +444,3 @@ int evolve_chemistry (double density, double temperature, double h2frac, int NUM
     cudaErrorCheck( cudaDeviceReset() );
     return 0;
 }
-

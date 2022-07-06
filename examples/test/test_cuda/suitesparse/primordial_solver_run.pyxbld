@@ -15,7 +15,7 @@ def make_ext(modname, pyxfilename):
 	compile_flags = ["-w"]
 	include_paths = [inc, ".", "/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir/include"]
 	library_paths = [lib, "/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir/lib"]
-	# add compiler flag to the cython build 
+	# add compiler flag to the cython build
 	# if cvode is build with KLU and Suitesparse
 	libraries = ['m', 'hdf5', 'hdf5_hl', "stdc++", "sundials_cvode", "sundials_nvecserial"]
 	if "SUITESPARSE_PATH" in os.environ:

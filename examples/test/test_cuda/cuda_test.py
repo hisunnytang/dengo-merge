@@ -1,12 +1,12 @@
-from dengo.chemical_network import \
-        ChemicalNetwork, \
-        reaction_registry, \
-        cooling_registry
-import dengo.primordial_rates
-import dengo.primordial_cooling
-from dengo.chemistry_constants import tiny, kboltz, mh, G
 import os
+
 import jinja2
+
+import dengo.primordial_cooling
+import dengo.primordial_rates
+from dengo.chemical_network import ChemicalNetwork, cooling_registry, reaction_registry
+from dengo.chemistry_constants import G, kboltz, mh, tiny
+
 
 def setup_primordial_network():
     """Initial a ChemicalNetwork object
@@ -65,30 +65,36 @@ def setup_primordial_network():
     # This defines the temperature range for the rate tables
     primordial.init_temperature((1e0, 1e8))
 
-    #primordial.enforce_conservation = True
-    #primordial.set_equilibrium_species("H2_2")
+    # primordial.enforce_conservation = True
+    # primordial.set_equilibrium_species("H2_2")
 
     return primordial
 
 
 def write_network(network):
 
-    network.write_solver("primordial",
-            solver_template="cv_omp/sundials_CVDls",
-            ode_solver_source="initialize_cvode_solver.C",
-            output_dir = 'suitesparse')
+    network.write_solver(
+        "primordial",
+        solver_template="cv_omp/sundials_CVDls",
+        ode_solver_source="initialize_cvode_solver.C",
+        output_dir="suitesparse",
+    )
+
 
 def run_suitesparse_test():
     os.chdir("suitesparse")
     os.system("make -DNTHREADS=24")
 
-    h5path = os.environ['HDF5_PATH']
-    dengopath = os.environ['DENGO_INSTALL_PATH']
-    cvodepath = os.environ['CVODE_PATH']
+    h5path = os.environ["HDF5_PATH"]
+    dengopath = os.environ["DENGO_INSTALL_PATH"]
+    cvodepath = os.environ["CVODE_PATH"]
 
-    os.system(f"{CC} test_performance.C -I{dengopath}/include -I{cvodepath}/include -L{dengopath} -ldengo -L{h5path} -lhdf5 -lhdf5_hl -lstdc++ -lm")
+    os.system(
+        f"{CC} test_performance.C -I{dengopath}/include -I{cvodepath}/include -L{dengopath} -ldengo -L{h5path} -lhdf5 -lhdf5_hl -lstdc++ -lm"
+    )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     network = setup_primordial_network()
-    network.write_cuda_solver(solver_name="primordial_cuda", output_dir='cuda_solver')
+    network.write_cuda_solver(solver_name="primordial_cuda", output_dir="cuda_solver")
     write_network(network)

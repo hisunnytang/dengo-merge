@@ -89,7 +89,7 @@ __global__ void interpolate_rates_texture( double *reaction_rate_out, float *tem
 
 __global__ void interpolate_rates_double( double *reaction_rates_out, float *temp_out, cvklu_data *rate_data)
 {
-    
+
     int tid, bin_id, zbin_id;
     double t1, t2;
     double Tdef, dT, invTs, log_temp_out;
@@ -97,7 +97,7 @@ __global__ void interpolate_rates_double( double *reaction_rates_out, float *tem
     double lb = log(rate_data->bounds[0]);
 
     tid = threadIdx.x + blockDim.x * blockIdx.x;
- 
+
     log_temp_out = log(temp_out[tid]);
     bin_id = (int) ( rate_data->idbin * ( log_temp_out -  lb ) );
     if ( bin_id <= 0) {
@@ -105,7 +105,7 @@ __global__ void interpolate_rates_double( double *reaction_rates_out, float *tem
     } else if ( bin_id >= rate_data->nbins) {
         bin_id = rate_data->nbins - 1;
     }
-    
+
     //printf( "bin_id = %d; temp_out = %0.5g \n", bin_id, temp_out[tid]);
     t1 = (lb + (bin_id    ) * rate_data->dbin);
     t2 = (lb + (bin_id + 1) * rate_data->dbin);
@@ -113,7 +113,7 @@ __global__ void interpolate_rates_double( double *reaction_rates_out, float *tem
     dT    = t2 - t1;
     invTs = 1.0 / temp_out[tid];
 
- 
+
     // rate_out is a long 1D array
     // NRATE is the number of rate required by the solver network
 
@@ -154,9 +154,9 @@ void cvklu_read_rate_tables(cvklu_data *data)
 {
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
 
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
@@ -182,7 +182,7 @@ void cvklu_read_rate_tables(cvklu_data *data)
     H5LTread_dataset_float(file_id, "/k19", data->r_k19);
     H5LTread_dataset_float(file_id, "/k21", data->r_k21);
     H5LTread_dataset_float(file_id, "/k22", data->r_k22);
-    
+
     H5Fclose(file_id);
 }
 
@@ -192,9 +192,9 @@ void cvklu_read_cooling_tables(cvklu_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
@@ -263,23 +263,23 @@ void cvklu_read_gamma(cvklu_data *data)
 
     const char * filedir;
     if (data->dengo_data_file != NULL){
-        filedir =  data->dengo_data_file; 
+        filedir =  data->dengo_data_file;
     } else{
-        filedir = "cvklu_tables.h5";   
+        filedir = "cvklu_tables.h5";
     }
-    
+
     hid_t file_id = H5Fopen( filedir , H5F_ACC_RDONLY, H5P_DEFAULT);
     /* Allocate the correct number of rate tables */
     H5LTread_dataset_float(file_id, "/gammaH2_1",
                             data->g_gammaH2_1 );
     H5LTread_dataset_float(file_id, "/dgammaH2_1_dT",
-                            data->g_dgammaH2_1_dT );   
-    
+                            data->g_dgammaH2_1_dT );
+
     H5LTread_dataset_float(file_id, "/gammaH2_2",
                             data->g_gammaH2_2 );
     H5LTread_dataset_float(file_id, "/dgammaH2_2_dT",
-                            data->g_dgammaH2_2_dT );   
-    
+                            data->g_dgammaH2_2_dT );
+
 
     H5Fclose(file_id);
 
@@ -291,13 +291,13 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
 
     //-----------------------------------------------------
     // Function : cvklu_setup_data
-    // Description: Initialize a data object that stores the reaction/ cooling rate data 
+    // Description: Initialize a data object that stores the reaction/ cooling rate data
     //-----------------------------------------------------
 
     int i, n;
-    
+
     cvklu_data *data = (cvklu_data *) malloc(sizeof(cvklu_data));
-    
+
     // point the module to look for cvklu_tables.h5
     data->dengo_data_file = FileLocation;
 
@@ -316,13 +316,13 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
     data->n_zbins = 0 - 1;
     data->d_zbin = (log(data->z_bounds[1] + 1.0) - log(data->z_bounds[0] + 1.0)) / data->n_zbins;
     data->id_zbin = 1.0L / data->d_zbin;
-    
+
     cvklu_read_rate_tables(data);
     //fprintf(stderr, "Successfully read in rate tables.\n");
 
     cvklu_read_cooling_tables(data);
     //fprintf(stderr, "Successfully read in cooling rate tables.\n");
-    
+
     cvklu_read_gamma(data);
     //fprintf(stderr, "Successfully read in gamma tables. \n");
 
@@ -330,27 +330,27 @@ cvklu_data *cvklu_setup_data( const char *FileLocation, int *NumberOfFields, cha
         NumberOfFields[0] = 10;
         FieldNames[0] = new char*[10];
         i = 0;
-        
+
         FieldNames[0][i++] = strdup("H2_1");
-        
+
         FieldNames[0][i++] = strdup("H2_2");
-        
+
         FieldNames[0][i++] = strdup("H_1");
-        
+
         FieldNames[0][i++] = strdup("H_2");
-        
+
         FieldNames[0][i++] = strdup("H_m0");
-        
+
         FieldNames[0][i++] = strdup("He_1");
-        
+
         FieldNames[0][i++] = strdup("He_2");
-        
+
         FieldNames[0][i++] = strdup("He_3");
-        
+
         FieldNames[0][i++] = strdup("de");
-        
+
         FieldNames[0][i++] = strdup("ge");
-        
+
     }
 
     data->dengo_data_file = NULL;
@@ -383,9 +383,9 @@ void dengo_set_initial_conditions( double density, double T0, double fH2, int NU
     (*y_host) = (double*)malloc(NUM * NSP * sizeof(double));
     (*var_host) = (double*)malloc(NUM * sizeof(double));
     //load temperature and mass fractions for all threads (cells)
-    printf("NUM = %d; NSP = %d \n", NUM, NSP ); 
-    
-    
+    printf("NUM = %d; NSP = %d \n", NUM, NSP );
+
+
     double m_amu = 1.66053904e-24;
     density *= mH/ m_amu;
 
@@ -445,7 +445,7 @@ void dengo_set_additional_constant( double density, double temperature, int NUM,
     for (int i = 0; i < NUM; ++i) {
         (*temperature_array)[i] = temperature;
         (*density_array)    [i] = 1.0 * density * mH;
-        (*h2_optical_depth_approx)[i] = fmin( 1.0, pow(( mH *density / (1.34e-14)), -0.45) ); 
+        (*h2_optical_depth_approx)[i] = fmin( 1.0, pow(( mH *density / (1.34e-14)), -0.45) );
     }
 
 
@@ -519,115 +519,115 @@ void bind_ratedata_to_texture( cuArray_ratedata *H_data )
   rk01_tex.filterMode = cudaFilterModeLinear;
   rk01_tex.normalized = true;
   cudaBindTextureToArray(rk01_tex, H_data->r_k01, channelDesc);
- 
+
   rk02_tex.addressMode[0] = cudaAddressModeClamp;
   rk02_tex.addressMode[1] = cudaAddressModeClamp;
   rk02_tex.filterMode = cudaFilterModeLinear;
   rk02_tex.normalized = true;
   cudaBindTextureToArray(rk02_tex, H_data->r_k02, channelDesc);
- 
+
   rk03_tex.addressMode[0] = cudaAddressModeClamp;
   rk03_tex.addressMode[1] = cudaAddressModeClamp;
   rk03_tex.filterMode = cudaFilterModeLinear;
   rk03_tex.normalized = true;
   cudaBindTextureToArray(rk03_tex, H_data->r_k03, channelDesc);
- 
+
   rk04_tex.addressMode[0] = cudaAddressModeClamp;
   rk04_tex.addressMode[1] = cudaAddressModeClamp;
   rk04_tex.filterMode = cudaFilterModeLinear;
   rk04_tex.normalized = true;
   cudaBindTextureToArray(rk04_tex, H_data->r_k04, channelDesc);
- 
+
   rk05_tex.addressMode[0] = cudaAddressModeClamp;
   rk05_tex.addressMode[1] = cudaAddressModeClamp;
   rk05_tex.filterMode = cudaFilterModeLinear;
   rk05_tex.normalized = true;
   cudaBindTextureToArray(rk05_tex, H_data->r_k05, channelDesc);
- 
+
   rk06_tex.addressMode[0] = cudaAddressModeClamp;
   rk06_tex.addressMode[1] = cudaAddressModeClamp;
   rk06_tex.filterMode = cudaFilterModeLinear;
   rk06_tex.normalized = true;
   cudaBindTextureToArray(rk06_tex, H_data->r_k06, channelDesc);
- 
+
   rk07_tex.addressMode[0] = cudaAddressModeClamp;
   rk07_tex.addressMode[1] = cudaAddressModeClamp;
   rk07_tex.filterMode = cudaFilterModeLinear;
   rk07_tex.normalized = true;
   cudaBindTextureToArray(rk07_tex, H_data->r_k07, channelDesc);
- 
+
   rk08_tex.addressMode[0] = cudaAddressModeClamp;
   rk08_tex.addressMode[1] = cudaAddressModeClamp;
   rk08_tex.filterMode = cudaFilterModeLinear;
   rk08_tex.normalized = true;
   cudaBindTextureToArray(rk08_tex, H_data->r_k08, channelDesc);
- 
+
   rk09_tex.addressMode[0] = cudaAddressModeClamp;
   rk09_tex.addressMode[1] = cudaAddressModeClamp;
   rk09_tex.filterMode = cudaFilterModeLinear;
   rk09_tex.normalized = true;
   cudaBindTextureToArray(rk09_tex, H_data->r_k09, channelDesc);
- 
+
   rk10_tex.addressMode[0] = cudaAddressModeClamp;
   rk10_tex.addressMode[1] = cudaAddressModeClamp;
   rk10_tex.filterMode = cudaFilterModeLinear;
   rk10_tex.normalized = true;
   cudaBindTextureToArray(rk10_tex, H_data->r_k10, channelDesc);
- 
+
   rk11_tex.addressMode[0] = cudaAddressModeClamp;
   rk11_tex.addressMode[1] = cudaAddressModeClamp;
   rk11_tex.filterMode = cudaFilterModeLinear;
   rk11_tex.normalized = true;
   cudaBindTextureToArray(rk11_tex, H_data->r_k11, channelDesc);
- 
+
   rk12_tex.addressMode[0] = cudaAddressModeClamp;
   rk12_tex.addressMode[1] = cudaAddressModeClamp;
   rk12_tex.filterMode = cudaFilterModeLinear;
   rk12_tex.normalized = true;
   cudaBindTextureToArray(rk12_tex, H_data->r_k12, channelDesc);
- 
+
   rk13_tex.addressMode[0] = cudaAddressModeClamp;
   rk13_tex.addressMode[1] = cudaAddressModeClamp;
   rk13_tex.filterMode = cudaFilterModeLinear;
   rk13_tex.normalized = true;
   cudaBindTextureToArray(rk13_tex, H_data->r_k13, channelDesc);
- 
+
   rk14_tex.addressMode[0] = cudaAddressModeClamp;
   rk14_tex.addressMode[1] = cudaAddressModeClamp;
   rk14_tex.filterMode = cudaFilterModeLinear;
   rk14_tex.normalized = true;
   cudaBindTextureToArray(rk14_tex, H_data->r_k14, channelDesc);
- 
+
   rk15_tex.addressMode[0] = cudaAddressModeClamp;
   rk15_tex.addressMode[1] = cudaAddressModeClamp;
   rk15_tex.filterMode = cudaFilterModeLinear;
   rk15_tex.normalized = true;
   cudaBindTextureToArray(rk15_tex, H_data->r_k15, channelDesc);
- 
+
   rk16_tex.addressMode[0] = cudaAddressModeClamp;
   rk16_tex.addressMode[1] = cudaAddressModeClamp;
   rk16_tex.filterMode = cudaFilterModeLinear;
   rk16_tex.normalized = true;
   cudaBindTextureToArray(rk16_tex, H_data->r_k16, channelDesc);
- 
+
   rk17_tex.addressMode[0] = cudaAddressModeClamp;
   rk17_tex.addressMode[1] = cudaAddressModeClamp;
   rk17_tex.filterMode = cudaFilterModeLinear;
   rk17_tex.normalized = true;
   cudaBindTextureToArray(rk17_tex, H_data->r_k17, channelDesc);
- 
+
   rk18_tex.addressMode[0] = cudaAddressModeClamp;
   rk18_tex.addressMode[1] = cudaAddressModeClamp;
   rk18_tex.filterMode = cudaFilterModeLinear;
   rk18_tex.normalized = true;
   cudaBindTextureToArray(rk18_tex, H_data->r_k18, channelDesc);
- 
+
   rk19_tex.addressMode[0] = cudaAddressModeClamp;
   rk19_tex.addressMode[1] = cudaAddressModeClamp;
   rk19_tex.filterMode = cudaFilterModeLinear;
   rk19_tex.normalized = true;
   cudaBindTextureToArray(rk19_tex, H_data->r_k19, channelDesc);
- 
+
 /*
   rk20_tex.addressMode[0] = cudaAddressModeClamp;
   rk20_tex.addressMode[1] = cudaAddressModeClamp;
@@ -640,13 +640,13 @@ void bind_ratedata_to_texture( cuArray_ratedata *H_data )
   rk21_tex.filterMode = cudaFilterModeLinear;
   rk21_tex.normalized = true;
   cudaBindTextureToArray(rk21_tex, H_data->r_k21, channelDesc);
- 
+
   rk22_tex.addressMode[0] = cudaAddressModeClamp;
   rk22_tex.addressMode[1] = cudaAddressModeClamp;
   rk22_tex.filterMode = cudaFilterModeLinear;
   rk22_tex.normalized = true;
   cudaBindTextureToArray(rk22_tex, H_data->r_k22, channelDesc);
- 
+
 /*
   rk23_tex.addressMode[0] = cudaAddressModeClamp;
   rk23_tex.addressMode[1] = cudaAddressModeClamp;
@@ -669,13 +669,13 @@ int main(){
   // that is then binded to the globally defined texture object
   cuArray_ratedata *cuda_ratedata = NULL;
   cuda_ratedata = (cuArray_ratedata *) malloc(sizeof(cuArray_ratedata));
-  initialize_cuArray_ratedata( cuda_ratedata, host_rateData ); 
+  initialize_cuArray_ratedata( cuda_ratedata, host_rateData );
   bind_ratedata_to_texture( cuda_ratedata );
 
   // copy rate data to device memory
   cvklu_data* device_rateData= NULL;
   cudaMalloc( (void**) &device_rateData, sizeof(cvklu_data) );
-  cudaMemcpy( device_rateData, host_rateData, sizeof(cvklu_data), cudaMemcpyHostToDevice );  
+  cudaMemcpy( device_rateData, host_rateData, sizeof(cvklu_data), cudaMemcpyHostToDevice );
 
   // Allocate CUDA array in device memoryi
 
@@ -695,7 +695,7 @@ int main(){
   rk01_tex.filterMode = cudaFilterModeLinear;
   rk01_tex.normalized = true;
   cudaBindTextureToArray( rk01_tex, cu_rk01, channelDesc );
-  */  
+  */
 
 
 
@@ -705,13 +705,13 @@ int main(){
   cudaMemcpy( cu_rk01, host_rateData->r_k01, sizeof(float)*RDATA_NBINS, cudaMemcpyHostToDevice );
 */
 
- 
+
   printf("finished reading memory \n ");
   // bind the rate data to individual texture object
 //  bind_rate_to_texture( cu_rateData );
 //  cudaBindTexture(NULL, rk01_tex, cu_rk01, sizeof(float) * 1024 );
-  printf("finshed bindinf texture\n" ); 
- 
+  printf("finshed bindinf texture\n" );
+
   int NBLOCK  = 512;
   int NTHREAD = 256;
   int N = NBLOCK * NTHREAD;
@@ -724,7 +724,7 @@ int main(){
   float  *d_temp_out;
   double *d_rrate_tex;
   double *d_rrate;
- 
+
   cudaMalloc( (void**)&d_temp_out,  sizeof(float)*N );
   cudaMalloc( (void**)&d_rrate_tex, sizeof(double)*N*NRATE);
   cudaMalloc( (void**)&d_rrate,     sizeof(double)*N*NRATE);
@@ -735,13 +735,13 @@ int main(){
   float Tmin = 10.0;
   for (int i = 0; i < N; i++){
     temp_out[i] = Tmax *( (float) i / (float) N * PI/ 2.0) + Tmin;
-  }      
+  }
 
   cudaMemcpy(d_temp_out, temp_out, sizeof(float)*N , cudaMemcpyHostToDevice);
 
 cudaEvent_t start, stop;
 cudaEventCreate(&start);
-cudaEventCreate(&stop); 
+cudaEventCreate(&stop);
   float milliseconds = 0;
 
   cudaEventRecord(start);
@@ -761,7 +761,7 @@ for (int i = 0; i< 100; i++)  interpolate_rates_double <<< NBLOCK, NTHREAD >>>( 
 
 
 
-  
+
   cudaMemcpy( rrate_out_tex, d_rrate_tex, sizeof(double)*N*NRATE, cudaMemcpyDeviceToHost );
   cudaMemcpy( rrate_out,     d_rrate,     sizeof(double)*N*NRATE, cudaMemcpyDeviceToHost );
 
@@ -769,14 +769,14 @@ for (int i = 0; i< 100; i++)  interpolate_rates_double <<< NBLOCK, NTHREAD >>>( 
 
   for (int i = 0; i < N; i++ ){
     if ( fabs( rrate_out_tex[i] - rrate_out[i] ) > 1.0e-6 ){
-      printf("at %d, T = %0.3g K, rate_tex = %0.5g, rate = %0.5g\n") ; 
+      printf("at %d, T = %0.3g K, rate_tex = %0.5g, rate = %0.5g\n") ;
     }
-  } 
+  }
 
   cudaDeviceReset() ;
   cudaPeekAtLastError() ;
 
-  return 0; 
+  return 0;
 }
 
 /*
@@ -786,18 +786,18 @@ __global__ void interpolate_reaction_rates( double *reaction_rates_out, double t
   double t1, t2;
   double Tdef, log_temp_out;
   double RDATA_LB = 0.0; // this should be set as global constant
- 
+
   log_temp_out = log(temp_out);
   bin_id = ( int ) RDATA_IDBIN * ( log_temp_out - LOG_RDATA_LB );
-    
+
   if ( bin_id <= 0) {
     bin_id = 0;
   } else if ( bin_id >= RDATA_NBINS) {
     bin_id = RDATA_NBINS - 1;
   }
-  
+
   t1   = LOG_RDATA_LB + (bin_id) * RDATA_DBIN;
-  Tdef = ( log_temp_out - t1) * RDATA_IDBIN; 
+  Tdef = ( log_temp_out - t1) * RDATA_IDBIN;
 
   interp1D( reaction_rates_out, bin_id, Tdef );
 
@@ -808,7 +808,7 @@ __global__ void interpolate_reaction_rates( double *reaction_rates_out, double t
 template <typename T>
 __host__ __device__
 inline T lerp( T v0, T v1, T t){
-  //https://devblogs.nvidia.com/lerp-faster-cuda/ 
+  //https://devblogs.nvidia.com/lerp-faster-cuda/
   return fma(t, v1, fma(-t, v0, v0));
 }
 
@@ -823,7 +823,7 @@ __device__ void interp1D_double( double *du, double bin_id, double Tdef  )
   double v0 = __hiloint2double( v0_int2.y, v0_int2.x );
   double v1 = __hiloint2double( v1_int2.y, v1_int2.x );
 
-  du[0] = lerp( v0, v1, Tdef ); 
+  du[0] = lerp( v0, v1, Tdef );
 
 }
 

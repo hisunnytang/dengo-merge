@@ -1,16 +1,16 @@
-# Makefile for running dengo 
+# Makefile for running dengo
 # again it is generated from template
 
 
 
 # print cvode statistics, i.e. number of evaluations
-#OPTIONS+= -DPRINT_CVODE_STATS 
+#OPTIONS+= -DPRINT_CVODE_STATS
 
 
 # dengo currently supports 3 different solver modes from sundials
 # CVSPILS, CVDls, CVKLU
 # choose one from below, default: CVDLS
-# MAX_NCELLS: number of strip solved per solver call 
+# MAX_NCELLS: number of strip solved per solver call
 
 # Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
 #OPTIONS = -DCVSPILS -DMAX_NCELLS=1024
@@ -53,12 +53,12 @@ includedir   = $(CVODE_PATH)/include $(HDF5_PATH)/include
 libdir       = $(CVODE_PATH)/lib
 
 CFLAGS   = -O3 -DNDEBUG -g -std=c++11
-LDFLAGS  = 
+LDFLAGS  =
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
 LINKFLAGS = -Wl,-rpath,$(CVODE_PATH)/lib:$(HDF5_PATH)/lib
 
-TMP_INCS  = . ${includedir} 
+TMP_INCS  = . ${includedir}
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
 LIBDIR    = $(addprefix -L, ${libdir})
 
@@ -101,7 +101,7 @@ libdengo.la: $(addsuffix .lo, $(basename $(OBJ)) )
 run_dengo: {{solver_name}}_solver_main.C
 	$(CC) -o $@ $^ $(OPTIONS) $(CFLAGS) -I$(DENGO_INSTALL_PATH)/include -I$(CVODE_PATH)/include -I$(INCLUDES_KLU) -I$(HDF5_PATH)/include -L$(HDF5_PATH)/lib -lhdf5_hl -lhdf5 -L$(DENGO_INSTALL_PATH)/lib -ldengo -lm
 
-test: run_dengo 
+test: run_dengo
 	./run_dengo
 
 
@@ -125,6 +125,3 @@ clean:
 	rm -f libdengo.la
 	rm -f *.lo
 	libtool --mode=uninstall rm -r $(DENGO_INSTALL_PATH)/lib/libdengo.la
-
-
-

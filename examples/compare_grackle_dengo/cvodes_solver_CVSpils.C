@@ -64,20 +64,20 @@ static int check_flag(void *flagvalue, const char *funcname, int opt);
  * -------------------------------------------------------
  */
 
-int cvodes_main_solver( rhs_f f, jac_f Jac, 
+int cvodes_main_solver( rhs_f f, jac_f Jac,
                  double *input , double *rtol, double *atol, int nchem, void *sdata, double *dt_now)
 {
     void *cvode_mem;
     int i, flag, flagr, iout;
-    realtype t, reltol; 
+    realtype t, reltol;
     N_Vector y, abstol;
     SUNLinearSolver LS;
-    
+
     LS = NULL;
     y = abstol = NULL;
     cvode_mem = NULL;
-    int NEQ = nchem; 
-    
+    int NEQ = nchem;
+
     cvspils_9species_data *data = (cvspils_9species_data*)sdata;
 
 
@@ -94,15 +94,15 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
         data->scale[i] = input[i];
         scale = data->scale[i];
         Ith(y,i+1)      = input[i] / scale;
-             
+
     }
-    
+
     /* fixed the incoming abs tolerance */
     /* Set the vector absolute tolerance */
     for (i=0; i<nchem; i++) {
         Ith(abstol,i+1) = 1e-9 ;
         }
-    
+
     /* Set the scalar relative tolerance */
     reltol = 1.0e-9;
 
@@ -110,7 +110,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Create CVODES object */
     cvode_mem = CVodeCreate(CV_BDF, CV_NEWTON);
     if (check_flag((void *)cvode_mem, "CVodeCreate", 0)) return(1);
-    
+
     /* Allocate space for CVODES */
     /* f: RHS function
      * y: Array of initial values
@@ -120,23 +120,23 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Allocate space for CVODES */
     flag = CVodeInit(cvode_mem, f, 0.0, y);
     if (check_flag( &flag, "CVodeInit", 1)) return(1);
-    
+
 
     /* Call CVodesSVtolerances to specify the scalar relative tolerance
      * and vector absolute tolerances */
     flag = CVodeSVtolerances(cvode_mem, reltol, abstol);
     if (check_flag(&flag, "CVodeSVtolerances", 1)) return(1);
-    
+
     /* Attach User Data */
     flag = CVodeSetUserData(cvode_mem, sdata);
     if (check_flag(&flag, "CVodeSetUserData", 1)) return(1);
-   
-    /* Call CVSpgmr to specify the linear solver CVSPGMR 
+
+    /* Call CVSpgmr to specify the linear solver CVSPGMR
     * with left preconditioning and the maximum Krylov dimension maxl */
 
     LS = SUNSPGMR(y, PREC_NONE, 0);
     if(check_flag(&flag, "SUNSPGMR", 1)) return(1);
-    
+
 
     flag = CVSpilsSetLinearSolver(cvode_mem, LS);
     if(check_flag(&flag, "CVSpilsSetLinearSolver", 1)) return(1);
@@ -144,8 +144,8 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     /* Set the JAcobian-times-vector function */
     // flag = CVSpilsSetJacTimes(cvode_mem, NULL,Jac);
     // if(check_flag(&flag, "CVSpilsSetJacTimes", 1)) return(1);
-   
-    
+
+
     /* Internal Band Matrix Preconditioner*/
     int N, mu, ml;
     N = nchem;
@@ -159,7 +159,7 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
 
     // tout is the desired output time
     // evolve CVODE in one dt
-    
+
     t = 0;
     double tout = dt_now[0];
     flag = CVode( cvode_mem, tout, y, &t, CV_NORMAL);
@@ -167,35 +167,35 @@ int cvodes_main_solver( rhs_f f, jac_f Jac,
     dt_now[0]   = t;
 
     for (i=0; i<nchem; i++) {
-        scale = data->scale[i];    
+        scale = data->scale[i];
         input[i] = Ith(y,i+1)*scale;
         }
 
     /* Free Memory */
-    N_VDestroy_Serial(y); 
+    N_VDestroy_Serial(y);
     CVodeFree(&cvode_mem);
 
 
     if (flag == CV_TOO_MUCH_WORK){
-        /* The initial time t0 and the final time tout 
+        /* The initial time t0 and the final time tout
          * are too close to each other
          * and the user did not specify an initial step size
          */
         dt_now[0] = tout;
         return 1;
     }
-    
+
     if (flag == CV_CONV_FAILURE){
         /* Either convergence test failures occurred too many times
          * during one internal time step, or with |h| = hmin
          */
         dt_now[0] = tout;
         return 1;
-    } 
+    }
     if (flag == CV_TOO_CLOSE){
-        /* The initial time t0 and the final time 
+        /* The initial time t0 and the final time
          * tout are too close to each other
-         * and the user did not specify an 
+         * and the user did not specify an
          * initial step size
          */
         return 1;
@@ -221,7 +221,7 @@ static void PrintOutput(void *cvode_mem, realtype t, N_Vector u)
   long int nst;
   int qu, flag;
   realtype hu, *udata;
-  
+
   udata = N_VGetArrayPointer_Serial(u);
 
   flag = CVodeGetNumSteps(cvode_mem, &nst);

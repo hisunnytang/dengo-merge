@@ -126,7 +126,7 @@ int main (int argc, char *argv[])
     /** Number of independent systems */
     int NUM = 1;
     double density = 1.0e4; // cm**-3
-    double temperature = 2000.0; // K    
+    double temperature = 2000.0; // K
     cudaProfilerStart();
     // check for problem size given as command line option
     if (argc > 2)
@@ -164,7 +164,7 @@ int main (int argc, char *argv[])
         printf("density = %0.5g \n", density);
         printf("temperature = %0.5g\n", temperature);
 
-    } else{ 
+    } else{
         printf("no input specified...\n");
         printf("using default test parameter\n");
         printf("NUM = %d \n",NUM);
@@ -176,7 +176,7 @@ int main (int argc, char *argv[])
     cudaDeviceProp devProp;
     cudaErrorCheck (cudaSetDevice (0) );
     cudaErrorCheck (cudaGetDeviceProperties(&devProp, 0));
-    
+
 
     cudaErrorCheck( cudaDeviceReset() );
     cudaErrorCheck( cudaPeekAtLastError() );
@@ -227,8 +227,8 @@ int main (int argc, char *argv[])
     double *temperature_array;
     double *density_array;
     double *h2_optical_depth_array;
-    dengo_set_additional_constant(density, temperature, NUM, &y_host, 
-                                 &temperature_array, &density_array, &h2_optical_depth_array ); 
+    dengo_set_additional_constant(density, temperature, NUM, &y_host,
+                                 &temperature_array, &density_array, &h2_optical_depth_array );
     double* temp_temp = 0;
     temp_temp = (double*)malloc(padded * sizeof(double));
     double* density_temp = 0;
@@ -312,7 +312,7 @@ int main (int argc, char *argv[])
                   num_solved, num_cond * sizeof(double), 1);
 
 
-      // 
+      //
 
       #ifdef SCALE_INPUT
       // copy additional inv_scale into _y_temp
@@ -323,7 +323,7 @@ int main (int argc, char *argv[])
       cudaErrorCheck( cudaMemcpy2D ( host_mech->y, padded * sizeof(double),
                                             ones, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
-                                            cudaMemcpyHostToDevice) );           
+                                            cudaMemcpyHostToDevice) );
       cudaErrorCheck( cudaMemcpy2D ( host_mech->scale, padded * sizeof(double),
                                             y_temp, padded * sizeof(double),
                                             num_cond * sizeof(double), NSP,
@@ -347,14 +347,14 @@ int main (int argc, char *argv[])
                                             cudaMemcpyHostToDevice) );
 
 
-         
+
       cudaErrorCheck( cudaMemcpy( device_mech, host_mech, sizeof(mechanism_memory), cudaMemcpyHostToDevice) );
 
 
 /*
             cudaErrorCheck( cudaMemcpy(device_mech->scale, y_temp, num_cond* NSP * sizeof(double), cudaMemcpyHostToDevice) );
             cudaErrorCheck( cudaMemcpy(device_mech->inv_scale, _y_temp, num_cond* NSP * sizeof(double), cudaMemcpyHostToDevice) );
-*/            
+*/
       #else
       // transfer memory to GPU
       cudaErrorCheck( cudaMemcpy2D (host_mech->y, padded * sizeof(double),
@@ -379,7 +379,7 @@ int main (int argc, char *argv[])
       #endif
 
       checkModules <<< dimGrid, dimBlock, SHARED_SIZE >>> ( num_cond, t, device_mech );
-      
+
       cudaErrorCheck( cudaPeekAtLastError() );
       cudaErrorCheck( cudaDeviceSynchronize() );
 
@@ -409,18 +409,18 @@ int main (int argc, char *argv[])
                             num_solved, num_cond * sizeof(double), NSP);
       #endif
       num_solved += num_cond;
-      
+
       cudaErrorCheck( cudaMemcpy( host_mech, device_mech, sizeof(mechanism_memory), cudaMemcpyDeviceToHost) );
       cudaErrorCheck( cudaMemcpy( rhs_host, host_mech->dy,  NSP* padded * sizeof(double),   cudaMemcpyDeviceToHost));
       cudaErrorCheck( cudaMemcpy( jac_host, host_mech->jac, NSP*NSP*padded * sizeof(double), cudaMemcpyDeviceToHost));
 
       for (int i = 0; i < NSP; i++){
         printf( "rhs_host[%d] = %0.5g \n",i,  rhs_host[i*padded] );
-      } 
+      }
 
       for (int i = 0; i < NSP*NSP; i++){
         printf( "jac_host[%d] = %0.5g \n",i,  jac_host[i*padded] );
-      } 
+      }
 
     }
     /////////////////////////////////
@@ -444,4 +444,3 @@ int main (int argc, char *argv[])
     cudaErrorCheck( cudaDeviceReset() );
     return 0;
 }
-

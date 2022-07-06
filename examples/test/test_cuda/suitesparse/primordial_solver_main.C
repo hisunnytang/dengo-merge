@@ -18,14 +18,14 @@ int main(int argc, char **argv) {
 int solve_chemistry(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 64*64;
-    field_data->ncells = N; 
+    field_data->ncells = N;
     double density = 1.0e8; // in cm^-3
     double T = 1000.0; // in K
     double mH, k, tiny;
 
     mH = 1.67e-24;
     k  = 1.380e-16;
-    tiny = 1.0e-20; 
+    tiny = 1.0e-20;
     density *= mH;
     double G = 6.67259e-8;
     code_units *units = (code_units *) malloc(sizeof(code_units));
@@ -106,15 +106,15 @@ int solve_chemistry(int argc, char **argv) {
     fprintf(stderr, "de = %0.5g\n", field_data->de_density[0] / mH );
     fprintf(stderr, "ge = %0.5g\n", field_data->ge_density[0] );
     fprintf(stderr, "CoolingTime = %0.5g\n", field_data->CoolingTime[0]);
-    
+
     // at the low density limit,
     // Hm is important catalyst for H2 formation
     // we compare the relative difference of of the solution
     // between different cells
     // since we starts with the same initial conditions,
-    // it should give the same result, at the worst, 
+    // it should give the same result, at the worst,
     // results within the relative tolerance level
-    
+
     unsigned long d;
     // lets just compare everything!!!!!!
     double ref0, frac;
@@ -244,14 +244,14 @@ int solve_chemistry(int argc, char **argv) {
 int solve_chemistry_enzo(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int N = 16*16*16;
-    field_data->ncells = N; 
+    field_data->ncells = N;
     double density = 1.0e8; // in cm^-3
     double T = 1000.0; // in K
     double mH, k, tiny;
 
     mH = 1.67e-24;
     k  = 1.380e-16;
-    tiny = 1.0e-20; 
+    tiny = 1.0e-20;
     density *= mH;
     double G = 6.67259e-8;
     code_units *units = (code_units *) malloc(sizeof(code_units));

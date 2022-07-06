@@ -2,6 +2,7 @@
 # http://python3porting.com/preparing.html
 # and is under the original license there.
 
+
 class ComparableMixin(object):
     def _compare(self, other, method):
         try:
@@ -31,4 +32,3 @@ class ComparableMixin(object):
 
     def __hash__(self):
         return hash(self._cmpkey())
-

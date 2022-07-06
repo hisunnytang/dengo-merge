@@ -1,16 +1,16 @@
-# Makefile for running dengo 
+# Makefile for running dengo
 # again it is generated from template
 
 
 
 # print cvode statistics, i.e. number of evaluations
-#OPTIONS+= -DPRINT_CVODE_STATS 
+#OPTIONS+= -DPRINT_CVODE_STATS
 
 
 # dengo currently supports two different solver modes from sundials
 # CVSPILS and CVDls
 # choose one from below, default: CVDLS
-# MAX_NCELLS: number of strip solved per solver call 
+# MAX_NCELLS: number of strip solved per solver call
 
 # Use the scaled, preconditioned, iter- ative linear solver (CVSpils) interfaces
 #OPTIONS = -DCVSPILS -DMAX_NCELLS=1024
@@ -48,8 +48,8 @@ OBJ = {{solver_name}}_solver.C {{solver_name}}_solver_main.C initialize_cvode_so
 # -----------------------------------------------------------------
 # LLNS Copyright Start
 # Copyright (c) 2014, Lawrence Livermore National Security
-# This work was performed under the auspices of the U.S. Department 
-# of Energy by Lawrence Livermore National Laboratory in part under 
+# This work was performed under the auspices of the U.S. Department
+# of Energy by Lawrence Livermore National Laboratory in part under
 # Contract W-7405-Eng-48 and in part under Contract DE-AC52-07NA27344.
 # Produced at the Lawrence Livermore National Laboratory.
 # All rights reserved.
@@ -74,13 +74,13 @@ CPP      = /usr/bin/cc
 CPPFLAGS = -O3 -DNDEBUG -g
 CC       = /usr/bin/cc
 CFLAGS   = -O3 -DNDEBUG -g
-LDFLAGS  = 
+LDFLAGS  =
 LIBS    +=  /usr/lib/x86_64-linux-gnu/librt.so
 
 LINKFLAGS = -Wl,-rpath,/home/kwoksun2/cvode-3.1.0/instdir/lib
 
 
-TMP_INCS  = . ${includedir} 
+TMP_INCS  = . ${includedir}
 INCLUDES  = $(addprefix -I, ${TMP_INCS})
 
 # -----------------------------------------------------------------------------------------
@@ -101,16 +101,13 @@ INCLUDES  += $(addprefix -I, $(INCLUDES_KLU) )
 LINKFLAGS := $(LINKFLAGS_KLU)
 endif
 
-run_dengo: $(OBJ) 
+run_dengo: $(OBJ)
 	$(CXX) $(OPTIONS) -o $@ $^ ${CFLAGS} ${LDFLAGS} ${INCLUDES} -L${libdir} ${LIBRARIES} $(LINKFLAGS)
 
-libdengo.so: $(OBJ) 
+libdengo.so: $(OBJ)
 	$(CXX) -shared -o $@ -fPIC  $^ $(CVODE_LIBRARY_FILES) $(LIBS) $(INCLUDE)
 
 clean:
 	rm -f *.o
 	rm -f *.so
 	rm -f run_dengo
-
-
-

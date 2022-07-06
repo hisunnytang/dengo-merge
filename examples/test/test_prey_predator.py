@@ -1,25 +1,27 @@
-import numpy as np
-from dengo.reaction_classes import (
-    reaction,
-    ChemicalSpecies,
-    registry_setup,
-    species_registry,
-)
-from dengo.chemical_network import ChemicalNetwork
+import copy
 import os
-import pyximport
+
+import h5py
 import matplotlib
 import matplotlib.pyplot as plt
-import copy
+import numpy as np
 import pytest
-import h5py
+import pyximport
 from utilities import (
-    setup_solver_options,
-    write_network,
-    run_solver,
     check_defined_envpath,
     run_c_solver,
+    run_solver,
+    setup_solver_options,
     write_init_to_file,
+    write_network,
+)
+
+from dengo.chemical_network import ChemicalNetwork
+from dengo.reaction_classes import (
+    ChemicalSpecies,
+    reaction,
+    registry_setup,
+    species_registry,
 )
 
 plt.switch_backend("agg")
@@ -194,9 +196,11 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
     for reltol in rtol_array:
         init = copy.deepcopy(init_values)
         setup_solver_options["reltol"] = reltol
-        results = run_solver(init, make_plot=False, dtf=10.0, adaptive_step=False, **setup_solver_options)
+        results = run_solver(
+            init, make_plot=False, dtf=10.0, adaptive_step=False, **setup_solver_options
+        )
         v0, vt = conserved_variables(results, make_plot=False)
-        #conserved_variables(results, make_plot=True)
+        # conserved_variables(results, make_plot=True)
         print(setup_solver_options)
         print(v0, vt)
         ones = np.ones_like(vt)
@@ -347,12 +351,12 @@ def prey_predator_convergence(network, option):
 
     write_network(network, option)
 
-    init_values = write_initial_conditions(network, N = 1)
+    init_values = write_initial_conditions(network, N=1)
     os.chdir(option["output_dir"])
-    #results = run_solver(init_values, **option, make_plot=False, dtf=100.0,)
-    #phase_plot(results)
+    # results = run_solver(init_values, **option, make_plot=False, dtf=100.0,)
+    # phase_plot(results)
 
-    init_values = write_initial_conditions(network, N = 1)
+    init_values = write_initial_conditions(network, N=1)
     TestConvergence(
         init_values, rtol_array=np.logspace(-6, -4, 3), setup_solver_options=option
     )
@@ -371,7 +375,7 @@ def prey_predator_convergence(network, option):
             },
             marks=pytest.mark.xfail(
                 reason="BE_chem_solve is unstable to stiff equations?"
-            )
+            ),
         ),
         {
             "use_omp": False,
