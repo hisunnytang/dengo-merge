@@ -361,7 +361,7 @@ def test_different_solvers(setup_primordial_network, setup_solver_options):
     ),
     indirect=True,
 )
-@pytest.mark.parametrize(("nd", "nT", "nf"), ([16, 16, 3],))
+@pytest.mark.parametrize(("nd", "nT", "nf"), ([8, 8, 3],))
 def test_run_grid(setup_primordial_network, setup_solver_options, nd, nT, nf):
     os.chdir(pytest_dir)
     # test on grid of initial conditions
