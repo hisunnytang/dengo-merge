@@ -56,7 +56,7 @@ export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBR
 
 ## Example
 While we recommend our readers to read the [cookbook](https://hisunnytang.github.io/dengo-cookbook/landing.html) for a more detailed usage, here we provide a small and quick example with 1 reactions.
-$$\rm H + e^- &\rightarrow \rm H^+ + 2 e^- \quad &(k01)$$
+$$\rm H + e^- \rightarrow \rm H^+ + 2 e^- \quad (k01)$$
 
 ### Defining Species
 One would first need to define the chemical species using `AtomicSpecies`, and `MolecularSpecies`. The weight of the atom would be looked up from the periodic table internally in `dengo`. User has to specified the free electrons in each chemical species (hydrogen atom). `de` represents the free electrons.
@@ -91,7 +91,7 @@ RHS = [(1, HII), (2, de)]
 ```
 
 #### Reaction Rate
-Reaction are oftentimes dependent on temperature. dengo expects a reaction rate function that take state as input. state contains not only temperature in $\rm K$, but also in Kelvin log scale, and in $\rm{eV / K}$  (electron volts per kelvin), and $\rm{eV / K}$ in log scale.
+Reaction are oftentimes dependent on temperature. dengo expects a reaction rate function that take state as input. state contains not only temperature in $K$, but also in Kelvin log scale, and in $eV / K$  (electron volts per kelvin), and $eV / K$ in log scale.
 
 ```python
 from dengo.reaction_classes import reaction
@@ -204,7 +204,10 @@ simple_solver_run = pyximport.load_module(
 ### Invoking the Cython solver
 `{solver_name}_solver_run.run_{solver_name}(init_values, dt, niter)` is the entry point for the built solver. It takes an dictionary that contains the abundances, and thermal energy, and dt, time to advance the fluid parcel, niter the maximum number of iterations as arguments.
 
-It assumes that abundances are in number density with the units of $\rm {cm^{-3}}$, and thermal energy density in $\rm{erg/g}$ (thermal energy per mass density) $\frac{1}{\rho} \sum_i \frac{n_i k T}{\gamma_i - 1}$. niter implicitly sets the initial timestep for the solver, i.e. $dt_{\rm solver} = \rm dt / \rm niter$ .
+It assumes that abundances are in number density with the units of $1/cm^3$, 
+and thermal energy density in $erg/g$ (thermal energy per mass density) 
+$$\epsilon = \frac{1}{\rho} \sum_i \frac{n_i k T}{\gamma_i - 1}$$. 
+niter implicitly sets the initial timestep for the solver, i.e. $dt_s = \rm dt / \rm niter$ .
 
 ```python
 NCELLS = 1
