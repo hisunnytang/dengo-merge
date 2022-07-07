@@ -1865,7 +1865,7 @@ int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_
 
         setting_up_extra_variables( data, input_batch, nstrip );
         {{solver_name}}_calculate_temperature(data,  input_batch , nstrip, nchem );
-        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
+        //dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip);
         for ( i = 0; i < nstrip; i++ ){
             field_data->temperature[d*nstrip + i] = data->Ts[threadID][i];
         }
@@ -1882,7 +1882,7 @@ int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_
 
         setting_up_extra_variables( data, input_batch, nstrip_res );
         {{solver_name}}_calculate_temperature(data,  input_batch , nstrip_res , nchem );
-        dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
+        //dengo_calculate_gamma( gamma_eff_batch, data, input_batch, nstrip_res);
 
         for ( i = 0; i < nstrip_res; i++ ){
             field_data->temperature[ntimes*nstrip + i] = data->Ts[threadID][i];
@@ -1891,7 +1891,7 @@ int dengo_calculate_temperature_enzo(code_units* units, dengo_field_data *field_
 
     free(input);
     free(data);
-    free(gamma_eff_batch);
+    free(gamma_eff);
 
     return 1;
 
