@@ -165,6 +165,7 @@ def setup_initial_conditions(network, density, temperature, h2frac, NCELLS):
 
 def write_network(
     network,
+    init_values=None,
     solver_options={
         "output_dir": "test_dir",
         "solver_name": "primordial",
@@ -191,6 +192,7 @@ def write_network(
             output_dir=output_dir,
             solver_template="cv_omp/sundials_CVDls",
             ode_solver_source="initialize_cvode_solver.C",
+            init_values=init_values,
         )
         return
 
@@ -200,6 +202,7 @@ def write_network(
             output_dir=output_dir,
             solver_template="be_chem_solve/rates_and_rate_tables",
             ode_solver_source="BE_chem_solve.C",
+            init_values=init_values,
         )
         return
 
@@ -279,7 +282,7 @@ def run_solver(
             return rv_int
 
 
-def run_c_solver(solver_options, dt=10.0):
+def run_c_solver(solver_options, dt=0.1):
     solver_dir = solver_options["output_dir"]
     solver_name = solver_options["solver_name"]
     os.chdir(solver_dir)
