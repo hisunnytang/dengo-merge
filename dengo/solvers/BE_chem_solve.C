@@ -176,10 +176,12 @@ int BE_chem_solve(rhs_f f, jac_f J,
       // check error in this cell (max norm)
       for (i=0; i<nchem; i++) {
           if ( fabs(s[i]) > (atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]))) {
+            #ifdef DENGO_DEBUG
               if (dt < 1.0) {
 	              fprintf(stderr, "dt %0.5g, Sweep %d, Unsolved[%d]: nchem: %d change: % 0.8g sum tol: % 0.5g atol: % 0.5g rtol: % 0.5g value: % 0.5g\n",
 		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
               }
+            #endif
               unsolved = 1;
               break;
           }
@@ -191,11 +193,11 @@ int BE_chem_solve(rhs_f f, jac_f J,
                 printf("u[%d+%d] = %0.5g\n", ioff, jj, u[ioff+jj]);
             }
             printf("\n");
-            #endif
             if (dt < 1.0) {
 	              fprintf(stderr, "dt %0.5g, Sweep %d, Unsolved[%d]: nchem: %d change: % 0.8g sum tol: % 0.5g atol: % 0.5g rtol: % 0.5g value: % 0.5g\n",
 		                  dt, isweep, ix, i, s[i], atol[ioff+i] + rtol[ioff+i] * fabs(u[ioff+i]), atol[ioff+i], rtol[ioff+i], u[ioff+i]);
             }
+            #endif
 	    ///*
 	    // rescale back to input variables
 	    for (i=0; i<nstrip*nchem; i++)  u[i] *= scaling[i];
