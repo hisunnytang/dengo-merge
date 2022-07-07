@@ -198,7 +198,7 @@ def TestConvergence(init_values, rtol_array, setup_solver_options):
         setup_solver_options["reltol"] = reltol
         print(init)
         results = run_solver(
-            init, make_plot=False, dtf=10.0, adaptive_step=True, **setup_solver_options
+            init, make_plot=False, dtf=0.1, adaptive_step=True, **setup_solver_options
         )
         v0, vt = conserved_variables(results, make_plot=False)
         # conserved_variables(results, make_plot=True)
@@ -222,6 +222,7 @@ def check_output_conservation(solver_options):
     results = {}
     for k in outfile.keys():
         results[k] = outfile[k][:]
+    print(results)
     v0, vt = conserved_variables(results, make_plot=False)
     ones = np.ones_like(vt)
     np.testing.assert_array_almost_equal(ones, vt / v0, decimal=2)
@@ -281,8 +282,8 @@ def test_prey_predator(setup_predator_prey_network, setup_solver_options):
 def run_prey_predator(network, options):
     options["solver_name"] = solver_name
     os.chdir(pytest_dir)
-    write_network(network, options)
     init_values = write_initial_conditions(network)
+    write_network(network, init_values=init_values, solver_options=options)
     os.chdir(options["output_dir"])
 
     options["niters"] = 1e2
@@ -303,9 +304,9 @@ def run_prey_predator(network, options):
                 "use_suitesparse": False,
                 "output_dir": "be_chem_solve",
             },
-            marks=pytest.mark.skip(
-                reason="BE_chem_solve is unstable to stiff equations?"
-            ),
+            # marks=pytest.mark.skip(
+            #    reason="BE_chem_solve is unstable to stiff equations?"
+            # ),
         ),
         {
             "use_omp": False,
@@ -350,9 +351,8 @@ def prey_predator_convergence(network, option):
     os.chdir(pytest_dir)
     option["solver_name"] = solver_name
 
-    write_network(network, option)
-
     init_values = write_initial_conditions(network, N=1)
+    write_network(network, solver_options=option, init_values=init_values)
     os.chdir(option["output_dir"])
     # results = run_solver(init_values, **option, make_plot=False, dtf=100.0,)
     # phase_plot(results)
@@ -367,17 +367,12 @@ def prey_predator_convergence(network, option):
 @pytest.mark.parametrize(
     "setup_solver_options",
     (
-        pytest.param(
-            {
-                "use_omp": False,
-                "use_cvode": False,
-                "use_suitesparse": False,
-                "output_dir": "be_chem_solve",
-            },
-            marks=pytest.mark.xfail(
-                reason="BE_chem_solve is unstable to stiff equations?"
-            ),
-        ),
+        {
+            "use_omp": False,
+            "use_cvode": False,
+            "use_suitesparse": False,
+            "output_dir": "be_chem_solve",
+        },
         {
             "use_omp": False,
             "use_cvode": True,
