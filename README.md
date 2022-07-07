@@ -3,7 +3,8 @@
 [![Latest Version](https://img.shields.io/pypi/v/dengo-chemistry?logo=dengo-chemistry)](https://pypi.org/project/dengo-chemistry/)
 ![Dengo Testing](https://github.com/hisunnytang/dengo-merge/actions/workflows/python-package.yml/badge.svg)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)]
+[![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
+[![Jupyter Book Badge](https://jupyterbook.org/badge.svg)](https://hisunnytang.github.io/dengo-cookbook/landing.html)
 
 Hi there! Welcome to Dengo. Dengo is a Python system for symbolically describing a system of chemical species, chemical kinetic rate equations, cooling functions, and then producing from these a set of numerical kernels to calculate the “right hand side” and Jacobian of this system. These two numerical kernels can then be linked into one of several ODE solvers.
 
@@ -55,13 +56,7 @@ export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBR
 
 ## Example
 While we recommend our readers to read the [cookbook](https://hisunnytang.github.io/dengo-cookbook/landing.html) for a more detailed usage, here we provide a small and quick example with 1 reactions.
-$$
-\begin{split}
-\begin{align*}
-    \rm H + e^- &\rightarrow \rm H^+ + 2 e^- \quad &(k01)
-\end{align*}
-\end{split}
-$$
+$$\rm H + e^- &\rightarrow \rm H^+ + 2 e^- \quad &(k01)$$
 
 ### Defining Species
 One would first need to define the chemical species using `AtomicSpecies`, and `MolecularSpecies`. The weight of the atom would be looked up from the periodic table internally in `dengo`. User has to specified the free electrons in each chemical species (hydrogen atom). `de` represents the free electrons.
@@ -96,7 +91,7 @@ RHS = [(1, HII), (2, de)]
 ```
 
 #### Reaction Rate
-Reaction are oftentimes dependent on temperature. dengo expects a reaction rate function that take state as input. state contains not only temperature in $\rm K$, but also in Kelvin log scale, and in $\rm eV / K$  (electron volts per kelvin), and $\rm eV / K$ in log scale.
+Reaction are oftentimes dependent on temperature. dengo expects a reaction rate function that take state as input. state contains not only temperature in $\rm K$, but also in Kelvin log scale, and in $\rm{eV / K}$  (electron volts per kelvin), and $\rm{eV / K}$ in log scale.
 
 ```python
 from dengo.reaction_classes import reaction
@@ -209,7 +204,7 @@ simple_solver_run = pyximport.load_module(
 ### Invoking the Cython solver
 `{solver_name}_solver_run.run_{solver_name}(init_values, dt, niter)` is the entry point for the built solver. It takes an dictionary that contains the abundances, and thermal energy, and dt, time to advance the fluid parcel, niter the maximum number of iterations as arguments.
 
-It assumes that abundances are in number density with the units of $\rm cm^{-3}$, and thermal energy density in $\rm erg/g$ (thermal energy per mass density) $\frac{1}{\rho} \sum_i \frac{n_i k T}{\gamma_i - 1}$. niter implicitly sets the initial timestep for the solver, i.e. $dt_{\rm solver} = \rm dt / \rm niter$ .
+It assumes that abundances are in number density with the units of $\rm {cm^{-3}}$, and thermal energy density in $\rm{erg/g}$ (thermal energy per mass density) $\frac{1}{\rho} \sum_i \frac{n_i k T}{\gamma_i - 1}$. niter implicitly sets the initial timestep for the solver, i.e. $dt_{\rm solver} = \rm dt / \rm niter$ .
 
 ```python
 NCELLS = 1
