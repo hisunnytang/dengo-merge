@@ -163,7 +163,6 @@ int solve_chemistry_enzo(int argc, char **argv) {
     compare_array(field_data->Pressure, 1.0e-4, N);
     fprintf(stderr, "\n Temperature = %0.5g\n", field_data->temperature[i]);
     compare_array(field_data->temperature, 1.0e-4, N);
-    */
 
     unsigned long d;
     // lets just compare everything!!!!!!
