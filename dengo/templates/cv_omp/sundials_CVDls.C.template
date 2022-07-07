@@ -394,11 +394,7 @@ int {{solver_name}}_main(int argc, char** argv )
 
     H5Fclose(file_id);
 
-    // double dtf = {{ network.stop_time }};
-    double dtf, t0;
-    t0 = 2.992e15;
-    dtf = t0 / sqrt(density[0]);
-
+    double dtf = {{ network.stop_time }};
     // if the output time is specified,
     // it overrides the freefall time
     if (argc > 3){
