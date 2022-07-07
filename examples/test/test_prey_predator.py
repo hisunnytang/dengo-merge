@@ -297,17 +297,12 @@ def run_prey_predator(network, options):
 @pytest.mark.parametrize(
     "setup_solver_options",
     (
-        pytest.param(
-            {
-                "use_omp": False,
-                "use_cvode": False,
-                "use_suitesparse": False,
-                "output_dir": "be_chem_solve",
-            },
-            # marks=pytest.mark.skip(
-            #    reason="BE_chem_solve is unstable to stiff equations?"
-            # ),
-        ),
+        {
+            "use_omp": False,
+            "use_cvode": False,
+            "use_suitesparse": False,
+            "output_dir": "be_chem_solve",
+        },
         {
             "use_omp": False,
             "use_cvode": True,
