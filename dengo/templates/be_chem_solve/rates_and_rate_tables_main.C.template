@@ -19,18 +19,17 @@ int compare_array(double *array, double rtol, unsigned long N){
 }
 
 int main(int argc, char **argv) {
-    /*
     if (argc > 1){
        {{solver_name}}_main(argc, argv);
        return 0;
     }
-    */
     // solve_chemistry(argc, argv);
-    solve_chemistry_enzo(argc, argv);
+    //solve_chemistry_enzo(argc, argv);
 }
 
 // Sample on how to use dengo with primordial chemistry
 // with {{solver_name}}_solve_chemistry_enzo
+/*
 int solve_chemistry_enzo(int argc, char **argv) {
     dengo_field_data *field_data = (dengo_field_data *) malloc(sizeof(dengo_field_data));
     int Nx = 32;
@@ -217,3 +216,4 @@ int solve_chemistry_enzo(int argc, char **argv) {
     free(units);
     free(density_arr);
 }
+*/
