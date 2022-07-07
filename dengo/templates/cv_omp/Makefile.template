@@ -33,7 +33,7 @@ SUITESPARSE_PATH = {{network._suitesparse_path}}
 DENGO_INSTALL_PATH = {{network._dengo_install_path}}
 HDF5_PATH = {{network._hdf5_path}}
 
-{%if network._libtool_path is not None%}
+{%if network._libtool_path is not none %}
 LIBTOOL   = {{network._libtool_path}}/libtool
 {%else%}
 LIBTOOL = libtool
