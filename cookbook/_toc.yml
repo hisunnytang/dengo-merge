@@ -6,26 +6,31 @@ parts:
       - file: install/Install.md
     - caption: Build Your Own Network
       chapters:
-      - file: tutorial/buildingblocks/SimpleNetwork.md
+      - file: building_blocks/SimpleNetwork.md
         sections:
-        - file: tutorial/buildingblocks/CreateSpecies.ipynb
-        - file: tutorial/buildingblocks/CreateReaction.ipynb
-        - file: tutorial/buildingblocks/CreateCoolingFunction.ipynb
-        - file: tutorial/buildingblocks/CreateANetwork.ipynb
-        - file: tutorial/buildingblocks/BuildingSolverWithDengo.ipynb
+        - file: building_blocks/CreateSpecies.ipynb
+        - file: building_blocks/CreateReaction.ipynb
+        - file: building_blocks/CreateCoolingFunction.ipynb
+        - file: building_blocks/CreateANetwork.ipynb
+        - file: building_blocks/BuildingSolverWithDengo.ipynb
     - caption: Make use of Templates
       chapters:
-      - file: tutorial/buildingblocks/solverTemplate.ipynb
-      - file: tutorial/buildingblocks/dengo_writesolver.ipynb
+      - file: templates/solverTemplate.ipynb
+      - file: templates/dengo_writesolver.ipynb
         sections:
-        - file: tutorial/buildingblocks/dengo_cython.ipynb
-        - file: tutorial/buildingblocks/dengo_buildClib.ipynb
+        - file: templates/dengo_cython.ipynb
+        - file: templates/dengo_buildClib.ipynb
     - caption: Topic Guides
       chapters:
-      - file: threebody-check.ipynb
-      - file: workWithHydroSims.ipynb
-      - file: CreateNewCoolingAction.ipynb
-      - file: CompareWithGrackle.ipynb
+      - file: topic_guides/threebody-check.ipynb
+      - file: topic_guides/workWithHydroSims.ipynb
+      - file: topic_guides/CreateNewCoolingAction.ipynb
+      - file: topic_guides/CompareWithGrackle.ipynb
+      - file: topic_guides/NonEqilibriumIonization.ipynb
+        sections:
+        - file: topic_guides/IonByIon.ipynb
+      - file: topic_guides/UsingKromeNetworks.ipynb
+
     - caption: Reference
       chapters:
       - file: api.rst
