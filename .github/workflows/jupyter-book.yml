@@ -1,0 +1,48 @@
+# modified from https://jupyterbook.org/en/stable/publish/gh-pages.html
+name: deploy-book
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - cookbook
+
+jobs:
+  deploy-book:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # Install dependencies
+      - name: Setup Miniconda
+        uses: conda-incubator/setup-miniconda@v2.1.1
+        with:
+            auto-update-conda: true
+            auto-activate-base: true
+            python-version: ${{matrix.python-version}}
+      - uses: actions/checkout@v3
+      - name: Install dependencies
+        run: |
+          conda install -c conda-forge "sundials>=6.2"
+          conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
+          pip install -e ../
+          sudo apt-get update
+          sudo apt-get install -y libtool libtool-bin build-essential
+
+      - name: Build the Book
+        run: |
+          export HDF5_PATH=${CONDA}/envs/test
+          export SUITESPARSE_PATH=${CONDA}/envs/test
+          export CVODE_PATH=${CONDA}/envs/test
+          export DENGO_INSTALL_PATH=${{github.workspace}}/dengo_install
+          export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBRARY_PATH
+          export GCC=gcc
+          jupyter-book build .
+
+      # Push the books HTML to github pages
+      - name: GitHub Pages action
+        uses: peaceiris/actions-gh-pages@v3.6.1
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN  }}
+          publish_dir: ./_build/html
