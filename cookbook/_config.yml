@@ -1,12 +1,12 @@
 # Book settings
 title: Dengo Cookbook
 author: Sunny Tang
-logo: logo.png
+logo: dengo_logo.png
 
 # Force re-execution of notebooks on each build.
 # See https://jupyterbook.org/content/execute.html
 execute:
-  execute_notebooks: auto
+  execute_notebooks: force
 
 # Define the name of the latex output file for PDF builds
 latex:
@@ -31,8 +31,23 @@ sphinx:
     config:
       language: en
 
+parse:
+    myst_enable_extensions:
+      - amsmath
+      - colon_fence
+      - dollarmath
+      - linkify
+      - substitution
+      - tasklist
+    myst_url_schemes: [mailto, http, https] # URI schemes that will be recognised as external URLs in Markdown links
+    myst_dmath_double_inline: true  # Allow display math ($$) within an inline context
+
 # Add GitHub buttons to your book
 # See https://jupyterbook.org/customize/config.html#add-a-link-to-your-repository
-#html:
-#  use_issues_button: true
-#  use_repository_button: true
+html:
+    use_issues_button: true
+    use_repository_button: true
+
+repository:
+    url: https://github.com/hisunnytang/dengo-merge
+    path_to_book: https://github.com/hisunnytang/dengo-merge/tree/master/cookbook
