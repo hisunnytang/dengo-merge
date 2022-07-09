@@ -24,6 +24,7 @@ jobs:
           pip install -e .
           pip install -U jupyter-book
           pip install -U sphinx
+          pip install -U Pygments
           sudo apt-get update
           sudo apt-get install -y libtool libtool-bin build-essential
 
