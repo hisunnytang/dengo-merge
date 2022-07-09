@@ -1,0 +1,1081 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Comparing with PyGrackle &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/jquery.js"></script>
+    <script src="_static/underscore.js"></script>
+    <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/clipboard.min.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="_static/sphinx-thebe.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="topic_guides/threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="topic_guides/workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="topic_guides/NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/compare_grackle.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Fcompare_grackle.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="_sources/compare_grackle.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Comparing with PyGrackle</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pygrackle</span> <span class="kn">import</span> \
+ <span class="n">FluidContainer</span><span class="p">,</span> \
+ <span class="n">chemistry_data</span><span class="p">,</span> \
+ <span class="n">evolve_constant_density</span>
+
+<span class="kn">from</span> <span class="nn">pygrackle.utilities.physical_constants</span> <span class="kn">import</span> \
+ <span class="n">mass_hydrogen_cgs</span><span class="p">,</span> \
+ <span class="n">sec_per_Myr</span><span class="p">,</span> \
+ <span class="n">cm_per_mpc</span>
+
+<span class="kn">import</span> <span class="nn">dengo</span>
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> \
+ <span class="n">ChemicalNetwork</span><span class="p">,</span> \
+ <span class="n">reaction_registry</span><span class="p">,</span> \
+ <span class="n">cooling_registry</span><span class="p">,</span> <span class="n">species_registry</span>
+<span class="kn">import</span> <span class="nn">dengo.primordial_rates</span>
+<span class="kn">import</span> <span class="nn">dengo.primordial_cooling</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="nn">Input In [1],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">pygrackle</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">      </span><span class="mi">2</span>  <span class="n">FluidContainer</span><span class="p">,</span> \
+<span class="g g-Whitespace">      </span><span class="mi">3</span>  <span class="n">chemistry_data</span><span class="p">,</span> \
+<span class="g g-Whitespace">      </span><span class="mi">4</span>  <span class="n">evolve_constant_density</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="kn">from</span> <span class="nn">pygrackle.utilities.physical_constants</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">      </span><span class="mi">7</span>  <span class="n">mass_hydrogen_cgs</span><span class="p">,</span> \
+<span class="g g-Whitespace">      </span><span class="mi">8</span>  <span class="n">sec_per_Myr</span><span class="p">,</span> \
+<span class="g g-Whitespace">      </span><span class="mi">9</span>  <span class="n">cm_per_mpc</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">dengo</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;pygrackle&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;LD_LIBRARY_PATH&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/grackle_install/lib:</span><span class="si">{os.environ[&#39;LD_LIBRARY_PATH&#39;]}</span><span class="s2">&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">!</span>ls /home/kwoksun2/grackle_install/lib
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>libgrackle-3.1.so	libgrackle.a   libgrackle.so
+libgrackle-3.2.dev2.so	libgrackle.la
+</pre></div>
+</div>
+</div>
+</div>
+<section class="tex2jax_ignore mathjax_ignore" id="comparing-with-pygrackle">
+<h1>Comparing with PyGrackle<a class="headerlink" href="#comparing-with-pygrackle" title="Permalink to this heading">#</a></h1>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">run_grackle</span><span class="p">(</span><span class="n">init_dict</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+    <span class="n">current_redshift</span> <span class="o">=</span> <span class="mf">0.</span>
+
+    <span class="c1"># Set solver parameters</span>
+    <span class="n">my_chemistry</span> <span class="o">=</span> <span class="n">chemistry_data</span><span class="p">()</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">use_grackle</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">with_radiative_cooling</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">primordial_chemistry</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">metal_cooling</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">UVbackground</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">self_shielding_method</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">H2_self_shielding</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">three_body_rate</span> <span class="o">=</span> <span class="mi">4</span>
+    
+    <span class="n">grackle_data_file</span> <span class="o">=</span> <span class="nb">bytearray</span><span class="p">(</span><span class="s2">&quot;/home/kwoksun2/grackle/input/CloudyData_UVB=HM2012.h5&quot;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">grackle_data_file</span> <span class="o">=</span> <span class="n">grackle_data_file</span>
+
+    <span class="c1"># Set units</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">comoving_coordinates</span> <span class="o">=</span> <span class="mi">0</span> <span class="c1"># proper units</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">a_units</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">a_value</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">current_redshift</span><span class="p">)</span> <span class="o">/</span> \
+     <span class="n">my_chemistry</span><span class="o">.</span><span class="n">a_units</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">density_units</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="c1"># rho = 1.0 is 1.67e-24 g</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">length_units</span> <span class="o">=</span> <span class="mf">1.0</span>         <span class="c1"># 1 Mpc in cm</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">time_units</span> <span class="o">=</span> <span class="mf">1.0</span>          <span class="c1"># 1 Myr in s</span>
+    <span class="n">my_chemistry</span><span class="o">.</span><span class="n">velocity_units</span> <span class="o">=</span> <span class="n">my_chemistry</span><span class="o">.</span><span class="n">a_units</span> <span class="o">*</span> \
+     <span class="p">(</span><span class="n">my_chemistry</span><span class="o">.</span><span class="n">length_units</span> <span class="o">/</span> <span class="n">my_chemistry</span><span class="o">.</span><span class="n">a_value</span><span class="p">)</span> <span class="o">/</span> \
+     <span class="n">my_chemistry</span><span class="o">.</span><span class="n">time_units</span>
+
+    <span class="n">rval</span> <span class="o">=</span> <span class="n">my_chemistry</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+    
+    <span class="n">element_map</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;H_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HI&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;H_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HII&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;H2_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;H2I&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;H2_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;H2II&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;H_m0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HM&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;He_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HeI&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;He_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HeII&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;He_3&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;HeIII&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s2">&quot;de&quot;</span><span class="p">]</span>   <span class="o">=</span> <span class="s2">&quot;de&quot;</span>
+    <span class="n">element_map</span><span class="p">[</span><span class="s1">&#39;density&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;density&#39;</span>
+    
+    <span class="n">fc</span> <span class="o">=</span> <span class="n">FluidContainer</span><span class="p">(</span><span class="n">my_chemistry</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">init_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">element_map</span><span class="p">:</span>
+            <span class="n">fc</span><span class="p">[</span><span class="n">element_map</span><span class="p">[</span><span class="n">k</span><span class="p">]][:]</span> <span class="o">=</span> <span class="n">v</span><span class="o">*</span><span class="mf">1.67e-24</span>
+    <span class="n">fc</span><span class="p">[</span><span class="s1">&#39;energy&#39;</span><span class="p">][:]</span> <span class="o">=</span> <span class="n">init_dict</span><span class="p">[</span><span class="s1">&#39;ge&#39;</span><span class="p">]</span>
+    
+    <span class="nb">print</span><span class="p">(</span><span class="n">fc</span><span class="p">)</span>
+    
+    <span class="n">safety_factor</span> <span class="o">=</span> <span class="mf">0.01</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">evolve_constant_density</span><span class="p">(</span><span class="n">fc</span><span class="p">,</span> <span class="n">final_time</span> <span class="o">=</span> <span class="n">dt</span><span class="p">,</span> <span class="n">safety_factor</span><span class="o">=</span><span class="mf">0.01</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">fc</span><span class="p">,</span> <span class="n">data</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">setup_primordial_network</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Initial a ChemicalNetwork object</span>
+<span class="sd">    for primordial network 9-species model</span>
+<span class="sd">    Return:</span>
+<span class="sd">     primordial: ChemicalNetwork with primordial reactions and cooling</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># this register all the rates specified in `primordial_rates.py`</span>
+    <span class="n">dengo</span><span class="o">.</span><span class="n">primordial_rates</span><span class="o">.</span><span class="n">setup_primordial</span><span class="p">()</span>
+
+    <span class="c1"># initialize the chmical network object</span>
+    <span class="n">primordial</span> <span class="o">=</span> <span class="n">ChemicalNetwork</span><span class="p">()</span>
+
+    <span class="c1"># add all the reactions</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k01&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k02&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k03&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k04&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k05&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k06&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k07&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k08&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k09&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k10&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k11&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k12&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k13&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k14&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k15&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k16&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k17&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k18&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k19&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k21&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k22&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k23&quot;</span><span class="p">)</span>
+
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;brem&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHII&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHeIII&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;gloverabel08&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ceHI&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;h2formation&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;h2formation_extra&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHeII2&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHeII1&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ciHeIS&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ceHeII&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ciHI&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ceHeI&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;gammah&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ciHeI&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;ciHeII&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;cie_cooling&quot;</span><span class="p">)</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;compton&quot;</span><span class="p">)</span>
+
+    <span class="c1"># This defines the temperature range for the rate tables</span>
+    <span class="n">primordial</span><span class="o">.</span><span class="n">init_temperature</span><span class="p">((</span><span class="mf">1e0</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
+
+    <span class="c1">#primordial.enforce_conservation = True</span>
+    <span class="c1">#primordial.set_equilibrium_species(&quot;H2_2&quot;)</span>
+
+    <span class="k">return</span> <span class="n">primordial</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dengo_network</span> <span class="o">=</span> <span class="n">setup_primordial_network</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
+Adding reaction: k03 : 1*He_1 + 1*de =&gt; 1*He_2 + 2*de
+Adding reaction: k04 : 1*He_2 + 1*de =&gt; 1*He_1
+Adding reaction: k05 : 1*He_2 + 1*de =&gt; 1*He_3 + 2*de
+Adding reaction: k06 : 1*He_3 + 1*de =&gt; 1*He_2
+Adding reaction: k07 : 1*H_1 + 1*de =&gt; 1*H_m0
+Adding reaction: k08 : 1*H_m0 + 1*H_1 =&gt; 1*H2_1 + 1*de
+Adding reaction: k09 : 1*H_1 + 1*H_2 =&gt; 1*H2_2
+Adding reaction: k10 : 1*H2_2 + 1*H_1 =&gt; 1*H2_1 + 1*H_2
+Adding reaction: k11 : 1*H2_1 + 1*H_2 =&gt; 1*H2_2 + 1*H_1
+Adding reaction: k12 : 1*H2_1 + 1*de =&gt; 2*H_1 + 1*de
+Adding reaction: k13 : 1*H2_1 + 1*H_1 =&gt; 3*H_1
+Adding reaction: k14 : 1*H_m0 + 1*de =&gt; 1*H_1 + 2*de
+Adding reaction: k15 : 1*H_m0 + 1*H_1 =&gt; 2*H_1 + 1*de
+Adding reaction: k16 : 1*H_m0 + 1*H_2 =&gt; 2*H_1
+Adding reaction: k17 : 1*H_m0 + 1*H_2 =&gt; 1*H2_2 + 1*de
+Adding reaction: k18 : 1*H2_2 + 1*de =&gt; 2*H_1
+Adding reaction: k19 : 1*H2_2 + 1*H_m0 =&gt; 1*H_1 + 1*H2_1
+Adding reaction: k21 : 2*H_1 + 1*H2_1 =&gt; 2*H2_1
+Adding reaction: k22 : 2*H_1 + 1*H_1 =&gt; 1*H2_1 + 1*H_1
+Adding reaction: k23 : 1*H2_1 + 1*H2_1 =&gt; 2*H_1 + 1*H2_1
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="n">kboltz</span> <span class="o">=</span> <span class="mf">1.38e-16</span>
+
+
+<span class="n">tiny</span> <span class="o">=</span> <span class="mf">1e-20</span>
+<span class="k">def</span> <span class="nf">setup_initial_conditions</span><span class="p">(</span><span class="n">network</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">h2frac</span><span class="p">,</span> <span class="n">NCELLS</span><span class="p">):</span>
+    <span class="c1"># setting initial conditions</span>
+    <span class="n">temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">NCELLS</span><span class="p">))</span><span class="o">*</span><span class="n">temperature</span>
+    <span class="n">init_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCELLS</span><span class="p">)</span> <span class="o">*</span> <span class="n">density</span>
+    <span class="n">init_values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;H_1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">init_array</span> <span class="o">*</span> <span class="mf">0.76</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">h2frac</span><span class="p">)</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;H_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;H_m0&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;He_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="mf">0.24</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;He_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;He_3&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;H2_1&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="mf">0.76</span> <span class="o">*</span> <span class="n">h2frac</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="n">h2frac</span><span class="p">)</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;H2_2&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;de&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">tiny</span>
+
+    <span class="c1"># update and calculate electron density and etc with the handy functions</span>
+    <span class="c1"># init_values = primordial.convert_to_mass_density(init_values)</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;de&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">calculate_free_electrons</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+    <span class="c1"># init_values[&#39;density&#39;] = primordial.calculate_total_density(init_values)</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;density&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">NCELLS</span><span class="p">))</span><span class="o">*</span><span class="n">density</span>
+    <span class="n">number_density</span> <span class="o">=</span> <span class="n">network</span><span class="o">.</span><span class="n">calculate_number_density</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+
+    <span class="c1"># set up initial temperatures values used to define ge</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temperature</span>
+
+    <span class="c1"># calculate ge (very crudely, no H2 help here)</span>
+    <span class="n">gamma</span> <span class="o">=</span> <span class="mf">5.0</span><span class="o">/</span><span class="mf">3.0</span>
+    <span class="n">mH</span> <span class="o">=</span> <span class="mf">1.67e-24</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;ge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.0</span> <span class="o">/</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">temperature</span> <span class="o">*</span> <span class="n">kboltz</span> <span class="o">/</span> <span class="n">mH</span>
+
+    <span class="k">return</span> <span class="n">init_values</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">yt</span>
+<span class="n">density</span> <span class="o">=</span> <span class="mf">1e0</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="mf">1000.0</span>
+<span class="n">h2frac</span>      <span class="o">=</span> <span class="mf">1e-3</span>
+
+<span class="n">dtf</span> <span class="o">=</span> <span class="mf">1e-1</span> <span class="o">/</span> <span class="p">(</span><span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">G</span> <span class="o">*</span> <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">mh</span> <span class="o">/</span> <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">density</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+<span class="n">init_values</span> <span class="o">=</span> <span class="n">setup_initial_conditions</span><span class="p">(</span><span class="n">dengo_network</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">h2frac</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="n">fc</span><span class="p">,</span> <span class="n">out</span> <span class="o">=</span> <span class="n">run_grackle</span><span class="p">(</span><span class="n">init_values</span><span class="p">,</span> <span class="n">dtf</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;density&#39;: array([1.67e-24]), &#39;metal&#39;: array([0.]), &#39;dust&#39;: array([0.]), &#39;HI&#39;: array([1.26793207e-24]), &#39;HII&#39;: array([1.67e-44]), &#39;HeI&#39;: array([4.008e-25]), &#39;HeII&#39;: array([1.67e-44]), &#39;HeIII&#39;: array([1.67e-44]), &#39;de&#39;: array([2.08668578e-44]), &#39;H2I&#39;: array([1.26793207e-27]), &#39;H2II&#39;: array([1.67e-44]), &#39;HM&#39;: array([1.67e-44]), &#39;H2_self_shielding_length&#39;: array([0.]), &#39;energy&#39;: array([1.23952096e+11]), &#39;x-velocity&#39;: array([0.]), &#39;y-velocity&#39;: array([0.]), &#39;z-velocity&#39;: array([0.]), &#39;temperature&#39;: array([0.]), &#39;dust_temperature&#39;: array([0.]), &#39;pressure&#39;: array([0.]), &#39;gamma&#39;: array([0.]), &#39;cooling_time&#39;: array([0.]), &#39;mu&#39;: array([0.]), &#39;nH&#39;: array([0.]), &#39;mean_molecular_weight&#39;: array([0.])}
+Evolve constant density - t: 0.000000e+00 yr, rho: 1.670000e-24 g/cm^3, T: 1.221040e+03 K.
+Evolve constant density - t: 1.024199e+05 yr, rho: 1.670000e-24 g/cm^3, T: 7.247171e+08 K.
+Evolve constant density - t: 2.048398e+05 yr, rho: 1.670000e-24 g/cm^3, T: 1.449279e+09 K.
+Evolve constant density - t: 3.072596e+05 yr, rho: 1.670000e-24 g/cm^3, T: 2.172963e+09 K.
+Evolve constant density - t: 4.096795e+05 yr, rho: 1.670000e-24 g/cm^3, T: 2.894399e+09 K.
+Evolve constant density - t: 5.120994e+05 yr, rho: 1.670000e-24 g/cm^3, T: 3.610692e+09 K.
+Evolve constant density - t: 6.145193e+05 yr, rho: 1.670000e-24 g/cm^3, T: 4.316562e+09 K.
+Evolve constant density - t: 7.169392e+05 yr, rho: 1.670000e-24 g/cm^3, T: 5.004085e+09 K.
+Evolve constant density - t: 8.193590e+05 yr, rho: 1.670000e-24 g/cm^3, T: 5.663380e+09 K.
+Evolve constant density - t: 9.217789e+05 yr, rho: 1.670000e-24 g/cm^3, T: 6.283961e+09 K.
+Evolve constant density - t: 1.024199e+06 yr, rho: 1.670000e-24 g/cm^3, T: 6.856409e+09 K.
+Evolve constant density - t: 1.126619e+06 yr, rho: 1.670000e-24 g/cm^3, T: 7.373663e+09 K.
+Evolve constant density - t: 1.229039e+06 yr, rho: 1.670000e-24 g/cm^3, T: 7.831856e+09 K.
+Evolve constant density - t: 1.331458e+06 yr, rho: 1.670000e-24 g/cm^3, T: 8.230267e+09 K.
+Evolve constant density - t: 1.433878e+06 yr, rho: 1.670000e-24 g/cm^3, T: 8.571084e+09 K.
+Evolve constant density - t: 1.536298e+06 yr, rho: 1.670000e-24 g/cm^3, T: 8.858398e+09 K.
+Evolve constant density - t: 1.638718e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.097621e+09 K.
+Evolve constant density - t: 1.741138e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.294787e+09 K.
+Evolve constant density - t: 1.843558e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.455949e+09 K.
+Evolve constant density - t: 1.945978e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.586627e+09 K.
+Evolve constant density - t: 2.048398e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.692067e+09 K.
+Evolve constant density - t: 2.150817e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.776657e+09 K.
+Evolve constant density - t: 2.253237e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.844358e+09 K.
+Evolve constant density - t: 2.355657e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.898325e+09 K.
+Evolve constant density - t: 2.458077e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.941260e+09 K.
+Evolve constant density - t: 2.560497e+06 yr, rho: 1.670000e-24 g/cm^3, T: 9.975365e+09 K.
+Evolve constant density - t: 2.662917e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.000237e+10 K.
+Evolve constant density - t: 2.765337e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.002376e+10 K.
+Evolve constant density - t: 2.867757e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.004069e+10 K.
+Evolve constant density - t: 2.970177e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.005407e+10 K.
+Evolve constant density - t: 3.072596e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.006463e+10 K.
+Evolve constant density - t: 3.175016e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.007294e+10 K.
+Evolve constant density - t: 3.277436e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.007949e+10 K.
+Evolve constant density - t: 3.379856e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.008464e+10 K.
+Evolve constant density - t: 3.482276e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.008871e+10 K.
+Evolve constant density - t: 3.584696e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.009191e+10 K.
+Evolve constant density - t: 3.687116e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.009444e+10 K.
+Evolve constant density - t: 3.789536e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.009643e+10 K.
+Evolve constant density - t: 3.891955e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.009800e+10 K.
+Evolve constant density - t: 3.994375e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.009925e+10 K.
+Evolve constant density - t: 4.096795e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010023e+10 K.
+Evolve constant density - t: 4.199215e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010100e+10 K.
+Evolve constant density - t: 4.301635e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010161e+10 K.
+Evolve constant density - t: 4.404055e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010209e+10 K.
+Evolve constant density - t: 4.506475e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010247e+10 K.
+Evolve constant density - t: 4.608895e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010277e+10 K.
+Evolve constant density - t: 4.711314e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010301e+10 K.
+Evolve constant density - t: 4.813734e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010320e+10 K.
+Evolve constant density - t: 4.916154e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010334e+10 K.
+Evolve constant density - t: 5.018574e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010346e+10 K.
+Evolve constant density - t: 5.120994e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010355e+10 K.
+Evolve constant density - t: 5.223414e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010363e+10 K.
+Evolve constant density - t: 5.325834e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010368e+10 K.
+Evolve constant density - t: 5.428254e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010373e+10 K.
+Evolve constant density - t: 5.530673e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010376e+10 K.
+Evolve constant density - t: 5.633093e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010379e+10 K.
+Evolve constant density - t: 5.735513e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010381e+10 K.
+Evolve constant density - t: 5.837933e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010383e+10 K.
+Evolve constant density - t: 5.940353e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010385e+10 K.
+Evolve constant density - t: 6.042773e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010386e+10 K.
+Evolve constant density - t: 6.145193e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010386e+10 K.
+Evolve constant density - t: 6.247613e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010387e+10 K.
+Evolve constant density - t: 6.350033e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010388e+10 K.
+Evolve constant density - t: 6.452452e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010388e+10 K.
+Evolve constant density - t: 6.554872e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010388e+10 K.
+Evolve constant density - t: 6.657292e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 6.759712e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 6.862132e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 6.964552e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 7.066972e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 7.169392e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 7.271811e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 7.374231e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010389e+10 K.
+Evolve constant density - t: 7.476651e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 7.579071e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 7.681491e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 7.783911e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 7.886331e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 7.988751e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.091170e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.193590e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.296010e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.398430e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.500850e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.603270e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.705690e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.808110e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 8.910530e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 9.012949e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 9.115369e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 9.217789e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 9.320209e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+Evolve constant density - t: 9.422629e+06 yr, rho: 1.670000e-24 g/cm^3, T: 1.010390e+10 K.
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># compile a BE chem solve one</span>
+<span class="kn">import</span> <span class="nn">pyximport</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">solver_name</span> <span class="o">=</span> <span class="s2">&quot;test_grackle&quot;</span>
+<span class="n">output_dir</span>  <span class="o">=</span> <span class="s1">&#39;.&#39;</span>
+<span class="n">network</span> <span class="o">=</span> <span class="n">dengo_network</span>
+
+<span class="c1"># specify the library path</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HDF5_DIR&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/anaconda3&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CVODE_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/dengo-merge/cvode-3.1.0/instdir&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HDF5_PATH&quot;</span><span class="p">]</span>  <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/anaconda3&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SUITESPARSE_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/dengo-merge/suitesparse&quot;</span>
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DENGO_INSTALL_PATH&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/dengo_install&quot;</span>
+
+<span class="c1"># install the library</span>
+<span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">setup_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;include_dirs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">get_include</span><span class="p">()},</span>
+                  <span class="n">reload_support</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">network</span><span class="o">.</span><span class="n">write_solver</span><span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">output_dir</span><span class="o">=</span><span class="n">output_dir</span><span class="p">,</span>
+                <span class="n">solver_template</span><span class="o">=</span><span class="s2">&quot;cv_omp/sundials_CVDls&quot;</span><span class="p">,</span>
+                <span class="n">ode_solver_source</span><span class="o">=</span><span class="s2">&quot;initialize_cvode_solver.C&quot;</span><span class="p">)</span>
+<span class="n">simple_solver_run</span> <span class="o">=</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span>
+    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_solver_run&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">solver_name</span><span class="p">),</span>
+    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_solver_run.pyx&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">solver_name</span><span class="p">),</span>
+    <span class="n">build_inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="s2">&quot;_dengo_temp&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>You have suitesparse!
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/Cython/Compiler/Main.py:369: FutureWarning: Cython directive &#39;language_level&#39; not set, using 2 for now (Py2). This will change in a later release! File: /home/kwoksun2/dengo-merge/cookbook/test_grackle_solver_run.pxd
+  tree = Parsing.p_module(s, pxd, full_module_name)
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">init_values</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1&#39;: array([75999999.24000001]),
+ &#39;H_2&#39;: array([1.e-12]),
+ &#39;H_m0&#39;: array([1.e-12]),
+ &#39;He_1&#39;: array([24000000.]),
+ &#39;He_2&#39;: array([1.e-12]),
+ &#39;He_3&#39;: array([1.e-12]),
+ &#39;H2_1&#39;: array([0.75999999]),
+ &#39;H2_2&#39;: array([1.e-12]),
+ &#39;de&#39;: array([1.24951244e-12]),
+ &#39;density&#39;: array([1.e+08]),
+ &#39;T&#39;: array([1000.]),
+ &#39;ge&#39;: array([1.23952096e+11])}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">density</span> <span class="o">=</span> <span class="mf">1e8</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="mf">1000.0</span>
+<span class="n">h2frac</span>      <span class="o">=</span> <span class="mf">1e-8</span>
+
+<span class="n">dtf</span> <span class="o">=</span> <span class="mf">1e-1</span> <span class="o">/</span> <span class="p">(</span><span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">G</span> <span class="o">*</span> <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">mh</span> <span class="o">/</span> <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">cm</span><span class="o">**</span><span class="mi">3</span> <span class="o">*</span> <span class="n">density</span><span class="p">)</span><span class="o">**</span><span class="mf">0.5</span>
+<span class="n">init_values</span> <span class="o">=</span> <span class="n">setup_initial_conditions</span><span class="p">(</span><span class="n">dengo_network</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">h2frac</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">_</span><span class="p">,</span> <span class="n">out_dengo</span>       <span class="o">=</span> <span class="n">simple_solver_run</span><span class="o">.</span><span class="n">run_test_grackle</span><span class="p">(</span><span class="n">init_values</span><span class="p">,</span><span class="n">dtf</span><span class="p">)</span>
+
+<span class="n">init_values</span> <span class="o">=</span> <span class="n">setup_initial_conditions</span><span class="p">(</span><span class="n">dengo_network</span><span class="p">,</span> <span class="n">density</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">h2frac</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">fc</span><span class="p">,</span> <span class="n">out_grackle</span> <span class="o">=</span> <span class="n">run_grackle</span><span class="p">(</span><span class="n">init_values</span><span class="p">,</span> <span class="n">dtf</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Successful iteration[    0]: (2.992e+06) 2.992e+06 / 2.992e+10
+End in 73 iterations: 2.99205e+10 / 2.99205e+10 (0.00000e+00)
+{&#39;density&#39;: array([1.67e-16]), &#39;metal&#39;: array([0.]), &#39;dust&#39;: array([0.]), &#39;HI&#39;: array([1.26919999e-16]), &#39;HII&#39;: array([1.67e-36]), &#39;HeI&#39;: array([4.008e-17]), &#39;HeII&#39;: array([1.67e-36]), &#39;HeIII&#39;: array([1.67e-36]), &#39;de&#39;: array([2.08668578e-36]), &#39;H2I&#39;: array([1.26919999e-24]), &#39;H2II&#39;: array([1.67e-36]), &#39;HM&#39;: array([1.67e-36]), &#39;H2_self_shielding_length&#39;: array([0.]), &#39;energy&#39;: array([1.23952096e+11]), &#39;x-velocity&#39;: array([0.]), &#39;y-velocity&#39;: array([0.]), &#39;z-velocity&#39;: array([0.]), &#39;temperature&#39;: array([0.]), &#39;dust_temperature&#39;: array([0.]), &#39;pressure&#39;: array([0.]), &#39;gamma&#39;: array([0.]), &#39;cooling_time&#39;: array([0.]), &#39;mu&#39;: array([0.]), &#39;nH&#39;: array([0.]), &#39;mean_molecular_weight&#39;: array([0.])}
+Evolve constant density - t: 0.000000e+00 yr, rho: 1.670000e-16 g/cm^3, T: 1.220851e+03 K.
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span> <span class="o">=</span> <span class="n">out_dengo</span><span class="p">[</span><span class="s1">&#39;successful&#39;</span><span class="p">]</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">out_dengo</span><span class="p">[</span><span class="s1">&#39;t&#39;</span><span class="p">][</span><span class="n">f</span><span class="p">]</span>
+<span class="n">hI</span> <span class="o">=</span> <span class="n">out_dengo</span><span class="p">[</span><span class="s1">&#39;H_1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">f</span><span class="p">]</span>
+
+<span class="n">totalH</span> <span class="o">=</span> <span class="n">out_dengo</span><span class="p">[</span><span class="s1">&#39;H_1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> <span class="o">+</span> <span class="n">out_dengo</span><span class="p">[</span><span class="s1">&#39;H2_1&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">f</span><span class="p">]</span> 
+<span class="n">totalH_g</span> <span class="o">=</span> <span class="n">out_grackle</span><span class="p">[</span><span class="s1">&#39;HI&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="n">out_grackle</span><span class="p">[</span><span class="s1">&#39;H2I&#39;</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">hI</span><span class="o">/</span> <span class="n">totalH</span><span class="p">)</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">out_grackle</span><span class="p">[</span><span class="s1">&#39;time&#39;</span><span class="p">]</span>
+<span class="n">hi</span> <span class="o">=</span> <span class="n">out_grackle</span><span class="p">[</span><span class="s1">&#39;HI&#39;</span><span class="p">]</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">hi</span><span class="o">/</span> <span class="n">totalH_g</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&lt;matplotlib.lines.Line2D at 0x7fa4ed68ccd0&gt;]
+</pre></div>
+</div>
+<img alt="_images/compare_grackle_14_1.png" src="_images/compare_grackle_14_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">out_grackle</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>defaultdict(list,
+            {&#39;density&#39;: YTArray([1.67e-16]) g/cm**3,
+             &#39;metal&#39;: YTArray([1.e-20]) g/cm**3,
+             &#39;dust&#39;: YTArray([0.]) g/cm**3,
+             &#39;HI&#39;: YTArray([4.78529163e-26]) g/cm**3,
+             &#39;HII&#39;: YTArray([1.36363068e-29]) g/cm**3,
+             &#39;HeI&#39;: YTArray([4.00775992e-17]) g/cm**3,
+             &#39;HeII&#39;: YTArray([7.51703104e-25]) g/cm**3,
+             &#39;HeIII&#39;: YTArray([7.51703104e-30]) g/cm**3,
+             &#39;de&#39;: YTArray([1.87936353e-25]) g/cm**3,
+             &#39;H2I&#39;: YTArray([1.269124e-16]) g/cm**3,
+             &#39;H2II&#39;: YTArray([1.36363068e-29]) g/cm**3,
+             &#39;HM&#39;: YTArray([1.36363068e-29]) g/cm**3,
+             &#39;energy&#39;: YTArray([1.06456603e+11]) erg/g,
+             &#39;temperature&#39;: YTArray([1058.34185608]) K,
+             &#39;pressure&#39;: YTArray([6.41887329e-06]) dyne/cm**2,
+             &#39;mu&#39;: array([2.01267205]),
+             &#39;time&#39;: YTArray([0.]) s})
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">totalH_g</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>YTArray([1.26912390e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16, 1.26912395e-16, 1.26912395e-16,
+         1.26912395e-16, 1.26912395e-16]) g/cm**3
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">totalH</span><span class="o">*</span><span class="mf">1.67e-24</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26920000e-16, 1.26920000e-16, 1.26920000e-16,
+       1.26920000e-16, 1.26919999e-16, 1.26919999e-16, 1.26919999e-16,
+       1.26919999e-16, 1.26919999e-16, 1.26919999e-16, 1.26919999e-16,
+       1.26919999e-16, 1.26919999e-16, 1.26919999e-16, 1.26919999e-16,
+       1.26919998e-16, 1.26919998e-16, 1.26919998e-16, 1.26919998e-16,
+       1.26919998e-16, 1.26919997e-16, 1.26919997e-16, 1.26919997e-16,
+       1.26919997e-16, 1.26919996e-16, 1.26919996e-16, 1.26919995e-16,
+       1.26919995e-16, 1.26919994e-16, 1.26919994e-16, 1.26919993e-16,
+       1.26919993e-16, 1.26919992e-16, 1.26919991e-16, 1.26919990e-16,
+       1.26919989e-16])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./."
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

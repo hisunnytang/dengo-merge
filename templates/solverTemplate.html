@@ -1,0 +1,1270 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>How Does Dengo Generate Solvers? &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Making Use of Dengo templates" href="dengo_writesolver.html" />
+    <link rel="prev" title="Creating a Network" href="../building_blocks/CreateANetwork.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/templates/solverTemplate.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Ftemplates/solverTemplate.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/templates/solverTemplate.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   How Does Dengo Generate Solvers?
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#import-libraries-and-create-the-network">
+     Import Libraries and Create the Network
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#building-the-solver">
+     Building the solver
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#evaluate-the-reaction-rates">
+       Evaluate the reaction rates
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#using-jinja2">
+     Using
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Jinja2
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#preparing-the-rates-interpolation-template">
+       Preparing the rates interpolation template
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#import-the-rendered-simple-reaction-rate-py-and-check-if-it-works">
+       Import the Rendered
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         simple_reaction_rate.py
+        </span>
+       </code>
+       and Check if it works!
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#implement-the-temperature-function">
+   Implement the temperature function
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#implement-the-rhs-function">
+     Implement the RHS function
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#yay-you-have-learnt-how-to-write-a-jinja2-template-from-scratch">
+     Yay! you have learnt how to write a Jinja2 template from scratch
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>How Does Dengo Generate Solvers?</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   How Does Dengo Generate Solvers?
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#import-libraries-and-create-the-network">
+     Import Libraries and Create the Network
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#building-the-solver">
+     Building the solver
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#evaluate-the-reaction-rates">
+       Evaluate the reaction rates
+      </a>
+     </li>
+    </ul>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#using-jinja2">
+     Using
+     <code class="docutils literal notranslate">
+      <span class="pre">
+       Jinja2
+      </span>
+     </code>
+    </a>
+    <ul class="nav section-nav flex-column">
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#preparing-the-rates-interpolation-template">
+       Preparing the rates interpolation template
+      </a>
+     </li>
+     <li class="toc-h3 nav-item toc-entry">
+      <a class="reference internal nav-link" href="#import-the-rendered-simple-reaction-rate-py-and-check-if-it-works">
+       Import the Rendered
+       <code class="docutils literal notranslate">
+        <span class="pre">
+         simple_reaction_rate.py
+        </span>
+       </code>
+       and Check if it works!
+      </a>
+     </li>
+    </ul>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#implement-the-temperature-function">
+   Implement the temperature function
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#implement-the-rhs-function">
+     Implement the RHS function
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#yay-you-have-learnt-how-to-write-a-jinja2-template-from-scratch">
+     Yay! you have learnt how to write a Jinja2 template from scratch
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="how-does-dengo-generate-solvers">
+<h1>How Does Dengo Generate Solvers?<a class="headerlink" href="#how-does-dengo-generate-solvers" title="Permalink to this heading">#</a></h1>
+<p>This tutorial tells you how the solver are generated with the help of <code class="docutils literal notranslate"><span class="pre">dengo.ChemicalNetwork</span></code>, and <code class="docutils literal notranslate"><span class="pre">Jinja2</span></code>. In short, <code class="docutils literal notranslate"><span class="pre">dengo.ChemicalNetwork</span></code> carries the full information of the chemical reactions and cooling actions of interest. It internally generates the symbolic representation of the dynamics of each chemical species. This can be exported as <code class="docutils literal notranslate"><span class="pre">C++</span></code> or <code class="docutils literal notranslate"><span class="pre">python</span></code> code with a pre-written templates which can be found under <code class="docutils literal notranslate"><span class="pre">dengo/templates</span></code>. In this example we will be demonstrating how to generate rhs and solve the initial value problem with<code class="docutils literal notranslate"><span class="pre">scipy.odeint</span></code></p>
+<section id="import-libraries-and-create-the-network">
+<h2>Import Libraries and Create the Network<a class="headerlink" href="#import-libraries-and-create-the-network" title="Permalink to this heading">#</a></h2>
+<p>Primordial rates and cooling for the 9-species network are included in the default dengo library in <code class="docutils literal notranslate"><span class="pre">dengo.primordial_rates</span></code> and <code class="docutils literal notranslate"><span class="pre">dengo.primordial_cooling</span></code>. The reactions and cooling are added automatically to the <code class="docutils literal notranslate"><span class="pre">reaction_registry</span></code>, <code class="docutils literal notranslate"><span class="pre">cooling_registry</span></code> and <code class="docutils literal notranslate"><span class="pre">species_registry</span></code> with the call to <code class="docutils literal notranslate"><span class="pre">dengo.primordial_rates.setup_primordial</span></code>.</p>
+<p>Here we setup the same sample network we demonstrated in the last chapter with <code class="docutils literal notranslate"><span class="pre">k01</span></code>, <code class="docutils literal notranslate"><span class="pre">k02</span></code> and <code class="docutils literal notranslate"><span class="pre">reHII</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">dengo</span>
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ChemicalNetwork</span><span class="p">,</span>
+    <span class="n">reaction_registry</span><span class="p">,</span>
+    <span class="n">cooling_registry</span><span class="p">,</span>
+    <span class="n">species_registry</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">dengo.primordial_rates</span>
+<span class="kn">import</span> <span class="nn">dengo.primordial_cooling</span>
+
+<span class="n">dengo</span><span class="o">.</span><span class="n">primordial_rates</span><span class="o">.</span><span class="n">setup_primordial</span><span class="p">()</span>
+
+<span class="n">simpleNetwork</span> <span class="o">=</span> <span class="n">ChemicalNetwork</span><span class="p">()</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k01&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k02&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHII&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">init_temperature</span><span class="p">((</span><span class="mf">1e0</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
+Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="building-the-solver">
+<h2>Building the solver<a class="headerlink" href="#building-the-solver" title="Permalink to this heading">#</a></h2>
+<p>In this example, we will walk you through how to write a template from scratch that can be fed into a scipy solver. This can be done with <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.write_solver</span></code> and the combination of templates available under <code class="docutils literal notranslate"><span class="pre">dengo/templates</span></code>.</p>
+<section id="evaluate-the-reaction-rates">
+<h3>Evaluate the reaction rates<a class="headerlink" href="#evaluate-the-reaction-rates" title="Permalink to this heading">#</a></h3>
+<p>Reaction rates usually have a temperature dependence. For example, for reactions following the <a class="reference external" href="https://en.wikipedia.org/wiki/Arrhenius_equation">Arrhenius equation</a> usually have the forms of <span class="math notranslate nohighlight">\(k(T) = A e^{-\frac{E_a}{RT}}\)</span>, where <span class="math notranslate nohighlight">\(k\)</span> is the reaction rate, <span class="math notranslate nohighlight">\(E_a\)</span> is the activation energy of the reaction, <span class="math notranslate nohighlight">\(T\)</span> is the temperature, <span class="math notranslate nohighlight">\(A\)</span>, <span class="math notranslate nohighlight">\(R\)</span> are the pre-exponential factor, and the universal gas constant respectively. <span class="math notranslate nohighlight">\(A\)</span> is sometimes depends further on temperature in <a class="reference external" href="https://en.wikipedia.org/wiki/Arrhenius_equation#Modified_Arrhenius_equation">Modified Arrhenius equation</a>.</p>
+<p>Evaluating these rates on the fly would be computationally expensive. One possible way of reducing the computational time is to interpolate from a pre-calculated reaction rates table. The rates are specified when the reactions <code class="docutils literal notranslate"><span class="pre">rxn</span></code> are first created with the <code class="docutils literal notranslate"><span class="pre">&#64;reaction</span></code> decorator. They can be evaluated handily with <code class="docutils literal notranslate"><span class="pre">rxn.coeff_fn(chemicalnetwork)</span></code>. The range of temperature of interest for example <span class="math notranslate nohighlight">\(T = \rm (1, 10^8) K\)</span> can be first specified with <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.init_temperature(T_bounds=(1e0,</span> <span class="pre">1e8),</span> <span class="pre">n_bins=1024)</span></code>. The added reaction objects can be accessed with <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.reactions</span></code>. For example, the reaction rates of <code class="docutils literal notranslate"><span class="pre">k01</span></code> can the accessed with the snippet below</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">rxn_rate</span> <span class="o">=</span> <span class="n">cn</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="s1">&#39;k01&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="n">ChemicalNetwork</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The output <code class="docutils literal notranslate"><span class="pre">rxn_rate</span></code> is an numpy array with a length of <code class="docutils literal notranslate"><span class="pre">[n_bins]</span></code>.</p>
+<p>A reaction rate table is generated and exported to a <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> file below.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ofn</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="o">&gt;&gt;&gt;</span> <span class="o">&lt;</span><span class="n">KeysViewHDF5</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;k01&#39;</span><span class="p">,</span> <span class="s1">&#39;k02&#39;</span><span class="p">,</span> <span class="s1">&#39;reHII_reHII&#39;</span><span class="p">]</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">h5py</span>
+
+<span class="n">solver_name</span> <span class="o">=</span> <span class="s2">&quot;simple&quot;</span>
+<span class="n">output_dir</span> <span class="o">=</span> <span class="s2">&quot;.&quot;</span>
+
+<span class="n">ofn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_tables.h5&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">ofn</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;rm </span><span class="si">{</span><span class="n">ofn</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">with</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ofn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">cooling_actions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="s2">&quot;tables&quot;</span><span class="p">):</span>
+            <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;/</span><span class="si">{</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">tab</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tab</span><span class="p">](</span><span class="n">simpleNetwork</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;/T&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="using-jinja2">
+<h2>Using <code class="docutils literal notranslate"><span class="pre">Jinja2</span></code><a class="headerlink" href="#using-jinja2" title="Permalink to this heading">#</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">Jinja2</span></code> fills out variables dynamically with the user-given inputs. It is however not limited to variables subsitution. You can also use conditions (if/else), for loops (for), filter, and tests in Jinja2 template. To construct our solver template for <code class="docutils literal notranslate"><span class="pre">scipy</span></code>, we will be using for-loop, if-else, and variable substitution. And we will go through these usages briefly below their respective syntax. We refer our readers for more details in <a class="reference external" href="http://jinja.octoprint.org/">Jinja2 Documentation</a>.</p>
+<p>For example if the template is <code class="docutils literal notranslate"><span class="pre">Dengo</span> <span class="pre">{{token}}</span></code>, Jinja2 would look for the user-fed input for the variable <code class="docutils literal notranslate"><span class="pre">token</span></code>, and output the file with the word in curly bracket replaced with the <code class="docutils literal notranslate"><span class="pre">token</span> <span class="pre">=</span> <span class="pre">&quot;works&quot;</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">jinja2</span> <span class="kn">import</span> <span class="n">Template</span>
+
+<span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span><span class="s2">&quot;Dengo {{ token }}!&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="s2">&quot;works&quot;</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Dengo works!
+</pre></div>
+</div>
+</div>
+</div>
+<p>Jinja2 also provided an straightforward way to iterate over iterables like lists, with the syntax <code class="docutils literal notranslate"><span class="pre">{%</span> <span class="pre">for</span> <span class="pre">item</span> <span class="pre">in</span> <span class="pre">list</span> <span class="pre">%}</span> <span class="pre">{%</span> <span class="pre">endfor</span> <span class="pre">%}</span></code>. In the example below, we iterate over the required species in our chemical network, and had Jinja2 print out their name.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">t</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">{% for s in network.required_species | sort %}</span>
+<span class="sd">{{s.name}},</span>
+<span class="sd">{% endfor %}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">simpleNetwork</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>H_1,
+
+H_2,
+
+de,
+
+ge,
+</pre></div>
+</div>
+</div>
+</div>
+<section id="preparing-the-rates-interpolation-template">
+<h3>Preparing the rates interpolation template<a class="headerlink" href="#preparing-the-rates-interpolation-template" title="Permalink to this heading">#</a></h3>
+<p>In the template below, we demonstrate a simple implementation for interpolating reaction and cooling rates with <code class="docutils literal notranslate"><span class="pre">Jinja2</span></code> and our <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork</span></code> object. In brief, the template below first reads in the rates from the <code class="docutils literal notranslate"><span class="pre">hdf5</span></code> we created above, and two functions <code class="docutils literal notranslate"><span class="pre">interpolate_rates</span></code> and <code class="docutils literal notranslate"><span class="pre">interpolate_cooling_rates</span></code> are created dynamically based on the reactions avaiable in our <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reaction_rates_template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">import numpy as np</span>
+<span class="sd">import h5py</span>
+
+<span class="sd"># read rates in as global variables</span>
+<span class="sd">rates_table = &quot;{{solver_name}}_tables.h5&quot;</span>
+<span class="sd">ratef = h5py.File(rates_table, &#39;r&#39;)</span>
+
+<span class="sd"># Reaction Rates</span>
+<span class="sd">{% for k in network.reactions.keys()%}</span>
+<span class="sd">out{{k}}dev = ratef[&#39;{{k}}&#39;][:]</span>
+<span class="sd">{%- endfor %} </span>
+
+<span class="sd"># Cooling Rates</span>
+<span class="sd">{%- for name, rate in network.cooling_actions | dictsort %}</span>
+<span class="sd">{%- for name2 in rate.tables | sort %}</span>
+<span class="sd">out_{{name}}_{{name2}} = ratef[&quot;{{name}}_{{name2}}&quot;][:]</span>
+<span class="sd">{%- endfor %}</span>
+<span class="sd">{%- endfor %}</span>
+<span class="sd">tdev = ratef[&#39;T&#39;][:]</span>
+<span class="sd">ratef.close()</span>
+
+<span class="sd">def interpolate_rates(T):</span>
+<span class="sd">    {% for k in network.reactions.keys()%}</span>
+<span class="sd">    {{k}} = np.interp(T, tdev, out{{k}}dev)</span>
+<span class="sd">    {%- endfor %} </span>
+<span class="sd">    return (</span>
+<span class="sd">    {%- for k in network.reactions.keys() -%}</span>
+<span class="sd">    {{k}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    )</span>
+<span class="sd">def interpolate_cooling_rates(T):</span>
+<span class="sd">    {%- for name, rate in network.cooling_actions | dictsort %}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort %}</span>
+<span class="sd">    {{name}}_{{name2}} = np.interp(T, tdev, out_{{name}}_{{name2}})</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    return (</span>
+<span class="sd">    {%- for name, rate in network.cooling_actions | dictsort -%}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort -%}</span>
+<span class="sd">    {{name}}_{{name2}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    )</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+<span class="n">template_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">simpleNetwork</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver_name</span><span class="p">)</span>
+<span class="n">output_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_reaction_rate.py&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">reaction_rates_template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">template_vars</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="import-the-rendered-simple-reaction-rate-py-and-check-if-it-works">
+<h3>Import the Rendered <code class="docutils literal notranslate"><span class="pre">simple_reaction_rate.py</span></code> and Check if it works!<a class="headerlink" href="#import-the-rendered-simple-reaction-rate-py-and-check-if-it-works" title="Permalink to this heading">#</a></h3>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">simple_reaction_rate</span> <span class="kn">import</span> <span class="n">interpolate_rates</span><span class="p">,</span> <span class="n">interpolate_cooling_rates</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">temperature</span> <span class="o">=</span> <span class="n">simpleNetwork</span><span class="o">.</span><span class="n">T</span>
+<span class="n">rxnk01_rate</span><span class="p">,</span> <span class="n">rxnk02_rate</span> <span class="o">=</span> <span class="n">interpolate_rates</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+<span class="p">(</span><span class="n">coolreHII_rate</span><span class="p">,)</span> <span class="o">=</span> <span class="n">interpolate_cooling_rates</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">rxnk01_rate</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;k01&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">rxnk02_rate</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;k02&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Temperature $(\rm K)$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Reaction Rate $(\rm g^{-1} cm^</span><span class="si">{3}</span><span class="s2"> s^{-1} )$&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">coolreHII_rate</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C2&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;reHII&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Cooling Rate reHII&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f134795cfd0&gt;
+</pre></div>
+</div>
+<img alt="../_images/solverTemplate_13_1.png" src="../_images/solverTemplate_13_1.png" />
+</div>
+</div>
+</section>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="implement-the-temperature-function">
+<h1>Implement the temperature function<a class="headerlink" href="#implement-the-temperature-function" title="Permalink to this heading">#</a></h1>
+<div class="highlight-jinja2 notranslate"><div class="highlight"><pre><span></span>gamma = 5./3.
+kb    = 1.38e-16
+mh    = 1.67e-24
+
+def calculate_temperature(state: npt.ArrayLike):
+    # extract the abundance from the state vector
+    {% for s in network.required_species | sort -%}
+    {{s.name}}, 
+    {%- endfor -%}
+    = state
+    density = {{network.print_mass_density()}}
+    T = {{network.temperature_calculation()}}
+    return T
+</pre></div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">temperature_template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">import numpy as np</span>
+<span class="sd">gamma = 5./3.</span>
+<span class="sd">kb    = 1.38e-16</span>
+<span class="sd">mh    = 1.67e-24</span>
+
+<span class="sd">def calculate_temperature(state):</span>
+<span class="sd">    # extract the abundance from the state vector</span>
+<span class="sd">    {% for s in network.required_species | sort -%}</span>
+<span class="sd">    {{s.name}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = state</span>
+<span class="sd">    density = {{network.print_mass_density()}}</span>
+<span class="sd">    T = {{network.temperature_calculation()}}</span>
+<span class="sd">    return T</span>
+<span class="sd">    </span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+<span class="n">output_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_temperature.py&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">temperature_template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="n">simpleNetwork</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># %load simple_temperature.py</span>
+
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="mf">3.0</span>
+<span class="n">kb</span> <span class="o">=</span> <span class="mf">1.38e-16</span>
+<span class="n">mh</span> <span class="o">=</span> <span class="mf">1.67e-24</span>
+
+
+<span class="k">def</span> <span class="nf">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+    <span class="c1"># extract the abundance from the state vector</span>
+    <span class="p">(</span>
+        <span class="n">H_1</span><span class="p">,</span>
+        <span class="n">H_2</span><span class="p">,</span>
+        <span class="n">de</span><span class="p">,</span>
+        <span class="n">ge</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="n">density</span> <span class="o">=</span> <span class="mf">1.0079400000000001</span> <span class="o">*</span> <span class="n">H_1</span> <span class="o">+</span> <span class="mf">1.0079400000000001</span> <span class="o">*</span> <span class="n">H_2</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">density</span>
+        <span class="o">*</span> <span class="n">ge</span>
+        <span class="o">*</span> <span class="n">mh</span>
+        <span class="o">/</span> <span class="p">(</span><span class="n">kb</span> <span class="o">*</span> <span class="p">(</span><span class="n">H_1</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">H_2</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">+</span> <span class="n">de</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)))</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">T</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># from simple_temperature import calculate_temperature</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Prepare the initial state vector</span>
+<span class="n">ge</span> <span class="o">=</span> <span class="mf">1e13</span>  <span class="c1"># erg/g</span>
+<span class="n">H_1</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># 1/cm^3</span>
+<span class="n">H_2</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># 1/cm^3</span>
+<span class="n">de</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># 1/cm^3</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span><span class="p">])</span>
+<span class="n">simple_temperature</span><span class="o">.</span><span class="n">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
+<span class="nn">Input In [9],</span> in <span class="ni">&lt;cell line: 10&gt;</span><span class="nt">()</span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span> <span class="n">de</span> <span class="o">=</span> <span class="mf">1e-2</span>  <span class="c1"># 1/cm^3</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span><span class="p">])</span>
+<span class="ne">---&gt; </span><span class="mi">10</span> <span class="n">simple_temperature</span><span class="o">.</span><span class="n">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+
+<span class="ne">NameError</span>: name &#39;simple_temperature&#39; is not defined
+</pre></div>
+</div>
+</div>
+</div>
+<section id="implement-the-rhs-function">
+<h2>Implement the RHS function<a class="headerlink" href="#implement-the-rhs-function" title="Permalink to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rhs_template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">import numpy as np</span>
+<span class="sd">from {{solver_name}}_temperature import calculate_temperature</span>
+<span class="sd">from {{solver_name}}_reaction_rate import interpolate_rates, interpolate_cooling_rates</span>
+<span class="sd">mh    = 1.67e-24</span>
+
+<span class="sd">def rhs_func(state, t):</span>
+
+<span class="sd">    # extract the abundance from the state vector</span>
+<span class="sd">    {% for s in network.required_species | sort -%}</span>
+<span class="sd">    {{s.name}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = state</span>
+<span class="sd">    </span>
+<span class="sd">    T   = calculate_temperature(state)[np.newaxis]</span>
+<span class="sd">    </span>
+<span class="sd">    {% for k in network.reactions.keys() -%}</span>
+<span class="sd">    {{k}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = interpolate_rates    (T)</span>
+<span class="sd">    </span>
+<span class="sd">    i = 0</span>
+<span class="sd">    </span>
+<span class="sd">    {% for name, rate in network.cooling_actions | dictsort -%}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort -%}</span>
+<span class="sd">    {{name}}_{{name2}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = interpolate_cooling_rates(T)</span>
+<span class="sd">    </span>
+<span class="sd">    rho = {{network.print_mass_density()}}</span>
+<span class="sd">    </span>
+<span class="sd">    {% for s in network.required_species | sort %}</span>
+<span class="sd">    {% if s.name != &quot;ge&quot; %}</span>
+<span class="sd">    d{{s.name}}dt = {{network.species_total(s)}}</span>
+<span class="sd">    {% else %}</span>
+<span class="sd">    d{{s.name}}dt = {{network.print_cooling(assign_to=None)}} / mh/ rho</span>
+<span class="sd">    {%- endif -%}</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    </span>
+<span class="sd">    return {% for s in network.required_species | sort -%}</span>
+<span class="sd">    d{{s.name}}dt, </span>
+<span class="sd">    {%- endfor -%}</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+<span class="n">output_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_rhs.py&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">rhs_template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">template_vars</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">simple_rhs</span> <span class="kn">import</span> <span class="n">rhs_func</span>
+<span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+
+<span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
+
+<span class="n">H_1_traj</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">,</span> <span class="n">ge_traj</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">l1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_1_traj</span><span class="p">)</span>
+<span class="n">l2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">)</span>
+<span class="n">l3</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">)</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">T_traj</span> <span class="o">=</span> <span class="n">calculate_temperature</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">l4</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">T_traj</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C3&quot;</span><span class="p">)</span>
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Abundance ($\rm cm^{-3}$)&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Temperature (K)&quot;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">)</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">,</span> <span class="n">l3</span><span class="p">,</span> <span class="n">l4</span><span class="p">],</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\rm H$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm H^+$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm e^-$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm T$&quot;</span><span class="p">],</span>
+    <span class="n">loc</span><span class="o">=</span><span class="p">[</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mf">0.85</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_6081/297263008.py:23: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+  f.legend(
+</pre></div>
+</div>
+<img alt="../_images/solverTemplate_21_1.png" src="../_images/solverTemplate_21_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">solver_rhs_template</span> <span class="o">=</span> <span class="n">Template</span><span class="p">(</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">import h5py</span>
+<span class="sd">import numpy as np</span>
+<span class="sd">gamma = 5./3.</span>
+<span class="sd">kb    = 1.38e-16</span>
+<span class="sd">mh    = 1.67e-24</span>
+
+
+<span class="sd"># read rates in as global variables</span>
+<span class="sd">rates_table = &quot;{{solver_name}}_tables.h5&quot;</span>
+<span class="sd">ratef = h5py.File(rates_table, &#39;r&#39;)</span>
+
+<span class="sd"># Reaction Rates</span>
+<span class="sd">{% for k in network.reactions.keys()%}</span>
+<span class="sd">out{{k}}dev = ratef[&#39;{{k}}&#39;][:]</span>
+<span class="sd">{%- endfor %} </span>
+
+<span class="sd"># Cooling Rates</span>
+<span class="sd">{%- for name, rate in network.cooling_actions | dictsort %}</span>
+<span class="sd">{%- for name2 in rate.tables | sort %}</span>
+<span class="sd">out_{{name}}_{{name2}} = ratef[&quot;{{name}}_{{name2}}&quot;][:]</span>
+<span class="sd">{%- endfor %}</span>
+<span class="sd">{%- endfor %}</span>
+<span class="sd">tdev = ratef[&#39;T&#39;][:]</span>
+<span class="sd">ratef.close()</span>
+
+<span class="sd">def interpolate_rates(T):</span>
+<span class="sd">    {% for k in network.reactions.keys()%}</span>
+<span class="sd">    {{k}} = np.interp(T, tdev, out{{k}}dev)</span>
+<span class="sd">    {%- endfor %} </span>
+<span class="sd">    return (</span>
+<span class="sd">    {%- for k in network.reactions.keys() -%}</span>
+<span class="sd">    {{k}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    )</span>
+<span class="sd">def interpolate_cooling_rates(T):</span>
+<span class="sd">    {%- for name, rate in network.cooling_actions | dictsort %}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort %}</span>
+<span class="sd">    {{name}}_{{name2}} = np.interp(T, tdev, out_{{name}}_{{name2}})</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    return (</span>
+<span class="sd">    {%- for name, rate in network.cooling_actions | dictsort -%}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort -%}</span>
+<span class="sd">    {{name}}_{{name2}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    )</span>
+
+
+<span class="sd">def calculate_temperature(state):</span>
+<span class="sd">    # extract the abundance from the state vector</span>
+<span class="sd">    {% for s in network.required_species | sort -%}</span>
+<span class="sd">    {{s.name}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = state</span>
+<span class="sd">    density = {{network.print_mass_density()}}</span>
+<span class="sd">    T = {{network.temperature_calculation()}}</span>
+<span class="sd">    return T</span>
+<span class="sd">    </span>
+<span class="sd">def rhs_func(state, t):</span>
+
+<span class="sd">    # extract the abundance from the state vector</span>
+<span class="sd">    {% for s in network.required_species | sort -%}</span>
+<span class="sd">    {{s.name}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = state</span>
+<span class="sd">    </span>
+<span class="sd">    T   = calculate_temperature(state)[np.newaxis]</span>
+<span class="sd">    </span>
+<span class="sd">    {% for k in network.reactions.keys() -%}</span>
+<span class="sd">    {{k}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = interpolate_rates    (T)</span>
+<span class="sd">    </span>
+<span class="sd">    i = 0</span>
+<span class="sd">    </span>
+<span class="sd">    {% for name, rate in network.cooling_actions | dictsort -%}</span>
+<span class="sd">    {%- for name2 in rate.tables | sort -%}</span>
+<span class="sd">    {{name}}_{{name2}}, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">    = interpolate_cooling_rates(T)</span>
+<span class="sd">    </span>
+<span class="sd">    rho = {{network.print_mass_density()}}</span>
+<span class="sd">    </span>
+<span class="sd">    {% for s in network.required_species | sort %}</span>
+<span class="sd">    {% if s.name != &quot;ge&quot; %}</span>
+<span class="sd">    d{{s.name}}dt = {{network.species_total(s)}}</span>
+<span class="sd">    {% else %}</span>
+<span class="sd">    d{{s.name}}dt = {{network.print_cooling(assign_to=None)}} / mh/ rho</span>
+<span class="sd">    {%- endif -%}</span>
+<span class="sd">    {%- endfor %}</span>
+<span class="sd">    </span>
+<span class="sd">    return {% for s in network.required_species | sort -%}</span>
+<span class="sd">    d{{s.name}}dt, </span>
+<span class="sd">    {%- endfor -%}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="p">)</span>
+
+<span class="n">output_file</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_solver.py&quot;</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_rhs_template</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">template_vars</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">simple_solver</span> <span class="kn">import</span> <span class="n">rhs_func</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">101</span><span class="p">)</span>
+<span class="n">output</span> <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
+
+<span class="n">H_1_traj</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">,</span> <span class="n">ge_traj</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">l1</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_1_traj</span><span class="p">)</span>
+<span class="n">l2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">)</span>
+<span class="n">l3</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">)</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">T_traj</span> <span class="o">=</span> <span class="n">calculate_temperature</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">l4</span> <span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">T_traj</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C3&quot;</span><span class="p">)</span>
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Abundance ($\rm cm^{-3}$)&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Temperature (K)&quot;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">)</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">l1</span><span class="p">,</span> <span class="n">l2</span><span class="p">,</span> <span class="n">l3</span><span class="p">,</span> <span class="n">l4</span><span class="p">],</span>
+    <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s2">&quot;$\rm H$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm H^+$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm e^-$&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;$\rm T$&quot;</span><span class="p">],</span>
+    <span class="n">loc</span><span class="o">=</span><span class="p">[</span><span class="mf">0.15</span><span class="p">,</span> <span class="mf">0.4</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mf">0.85</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_6081/2565928376.py:20: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+  f.legend(
+</pre></div>
+</div>
+<img alt="../_images/solverTemplate_24_1.png" src="../_images/solverTemplate_24_1.png" />
+</div>
+</div>
+</section>
+<section id="yay-you-have-learnt-how-to-write-a-jinja2-template-from-scratch">
+<h2>Yay! you have learnt how to write a Jinja2 template from scratch<a class="headerlink" href="#yay-you-have-learnt-how-to-write-a-jinja2-template-from-scratch" title="Permalink to this heading">#</a></h2>
+<p>this template is also available under <code class="docutils literal notranslate"><span class="pre">dengo/templates/scipy/dengo_rhs.py.template</span></code>. While we only demonstrated it with a 2 species model with 2 reactions and 1 cooling action. This would still work for any user-specied network!</p>
+<p>The workflow we outlined in this chapter works for a simple prototyping with <code class="docutils literal notranslate"><span class="pre">scipy.integrate.odeint</span></code>. To extend it to more efficient deployments with <code class="docutils literal notranslate"><span class="pre">C</span></code> libraries and the ODE solver <code class="docutils literal notranslate"><span class="pre">SUNDIALS</span> <span class="pre">CVODE</span></code> in massively parallel setting, we have also provide our template function for generating compilable C-libraries under <code class="docutils literal notranslate"><span class="pre">dengo/templates/</span></code>. This will be introduced in the next chapter.</p>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./templates"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="../building_blocks/CreateANetwork.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Creating a Network</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="dengo_writesolver.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Making Use of Dengo templates</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

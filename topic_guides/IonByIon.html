@@ -1,0 +1,1140 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Example Ion-by-Ion Network &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dengo Documentation" href="../api.html" />
+    <link rel="prev" title="Non-Equilibrium Ionizations in the presence of background ionizations" href="NonEqilibriumIonization.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/topic_guides/IonByIon.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Ftopic_guides/IonByIon.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/topic_guides/IonByIon.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prepare-a-sample-inital-condition-array">
+   Prepare a sample inital condition array
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#writing-the-templates-from-the-chemicalnetwork">
+   Writing the templates from the
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     ChemicalNetwork
+    </span>
+   </code>
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#importing-cython-modules">
+   Importing
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Cython
+    </span>
+   </code>
+   modules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#integrate-the-system">
+   Integrate the system
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Example Ion-by-Ion Network</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#prepare-a-sample-inital-condition-array">
+   Prepare a sample inital condition array
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#writing-the-templates-from-the-chemicalnetwork">
+   Writing the templates from the
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     ChemicalNetwork
+    </span>
+   </code>
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#importing-cython-modules">
+   Importing
+   <code class="docutils literal notranslate">
+    <span class="pre">
+     Cython
+    </span>
+   </code>
+   modules
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#integrate-the-system">
+   Integrate the system
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="example-ion-by-ion-network">
+<h1>Example Ion-by-Ion Network<a class="headerlink" href="#example-ion-by-ion-network" title="Permalink to this heading">#</a></h1>
+<p>Ionization, recombination, photo-ionization give rises to transitions between ionization states. Photo-heating, and ion-by-ion cooling modifies the thermal energy of the system. In the above we demonstrated that it can be accounted for by adding each one of them by hand. This can grow out of hand as the number of ionization state is enormous. Dengo provide a more straightforward implementation with <code class="docutils literal notranslate"><span class="pre">dengo.ion_by_ion</span> <span class="pre">setup_ionization</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;XUVTOP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/data/dengo-merge/CHIANTI&quot;</span>
+<span class="kn">import</span> <span class="nn">ChiantiPy.core</span> <span class="k">as</span> <span class="nn">ch</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
+</pre></div>
+</div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="nn">Input In [1],</span> in <span class="ni">&lt;cell line: 4&gt;</span><span class="nt">()</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">os</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;XUVTOP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/data/dengo-merge/CHIANTI&quot;</span>
+<span class="ne">----&gt; </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">ChiantiPy.core</span> <span class="k">as</span> <span class="nn">ch</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> chianti.core - contains the main classes for ChiantiPy users.</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span><span class="sd"> </span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="ne">----&gt; </span><span class="mi">8</span> <span class="kn">from</span> <span class="nn">.Spectrum</span> <span class="kn">import</span> <span class="n">spectrum</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">from</span> <span class="nn">.Bunch</span> <span class="kn">import</span> <span class="n">bunch</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">from</span> <span class="nn">.Mspectrum</span> <span class="kn">import</span> <span class="n">mspectrum</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">ChiantiPy</span>
+<span class="ne">----&gt; </span><span class="mi">5</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.data</span> <span class="k">as</span> <span class="nn">chdata</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.filters</span> <span class="k">as</span> <span class="nn">chfilters</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">data</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">41</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">     </span><span class="mi">38</span> <span class="kn">import</span> <span class="nn">traceback</span>
+<span class="g g-Whitespace">     </span><span class="mi">39</span> <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="ne">---&gt; </span><span class="mi">41</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.io</span> <span class="k">as</span> <span class="nn">chio</span>
+<span class="g g-Whitespace">     </span><span class="mi">43</span> <span class="n">klnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;klgfb_1.dat&#39;</span><span class="p">,</span><span class="s1">&#39;klgfb_2.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_3.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_4.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_5.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_6.dat&#39;</span><span class="p">]</span>
+<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="k">try</span><span class="p">:</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">io</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">import</span> <span class="nn">configparser</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">---&gt; </span><span class="mi">13</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.util</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="kn">import</span> <span class="nn">ChiantiPy.Gui</span> <span class="k">as</span> <span class="nn">chgui</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">util</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">12</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">---&gt; </span><span class="mi">12</span> <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+<span class="g g-Whitespace">     </span><span class="mi">13</span> <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">exp1</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;scipy&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ChemicalNetwork</span><span class="p">,</span>
+    <span class="n">reaction_registry</span><span class="p">,</span>
+    <span class="n">cooling_registry</span><span class="p">,</span>
+    <span class="n">species_registry</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span> <span class="nn">dengo.ion_by_ion</span> <span class="kn">import</span> <span class="n">setup_ionization</span>
+
+<span class="n">setup_ionization</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">photo_background</span><span class="o">=</span><span class="s2">&quot;HM12&quot;</span><span class="p">)</span>
+<span class="n">setup_ionization</span><span class="p">(</span><span class="s2">&quot;He&quot;</span><span class="p">,</span> <span class="n">photo_background</span><span class="o">=</span><span class="s2">&quot;HM12&quot;</span><span class="p">)</span>
+<span class="n">setup_ionization</span><span class="p">(</span><span class="s2">&quot;C&quot;</span><span class="p">,</span> <span class="n">photo_background</span><span class="o">=</span><span class="s2">&quot;HM12&quot;</span><span class="p">)</span>
+<span class="n">setup_ionization</span><span class="p">(</span><span class="s2">&quot;N&quot;</span><span class="p">,</span> <span class="n">photo_background</span><span class="o">=</span><span class="s2">&quot;HM12&quot;</span><span class="p">)</span>
+<span class="n">setup_ionization</span><span class="p">(</span><span class="s2">&quot;O&quot;</span><span class="p">,</span> <span class="n">photo_background</span><span class="o">=</span><span class="s2">&quot;HM12&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reaction_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1_i&#39;: H_1_i : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de,
+ &#39;H_1_pi&#39;: H_1_pi : 1*H_1 =&gt; 1*H_2 + 1*de,
+ &#39;H_2_r&#39;: H_2_r : 1*H_2 + 1*de =&gt; 1*H_1,
+ &#39;He_1_i&#39;: He_1_i : 1*He_1 + 1*de =&gt; 1*He_2 + 2*de,
+ &#39;He_1_pi&#39;: He_1_pi : 1*He_1 =&gt; 1*He_2 + 1*de,
+ &#39;He_2_i&#39;: He_2_i : 1*He_2 + 1*de =&gt; 1*He_3 + 2*de,
+ &#39;He_2_r&#39;: He_2_r : 1*He_2 + 1*de =&gt; 1*He_1,
+ &#39;He_2_pi&#39;: He_2_pi : 1*He_2 =&gt; 1*He_3 + 1*de,
+ &#39;He_3_r&#39;: He_3_r : 1*He_3 + 1*de =&gt; 1*He_2,
+ &#39;C_1_i&#39;: C_1_i : 1*C_1 + 1*de =&gt; 1*C_2 + 2*de,
+ &#39;C_1_pi&#39;: C_1_pi : 1*C_1 =&gt; 1*C_2 + 1*de,
+ &#39;C_2_i&#39;: C_2_i : 1*C_2 + 1*de =&gt; 1*C_3 + 2*de,
+ &#39;C_2_r&#39;: C_2_r : 1*C_2 + 1*de =&gt; 1*C_1,
+ &#39;C_2_pi&#39;: C_2_pi : 1*C_2 =&gt; 1*C_3 + 1*de,
+ &#39;C_3_i&#39;: C_3_i : 1*C_3 + 1*de =&gt; 1*C_4 + 2*de,
+ &#39;C_3_r&#39;: C_3_r : 1*C_3 + 1*de =&gt; 1*C_2,
+ &#39;C_3_pi&#39;: C_3_pi : 1*C_3 =&gt; 1*C_4 + 1*de,
+ &#39;C_4_i&#39;: C_4_i : 1*C_4 + 1*de =&gt; 1*C_5 + 2*de,
+ &#39;C_4_r&#39;: C_4_r : 1*C_4 + 1*de =&gt; 1*C_3,
+ &#39;C_4_pi&#39;: C_4_pi : 1*C_4 =&gt; 1*C_5 + 1*de,
+ &#39;C_5_i&#39;: C_5_i : 1*C_5 + 1*de =&gt; 1*C_6 + 2*de,
+ &#39;C_5_r&#39;: C_5_r : 1*C_5 + 1*de =&gt; 1*C_4,
+ &#39;C_5_pi&#39;: C_5_pi : 1*C_5 =&gt; 1*C_6 + 1*de,
+ &#39;C_6_i&#39;: C_6_i : 1*C_6 + 1*de =&gt; 1*C_7 + 2*de,
+ &#39;C_6_r&#39;: C_6_r : 1*C_6 + 1*de =&gt; 1*C_5,
+ &#39;C_6_pi&#39;: C_6_pi : 1*C_6 =&gt; 1*C_7 + 1*de,
+ &#39;C_7_r&#39;: C_7_r : 1*C_7 + 1*de =&gt; 1*C_6,
+ &#39;N_1_i&#39;: N_1_i : 1*N_1 + 1*de =&gt; 1*N_2 + 2*de,
+ &#39;N_1_pi&#39;: N_1_pi : 1*N_1 =&gt; 1*N_2 + 1*de,
+ &#39;N_2_i&#39;: N_2_i : 1*N_2 + 1*de =&gt; 1*N_3 + 2*de,
+ &#39;N_2_r&#39;: N_2_r : 1*N_2 + 1*de =&gt; 1*N_1,
+ &#39;N_2_pi&#39;: N_2_pi : 1*N_2 =&gt; 1*N_3 + 1*de,
+ &#39;N_3_i&#39;: N_3_i : 1*N_3 + 1*de =&gt; 1*N_4 + 2*de,
+ &#39;N_3_r&#39;: N_3_r : 1*N_3 + 1*de =&gt; 1*N_2,
+ &#39;N_3_pi&#39;: N_3_pi : 1*N_3 =&gt; 1*N_4 + 1*de,
+ &#39;N_4_i&#39;: N_4_i : 1*N_4 + 1*de =&gt; 1*N_5 + 2*de,
+ &#39;N_4_r&#39;: N_4_r : 1*N_4 + 1*de =&gt; 1*N_3,
+ &#39;N_4_pi&#39;: N_4_pi : 1*N_4 =&gt; 1*N_5 + 1*de,
+ &#39;N_5_i&#39;: N_5_i : 1*N_5 + 1*de =&gt; 1*N_6 + 2*de,
+ &#39;N_5_r&#39;: N_5_r : 1*N_5 + 1*de =&gt; 1*N_4,
+ &#39;N_5_pi&#39;: N_5_pi : 1*N_5 =&gt; 1*N_6 + 1*de,
+ &#39;N_6_i&#39;: N_6_i : 1*N_6 + 1*de =&gt; 1*N_7 + 2*de,
+ &#39;N_6_r&#39;: N_6_r : 1*N_6 + 1*de =&gt; 1*N_5,
+ &#39;N_6_pi&#39;: N_6_pi : 1*N_6 =&gt; 1*N_7 + 1*de,
+ &#39;N_7_i&#39;: N_7_i : 1*N_7 + 1*de =&gt; 1*N_8 + 2*de,
+ &#39;N_7_r&#39;: N_7_r : 1*N_7 + 1*de =&gt; 1*N_6,
+ &#39;N_7_pi&#39;: N_7_pi : 1*N_7 =&gt; 1*N_8 + 1*de,
+ &#39;N_8_r&#39;: N_8_r : 1*N_8 + 1*de =&gt; 1*N_7,
+ &#39;O_1_i&#39;: O_1_i : 1*O_1 + 1*de =&gt; 1*O_2 + 2*de,
+ &#39;O_1_pi&#39;: O_1_pi : 1*O_1 =&gt; 1*O_2 + 1*de,
+ &#39;O_2_i&#39;: O_2_i : 1*O_2 + 1*de =&gt; 1*O_3 + 2*de,
+ &#39;O_2_r&#39;: O_2_r : 1*O_2 + 1*de =&gt; 1*O_1,
+ &#39;O_2_pi&#39;: O_2_pi : 1*O_2 =&gt; 1*O_3 + 1*de,
+ &#39;O_3_i&#39;: O_3_i : 1*O_3 + 1*de =&gt; 1*O_4 + 2*de,
+ &#39;O_3_r&#39;: O_3_r : 1*O_3 + 1*de =&gt; 1*O_2,
+ &#39;O_3_pi&#39;: O_3_pi : 1*O_3 =&gt; 1*O_4 + 1*de,
+ &#39;O_4_i&#39;: O_4_i : 1*O_4 + 1*de =&gt; 1*O_5 + 2*de,
+ &#39;O_4_r&#39;: O_4_r : 1*O_4 + 1*de =&gt; 1*O_3,
+ &#39;O_4_pi&#39;: O_4_pi : 1*O_4 =&gt; 1*O_5 + 1*de,
+ &#39;O_5_i&#39;: O_5_i : 1*O_5 + 1*de =&gt; 1*O_6 + 2*de,
+ &#39;O_5_r&#39;: O_5_r : 1*O_5 + 1*de =&gt; 1*O_4,
+ &#39;O_5_pi&#39;: O_5_pi : 1*O_5 =&gt; 1*O_6 + 1*de,
+ &#39;O_6_i&#39;: O_6_i : 1*O_6 + 1*de =&gt; 1*O_7 + 2*de,
+ &#39;O_6_r&#39;: O_6_r : 1*O_6 + 1*de =&gt; 1*O_5,
+ &#39;O_6_pi&#39;: O_6_pi : 1*O_6 =&gt; 1*O_7 + 1*de,
+ &#39;O_7_i&#39;: O_7_i : 1*O_7 + 1*de =&gt; 1*O_8 + 2*de,
+ &#39;O_7_r&#39;: O_7_r : 1*O_7 + 1*de =&gt; 1*O_6,
+ &#39;O_7_pi&#39;: O_7_pi : 1*O_7 =&gt; 1*O_8 + 1*de,
+ &#39;O_8_i&#39;: O_8_i : 1*O_8 + 1*de =&gt; 1*O_9 + 2*de,
+ &#39;O_8_r&#39;: O_8_r : 1*O_8 + 1*de =&gt; 1*O_7,
+ &#39;O_8_pi&#39;: O_8_pi : 1*O_8 =&gt; 1*O_9 + 1*de,
+ &#39;O_9_r&#39;: O_9_r : 1*O_9 + 1*de =&gt; 1*O_8}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154e490&gt;,
+ &#39;H_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154e5b0&gt;,
+ &#39;H_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154e7c0&gt;,
+ &#39;He_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154ea00&gt;,
+ &#39;He_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154ebb0&gt;,
+ &#39;He_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154ed90&gt;,
+ &#39;He_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda154ef40&gt;,
+ &#39;He_3_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155b100&gt;,
+ &#39;C_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155b4c0&gt;,
+ &#39;C_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155b670&gt;,
+ &#39;C_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155b850&gt;,
+ &#39;C_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155ba00&gt;,
+ &#39;C_3_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155bbe0&gt;,
+ &#39;C_3_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155bd90&gt;,
+ &#39;C_4_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda155bf70&gt;,
+ &#39;C_4_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563160&gt;,
+ &#39;C_5_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563340&gt;,
+ &#39;C_5_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda15634f0&gt;,
+ &#39;C_6_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda15636d0&gt;,
+ &#39;C_6_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563880&gt;,
+ &#39;C_7_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563a00&gt;,
+ &#39;N_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563e20&gt;,
+ &#39;N_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1563fd0&gt;,
+ &#39;N_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156a1f0&gt;,
+ &#39;N_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156a3a0&gt;,
+ &#39;N_3_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156a580&gt;,
+ &#39;N_3_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156a730&gt;,
+ &#39;N_4_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156a910&gt;,
+ &#39;N_4_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156aac0&gt;,
+ &#39;N_5_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156aca0&gt;,
+ &#39;N_5_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda156ae50&gt;,
+ &#39;N_6_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572070&gt;,
+ &#39;N_6_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572220&gt;,
+ &#39;N_7_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572400&gt;,
+ &#39;N_7_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda15725b0&gt;,
+ &#39;N_8_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572730&gt;,
+ &#39;O_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572bb0&gt;,
+ &#39;O_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572d60&gt;,
+ &#39;O_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1572f40&gt;,
+ &#39;O_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157b130&gt;,
+ &#39;O_3_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157b310&gt;,
+ &#39;O_3_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157b4c0&gt;,
+ &#39;O_4_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157b6a0&gt;,
+ &#39;O_4_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157b850&gt;,
+ &#39;O_5_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157ba30&gt;,
+ &#39;O_5_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157bbe0&gt;,
+ &#39;O_6_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157bdc0&gt;,
+ &#39;O_6_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda157bf70&gt;,
+ &#39;O_7_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1583190&gt;,
+ &#39;O_7_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1583340&gt;,
+ &#39;O_8_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1583520&gt;,
+ &#39;O_8_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda15836d0&gt;,
+ &#39;O_9_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7feda1583850&gt;}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ion_by_ion</span> <span class="o">=</span> <span class="n">ChemicalNetwork</span><span class="p">()</span>
+
+<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction_registry</span><span class="p">:</span>
+    <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">r</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cooling_registry</span><span class="p">:</span>
+    <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+<span class="c1"># This defines the temperature range for the rate tables</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">init_temperature</span><span class="p">((</span><span class="mf">1e0</span><span class="p">,</span> <span class="mf">1e12</span><span class="p">))</span>
+
+<span class="c1"># This defines the redsfhit range for the rate tables</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">init_redshift</span><span class="p">((</span><span class="mf">0.000001</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: H_1_i : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+Adding reaction: H_1_pi : 1*H_1 =&gt; 1*H_2 + 1*de
+Adding reaction: H_2_r : 1*H_2 + 1*de =&gt; 1*H_1
+Adding reaction: He_1_i : 1*He_1 + 1*de =&gt; 1*He_2 + 2*de
+Adding reaction: He_1_pi : 1*He_1 =&gt; 1*He_2 + 1*de
+Adding reaction: He_2_i : 1*He_2 + 1*de =&gt; 1*He_3 + 2*de
+Adding reaction: He_2_r : 1*He_2 + 1*de =&gt; 1*He_1
+Adding reaction: He_2_pi : 1*He_2 =&gt; 1*He_3 + 1*de
+Adding reaction: He_3_r : 1*He_3 + 1*de =&gt; 1*He_2
+Adding reaction: C_1_i : 1*C_1 + 1*de =&gt; 1*C_2 + 2*de
+Adding reaction: C_1_pi : 1*C_1 =&gt; 1*C_2 + 1*de
+Adding reaction: C_2_i : 1*C_2 + 1*de =&gt; 1*C_3 + 2*de
+Adding reaction: C_2_r : 1*C_2 + 1*de =&gt; 1*C_1
+Adding reaction: C_2_pi : 1*C_2 =&gt; 1*C_3 + 1*de
+Adding reaction: C_3_i : 1*C_3 + 1*de =&gt; 1*C_4 + 2*de
+Adding reaction: C_3_r : 1*C_3 + 1*de =&gt; 1*C_2
+Adding reaction: C_3_pi : 1*C_3 =&gt; 1*C_4 + 1*de
+Adding reaction: C_4_i : 1*C_4 + 1*de =&gt; 1*C_5 + 2*de
+Adding reaction: C_4_r : 1*C_4 + 1*de =&gt; 1*C_3
+Adding reaction: C_4_pi : 1*C_4 =&gt; 1*C_5 + 1*de
+Adding reaction: C_5_i : 1*C_5 + 1*de =&gt; 1*C_6 + 2*de
+Adding reaction: C_5_r : 1*C_5 + 1*de =&gt; 1*C_4
+Adding reaction: C_5_pi : 1*C_5 =&gt; 1*C_6 + 1*de
+Adding reaction: C_6_i : 1*C_6 + 1*de =&gt; 1*C_7 + 2*de
+Adding reaction: C_6_r : 1*C_6 + 1*de =&gt; 1*C_5
+Adding reaction: C_6_pi : 1*C_6 =&gt; 1*C_7 + 1*de
+Adding reaction: C_7_r : 1*C_7 + 1*de =&gt; 1*C_6
+Adding reaction: N_1_i : 1*N_1 + 1*de =&gt; 1*N_2 + 2*de
+Adding reaction: N_1_pi : 1*N_1 =&gt; 1*N_2 + 1*de
+Adding reaction: N_2_i : 1*N_2 + 1*de =&gt; 1*N_3 + 2*de
+Adding reaction: N_2_r : 1*N_2 + 1*de =&gt; 1*N_1
+Adding reaction: N_2_pi : 1*N_2 =&gt; 1*N_3 + 1*de
+Adding reaction: N_3_i : 1*N_3 + 1*de =&gt; 1*N_4 + 2*de
+Adding reaction: N_3_r : 1*N_3 + 1*de =&gt; 1*N_2
+Adding reaction: N_3_pi : 1*N_3 =&gt; 1*N_4 + 1*de
+Adding reaction: N_4_i : 1*N_4 + 1*de =&gt; 1*N_5 + 2*de
+Adding reaction: N_4_r : 1*N_4 + 1*de =&gt; 1*N_3
+Adding reaction: N_4_pi : 1*N_4 =&gt; 1*N_5 + 1*de
+Adding reaction: N_5_i : 1*N_5 + 1*de =&gt; 1*N_6 + 2*de
+Adding reaction: N_5_r : 1*N_5 + 1*de =&gt; 1*N_4
+Adding reaction: N_5_pi : 1*N_5 =&gt; 1*N_6 + 1*de
+Adding reaction: N_6_i : 1*N_6 + 1*de =&gt; 1*N_7 + 2*de
+Adding reaction: N_6_r : 1*N_6 + 1*de =&gt; 1*N_5
+Adding reaction: N_6_pi : 1*N_6 =&gt; 1*N_7 + 1*de
+Adding reaction: N_7_i : 1*N_7 + 1*de =&gt; 1*N_8 + 2*de
+Adding reaction: N_7_r : 1*N_7 + 1*de =&gt; 1*N_6
+Adding reaction: N_7_pi : 1*N_7 =&gt; 1*N_8 + 1*de
+Adding reaction: N_8_r : 1*N_8 + 1*de =&gt; 1*N_7
+Adding reaction: O_1_i : 1*O_1 + 1*de =&gt; 1*O_2 + 2*de
+Adding reaction: O_1_pi : 1*O_1 =&gt; 1*O_2 + 1*de
+Adding reaction: O_2_i : 1*O_2 + 1*de =&gt; 1*O_3 + 2*de
+Adding reaction: O_2_r : 1*O_2 + 1*de =&gt; 1*O_1
+Adding reaction: O_2_pi : 1*O_2 =&gt; 1*O_3 + 1*de
+Adding reaction: O_3_i : 1*O_3 + 1*de =&gt; 1*O_4 + 2*de
+Adding reaction: O_3_r : 1*O_3 + 1*de =&gt; 1*O_2
+Adding reaction: O_3_pi : 1*O_3 =&gt; 1*O_4 + 1*de
+Adding reaction: O_4_i : 1*O_4 + 1*de =&gt; 1*O_5 + 2*de
+Adding reaction: O_4_r : 1*O_4 + 1*de =&gt; 1*O_3
+Adding reaction: O_4_pi : 1*O_4 =&gt; 1*O_5 + 1*de
+Adding reaction: O_5_i : 1*O_5 + 1*de =&gt; 1*O_6 + 2*de
+Adding reaction: O_5_r : 1*O_5 + 1*de =&gt; 1*O_4
+Adding reaction: O_5_pi : 1*O_5 =&gt; 1*O_6 + 1*de
+Adding reaction: O_6_i : 1*O_6 + 1*de =&gt; 1*O_7 + 2*de
+Adding reaction: O_6_r : 1*O_6 + 1*de =&gt; 1*O_5
+Adding reaction: O_6_pi : 1*O_6 =&gt; 1*O_7 + 1*de
+Adding reaction: O_7_i : 1*O_7 + 1*de =&gt; 1*O_8 + 2*de
+Adding reaction: O_7_r : 1*O_7 + 1*de =&gt; 1*O_6
+Adding reaction: O_7_pi : 1*O_7 =&gt; 1*O_8 + 1*de
+Adding reaction: O_8_i : 1*O_8 + 1*de =&gt; 1*O_9 + 2*de
+Adding reaction: O_8_r : 1*O_8 + 1*de =&gt; 1*O_7
+Adding reaction: O_8_pi : 1*O_8 =&gt; 1*O_9 + 1*de
+Adding reaction: O_9_r : 1*O_9 + 1*de =&gt; 1*O_8
+</pre></div>
+</div>
+</div>
+</div>
+<section id="prepare-a-sample-inital-condition-array">
+<h2>Prepare a sample inital condition array<a class="headerlink" href="#prepare-a-sample-inital-condition-array" title="Permalink to this heading">#</a></h2>
+<p>We can initialize the array to collisional ionizataion equilibrium at a high temperature, and observe how it changes as cooling kicks in. To this end we can employ <code class="docutils literal notranslate"><span class="pre">chianti</span></code> to help us with calculating ionizational equilibrium and multiply this with the solar abundance again avaiable from <code class="docutils literal notranslate"><span class="pre">chianti</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># initialize temperature/ density</span>
+<span class="kn">from</span> <span class="nn">dengo.chemistry_constants</span> <span class="kn">import</span> <span class="n">kboltz</span><span class="p">,</span> <span class="n">mh</span><span class="p">,</span> <span class="n">tiny</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">NCELLS</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="n">density</span> <span class="o">=</span> <span class="mf">1.0</span>  <span class="c1"># per amu mass</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCELLS</span><span class="p">)</span> <span class="o">*</span> <span class="mf">5e6</span>
+<span class="n">X</span> <span class="o">=</span> <span class="mf">1e-8</span>
+<span class="n">tiny</span> <span class="o">=</span> <span class="mf">1e-20</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">init_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">NCELLS</span><span class="p">)</span> <span class="o">*</span> <span class="n">density</span>
+<span class="n">init_values</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+
+<span class="c1"># set up initial temperatures values used to define ge</span>
+<span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">temperature</span>
+
+<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;ge&quot;</span><span class="p">,</span> <span class="s2">&quot;de&quot;</span><span class="p">]:</span>
+        <span class="n">ion_name</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+        <span class="n">ion</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">ion</span><span class="p">(</span><span class="n">ion_name</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">])</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">ion</span><span class="o">.</span><span class="n">ioneqOne</span><span class="p">()</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="n">ion</span><span class="o">.</span><span class="n">ioneqOne</span><span class="p">()</span>
+        <span class="n">ion_frac</span> <span class="o">=</span> <span class="n">ion</span><span class="o">.</span><span class="n">IoneqOne</span>
+
+        <span class="c1"># ion.Abundance is the elemental abundance relative to hydrogen</span>
+        <span class="n">init_values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">ion_frac</span> <span class="o">*</span> <span class="n">init_array</span> <span class="o">*</span> <span class="n">ion</span><span class="o">.</span><span class="n">Abundance</span>
+
+        <span class="c1"># in case something is negative or super small:</span>
+        <span class="n">init_values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">][</span><span class="n">init_values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">tiny</span><span class="p">]</span> <span class="o">=</span> <span class="n">tiny</span>
+
+<span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;de&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">init_array</span> <span class="o">*</span> <span class="mf">0.0</span>
+<span class="n">init_values</span> <span class="o">=</span> <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">convert_to_mass_density</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+
+<span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;de&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">calculate_free_electrons</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+<span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;density&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">calculate_total_density</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+<span class="n">number_density</span> <span class="o">=</span> <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">calculate_number_density</span><span class="p">(</span><span class="n">init_values</span><span class="p">)</span>
+
+<span class="c1"># calculate ge (very crudely)</span>
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="mf">3.0</span>
+<span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;ge&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">temperature</span> <span class="o">*</span> <span class="n">number_density</span> <span class="o">*</span> <span class="n">kboltz</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span>
+    <span class="n">init_values</span><span class="p">[</span><span class="s2">&quot;density&quot;</span><span class="p">]</span> <span class="o">*</span> <span class="n">mh</span> <span class="o">*</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="writing-the-templates-from-the-chemicalnetwork">
+<h2>Writing the templates from the <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork</span></code><a class="headerlink" href="#writing-the-templates-from-the-chemicalnetwork" title="Permalink to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Write the initial conditions file</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">write_solver</span><span class="p">(</span>
+    <span class="s2">&quot;ion_by_ion&quot;</span><span class="p">,</span>
+    <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+    <span class="n">init_values</span><span class="o">=</span><span class="n">init_values</span><span class="p">,</span>
+    <span class="n">solver_template</span><span class="o">=</span><span class="s2">&quot;cv_omp/sundials_CVDls&quot;</span><span class="p">,</span>
+    <span class="n">ode_solver_source</span><span class="o">=</span><span class="s2">&quot;initialize_cvode_solver.C&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/c_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/h_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/he_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/he_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/n_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+/mnt/gv0/homes/kwoksun2/dengo-merge/dengo/../input/photoheating/o_ion_by_ion_photoheating_HM12.h5
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="importing-cython-modules">
+<h2>Importing <code class="docutils literal notranslate"><span class="pre">Cython</span></code> modules<a class="headerlink" href="#importing-cython-modules" title="Permalink to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyximport</span>
+
+<span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">(</span>
+    <span class="n">setup_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;include_dirs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">get_include</span><span class="p">()},</span> <span class="n">reload_support</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+
+<span class="n">ion_by_ion_solver_run</span> <span class="o">=</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span>
+    <span class="s2">&quot;ion_by_ion_solver_run&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;ion_by_ion_solver_run.pyx&quot;</span><span class="p">,</span>
+    <span class="n">build_inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="s2">&quot;_dengo_temp&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>You have suitesparse!
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/Cython/Compiler/Main.py:369: FutureWarning: Cython directive &#39;language_level&#39; not set, using 2 for now (Py2). This will change in a later release! File: /mnt/gv0/homes/kwoksun2/dengo-merge/cookbook/topic_guides/ion_by_ion_solver_run.pxd
+  tree = Parsing.p_module(s, pxd, full_module_name)
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="integrate-the-system">
+<h2>Integrate the system<a class="headerlink" href="#integrate-the-system" title="Permalink to this heading">#</a></h2>
+<p>We see that there is a sharp transition as temperature drops. Collionsal ionization equilibrium is no longer a good assumption, the ionization level changes drasically.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rv</span><span class="p">,</span> <span class="n">rv_int</span> <span class="o">=</span> <span class="n">ion_by_ion_solver_run</span><span class="o">.</span><span class="n">run_ion_by_ion</span><span class="p">(</span>
+    <span class="n">init_values</span><span class="p">,</span> <span class="n">tf</span><span class="o">=</span><span class="mf">1e15</span><span class="p">,</span> <span class="n">niter</span><span class="o">=</span><span class="mi">10000</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="mf">4.0</span><span class="p">,</span> <span class="n">floor_value</span><span class="o">=</span><span class="mf">1e-40</span><span class="p">,</span> <span class="n">reltol</span><span class="o">=</span><span class="mf">1e-6</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Successful iteration[    0]: (1.000e+11) 1.000e+11 / 1.000e+15
+End in 73 iterations: 1.00000e+15 / 1.00000e+15 (0.00000e+00)
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[CVODE ERROR]  CVode
+  At t = 1.99412e+12, mxstep steps taken before reaching tout.
+
+
+[CVODE ERROR]  CVode
+  At t = 2.77661e+11, mxstep steps taken before reaching tout.
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+<span class="n">mask</span> <span class="o">=</span> <span class="n">rv_int</span><span class="p">[</span><span class="s2">&quot;successful&quot;</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rv_int</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">rv_int</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">rv_int</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rv_int</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">mask</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">rv_int</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">rv_int</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask</span><span class="p">]</span>
+<span class="n">skip</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;successful&quot;</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">,</span> <span class="s2">&quot;t&quot;</span><span class="p">,</span> <span class="s2">&quot;ge&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">n</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">rv_int</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">skip</span><span class="p">:</span>
+        <span class="k">continue</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">rv_int</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">],</span> <span class="n">v</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">n</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="n">density</span> <span class="o">*</span> <span class="mf">1e-30</span><span class="p">,</span> <span class="n">density</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time [s]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s2">&quot;best&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="s2">&quot;x-small&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Mass density/ m_amu ($cm^{-3}$)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0, 0.5, &#39;Mass density/ m_amu ($cm^{-3}$)&#39;)
+</pre></div>
+</div>
+<img alt="../_images/IonByIon_15_1.png" src="../_images/IonByIon_15_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">rv_int</span><span class="p">[</span><span class="s2">&quot;t&quot;</span><span class="p">],</span> <span class="n">rv_int</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;time [s]&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;temperature (K)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7feda12f6550&gt;
+</pre></div>
+</div>
+<img alt="../_images/IonByIon_16_1.png" src="../_images/IonByIon_16_1.png" />
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./topic_guides"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="NonEqilibriumIonization.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Non-Equilibrium Ionizations in the presence of background ionizations</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="../api.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Dengo Documentation</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

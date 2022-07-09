@@ -1,0 +1,1016 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Non-Equilibrium Ionizations in the presence of background ionizations &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Example Ion-by-Ion Network" href="IonByIon.html" />
+    <link rel="prev" title="Interfacing with Hydro Simulations" href="workWithHydroSims.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1 current active">
+  <a class="current reference internal" href="#">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/topic_guides/NonEqilibriumIonization.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Ftopic_guides/NonEqilibriumIonization.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/topic_guides/NonEqilibriumIonization.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#h-he-o-non-equilibrium-chemistry">
+     H, He, O non-equilibrium chemistry
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ionization-and-recombinations">
+     Ionization and Recombinations
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#mapping-chianti-rate-to-reactions">
+     Mapping Chianti Rate to Reactions
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#photoionization">
+     PhotoIonization
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#photoionization-heating">
+     Photoionization Heating
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#radiative-cooling">
+   Radiative Cooling
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#summing-it-all-up">
+     Summing it all up
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Non-Equilibrium Ionizations in the presence of background ionizations</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#h-he-o-non-equilibrium-chemistry">
+     H, He, O non-equilibrium chemistry
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#ionization-and-recombinations">
+     Ionization and Recombinations
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#mapping-chianti-rate-to-reactions">
+     Mapping Chianti Rate to Reactions
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#photoionization">
+     PhotoIonization
+    </a>
+   </li>
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#photoionization-heating">
+     Photoionization Heating
+    </a>
+   </li>
+  </ul>
+ </li>
+ <li class="toc-h1 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#radiative-cooling">
+   Radiative Cooling
+  </a>
+  <ul class="visible nav section-nav flex-column">
+   <li class="toc-h2 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#summing-it-all-up">
+     Summing it all up
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="non-equilibrium-ionizations-in-the-presence-of-background-ionizations">
+<h1>Non-Equilibrium Ionizations in the presence of background ionizations<a class="headerlink" href="#non-equilibrium-ionizations-in-the-presence-of-background-ionizations" title="Permalink to this heading">#</a></h1>
+<p>The radiative cooling efficiencies of hot low-density gas are important quantities in the study of the diffuse interstellar and intergalactic medium. They determine the thermal and dynamical properties and evolution in a variety of astrophysical systems, ranging from local interstellar clouds to shocks in intergalactic filaments. Collisional ionizational equilibrium is often assumed where the cooling efficiencies depend only depend only on the gas temperature and metallicity. However, nonequlibrium ionization takes place when the hot gas cools radiatively below <span class="math notranslate nohighlight">\(\sim 10^6 K\)</span>. Rapid cooling is expected when</p>
+<p><a class="reference external" href="https://noneq.strw.leidenuniv.nl/#noneqtables">Non-equilibrium ionisation and cooling of metal-enriched gas in the presence of a photo-ionisation background</a></p>
+<blockquote>
+<div><p>Simulations of the formation of galaxies, as well as ionisation models used to interpret observations of quasar absorption lines, generally either assume ionisation equilibrium or ignore the presence of the extra-galactic background (EGB) radiation. We introduce a method to compute the non-equilibrium ionisation and cooling of diffuse gas exposed to the EGB. Our method iterates the ionisation states of the 11 elements that dominate the cooling (H, He, C, N, O, Ne, Si, Mg, S, Ca, &amp; Fe) and uses tabulated ion-by-ion cooling and photo-heating efficiencies to update the temperature of the gas. Our reaction network includes radiative and di-electric recombination, collisional ionisation, photo-ionisation, Auger ionisation, and charge transfer. We verify that our method reproduces published results for collisional equilibrium, collisional non-equilibrium, and photo-ionised equilibrium. Non-equilibrium effects can become very important in cooling gas, particularly below 106 K. Photo-ionisation and non-equilibrium effects both tend to boost the degree of ionisation and to reduce cooling efficiencies. The effect of the EGB is larger for lower densities (i.e. higher ionisation parameters). Hence, photo-ionisation affects (equilibrium and non-equilibrium) cooling more under isochoric than under isobaric conditions. Non-equilibrium effects are smaller in the presence of the EGB and are thus overestimated when using collisional-only processes. The inclusion of the EGB alters the observational diagnostics of diffuse, metal-enriched gas (e.g. metal absorption lines probed in quasar sight lines) even more significantly than the cooling efficiencies. We argue that the cooling efficiency should be considered if ionisation models are used to infer physical conditions from observed line ratios, as the a priori probability of observing gas is lower if its cooling time is shorter. We provide on-line tables of ionisation fractions and cooling efficiencies, as well as other data, for equilibrium and non-equilibrium scenarios, and both with and without an EGB. Cooling efficiencies and diagnostics of the physical state of diffuse gas can become highly inaccurate if ionisation equilibrium is assumed or if the existence of the ionising background is ignored.</p>
+</div></blockquote>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+
+<span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;XUVTOP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/data/dengo-merge/CHIANTI&quot;</span>
+<span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">chianti_rate</span>
+<span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">ion_photoionization_rate</span>
+
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ChemicalNetwork</span><span class="p">,</span>
+    <span class="n">species_registry</span><span class="p">,</span>
+    <span class="n">reaction_registry</span><span class="p">,</span>
+    <span class="n">cooling_registry</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span> <span class="nn">ChiantiPy.core</span> <span class="k">as</span> <span class="nn">ch</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
+</pre></div>
+</div>
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="nn">Input In [1],</span> in <span class="ni">&lt;cell line: 13&gt;</span><span class="nt">()</span>
+<span class="g g-Whitespace">      </span><span class="mi">5</span> <span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">ion_photoionization_rate</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="p">(</span>
+<span class="g g-Whitespace">      </span><span class="mi">8</span>     <span class="n">ChemicalNetwork</span><span class="p">,</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span>     <span class="n">species_registry</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span>     <span class="n">reaction_registry</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span>     <span class="n">cooling_registry</span><span class="p">,</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="p">)</span>
+<span class="ne">---&gt; </span><span class="mi">13</span> <span class="kn">import</span> <span class="nn">ChiantiPy.core</span> <span class="k">as</span> <span class="nn">ch</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="sd">&quot;&quot;&quot;</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> chianti.core - contains the main classes for ChiantiPy users.</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> </span>
+<span class="sd">   (...)</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span><span class="sd"> </span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span><span class="sd"> &quot;&quot;&quot;</span>
+<span class="ne">----&gt; </span><span class="mi">8</span> <span class="kn">from</span> <span class="nn">.Spectrum</span> <span class="kn">import</span> <span class="n">spectrum</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">from</span> <span class="nn">.Bunch</span> <span class="kn">import</span> <span class="n">bunch</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">from</span> <span class="nn">.Mspectrum</span> <span class="kn">import</span> <span class="n">mspectrum</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">ChiantiPy</span>
+<span class="ne">----&gt; </span><span class="mi">5</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.data</span> <span class="k">as</span> <span class="nn">chdata</span>
+<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.filters</span> <span class="k">as</span> <span class="nn">chfilters</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">data</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">41</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">     </span><span class="mi">38</span> <span class="kn">import</span> <span class="nn">traceback</span>
+<span class="g g-Whitespace">     </span><span class="mi">39</span> <span class="kn">import</span> <span class="nn">warnings</span>
+<span class="ne">---&gt; </span><span class="mi">41</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.io</span> <span class="k">as</span> <span class="nn">chio</span>
+<span class="g g-Whitespace">     </span><span class="mi">43</span> <span class="n">klnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;klgfb_1.dat&#39;</span><span class="p">,</span><span class="s1">&#39;klgfb_2.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_3.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_4.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_5.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_6.dat&#39;</span><span class="p">]</span>
+<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="k">try</span><span class="p">:</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">io</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">import</span> <span class="nn">configparser</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">---&gt; </span><span class="mi">13</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.util</span> <span class="k">as</span> <span class="nn">util</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="kn">import</span> <span class="nn">ChiantiPy.Gui</span> <span class="k">as</span> <span class="nn">chgui</span>
+
+<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">util</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">12</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">import</span> <span class="nn">fnmatch</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">---&gt; </span><span class="mi">12</span> <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
+<span class="g g-Whitespace">     </span><span class="mi">13</span> <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">exp1</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;scipy&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<section id="h-he-o-non-equilibrium-chemistry">
+<h2>H, He, O non-equilibrium chemistry<a class="headerlink" href="#h-he-o-non-equilibrium-chemistry" title="Permalink to this heading">#</a></h2>
+<p>H, He, C, N, O, Ne, Si, Mg, S, Ca, &amp; Fe are the dominant elements in the cooling of diffuse gases.
+To begin with, we outlined the steps to implement all the non-equilibrium chemistry involved for hydrogen them in <code class="docutils literal notranslate"><span class="pre">dengo</span></code>. And then we will outline how you could extend them to other species of interest with the rate tables from <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>. Primarily, photo-ioniation, collisional ioniziation, recombinations dictates how the ioinization levels change under both the influence of temperature and the radiation background.</p>
+</section>
+<section id="ionization-and-recombinations">
+<h2>Ionization and Recombinations<a class="headerlink" href="#ionization-and-recombinations" title="Permalink to this heading">#</a></h2>
+<p>The recombination, and ionization rates can be obtained from <code class="docutils literal notranslate"><span class="pre">Chiantipy</span></code>.</p>
+<p>For Hydrogen,
+$<span class="math notranslate nohighlight">\(
+\mathrm{H + e^- \rightarrow H^+ + 2 e^-} \\
+\mathrm{H^+ + e^- \rightarrow H}
+\)</span>$</p>
+<p>They can be retrieved through <code class="docutils literal notranslate"><span class="pre">chianty.ion.ionizRate</span></code> and <code class="docutils literal notranslate"><span class="pre">chianty.ion.RecombRate</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">AtomicSpecies</span>
+
+<span class="n">HI</span> <span class="o">=</span> <span class="n">AtomicSpecies</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">free_electrons</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">HII</span> <span class="o">=</span> <span class="n">AtomicSpecies</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">free_electrons</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">de</span> <span class="o">=</span> <span class="n">species_registry</span><span class="p">[</span><span class="s2">&quot;de&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ion_by_ion</span> <span class="o">=</span> <span class="n">ChemicalNetwork</span><span class="p">()</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">init_temperature</span><span class="p">((</span><span class="mf">1e0</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">init_redshift</span><span class="p">((</span><span class="mf">1e-6</span><span class="p">,</span> <span class="mf">15.0</span><span class="p">))</span>
+
+<span class="n">ion_HI</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">ion</span><span class="p">(</span><span class="s2">&quot;h_1&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">ion_HI</span><span class="o">.</span><span class="n">ionizRate</span><span class="p">()</span>
+<span class="n">IonizRate_HI</span> <span class="o">=</span> <span class="n">ion_HI</span><span class="o">.</span><span class="n">IonizRate</span><span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">]</span>
+
+<span class="n">ion_HII</span> <span class="o">=</span> <span class="n">ch</span><span class="o">.</span><span class="n">ion</span><span class="p">(</span><span class="s2">&quot;h_2&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">ion_HII</span><span class="o">.</span><span class="n">recombRate</span><span class="p">()</span>
+<span class="n">recombRate_HII</span> <span class="o">=</span> <span class="n">ion_HII</span><span class="o">.</span><span class="n">RecombRate</span><span class="p">[</span><span class="s2">&quot;rate&quot;</span><span class="p">]</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">IonizRate_HI</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;IonizRate_HI&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">network</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">recombRate_HII</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;recombRate_HII&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">(</span><span class="mf">1e-30</span><span class="p">,</span> <span class="mf">1e0</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f98593d8fd0&gt;
+</pre></div>
+</div>
+<img alt="../_images/NonEqilibriumIonization_5_1.png" src="../_images/NonEqilibriumIonization_5_1.png" />
+</div>
+</div>
+</section>
+<section id="mapping-chianti-rate-to-reactions">
+<h2>Mapping Chianti Rate to Reactions<a class="headerlink" href="#mapping-chianti-rate-to-reactions" title="Permalink to this heading">#</a></h2>
+<p>This can be done straightforwardly with <code class="docutils literal notranslate"><span class="pre">dengo.ion_by_ion.chianti_rate</span></code>.
+The function takes atom_name, recombined species, original species, and the ionized species to be input. Once <code class="docutils literal notranslate"><span class="pre">chianti_rate</span></code> is called, reactions are automatically registered in <code class="docutils literal notranslate"><span class="pre">reaction_registry</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">?</span>chianti_rate
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span><span class=" -Color -Color-Red">Signature:</span> chianti_rate<span class=" -Color -Color-Blue">(</span>atom_name<span class=" -Color -Color-Blue">,</span> sm1<span class=" -Color -Color-Blue">,</span> s<span class=" -Color -Color-Blue">,</span> sp1<span class=" -Color -Color-Blue">)</span>
+<span class=" -Color -Color-Red">Docstring:</span>
+Create Collisional Ionization and Recombination reactions from the ChiantiPy
+
+Parameters
+----------
+atom_name: str
+    the name of the atom of interest
+sm1: str
+    the name of the recombined species
+s: str
+    the name of the original species
+sp1: str
+    the name of the ionized species
+
+Returns
+-------
+new_rates: List[Str]
+    the list of reactions names added
+<span class=" -Color -Color-Red">File:</span>      /mnt/gv0/homes/kwoksun2/dengo-merge/dengo/reaction_classes.py
+<span class=" -Color -Color-Red">Type:</span>      function
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># This would create the recombination</span>
+<span class="p">(</span><span class="n">recomb_H</span><span class="p">,)</span> <span class="o">=</span> <span class="n">chianti_rate</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">HI</span><span class="p">,</span> <span class="n">HII</span><span class="p">)</span>
+<span class="c1"># Collisional Ionization</span>
+<span class="p">(</span><span class="n">ioniz_H</span><span class="p">,)</span> <span class="o">=</span> <span class="n">chianti_rate</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">HI</span><span class="p">,</span> <span class="n">HII</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+<span class="n">rxn_name</span> <span class="o">=</span> <span class="p">[</span><span class="n">recomb_H</span><span class="p">,</span> <span class="n">ioniz_H</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">rxn_name</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[&#39;H_1_i&#39;, &#39;H_2_r&#39;]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reaction_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1_i&#39;: H_1_i : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de,
+ &#39;H_2_r&#39;: H_2_r : 1*H_2 + 1*de =&gt; 1*H_1}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">recomb_H</span><span class="p">)</span>
+<span class="n">ion_by_ion</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">ioniz_H</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: H_1_i : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+Adding reaction: H_2_r : 1*H_2 + 1*de =&gt; 1*H_1
+</pre></div>
+</div>
+</div>
+</div>
+<p>here <code class="docutils literal notranslate"><span class="pre">H_1_i</span></code> corresponds to the collionsional ionization of neural hydrogen atom, while <code class="docutils literal notranslate"><span class="pre">H_2_r</span></code> refers to the recombination of the ionizied hydrogen with electrons.</p>
+</section>
+<section id="photoionization">
+<h2>PhotoIonization<a class="headerlink" href="#photoionization" title="Permalink to this heading">#</a></h2>
+<p>Unlike recombination and ionization, photoioinization depends on the background radiation and the cross section. To this end, <code class="docutils literal notranslate"><span class="pre">Dengo</span></code> comes up with precompiled tables from <a class="reference external" href="https://noneq.strw.leidenuniv.nl/#noneqtables">Non-equilibrium ionisation and cooling of metal-enriched gas in the presence of a photo-ionisation background</a>, and these are stored under <code class="docutils literal notranslate"><span class="pre">input/photoionization</span></code>. This photoionization rates are calculated using the extra galactic background from <a class="reference external" href="http://adsabs.harvard.edu/abs/2009MNRAS.393...99W">Haardt &amp; Madau(2012)</a> by<a class="reference external" href="https://arxiv.org/pdf/1302.5710.pdf">Oppenheimer and Schaye</a>. <span class="math notranslate nohighlight">\(\mathrm{H, He, C, N, O, Ne, Si, Mg, S, Ca, Fe}\)</span> are the dominant species and their respective photoionization rates are provided alongside <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>, under <code class="docutils literal notranslate"><span class="pre">input/photoionization/{species_name}_ion_by_ion_photoionization_HM12.h5</span></code>. These reactions can be recognized and automatically added to the <code class="docutils literal notranslate"><span class="pre">reaction_registry</span></code> with <code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.ion_photoionization_rate</span></code>. Since <code class="docutils literal notranslate"><span class="pre">H^+</span></code> cannot be further ionized, the function returns an empty list. The reaction name that depicts the photonization of hydrogen atom is given by <code class="docutils literal notranslate"><span class="pre">H_1_pi</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">photo_HI</span><span class="p">,)</span> <span class="o">=</span> <span class="n">dengo</span><span class="o">.</span><span class="n">reaction_classes</span><span class="o">.</span><span class="n">ion_photoionization_rate</span><span class="p">(</span><span class="n">HI</span><span class="p">)</span>
+<span class="n">photo_HII</span> <span class="o">=</span> <span class="n">dengo</span><span class="o">.</span><span class="n">reaction_classes</span><span class="o">.</span><span class="n">ion_photoionization_rate</span><span class="p">(</span><span class="n">HII</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">photo_HI</span><span class="p">,</span> <span class="n">photo_HII</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>H_1_pi []
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="photoionization-heating">
+<h2>Photoionization Heating<a class="headerlink" href="#photoionization-heating" title="Permalink to this heading">#</a></h2>
+<p>Photo-heating efficiency of a species <span class="math notranslate nohighlight">\(x_i\)</span> is given by
+$<span class="math notranslate nohighlight">\(
+\epsilon_{x_i} = \int_{\nu_{0,x_i}}^\infty \frac{4\pi J_\nu}{h\nu} \sigma_{x_i} (\nu) h(\nu - \nu_{0,x_i}) d\nu
+\)</span><span class="math notranslate nohighlight">\(
+where \)</span>J_\nu<span class="math notranslate nohighlight">\( is the EGB radiation field HM12, \)</span>\sigma_{x_i}<span class="math notranslate nohighlight">\( is the photo-ionization cross-section of species \)</span>x_i<span class="math notranslate nohighlight">\(. \)</span>\nu_{0,x_i}<span class="math notranslate nohighlight">\( is the ground state energy of the (ionized) atom. `Dengo` handles it internally with `dengo.reaction_classes.ion_photoheating_rate` and registered it in `cooling_registry`. To go from photo-heating efficiency to heating rate one has to multiply it by the number density of the species \)</span>x_i$. This can be obtained from the examining the equation attribute from cooling_action.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">photoheat_HI</span><span class="p">,)</span> <span class="o">=</span> <span class="n">dengo</span><span class="o">.</span><span class="n">reaction_classes</span><span class="o">.</span><span class="n">ion_photoheating_rate</span><span class="p">(</span><span class="n">HI</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f984777c550&gt;,
+ &#39;H_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f9850a0a1c0&gt;,
+ &#39;H_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f9850472340&gt;,
+ &#39;H_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f9850472f70&gt;}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_1_ph&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle H_{1 ph H 1 ph[i]} H_{1}\]</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">semilogy</span><span class="p">(</span>
+    <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">z</span><span class="p">,</span>
+    <span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_1_ph&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s2">&quot;H_1_ph&quot;</span><span class="p">](</span><span class="n">ion_by_ion</span><span class="p">),</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;H_1_ph&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Redshift (z)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Rates ($\rm erg/s $}&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0, 0.5, &#39;Rates ($\\rm erg/s $}&#39;)
+</pre></div>
+</div>
+<img alt="../_images/NonEqilibriumIonization_19_1.png" src="../_images/NonEqilibriumIonization_19_1.png" />
+</div>
+</div>
+</section>
+</section>
+<section class="tex2jax_ignore mathjax_ignore" id="radiative-cooling">
+<h1>Radiative Cooling<a class="headerlink" href="#radiative-cooling" title="Permalink to this heading">#</a></h1>
+<p>Ion-by-Ion cooling includes many different process including include collisional excitations followed by line emission, recombinations with ions, collisional ionizations, and thermal bremsstrahlung. The electron cooling efficiency includes the removal of electron kinetic energy via recombinations with ions, collisional ionizations, collisional excitations followed by prompt line emissions, and thermal bremsstrahlung.
+For a detailed discussion of the physics involved, we refer readers to <a class="reference external" href="https://iopscience.iop.org/article/10.1088/0067-0049/199/1/20">Gnat and Ferland 2012</a>, <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2006agna.book.....O">Osterbrock &amp; Ferland</a>. Ion-by-ion cooling efficiencies can be multiplied by <span class="math notranslate nohighlight">\(n_{x_i}\)</span> and <span class="math notranslate nohighlight">\(n_e\)</span> to obtain the volumetric cooling rate. This is handled by <code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.ion_cooling_rate</span></code> and registered automatically by <code class="docutils literal notranslate"><span class="pre">dengo</span></code> in cooling registry.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ion_cool_HI</span> <span class="o">=</span> <span class="n">dengo</span><span class="o">.</span><span class="n">reaction_classes</span><span class="o">.</span><span class="n">ion_cooling_rate</span><span class="p">(</span><span class="n">HI</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ion_cool_HII</span> <span class="o">=</span> <span class="n">dengo</span><span class="o">.</span><span class="n">reaction_classes</span><span class="o">.</span><span class="n">ion_cooling_rate</span><span class="p">(</span><span class="n">HII</span><span class="p">,</span> <span class="s2">&quot;H&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;H_1_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f984777c550&gt;,
+ &#39;H_2_ph&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f9850a0a1c0&gt;,
+ &#39;H_1_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f98476ee910&gt;,
+ &#39;H_2_c&#39;: &lt;dengo.reaction_classes.CoolingAction at 0x7f98476e8be0&gt;}
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_1_c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle - H_{1 c H 1 c[i]} H_{1} de\]</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_2_c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle - H_{2 c H 2 c[i]} H_{2} de\]</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_2_c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s2">&quot;H_2_c&quot;</span><span class="p">](</span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;H_2_c&quot;</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cooling_registry</span><span class="p">[</span><span class="s2">&quot;H_1_c&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s2">&quot;H_1_c&quot;</span><span class="p">](</span><span class="n">ion_by_ion</span><span class="o">.</span><span class="n">T</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;H_1_c&quot;</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Temperature (K)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Rates ($\rm erg/s cm^3$}&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0, 0.5, &#39;Rates ($\\rm erg/s cm^3$}&#39;)
+</pre></div>
+</div>
+<img alt="../_images/NonEqilibriumIonization_26_1.png" src="../_images/NonEqilibriumIonization_26_1.png" />
+</div>
+</div>
+<section id="summing-it-all-up">
+<h2>Summing it all up<a class="headerlink" href="#summing-it-all-up" title="Permalink to this heading">#</a></h2>
+<p>Ionization, recombination, photo-ionization give rises to transitions between ionization states. Photo-heating, and ion-by-ion cooling modifies the thermal energy of the system. In the above we demonstrated that it can be accounted for by adding each one of them by hand. This can grow out of hand as the number of ionization state is enormous. Dengo provide a more straightforward implementation with <code class="docutils literal notranslate"><span class="pre">dengo.ion_by_ion</span> <span class="pre">setup_ionization</span></code>. In the next chapter, we assemble them together and evolve a sample case with <span class="math notranslate nohighlight">\(\mathrm{H, He, O}\)</span>.</p>
+</section>
+<div class="toctree-wrapper compound">
+</div>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./topic_guides"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="workWithHydroSims.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Interfacing with Hydro Simulations</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="IonByIon.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Example Ion-by-Ion Network</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

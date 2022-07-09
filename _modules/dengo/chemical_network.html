@@ -1,0 +1,1458 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>dengo.chemical_network &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" href="../../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/jquery.js"></script>
+    <script src="../../_static/underscore.js"></script>
+    <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/clipboard.min.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <script src="../../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../../_static/sphinx-thebe.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../../templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../../templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../topic_guides/threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../topic_guides/workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../topic_guides/NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2F_modules/dengo/chemical_network.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1></h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <h1>Source code for dengo.chemical_network</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;ChemicalNetwork Module&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pkgutil</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">defaultdict</span>
+
+<span class="kn">import</span> <span class="nn">h5py</span>
+<span class="kn">import</span> <span class="nn">jinja2</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">sympy</span>
+<span class="kn">from</span> <span class="nn">sympy.printing</span> <span class="kn">import</span> <span class="n">ccode</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities</span> <span class="kn">import</span> <span class="n">lambdify</span>
+
+<span class="kn">from</span> <span class="nn">.chemistry_constants</span> <span class="kn">import</span> <span class="n">tevk</span>
+<span class="kn">from</span> <span class="nn">.periodic_table</span> <span class="kn">import</span> <span class="n">periodic_table_by_name</span>
+<span class="kn">from</span> <span class="nn">.reaction_classes</span> <span class="kn">import</span> <span class="p">(</span>
+    <span class="n">ChemicalSpecies</span><span class="p">,</span>
+    <span class="n">Species</span><span class="p">,</span>
+    <span class="n">cooling_registry</span><span class="p">,</span>
+    <span class="n">count_m</span><span class="p">,</span>
+    <span class="n">index_i</span><span class="p">,</span>
+    <span class="n">reaction_registry</span><span class="p">,</span>
+    <span class="n">species_registry</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ge</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="s2">&quot;ge&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s2">&quot;Gas Energy&quot;</span><span class="p">)</span>
+<span class="n">de</span> <span class="o">=</span> <span class="n">ChemicalSpecies</span><span class="p">(</span><span class="s2">&quot;de&quot;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">pretty_name</span><span class="o">=</span><span class="s2">&quot;Electrons&quot;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="ChemicalNetwork"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork">[docs]</a><span class="k">class</span> <span class="nc">ChemicalNetwork</span><span class="p">:</span>
+    <span class="sd">&quot;&quot;&quot;A chemical network that gathers all the species and reactions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    reactions: dict</span>
+<span class="sd">        the dictionary that holds the reactions added through `self.add_reaction`</span>
+<span class="sd">    cooling_actions: dict</span>
+<span class="sd">        the dictionary that tracks the cooling tracked by the `ChemicalNetwork`</span>
+<span class="sd">    required_species:</span>
+<span class="sd">        the set of chemical species tracked by `ChemicalNetwork`</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">energy_term</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">skip_weight</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;ge&quot;</span><span class="p">,</span> <span class="s2">&quot;de&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">write_intermediate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">stop_time</span><span class="o">=</span><span class="mf">3.1557e13</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_intermediate_solutions</span> <span class="o">=</span> <span class="n">write_intermediate</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span> <span class="o">=</span> <span class="n">species_registry</span><span class="p">[</span><span class="s2">&quot;ge&quot;</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_time</span> <span class="o">=</span> <span class="n">stop_time</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_bounds</span> <span class="o">=</span> <span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">)</span>
+
+        <span class="c1"># create a list of species where gamma has to be</span>
+        <span class="c1"># integrate / calculate separately</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species_name</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="s2">&quot;H2_1&quot;</span><span class="p">,</span> <span class="s2">&quot;H2_2&quot;</span><span class="p">])</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">threebody</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equilibrium_species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">enforce_conservation</span> <span class="o">=</span> <span class="kc">False</span>
+
+        <span class="c1"># store paths locations</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_hdf5_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dengo_install_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_libtool_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cvode_path</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_suitesparse_path</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">def</span> <span class="nf">add_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species_names</span><span class="p">,</span> <span class="n">cooling_names</span><span class="p">,</span> <span class="n">reaction_names</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">species_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_species</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cooling_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">reaction_names</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">set_equilibrium_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">species_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">equilibrium_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.update_ode_species"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.update_ode_species">[docs]</a>    <span class="k">def</span> <span class="nf">update_ode_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;this refers to the set of species that our ODE solver solves&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ode_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">equilibrium_species</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ode_species</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">s</span><span class="p">)</span></div>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">chemical_species</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;helper function for code generation&quot;&quot;&quot;</span>
+        <span class="n">chemical_species</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">chemical_species</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">chemical_species</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.solve_equilibrium_abundance"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.solve_equilibrium_abundance">[docs]</a>    <span class="k">def</span> <span class="nf">solve_equilibrium_abundance</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;write the equilibrium abundance of species sp</span>
+<span class="sd">        this is by setting dydt = 0</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">            species: dengo.reaction_classes.ChemicalSpecies</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">            equilibrium_sol: str</span>
+<span class="sd">                C-Code snippet that gives equilibrium species formula</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span> <span class="nn">sympy.solvers</span> <span class="kn">import</span> <span class="n">solve</span>
+
+        <span class="n">eq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_total</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="n">equil_sol</span> <span class="o">=</span> <span class="n">solve</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">equil_sol</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">species</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">add_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="n">sp</span> <span class="o">=</span> <span class="n">species_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">species</span><span class="p">,</span> <span class="n">species</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.add_reaction"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.add_reaction">[docs]</a>    <span class="k">def</span> <span class="nf">add_reaction</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reaction</span><span class="p">,</span> <span class="n">auto_add</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add reaction to the `ChemicalNetwork`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        reaction</span>
+<span class="sd">            the string of the reactions that are previously registered in `reaction_registry`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">reaction</span> <span class="o">=</span> <span class="n">reaction_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">reaction</span><span class="p">,</span> <span class="n">reaction</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">reaction</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span>
+        <span class="k">if</span> <span class="n">auto_add</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">left_side</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species_name</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">right_side</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species_name</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">left_side</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+            <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">reaction</span><span class="o">.</span><span class="n">right_side</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="p">[</span><span class="n">reaction</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">reaction</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Adding reaction: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">reaction</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.add_cooling"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.add_cooling">[docs]</a>    <span class="k">def</span> <span class="nf">add_cooling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cooling_term</span><span class="p">,</span> <span class="n">auto_add</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Add cooling to the `ChemicalNetwork`</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cooling term</span>
+<span class="sd">            the string that corresponds to the cooling that are previously registered in `cooling_registry`</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">cooling_term</span> <span class="o">=</span> <span class="n">cooling_registry</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">cooling_term</span><span class="p">,</span> <span class="n">cooling_term</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">cooling_term</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span>
+        <span class="k">if</span> <span class="n">auto_add</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">cooling_term</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">cooling_term</span><span class="o">.</span><span class="n">species</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;SPECIES NOT FOUND&quot;</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+                    <span class="k">raise</span> <span class="ne">RuntimeError</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">[</span><span class="n">cooling_term</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cooling_term</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.init_temperature"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.init_temperature">[docs]</a>    <span class="k">def</span> <span class="nf">init_temperature</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">T_bounds</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">),</span> <span class="n">n_bins</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the range of temperature over which the rate tables are generated</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        T_bounds: List[Float, Float], optional (default=(1,1e8))</span>
+<span class="sd">            the range over which the rates table is interpolated</span>
+
+<span class="sd">        n_bins: int, optional (default=1024)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_bins</span> <span class="o">=</span> <span class="n">n_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">T_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">T_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="n">n_bins</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">e</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logT</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tev</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">tevk</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logtev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tev</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">T_bounds</span> <span class="o">=</span> <span class="n">T_bounds</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.init_redshift"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.init_redshift">[docs]</a>    <span class="k">def</span> <span class="nf">init_redshift</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">z_bounds</span><span class="o">=</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">),</span> <span class="n">n_z_bins</span><span class="o">=</span><span class="mi">100</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initialize the range of redshift over which the rate tables are generated</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        z_bounds: List[Float, Float], optional (default=(0.0,10.0))</span>
+<span class="sd">            the range over which the rates table is interpolated</span>
+
+<span class="sd">        n_bins: int, optional (default=1024)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_z_bins</span> <span class="o">=</span> <span class="n">n_z_bins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">z_bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">n_z_bins</span><span class="p">,</span> <span class="n">base</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">e</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z</span> <span class="o">-=</span> <span class="mf">1.0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logz</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">z</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">z_bounds</span> <span class="o">=</span> <span class="n">z_bounds</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.species_total"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.species_total">[docs]</a>    <span class="k">def</span> <span class="nf">species_total</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Output the RHS function of the given species</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        species: str,</span>
+
+<span class="sd">        Return</span>
+<span class="sd">        ------</span>
+<span class="sd">        eq: Sympy.symbols</span>
+<span class="sd">            the dydt (RHS function) in sympy expressions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="n">eq</span> <span class="o">+=</span> <span class="n">rxn</span><span class="o">.</span><span class="n">species_equation</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">eq</span></div>
+
+    <span class="k">def</span> <span class="nf">species_reactions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
+        <span class="n">tr</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">rxn</span><span class="p">:</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rxn</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tr</span>
+
+    <span class="k">def</span> <span class="nf">species_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">species_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+            <span class="n">species_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">species_list</span>
+
+    <span class="k">def</span> <span class="fm">__iter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">yield</span> <span class="n">rxn</span>
+
+    <span class="k">def</span> <span class="nf">print_ccode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="c1"># assign_to = sympy.IndexedBase(&quot;d_%s&quot; % species.name, (count_m,))</span>
+        <span class="k">if</span> <span class="n">assign_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">assign_to</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;d_</span><span class="si">%s</span><span class="s2">[i]&quot;</span> <span class="o">%</span> <span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_cooling</span><span class="p">(</span><span class="n">assign_to</span><span class="p">)</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_total</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
+        <span class="c1"># eq = eq.replace(</span>
+        <span class="c1">#    lambda x: x.is_Pow and x.exp &gt; 0,</span>
+        <span class="c1">#    lambda x: sympy.Symbol(&quot;*&quot;.join([x.base.name] * x.exp)),</span>
+        <span class="c1"># )</span>
+
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">cie_optical_depth_approx</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;cie_optical_depth_approx&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">print_cooling</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">assign_to</span><span class="p">):</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">:</span>
+            <span class="c1"># TODO: make it a more general check case?</span>
+            <span class="k">if</span> <span class="n">term</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;h2formation&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="s2">&quot;cie_cooling&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">:</span>
+                <span class="c1"># This is independent of the continuum optical depth</span>
+                <span class="c1"># from the CIE</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">[</span><span class="n">term</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span>
+                    <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">cie_optical_depth_approx</span><span class="p">()</span>
+                <span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">[</span><span class="n">term</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span>
+
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_conserved_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conserved_dict</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[])</span>
+        <span class="n">species_considered</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="s2">&quot;He&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_list</span><span class="p">():</span>
+            <span class="n">sp</span> <span class="o">=</span> <span class="n">species_registry</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">sp</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">species_considered</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">conserved_dict</span><span class="p">[</span><span class="n">e</span><span class="p">]</span> <span class="o">+=</span> <span class="p">[</span><span class="n">sp</span><span class="p">]</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conserved_dict</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.print_conserved_species"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.print_conserved_species">[docs]</a>    <span class="k">def</span> <span class="nf">print_conserved_species</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">assign_to</span><span class="p">,</span> <span class="n">is_mass_density</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Calculate the total {H, He, ...} atoms locked in species considered&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_conserved_dict</span><span class="p">()</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conserved_dict</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">is_mass_density</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="n">i</span><span class="o">.</span><span class="n">symbol</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">:</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="n">i</span><span class="o">.</span><span class="n">symbol</span> <span class="o">*</span> <span class="n">i</span><span class="o">.</span><span class="n">elements</span><span class="p">[</span><span class="n">s</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">print_apply_conservation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">assign_to</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">ele</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">conserved_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">w</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">periodic_table_by_name</span><span class="p">[</span><span class="n">ele</span><span class="p">]</span>
+            <span class="n">vname</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">v</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">vname</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> = </span><span class="si">{1}</span><span class="s2">*f</span><span class="si">{2}</span><span class="s2">*density/total_</span><span class="si">{2}</span><span class="s2">;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">assign_to</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">ele</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">cie_optical_depth_correction</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">mdensity</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;mdensity&quot;</span><span class="p">)</span>
+        <span class="n">tau</span> <span class="o">=</span> <span class="p">(</span><span class="n">mdensity</span> <span class="o">/</span> <span class="mf">3.3e-8</span><span class="p">)</span> <span class="o">**</span> <span class="mf">2.8</span>
+        <span class="n">tau</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Max</span><span class="p">(</span><span class="n">tau</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">)</span>
+        <span class="n">ciefudge</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Min</span><span class="p">((</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">sympy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">tau</span><span class="p">))</span> <span class="o">/</span> <span class="n">tau</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ciefudge</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.print_jacobian_component"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.print_jacobian_component">[docs]</a>    <span class="k">def</span> <span class="nf">print_jacobian_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">print_zeros</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Prints the jacobian of d (ds1/dt)/ ds2&quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">[</span><span class="n">ca</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span> <span class="k">for</span> <span class="n">ca</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_total</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">assign_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">assign_to</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;d_</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">temp_name</span><span class="p">,</span> <span class="n">temp_eq</span> <span class="ow">in</span> <span class="n">st</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">teq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="n">temp_eq</span><span class="p">)</span>
+                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ccode</span><span class="p">(</span><span class="n">teq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">temp_name</span><span class="p">))</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ccode</span><span class="p">(</span><span class="n">st</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">))</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span>
+        <span class="c1"># eq = eq.replace(</span>
+        <span class="c1">#    lambda x: x.is_Pow and x.exp &gt; 0 and x.exp == sympy.Integer,</span>
+        <span class="c1">#    lambda x: sympy.Symbol(&quot;*&quot;.join([x.base.name] * x.exp)),</span>
+        <span class="c1"># )</span>
+
+        <span class="k">if</span> <span class="n">eq</span> <span class="o">==</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">print_zeros</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.get_sparse_matrix_component"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.get_sparse_matrix_component">[docs]</a>    <span class="k">def</span> <span class="nf">get_sparse_matrix_component</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sparse_type</span><span class="o">=</span><span class="s2">&quot;CSR&quot;</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;component&quot;</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="s2">&quot;data&quot;</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a sparse CSR matrix for the jacobian, primarily used in templating&quot;&quot;&quot;</span>
+
+        <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="n">colvals</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">all_comp</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">rowptrs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">s1_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">s2_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i1_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i2_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># sp_list = list( sorted(self.required_species) )</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ode_species</span><span class="p">()</span>
+        <span class="n">sp_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ode_species</span><span class="p">))</span>
+        <span class="n">s1_now</span> <span class="o">=</span> <span class="n">sp_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c1"># getting rowptrs is a little tricky....</span>
+        <span class="c1"># its the counter</span>
+        <span class="k">for</span> <span class="n">i1</span><span class="p">,</span> <span class="n">s1</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sp_list</span><span class="p">):</span>
+            <span class="n">rowptrs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">i2</span><span class="p">,</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">sp_list</span><span class="p">):</span>
+                <span class="n">jac_comp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">print_jacobian_component</span><span class="p">(</span>
+                    <span class="n">s1</span><span class="p">,</span> <span class="n">s2</span><span class="p">,</span> <span class="n">print_zeros</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="s2">&quot;&quot;</span>
+                <span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">jac_comp</span><span class="p">:</span>
+                    <span class="n">colvals</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+                    <span class="n">all_comp</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">jac_comp</span><span class="p">)</span>
+
+                    <span class="n">s1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+                    <span class="n">s2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span>
+
+                    <span class="n">i1_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i1</span><span class="p">)</span>
+                    <span class="n">i2_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i2</span><span class="p">)</span>
+
+                    <span class="c1"># if s1 == s1_now:</span>
+                    <span class="c1">#    rowptrs.append(k)</span>
+                    <span class="c1">#    if i1 &lt; len(sp_list) - 1:</span>
+                    <span class="c1">#        s1_now = sp_list[i1 + 1]</span>
+                    <span class="c1">#   else:</span>
+                    <span class="c1">#        s1_now = None</span>
+                    <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="c1"># rowptrs.append(k)</span>
+        <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;component&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="n">colvals</span><span class="p">,</span> <span class="n">all_comp</span><span class="p">,</span> <span class="n">s1_list</span><span class="p">,</span> <span class="n">s2_list</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;indexptrs&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">rowptrs</span>
+        <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;index&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">zip</span><span class="p">(</span><span class="n">i1_list</span><span class="p">,</span> <span class="n">i2_list</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="n">k</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;nsparse&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">k</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.print_JacTimesVec_component"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.print_JacTimesVec_component">[docs]</a>    <span class="k">def</span> <span class="nf">print_JacTimesVec_component</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s1</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the product of Jacobian * Vec for a given Vec</span>
+<span class="sd">        Might be useful when we use the CVSpils solver</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">s1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">[</span><span class="n">ca</span><span class="p">]</span><span class="o">.</span><span class="n">equation</span> <span class="k">for</span> <span class="n">ca</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="p">)</span>
+            <span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">st</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_total</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">assign_to</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">assign_to</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;d_</span><span class="si">%s</span><span class="s2">_dy_y&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">s1</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+            <span class="n">codes</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">temp_name</span><span class="p">,</span> <span class="n">temp_eq</span> <span class="ow">in</span> <span class="n">st</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+                <span class="n">teq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="n">temp_eq</span><span class="p">)</span>
+                <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ccode</span><span class="p">(</span><span class="n">teq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">temp_name</span><span class="p">))</span>
+            <span class="n">codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ccode</span><span class="p">(</span><span class="n">st</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">))</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+
+        <span class="n">JtV_eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="n">mdensity</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;mdensity&quot;</span><span class="p">)</span>
+        <span class="n">T_energy</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T</span><span class="si">{0}</span><span class="s2">[i]&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">energy_term</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">s2</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+
+            <span class="n">vec</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;v</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+            <span class="n">newterm</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">st</span><span class="p">,</span> <span class="n">s2</span><span class="o">.</span><span class="n">symbol</span><span class="p">)</span> <span class="o">*</span> <span class="n">vec</span>
+
+            <span class="k">if</span> <span class="n">s1</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ge&quot;</span><span class="p">:</span>
+                <span class="n">newterm</span> <span class="o">/=</span> <span class="n">mdensity</span>
+            <span class="k">if</span> <span class="n">s2</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;ge&quot;</span><span class="p">:</span>
+                <span class="n">newterm</span> <span class="o">*=</span> <span class="n">T_energy</span>
+
+            <span class="n">JtV_eq</span> <span class="o">+=</span> <span class="n">newterm</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">JtV_eq</span><span class="p">,</span> <span class="n">assign_to</span><span class="o">=</span><span class="n">assign_to</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">print_mass_density</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Note: this assumes things are number density at this point</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="n">s</span><span class="o">.</span><span class="n">symbol</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span>
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">eq</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">interpolate_species_gamma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sp</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;H2_1&quot;</span><span class="p">,</span> <span class="s2">&quot;H2_2&quot;</span><span class="p">):</span>
+            <span class="n">expr_gammaH2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">species_gamma</span><span class="p">(</span>
+                <span class="n">species_registry</span><span class="p">[</span><span class="s2">&quot;H2_1&quot;</span><span class="p">],</span> <span class="n">temp</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">False</span>
+            <span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">deriv</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+                <span class="n">expr_dgammaH2_dT</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">expr_gammaH2</span><span class="p">,</span> <span class="s2">&quot;T&quot;</span><span class="p">)</span>
+                <span class="n">f_dgammaH2_dT</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="n">expr_dgammaH2_dT</span><span class="p">)</span>
+                <span class="n">dgammaH2_dT</span> <span class="o">=</span> <span class="n">f_dgammaH2_dT</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">_i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">dgammaH2_dT</span><span class="p">)</span>
+                <span class="n">dgammaH2_dT</span><span class="p">[</span><span class="n">_i1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+                <span class="k">return</span> <span class="n">dgammaH2_dT</span>
+
+            <span class="n">f_gammaH2</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">,</span> <span class="n">expr_gammaH2</span><span class="p">)</span>
+            <span class="n">gammaH2_T</span> <span class="o">=</span> <span class="n">f_gammaH2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">_i1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">gammaH2_T</span><span class="p">)</span>
+            <span class="n">gammaH2_T</span><span class="p">[</span><span class="n">_i1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">7.0</span> <span class="o">/</span> <span class="mf">5.0</span>
+            <span class="k">return</span> <span class="n">gammaH2_T</span>
+
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Provide your gamma function for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.species_gamma"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.species_gamma">[docs]</a>    <span class="k">def</span> <span class="nf">species_gamma</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;create an expression for the species gamma</span>
+<span class="sd">        This should be depracated, as species gamma should be attached to each species!</span>
+<span class="sd">        and move to ChemicalSpecies</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">species</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">:</span>
+            <span class="n">sp_name</span> <span class="o">=</span> <span class="n">species</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">temp</span> <span class="ow">and</span> <span class="n">name</span><span class="p">:</span>
+                <span class="c1"># so gamma enters as a function that depends on temperature</span>
+                <span class="c1"># when gamma factor enters the temperature calculation which</span>
+                <span class="c1"># involves derivatives of temperature (dgammaH2_dT) this term will not be dropped off</span>
+                <span class="c1"># and be left as a function of T, which can later be supplied from the interpolated values</span>
+                <span class="c1"># as gammaH2 does</span>
+
+                <span class="c1"># this returns name of the gamma as a function of T</span>
+                <span class="c1"># goes into the analytical differntiation for energy</span>
+                <span class="n">f_gammaH2</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp_name</span><span class="p">)(</span><span class="n">T</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">f_gammaH2</span>
+            <span class="k">elif</span> <span class="n">temp</span> <span class="ow">and</span> <span class="o">~</span><span class="n">name</span><span class="p">:</span>
+                <span class="c1"># x = 6100.0/T</span>
+                <span class="c1"># expx = sympy.exp(x)</span>
+                <span class="c1"># gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1</span>
+
+                <span class="n">T0</span> <span class="o">=</span> <span class="n">T</span> <span class="o">**</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="mf">6.5</span><span class="p">)</span>
+                <span class="n">a0</span> <span class="o">=</span> <span class="mf">64.2416</span>
+                <span class="n">a1</span> <span class="o">=</span> <span class="o">-</span><span class="mf">9.36334</span>
+                <span class="n">a2</span> <span class="o">=</span> <span class="o">-</span><span class="mf">0.377266</span>
+                <span class="n">a3</span> <span class="o">=</span> <span class="mf">69.8091</span>
+                <span class="n">a4</span> <span class="o">=</span> <span class="mf">0.0493452</span>
+                <span class="n">a5</span> <span class="o">=</span> <span class="mf">2.28021</span>
+                <span class="n">a6</span> <span class="o">=</span> <span class="mf">0.115357</span>
+                <span class="n">a7</span> <span class="o">=</span> <span class="mf">0.114188</span>
+                <span class="n">a8</span> <span class="o">=</span> <span class="mf">2.90778</span>
+                <span class="n">a9</span> <span class="o">=</span> <span class="mf">0.689708</span>
+
+                <span class="n">gammaH2_expr</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">sympy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">a0</span> <span class="o">*</span> <span class="n">T0</span><span class="o">**</span><span class="n">a1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">a2</span> <span class="o">+</span> <span class="n">T0</span><span class="o">**-</span><span class="n">a3</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="n">a4</span> <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">T0</span> <span class="o">-</span> <span class="n">a5</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">a6</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="n">a7</span> <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="p">((</span><span class="n">T0</span> <span class="o">-</span> <span class="n">a8</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">a9</span><span class="p">)</span>
+                    <span class="o">+</span> <span class="mf">5.0</span> <span class="o">/</span> <span class="mf">3.0</span>
+                <span class="p">)</span>
+                <span class="c1"># x = 6100.0/T</span>
+                <span class="c1"># expx = sympy.exp(x)</span>
+                <span class="c1"># gammaH2_expr = 2.0 / (5.0 + 2.0*x*x*expx / (expx - 1 )**2.0 ) + 1</span>
+
+                <span class="k">return</span> <span class="n">gammaH2_expr</span>
+
+            <span class="n">gammaH2</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp_name</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">gammaH2</span>
+
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">gamma</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.gamma_factor"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.gamma_factor">[docs]</a>    <span class="k">def</span> <span class="nf">gamma_factor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return an sympy expression of sum ( 1 / (gamma - 1) )&quot;&quot;&quot;</span>
+        <span class="n">eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="s2">&quot;0&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s2">&quot;ge&quot;</span><span class="p">:</span>
+                <span class="n">eq</span> <span class="o">+=</span> <span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">sympify</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">species_gamma</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">temp</span><span class="o">=</span><span class="n">temp</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">eq</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.temperature_calculation"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.temperature_calculation">[docs]</a>    <span class="k">def</span> <span class="nf">temperature_calculation</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">derivative</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">derivative_dge_dT</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">get_dge</span><span class="o">=</span><span class="kc">False</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Evaluate Temperature symbolically&quot;&quot;&quot;</span>
+        <span class="c1"># If derivative=True, returns the derivative of</span>
+        <span class="c1"># temperature with respect to ge.  Otherwise,</span>
+        <span class="c1"># returns just the temperature function</span>
+        <span class="n">ge</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;ge&quot;</span><span class="p">)</span>
+        <span class="n">function_eq</span> <span class="o">=</span> <span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">ge</span> <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;mh&quot;</span><span class="p">))</span> <span class="o">/</span> <span class="p">(</span>
+            <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;kb&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">gamma_factor</span><span class="p">())</span>
+        <span class="p">)</span>
+        <span class="c1"># function_eq = (ge) / \</span>
+        <span class="c1">#    (sympy.Symbol(&#39;kb&#39;) * (self.gamma_factor()))</span>
+        <span class="k">if</span> <span class="n">derivative</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">deriv_eq</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">function_eq</span><span class="p">,</span> <span class="n">ge</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">deriv_eq</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">derivative_dge_dT</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="c1"># when H2 presents, the gamma is dependent on  temperature</span>
+            <span class="c1"># therefore temperature must iterate to a convergence for a given ge</span>
+            <span class="c1"># this part evaluates the derivatives of the function ge with respect to T</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+            <span class="n">f</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">gamma_factor</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;kb&quot;</span><span class="p">)</span>
+                <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+                <span class="o">/</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;mh&quot;</span><span class="p">)</span>
+                <span class="o">/</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">:</span>
+                <span class="c1"># substitute the sympy function with sympy Symbols</span>
+                <span class="n">sym_fgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)(</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">sym_dfgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">sym_fgamma</span><span class="p">,</span> <span class="n">T</span><span class="p">)</span>
+                <span class="n">dgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;dgamma</span><span class="si">%s</span><span class="s2">_dT&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">sym_dfgamma</span><span class="p">:</span> <span class="n">dgamma</span><span class="p">})</span>
+
+                <span class="n">fgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">sym_fgamma</span><span class="p">:</span> <span class="n">tmp</span><span class="p">})</span>
+                <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">tmp</span><span class="p">:</span> <span class="n">fgamma</span><span class="p">})</span>
+
+                <span class="c1"># substitute 1/ gamma - 1 with</span>
+                <span class="c1"># the expression _gamma{{sp}}_m1</span>
+                <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma</span><span class="si">%s</span><span class="s2">_m1&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">fgamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">_gamma_m1</span><span class="p">})</span>
+
+            <span class="n">gamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+            <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma_m1&quot;</span><span class="p">)</span>
+            <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">_gamma_m1</span><span class="p">})</span>
+
+            <span class="c1"># to unravel the algebric power</span>
+            <span class="n">dge_dT</span> <span class="o">=</span> <span class="n">dge_dT</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">is_Pow</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">exp</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">exp</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">dge_dT</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">get_dge</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">T</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+            <span class="n">dge</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gamma_factor</span><span class="p">(</span><span class="n">temp</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="o">*</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;kb&quot;</span><span class="p">)</span> <span class="o">*</span> <span class="n">T</span> <span class="o">/</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span>
+                <span class="s2">&quot;mh&quot;</span>
+            <span class="p">)</span> <span class="o">/</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span> <span class="o">-</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;ge&quot;</span><span class="p">)</span>
+
+            <span class="n">tmp</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">:</span>
+                <span class="n">sym_fgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)(</span><span class="n">T</span><span class="p">)</span>
+                <span class="n">fgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dge</span> <span class="o">=</span> <span class="n">dge</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">sym_fgamma</span><span class="p">:</span> <span class="n">tmp</span><span class="p">})</span>
+                <span class="n">dge</span> <span class="o">=</span> <span class="n">dge</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">tmp</span><span class="p">:</span> <span class="n">fgamma</span><span class="p">})</span>
+
+                <span class="c1"># substitute 1/ gamma - 1 with</span>
+                <span class="c1"># the expression _gamma{{sp}}_m1</span>
+                <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma</span><span class="si">%s</span><span class="s2">_m1&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+                <span class="n">dge</span> <span class="o">=</span> <span class="n">dge</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">fgamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">_gamma_m1</span><span class="p">})</span>
+
+            <span class="n">gamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+            <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma_m1&quot;</span><span class="p">)</span>
+            <span class="n">dge</span> <span class="o">=</span> <span class="n">dge</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">_gamma_m1</span><span class="p">})</span>
+
+            <span class="c1"># to unravel the algebric power</span>
+            <span class="n">dge</span> <span class="o">=</span> <span class="n">dge</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">is_Pow</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">exp</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span>
+                <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="n">x</span><span class="o">.</span><span class="n">exp</span><span class="p">)),</span>
+            <span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">dge</span><span class="p">)</span>
+
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+        <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma_m1&quot;</span><span class="p">)</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;tmp&quot;</span><span class="p">)</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;T&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">:</span>
+            <span class="c1"># substitute the sympy function with sympy Symbols</span>
+            <span class="n">sym_fgamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Function</span><span class="p">(</span><span class="s2">&quot;gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)(</span><span class="n">T</span><span class="p">)</span>
+            <span class="n">_fgamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma</span><span class="si">%s</span><span class="s2">_m1&quot;</span> <span class="o">%</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">function_eq</span> <span class="o">=</span> <span class="n">function_eq</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">sym_fgamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">tmp</span><span class="p">})</span>
+            <span class="n">function_eq</span> <span class="o">=</span> <span class="n">function_eq</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="n">tmp</span><span class="p">:</span> <span class="n">_fgamma_m1</span><span class="p">})</span>
+
+        <span class="n">function_eq</span> <span class="o">=</span> <span class="n">function_eq</span><span class="o">.</span><span class="n">subs</span><span class="p">({</span><span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span> <span class="n">_gamma_m1</span><span class="p">})</span>
+        <span class="n">gamma</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;gamma&quot;</span><span class="p">)</span>
+        <span class="n">_gamma_m1</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">Symbol</span><span class="p">(</span><span class="s2">&quot;_gamma_m1&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ccode</span><span class="p">(</span><span class="n">function_eq</span><span class="p">)</span></div>
+
+    <span class="c1"># This function computes the total number density</span>
+    <span class="k">def</span> <span class="nf">calculate_number_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1"># values should be a dict with all of the required species in it</span>
+        <span class="c1"># The values should be in *mass* density</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span>
+        <span class="k">return</span> <span class="n">n</span>
+
+    <span class="c1"># This function counts up the total number of free electrons</span>
+<div class="viewcode-block" id="ChemicalNetwork.calculate_free_electrons"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.calculate_free_electrons">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_free_electrons</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;evaluate the number density of free electrons</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        values: dict[np.ndarray]</span>
+<span class="sd">            the abundance vectors specified by the user, it is assumed to be in mass density</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n: np.ndarray</span>
+<span class="sd">            the numpy array that holds the number density of electrons</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># values should be add dict with all of the required species in it</span>
+        <span class="c1"># The values should be in *mass* density</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="p">(</span><span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">/</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">free_electrons</span>
+        <span class="k">return</span> <span class="n">n</span></div>
+
+    <span class="c1"># This computes the total mass density from abundance fractions</span>
+    <span class="k">def</span> <span class="nf">calculate_mass_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="c1"># values should be a dict with all of the required species in it</span>
+        <span class="c1"># The values should be in *mass* density</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span>
+        <span class="k">return</span> <span class="n">n</span>
+
+    <span class="c1"># This function sums the densities (mass or number depending on what</span>
+    <span class="c1"># is fed in) of non-electron species</span>
+<div class="viewcode-block" id="ChemicalNetwork.calculate_total_density"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.calculate_total_density">[docs]</a>    <span class="k">def</span> <span class="nf">calculate_total_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;evalue the total density by summing over species with mass</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        values: dict[values]</span>
+<span class="sd">            the abundance vectors specified by the used</span>
+
+<span class="sd">        Note</span>
+<span class="sd">        ----</span>
+<span class="sd">        Depending on what the</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        n: np.ndarray</span>
+<span class="sd">            an numpy array of total density</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c1"># values should be a dict with all of the required species in it</span>
+        <span class="c1"># The values should be in *mass* density</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">values</span><span class="o">.</span><span class="n">values</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">n</span> <span class="o">+=</span> <span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">n</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.convert_to_mass_density"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.convert_to_mass_density">[docs]</a>    <span class="k">def</span> <span class="nf">convert_to_mass_density</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">values</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;converts from number density to mass density&quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">required_species</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">skip_weight</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">values</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">*</span> <span class="n">s</span><span class="o">.</span><span class="n">weight</span>
+        <span class="k">return</span> <span class="n">values</span></div>
+
+    <span class="k">def</span> <span class="nf">write_cuda_solver</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">solver_name</span><span class="p">,</span>
+        <span class="n">solver_template</span><span class="o">=</span><span class="s2">&quot;cvode_cuda&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+        <span class="n">init_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">main_name</span><span class="o">=</span><span class="s2">&quot;main&quot;</span><span class="p">,</span>
+        <span class="n">input_is_number</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">input_is_number</span> <span class="o">=</span> <span class="n">input_is_number</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ode_species</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="n">root_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;templates&quot;</span><span class="p">)</span>
+        <span class="n">template_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">root_path</span><span class="p">,</span> <span class="s2">&quot;cvode_cuda&quot;</span><span class="p">)</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">(</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;jinja2.ext.loopcontrols&quot;</span><span class="p">],</span>
+            <span class="n">loader</span><span class="o">=</span><span class="n">jinja2</span><span class="o">.</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">template_path</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">template_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver_name</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.cu&quot;</span><span class="p">,</span> <span class="s2">&quot;_main.cu&quot;</span><span class="p">,</span> <span class="s2">&quot;.h&quot;</span><span class="p">):</span>
+            <span class="n">iname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solver_template</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="n">oname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_solver</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+            <span class="n">template_inst</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">iname</span> <span class="o">+</span> <span class="s2">&quot;.template&quot;</span><span class="p">)</span>
+            <span class="n">solver_out</span> <span class="o">=</span> <span class="n">template_inst</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">template_vars</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_out</span><span class="p">)</span>
+
+        <span class="c1"># now we create a Makefile</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp_dir</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">solver_template</span><span class="p">)</span>
+            <span class="n">iname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
+            <span class="n">oname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
+            <span class="n">template_inst</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">iname</span> <span class="o">+</span> <span class="s2">&quot;.template&quot;</span><span class="p">)</span>
+            <span class="n">solver_out</span> <span class="o">=</span> <span class="n">template_inst</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">template_vars</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_out</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This does not have a Makefile.template&quot;</span><span class="p">)</span>
+            <span class="k">pass</span>
+
+        <span class="c1"># This writes out the rates for the species in the</span>
+        <span class="c1"># chemical network to HDF5 files which can later be</span>
+        <span class="c1"># read by the C++ code that is output by the template</span>
+        <span class="n">ofn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_tables.h5&quot;</span> <span class="o">%</span> <span class="n">solver_name</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ofn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="s2">&quot;tables&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                        <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">),</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tab</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+                    <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                    <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">),</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tab</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_species_gamma</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/dgamma</span><span class="si">%s</span><span class="s2">_dT&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_species_gamma</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="nf">set_library_paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s2">&quot;HDF5_PATH&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_hdf5_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;HDF5_PATH&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to supply HDF5_PATH&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;DENGO_INSTALL_PATH&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dengo_install_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;DENGO_INSTALL_PATH&quot;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Need to supply DENGO_INSTALL_PATH&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="s2">&quot;LIBTOOL_PATH&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_libtool_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;LIBTOOL_PATH&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="ChemicalNetwork.write_solver"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.write_solver">[docs]</a>    <span class="k">def</span> <span class="nf">write_solver</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">solver_name</span><span class="p">,</span>
+        <span class="n">solver_option</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">solver_template</span><span class="o">=</span><span class="s2">&quot;rates_and_rate_tables&quot;</span><span class="p">,</span>
+        <span class="n">ode_solver_source</span><span class="o">=</span><span class="s2">&quot;BE_chem_solve.C&quot;</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+        <span class="n">init_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the chemistry solver, based on the specified solver templates</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name: str</span>
+<span class="sd">            the name of the solver</span>
+<span class="sd">        solver_template: str, default = rate_and_rate_tables</span>
+<span class="sd">            the jinja2 template the `ChemicalNetwork` populates, read dengo/templates for examples</span>
+<span class="sd">        ode_solver_source: str, default = BE_chem_solve.C</span>
+<span class="sd">            the ODE solver used</span>
+<span class="sd">        output_dir: str, default = .</span>
+<span class="sd">            the directory at which these files would be generated</span>
+<span class="sd">        init_values: Optional[dict, None], default=None</span>
+<span class="sd">            a initial value hdf5 file would be generated that can be fed to the solver (for testing purpose)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">update_ode_species</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">solver_option</span> <span class="o">==</span> <span class="s2">&quot;CVODE&quot;</span><span class="p">:</span>
+            <span class="n">solver_template</span> <span class="o">=</span> <span class="s2">&quot;be_chem_solve/rates_and_rate_tables&quot;</span>
+            <span class="n">ode_solver_source</span> <span class="o">=</span> <span class="s2">&quot;BE_chem_solve.C&quot;</span>
+        <span class="k">elif</span> <span class="n">solver_option</span> <span class="o">==</span> <span class="s2">&quot;BE_CHEM_SOLVE&quot;</span><span class="p">:</span>
+            <span class="n">solver_template</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;cv_omp/sundials_CVDls&quot;</span><span class="p">,)</span>
+            <span class="n">ode_solver_source</span> <span class="o">=</span> <span class="s2">&quot;initialize_cvode_solver.C&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="s2">&quot;going to be replaced solver_template and ode_solver_source with solver_option&quot;</span><span class="p">,</span>
+                <span class="ne">PendingDeprecationWarning</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># with Dan suggestions, I have included the path to write the solver!</span>
+        <span class="c1"># please specify the environ path!</span>
+
+        <span class="c1"># Only HDF5_PATH and DENGO_INSTALL_PATH is needed for</span>
+        <span class="c1"># running dengo, but then it can only be coupled with the 1st order BDF solver</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_library_paths</span><span class="p">()</span>
+        <span class="c1"># CVODE is optional, but recommended for performance boost</span>
+        <span class="k">if</span> <span class="s2">&quot;CVODE_PATH&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_cvode_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;CVODE_PATH&quot;</span><span class="p">]</span>
+            <span class="c1"># SuiteSpare is optional as well</span>
+            <span class="k">if</span> <span class="s2">&quot;SUITESPARSE_PATH&quot;</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_suitesparse_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;SUITESPARSE_PATH&quot;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Need to supply SUITESPARSE_PATH if CVODE is compiled with KLU&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;CVODE_PATH is optional&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="s2">&quot;OR: You can choose to use the first order BDF solver that comes with dengo&quot;</span>
+            <span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;In that case, please set ode_solver_source to &#39;BE_chem_solve.C&#39;&quot;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;and solver_template to &#39;rates_and_rate_tables&#39;. &quot;</span><span class="p">)</span>
+            <span class="n">solver_template</span> <span class="o">=</span> <span class="s2">&quot;be_chem_solve/rates_and_rate_tables&quot;</span>
+            <span class="n">ode_solver_source</span> <span class="o">=</span> <span class="s2">&quot;BE_chem_solve.C&quot;</span>
+            <span class="c1"># raise ValueError()</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">output_dir</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_templates</span><span class="p">(</span>
+            <span class="n">solver_name</span><span class="p">,</span> <span class="n">ode_solver_source</span><span class="p">,</span> <span class="n">solver_template</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">init_values</span>
+        <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_rates_to_file</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write_initial_condition_to_file</span><span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.write_initial_condition_to_file"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.write_initial_condition_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_initial_condition_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">,</span> <span class="n">init_values</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;write initial value to a hdf5 file,this serves as an input to the C-solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        solver_name: str</span>
+<span class="sd">            name of the solver, the output is of the form f&quot;{solver_name}_initial_conditions.h5&quot;</span>
+<span class="sd">        init_values: dict[np.array]</span>
+<span class="sd">            an dictionary that holds the initial abundance to feed into the solver</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        None</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">init_values</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span>
+
+        <span class="c1"># This write outs a set of initial conditions for to be fed</span>
+        <span class="c1"># into C++ code for testing purposes</span>
+        <span class="n">ofn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_initial_conditions.h5&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ofn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">init_value</span> <span class="ow">in</span> <span class="n">init_values</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span><span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">init_value</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">))</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.write_templates"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.write_templates">[docs]</a>    <span class="k">def</span> <span class="nf">write_templates</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">solver_name</span><span class="p">,</span>
+        <span class="n">ode_solver_source</span><span class="p">,</span>
+        <span class="n">solver_template</span><span class="p">,</span>
+        <span class="n">output_dir</span><span class="o">=</span><span class="s2">&quot;.&quot;</span><span class="p">,</span>
+        <span class="n">init_values</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Write the ODE solver based on the specified ChemicalNetwork&quot;&quot;&quot;</span>
+        <span class="c1"># What we are handed here is:</span>
+        <span class="c1">#   * self, a python object which holds all of the species, reactions,</span>
+        <span class="c1">#     rate, etc. that we&#39;re keeping track of and will be solving in Enzo</span>
+        <span class="c1">#   * solver_name, an identifier to produce a unique template and to</span>
+        <span class="c1">#     correctly grab the right HDF5 tables</span>
+        <span class="c1">#   * ode_solver_source, the ODE solver we will be linking against</span>
+        <span class="c1">#   * solver_template, the template for the solver we will write</span>
+        <span class="c1">#   * output_dir, a place to stick everythign</span>
+        <span class="c1">#   * init_values, a set of initial conditions</span>
+        <span class="c1">#</span>
+        <span class="c1"># To utilize these inside our template, we will generate convenience</span>
+        <span class="c1"># handlers that will explicitly number them.</span>
+        <span class="n">root_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="vm">__file__</span><span class="p">),</span> <span class="s2">&quot;templates&quot;</span><span class="p">)</span>
+        <span class="n">env</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">(</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;jinja2.ext.loopcontrols&quot;</span><span class="p">],</span>
+            <span class="n">loader</span><span class="o">=</span><span class="n">jinja2</span><span class="o">.</span><span class="n">FileSystemLoader</span><span class="p">(</span><span class="n">root_path</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">template_vars</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">network</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span> <span class="n">solver_name</span><span class="o">=</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">init_values</span><span class="o">=</span><span class="n">init_values</span>
+        <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">suffix</span> <span class="ow">in</span> <span class="p">(</span>
+            <span class="s2">&quot;.C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_main.C&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;.h&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_run.pyx&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_run.pyxbld&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_run.pyxdep&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_run.pxd&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;_main.py&quot;</span><span class="p">,</span>
+        <span class="p">):</span>
+            <span class="n">iname</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solver_template</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+            <span class="n">oname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_solver</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">solver_name</span><span class="p">,</span> <span class="n">suffix</span><span class="p">))</span>
+            <span class="n">template_inst</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">iname</span> <span class="o">+</span> <span class="s2">&quot;.template&quot;</span><span class="p">)</span>
+            <span class="n">solver_out</span> <span class="o">=</span> <span class="n">template_inst</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">template_vars</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_out</span><span class="p">)</span>
+
+        <span class="c1"># now we create a Makefile</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">temp_dir</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">solver_template</span><span class="p">)</span>
+            <span class="n">iname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">temp_dir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
+            <span class="n">oname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="s2">&quot;Makefile&quot;</span><span class="p">)</span>
+            <span class="n">template_inst</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">iname</span> <span class="o">+</span> <span class="s2">&quot;.template&quot;</span><span class="p">)</span>
+            <span class="n">solver_out</span> <span class="o">=</span> <span class="n">template_inst</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">template_vars</span><span class="p">)</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">oname</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_out</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;This does not have a Makefile.template&quot;</span><span class="p">)</span>
+            <span class="k">pass</span>
+
+        <span class="n">env</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">(</span>
+            <span class="n">extensions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;jinja2.ext.loopcontrols&quot;</span><span class="p">],</span>
+            <span class="n">loader</span><span class="o">=</span><span class="n">jinja2</span><span class="o">.</span><span class="n">PackageLoader</span><span class="p">(</span><span class="s2">&quot;dengo&quot;</span><span class="p">,</span> <span class="s2">&quot;solvers&quot;</span><span class="p">),</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Now we copy over anything else we might need.</span>
+        <span class="k">if</span> <span class="n">ode_solver_source</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="c1"># iname = os.path.join(&quot;solvers&quot;, ode_solver_source)</span>
+            <span class="c1"># src = pkgutil.get_data(&quot;dengo&quot;, iname)</span>
+            <span class="c1"># src = src.decode(&quot;utf-8&quot;)</span>
+
+            <span class="n">template_inst</span> <span class="o">=</span> <span class="n">env</span><span class="o">.</span><span class="n">get_template</span><span class="p">(</span><span class="n">ode_solver_source</span><span class="p">)</span>
+            <span class="n">solver_out</span> <span class="o">=</span> <span class="n">template_inst</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="o">**</span><span class="n">template_vars</span><span class="p">)</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span>
+                <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">ode_solver_source</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span>
+            <span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">solver_out</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">solver_template</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;.c.template&quot;</span><span class="p">):</span>
+            <span class="n">hfn</span> <span class="o">=</span> <span class="n">solver_template</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.h&quot;</span>
+            <span class="n">src</span> <span class="o">=</span> <span class="n">pkgutil</span><span class="o">.</span><span class="n">get_data</span><span class="p">(</span><span class="s2">&quot;dengo&quot;</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;templates&quot;</span><span class="p">,</span> <span class="n">hfn</span><span class="p">))</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="n">hfn</span><span class="p">),</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;UTF-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">src</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="ChemicalNetwork.write_rates_to_file"><a class="viewcode-back" href="../../api.html#dengo.chemical_network.ChemicalNetwork.write_rates_to_file">[docs]</a>    <span class="k">def</span> <span class="nf">write_rates_to_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">solver_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;This writes out the rates for the species in the</span>
+<span class="sd">        chemical network to HDF5 files which can later be</span>
+<span class="sd">        read by the C++ code that is output by the template</span>
+
+<span class="sd">        f&quot;{solver_name}_tables.h5&quot; is the file that contains all the reaction rates and cooling rates</span>
+
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">ofn</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_dir</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_tables.h5&quot;</span><span class="p">)</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="n">ofn</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">rxn</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">reactions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">rxn</span><span class="p">,</span> <span class="s2">&quot;tables&quot;</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">,</span> <span class="n">rxn</span><span class="p">)</span>
+                    <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                        <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">rxn</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">),</span>
+                        <span class="n">data</span><span class="o">=</span><span class="n">rxn</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tab</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+                    <span class="p">)</span>
+        <span class="k">for</span> <span class="n">action</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cooling_actions</span><span class="o">.</span><span class="n">values</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">tab</span> <span class="ow">in</span> <span class="n">action</span><span class="o">.</span><span class="n">tables</span><span class="p">:</span>
+                <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                    <span class="s2">&quot;/</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">action</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">tab</span><span class="p">),</span>
+                    <span class="n">data</span><span class="o">=</span><span class="n">action</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="n">tab</span><span class="p">](</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+                <span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">sp</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_gamma_species</span><span class="p">):</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">sp</span><span class="o">.</span><span class="n">name</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/gamma</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_species_gamma</span><span class="p">(</span><span class="n">sp</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">create_dataset</span><span class="p">(</span>
+                <span class="s2">&quot;/dgamma</span><span class="si">%s</span><span class="s2">_dT&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">,</span>
+                <span class="n">data</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">interpolate_species_gamma</span><span class="p">(</span><span class="n">sp</span><span class="p">,</span> <span class="n">deriv</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="s2">&quot;float64&quot;</span><span class="p">),</span>
+            <span class="p">)</span>
+        <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+</pre></div>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

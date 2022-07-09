@@ -1,0 +1,260 @@
+Traceback (most recent call last):
+  File "/home/runner/.local/lib/python3.8/site-packages/jupyter_cache/executors/utils.py", line 51, in single_nb_execution
+    executenb(
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/client.py", line 1204, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/util.py", line 84, in wrapped
+    return just_run(coro(*args, **kwargs))
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/util.py", line 62, in just_run
+    return loop.run_until_complete(coro)
+  File "/usr/lib/python3.8/asyncio/base_events.py", line 616, in run_until_complete
+    return future.result()
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/client.py", line 663, in async_execute
+    await self.async_execute_cell(
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/client.py", line 965, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/home/runner/.local/lib/python3.8/site-packages/nbclient/client.py", line 862, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+# compile a BE chem solve one
+solver_nameBE = "simpleBE"
+cn_simple.write_solver(solver_nameBE, output_dir=output_dir,
+                solver_template="be_chem_solve/rates_and_rate_tables",
+                ode_solver_source="BE_chem_solve.C")
+simple_solver_run_beChem = pyximport.load_module(
+    "{}_solver_run".format(solver_nameBE),
+    "{}_solver_run.pyx".format(solver_nameBE),
+    build_inplace=True, pyxbuild_dir="_dengo_temp")
+------------------
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mDistutilsExecError[0m                        Traceback (most recent call last)
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:178[0m, in [0;36mUnixCCompiler._compile[0;34m(self, obj, src, ext, cc_args, extra_postargs, pp_opts)[0m
+[1;32m    177[0m [38;5;28;01mtry[39;00m:
+[0;32m--> 178[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mspawn[49m[43m([49m[43mcompiler_so[49m[43m [49m[38;5;241;43m+[39;49m[43m [49m[43mcc_args[49m[43m [49m[38;5;241;43m+[39;49m[43m [49m[43m[[49m[43msrc[49m[43m,[49m[43m [49m[38;5;124;43m'[39;49m[38;5;124;43m-o[39;49m[38;5;124;43m'[39;49m[43m,[49m[43m [49m[43mobj[49m[43m][49m[43m [49m[38;5;241;43m+[39;49m[43m [49m[43mextra_postargs[49m[43m)[49m
+[1;32m    179[0m [38;5;28;01mexcept[39;00m DistutilsExecError [38;5;28;01mas[39;00m msg:
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:980[0m, in [0;36mCCompiler.spawn[0;34m(self, cmd, **kwargs)[0m
+[1;32m    979[0m [38;5;28;01mdef[39;00m [38;5;21mspawn[39m([38;5;28mself[39m, cmd, [38;5;241m*[39m[38;5;241m*[39mkwargs):
+[0;32m--> 980[0m     [43mspawn[49m[43m([49m[43mcmd[49m[43m,[49m[43m [49m[43mdry_run[49m[38;5;241;43m=[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mdry_run[49m[43m,[49m[43m [49m[38;5;241;43m*[39;49m[38;5;241;43m*[39;49m[43mkwargs[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/spawn.py:68[0m, in [0;36mspawn[0;34m(cmd, search_path, verbose, dry_run, env)[0m
+[1;32m     67[0m     cmd [38;5;241m=[39m cmd[[38;5;241m0[39m]
+[0;32m---> 68[0m [38;5;28;01mraise[39;00m DistutilsExecError(
+[1;32m     69[0m     [38;5;124m"[39m[38;5;124mcommand [39m[38;5;132;01m%r[39;00m[38;5;124m failed with exit code [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m (cmd, exitcode)
+[1;32m     70[0m )
+
+[0;31mDistutilsExecError[0m: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
+
+During handling of the above exception, another exception occurred:
+
+[0;31mCompileError[0m                              Traceback (most recent call last)
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214[0m, in [0;36mload_module[0;34m(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)[0m
+[1;32m    213[0m         module_name [38;5;241m=[39m name
+[0;32m--> 214[0m     so_path [38;5;241m=[39m [43mbuild_module[49m[43m([49m[43mmodule_name[49m[43m,[49m[43m [49m[43mpyxfilename[49m[43m,[49m[43m [49m[43mpyxbuild_dir[49m[43m,[49m
+[1;32m    215[0m [43m                           [49m[43minplace[49m[38;5;241;43m=[39;49m[43mbuild_inplace[49m[43m,[49m[43m [49m[43mlanguage_level[49m[38;5;241;43m=[39;49m[43mlanguage_level[49m[43m)[49m
+[1;32m    216[0m mod [38;5;241m=[39m imp[38;5;241m.[39mload_dynamic(name, so_path)
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:186[0m, in [0;36mbuild_module[0;34m(name, pyxfilename, pyxbuild_dir, inplace, language_level)[0m
+[1;32m    185[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m pyxbuild
+[0;32m--> 186[0m so_path [38;5;241m=[39m [43mpyxbuild[49m[38;5;241;43m.[39;49m[43mpyx_to_dll[49m[43m([49m[43mpyxfilename[49m[43m,[49m[43m [49m[43mextension_mod[49m[43m,[49m
+[1;32m    187[0m [43m                              [49m[43mbuild_in_temp[49m[38;5;241;43m=[39;49m[43mbuild_in_temp[49m[43m,[49m
+[1;32m    188[0m [43m                              [49m[43mpyxbuild_dir[49m[38;5;241;43m=[39;49m[43mpyxbuild_dir[49m[43m,[49m
+[1;32m    189[0m [43m                              [49m[43msetup_args[49m[38;5;241;43m=[39;49m[43msargs[49m[43m,[49m
+[1;32m    190[0m [43m                              [49m[43minplace[49m[38;5;241;43m=[39;49m[43minplace[49m[43m,[49m
+[1;32m    191[0m [43m                              [49m[43mreload_support[49m[38;5;241;43m=[39;49m[43mpyxargs[49m[38;5;241;43m.[39;49m[43mreload_support[49m[43m)[49m
+[1;32m    192[0m [38;5;28;01massert[39;00m os[38;5;241m.[39mpath[38;5;241m.[39mexists(so_path), [38;5;124m"[39m[38;5;124mCannot find: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m so_path
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyxbuild.py:102[0m, in [0;36mpyx_to_dll[0;34m(filename, ext, force_rebuild, build_in_temp, pyxbuild_dir, setup_args, reload_support, inplace)[0m
+[1;32m    101[0m obj_build_ext [38;5;241m=[39m dist[38;5;241m.[39mget_command_obj([38;5;124m"[39m[38;5;124mbuild_ext[39m[38;5;124m"[39m)
+[0;32m--> 102[0m [43mdist[49m[38;5;241;43m.[39;49m[43mrun_commands[49m[43m([49m[43m)[49m
+[1;32m    103[0m so_path [38;5;241m=[39m obj_build_ext[38;5;241m.[39mget_outputs()[[38;5;241m0[39m]
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:968[0m, in [0;36mDistribution.run_commands[0;34m(self)[0m
+[1;32m    967[0m [38;5;28;01mfor[39;00m cmd [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mcommands:
+[0;32m--> 968[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mrun_command[49m[43m([49m[43mcmd[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/dist.py:1217[0m, in [0;36mDistribution.run_command[0;34m(self, command)[0m
+[1;32m   1214[0m [38;5;66;03m# Postpone defaults until all explicit configuration is considered[39;00m
+[1;32m   1215[0m [38;5;66;03m# (setup() args, config files, command line and plugins)[39;00m
+[0;32m-> 1217[0m [38;5;28;43msuper[39;49m[43m([49m[43m)[49m[38;5;241;43m.[39;49m[43mrun_command[49m[43m([49m[43mcommand[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:987[0m, in [0;36mDistribution.run_command[0;34m(self, command)[0m
+[1;32m    986[0m cmd_obj[38;5;241m.[39mensure_finalized()
+[0;32m--> 987[0m [43mcmd_obj[49m[38;5;241;43m.[39;49m[43mrun[49m[43m([49m[43m)[49m
+[1;32m    988[0m [38;5;28mself[39m[38;5;241m.[39mhave_run[command] [38;5;241m=[39m [38;5;241m1[39m
+
+File [0;32m~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:186[0m, in [0;36mold_build_ext.run[0;34m(self)[0m
+[1;32m    184[0m     optimization[38;5;241m.[39mdisable_optimization()
+[0;32m--> 186[0m [43m_build_ext[49m[38;5;241;43m.[39;49m[43mbuild_ext[49m[38;5;241;43m.[39;49m[43mrun[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:339[0m, in [0;36mbuild_ext.run[0;34m(self)[0m
+[1;32m    338[0m [38;5;66;03m# Now actually compile and link everything.[39;00m
+[0;32m--> 339[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_extensions[49m[43m([49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:195[0m, in [0;36mold_build_ext.build_extensions[0;34m(self)[0m
+[1;32m    194[0m [38;5;66;03m# Call original build_extensions[39;00m
+[0;32m--> 195[0m [43m_build_ext[49m[38;5;241;43m.[39;49m[43mbuild_ext[49m[38;5;241;43m.[39;49m[43mbuild_extensions[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:459[0m, in [0;36mbuild_ext.build_extensions[0;34m(self)[0m
+[1;32m    458[0m [38;5;28;01melse[39;00m:
+[0;32m--> 459[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_build_extensions_serial[49m[43m([49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:485[0m, in [0;36mbuild_ext._build_extensions_serial[0;34m(self)[0m
+[1;32m    484[0m [38;5;28;01mwith[39;00m [38;5;28mself[39m[38;5;241m.[39m_filter_build_errors(ext):
+[0;32m--> 485[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_extension[49m[43m([49m[43mext[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:540[0m, in [0;36mbuild_ext.build_extension[0;34m(self, ext)[0m
+[1;32m    538[0m     macros[38;5;241m.[39mappend((undef,))
+[0;32m--> 540[0m objects [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mcompiler[49m[38;5;241;43m.[39;49m[43mcompile[49m[43m([49m
+[1;32m    541[0m [43m    [49m[43msources[49m[43m,[49m
+[1;32m    542[0m [43m    [49m[43moutput_dir[49m[38;5;241;43m=[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_temp[49m[43m,[49m
+[1;32m    543[0m [43m    [49m[43mmacros[49m[38;5;241;43m=[39;49m[43mmacros[49m[43m,[49m
+[1;32m    544[0m [43m    [49m[43minclude_dirs[49m[38;5;241;43m=[39;49m[43mext[49m[38;5;241;43m.[39;49m[43minclude_dirs[49m[43m,[49m
+[1;32m    545[0m [43m    [49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mdebug[49m[43m,[49m
+[1;32m    546[0m [43m    [49m[43mextra_postargs[49m[38;5;241;43m=[39;49m[43mextra_args[49m[43m,[49m
+[1;32m    547[0m [43m    [49m[43mdepends[49m[38;5;241;43m=[39;49m[43mext[49m[38;5;241;43m.[39;49m[43mdepends[49m[43m,[49m
+[1;32m    548[0m [43m[49m[43m)[49m
+[1;32m    550[0m [38;5;66;03m# XXX outdated variable, kept here in case third-part code[39;00m
+[1;32m    551[0m [38;5;66;03m# needs it.[39;00m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:591[0m, in [0;36mCCompiler.compile[0;34m(self, sources, output_dir, macros, include_dirs, debug, extra_preargs, extra_postargs, depends)[0m
+[1;32m    590[0m         [38;5;28;01mcontinue[39;00m
+[0;32m--> 591[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_compile[49m[43m([49m[43mobj[49m[43m,[49m[43m [49m[43msrc[49m[43m,[49m[43m [49m[43mext[49m[43m,[49m[43m [49m[43mcc_args[49m[43m,[49m[43m [49m[43mextra_postargs[49m[43m,[49m[43m [49m[43mpp_opts[49m[43m)[49m
+[1;32m    593[0m [38;5;66;03m# Return *all* object filenames, not just the ones we just built.[39;00m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:180[0m, in [0;36mUnixCCompiler._compile[0;34m(self, obj, src, ext, cc_args, extra_postargs, pp_opts)[0m
+[1;32m    179[0m [38;5;28;01mexcept[39;00m DistutilsExecError [38;5;28;01mas[39;00m msg:
+[0;32m--> 180[0m     [38;5;28;01mraise[39;00m CompileError(msg)
+
+[0;31mCompileError[0m: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1
+
+During handling of the above exception, another exception occurred:
+
+[0;31mImportError[0m                               Traceback (most recent call last)
+Input [0;32mIn [5][0m, in [0;36m<cell line: 6>[0;34m()[0m
+[1;32m      2[0m solver_nameBE [38;5;241m=[39m [38;5;124m"[39m[38;5;124msimpleBE[39m[38;5;124m"[39m
+[1;32m      3[0m cn_simple[38;5;241m.[39mwrite_solver(solver_nameBE, output_dir[38;5;241m=[39moutput_dir,
+[1;32m      4[0m                 solver_template[38;5;241m=[39m[38;5;124m"[39m[38;5;124mbe_chem_solve/rates_and_rate_tables[39m[38;5;124m"[39m,
+[1;32m      5[0m                 ode_solver_source[38;5;241m=[39m[38;5;124m"[39m[38;5;124mBE_chem_solve.C[39m[38;5;124m"[39m)
+[0;32m----> 6[0m simple_solver_run_beChem [38;5;241m=[39m [43mpyximport[49m[38;5;241;43m.[39;49m[43mload_module[49m[43m([49m
+[1;32m      7[0m [43m    [49m[38;5;124;43m"[39;49m[38;5;132;43;01m{}[39;49;00m[38;5;124;43m_solver_run[39;49m[38;5;124;43m"[39;49m[38;5;241;43m.[39;49m[43mformat[49m[43m([49m[43msolver_nameBE[49m[43m)[49m[43m,[49m
+[1;32m      8[0m [43m    [49m[38;5;124;43m"[39;49m[38;5;132;43;01m{}[39;49;00m[38;5;124;43m_solver_run.pyx[39;49m[38;5;124;43m"[39;49m[38;5;241;43m.[39;49m[43mformat[49m[43m([49m[43msolver_nameBE[49m[43m)[49m[43m,[49m
+[1;32m      9[0m [43m    [49m[43mbuild_inplace[49m[38;5;241;43m=[39;49m[38;5;28;43;01mTrue[39;49;00m[43m,[49m[43m [49m[43mpyxbuild_dir[49m[38;5;241;43m=[39;49m[38;5;124;43m"[39;49m[38;5;124;43m_dengo_temp[39;49m[38;5;124;43m"[39;49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:231[0m, in [0;36mload_module[0;34m(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)[0m
+[1;32m    228[0m exc [38;5;241m=[39m [38;5;167;01mImportError[39;00m([38;5;124m"[39m[38;5;124mBuilding module [39m[38;5;132;01m%s[39;00m[38;5;124m failed: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m (
+[1;32m    229[0m     name, traceback[38;5;241m.[39mformat_exception_only([38;5;241m*[39msys[38;5;241m.[39mexc_info()[:[38;5;241m2[39m])))
+[1;32m    230[0m [38;5;28;01mif[39;00m sys[38;5;241m.[39mversion_info[[38;5;241m0[39m] [38;5;241m>[39m[38;5;241m=[39m [38;5;241m3[39m:
+[0;32m--> 231[0m     [38;5;28;01mraise[39;00m exc[38;5;241m.[39mwith_traceback(tb)
+[1;32m    232[0m [38;5;28;01melse[39;00m:
+[1;32m    233[0m     exec([38;5;124m"[39m[38;5;124mraise exc, None, tb[39m[38;5;124m"[39m, {[38;5;124m'[39m[38;5;124mexc[39m[38;5;124m'[39m: exc, [38;5;124m'[39m[38;5;124mtb[39m[38;5;124m'[39m: tb})
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214[0m, in [0;36mload_module[0;34m(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)[0m
+[1;32m    212[0m     [38;5;28;01melse[39;00m:
+[1;32m    213[0m         module_name [38;5;241m=[39m name
+[0;32m--> 214[0m     so_path [38;5;241m=[39m [43mbuild_module[49m[43m([49m[43mmodule_name[49m[43m,[49m[43m [49m[43mpyxfilename[49m[43m,[49m[43m [49m[43mpyxbuild_dir[49m[43m,[49m
+[1;32m    215[0m [43m                           [49m[43minplace[49m[38;5;241;43m=[39;49m[43mbuild_inplace[49m[43m,[49m[43m [49m[43mlanguage_level[49m[38;5;241;43m=[39;49m[43mlanguage_level[49m[43m)[49m
+[1;32m    216[0m mod [38;5;241m=[39m imp[38;5;241m.[39mload_dynamic(name, so_path)
+[1;32m    217[0m [38;5;28;01mif[39;00m is_package [38;5;129;01mand[39;00m [38;5;129;01mnot[39;00m [38;5;28mhasattr[39m(mod, [38;5;124m'[39m[38;5;124m__path__[39m[38;5;124m'[39m):
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:186[0m, in [0;36mbuild_module[0;34m(name, pyxfilename, pyxbuild_dir, inplace, language_level)[0m
+[1;32m    183[0m build_in_temp [38;5;241m=[39m sargs[38;5;241m.[39mpop([38;5;124m'[39m[38;5;124mbuild_in_temp[39m[38;5;124m'[39m,build_in_temp)
+[1;32m    185[0m [38;5;28;01mfrom[39;00m [38;5;21;01m.[39;00m [38;5;28;01mimport[39;00m pyxbuild
+[0;32m--> 186[0m so_path [38;5;241m=[39m [43mpyxbuild[49m[38;5;241;43m.[39;49m[43mpyx_to_dll[49m[43m([49m[43mpyxfilename[49m[43m,[49m[43m [49m[43mextension_mod[49m[43m,[49m
+[1;32m    187[0m [43m                              [49m[43mbuild_in_temp[49m[38;5;241;43m=[39;49m[43mbuild_in_temp[49m[43m,[49m
+[1;32m    188[0m [43m                              [49m[43mpyxbuild_dir[49m[38;5;241;43m=[39;49m[43mpyxbuild_dir[49m[43m,[49m
+[1;32m    189[0m [43m                              [49m[43msetup_args[49m[38;5;241;43m=[39;49m[43msargs[49m[43m,[49m
+[1;32m    190[0m [43m                              [49m[43minplace[49m[38;5;241;43m=[39;49m[43minplace[49m[43m,[49m
+[1;32m    191[0m [43m                              [49m[43mreload_support[49m[38;5;241;43m=[39;49m[43mpyxargs[49m[38;5;241;43m.[39;49m[43mreload_support[49m[43m)[49m
+[1;32m    192[0m [38;5;28;01massert[39;00m os[38;5;241m.[39mpath[38;5;241m.[39mexists(so_path), [38;5;124m"[39m[38;5;124mCannot find: [39m[38;5;132;01m%s[39;00m[38;5;124m"[39m [38;5;241m%[39m so_path
+[1;32m    194[0m junkpath [38;5;241m=[39m os[38;5;241m.[39mpath[38;5;241m.[39mjoin(os[38;5;241m.[39mpath[38;5;241m.[39mdirname(so_path), name[38;5;241m+[39m[38;5;124m"[39m[38;5;124m_*[39m[38;5;124m"[39m) [38;5;66;03m#very dangerous with --inplace ? yes, indeed, trying to eat my files ;)[39;00m
+
+File [0;32m~/.local/lib/python3.8/site-packages/pyximport/pyxbuild.py:102[0m, in [0;36mpyx_to_dll[0;34m(filename, ext, force_rebuild, build_in_temp, pyxbuild_dir, setup_args, reload_support, inplace)[0m
+[1;32m    100[0m [38;5;28;01mtry[39;00m:
+[1;32m    101[0m     obj_build_ext [38;5;241m=[39m dist[38;5;241m.[39mget_command_obj([38;5;124m"[39m[38;5;124mbuild_ext[39m[38;5;124m"[39m)
+[0;32m--> 102[0m     [43mdist[49m[38;5;241;43m.[39;49m[43mrun_commands[49m[43m([49m[43m)[49m
+[1;32m    103[0m     so_path [38;5;241m=[39m obj_build_ext[38;5;241m.[39mget_outputs()[[38;5;241m0[39m]
+[1;32m    104[0m     [38;5;28;01mif[39;00m obj_build_ext[38;5;241m.[39minplace:
+[1;32m    105[0m         [38;5;66;03m# Python distutils get_outputs()[ returns a wrong so_path[39;00m
+[1;32m    106[0m         [38;5;66;03m# when --inplace ; see http://bugs.python.org/issue5977[39;00m
+[1;32m    107[0m         [38;5;66;03m# workaround:[39;00m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:968[0m, in [0;36mDistribution.run_commands[0;34m(self)[0m
+[1;32m    963[0m [38;5;124;03m"""Run each command that was seen on the setup script command line.[39;00m
+[1;32m    964[0m [38;5;124;03mUses the list of commands found and cache of command objects[39;00m
+[1;32m    965[0m [38;5;124;03mcreated by 'get_command_obj()'.[39;00m
+[1;32m    966[0m [38;5;124;03m"""[39;00m
+[1;32m    967[0m [38;5;28;01mfor[39;00m cmd [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mcommands:
+[0;32m--> 968[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mrun_command[49m[43m([49m[43mcmd[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/dist.py:1217[0m, in [0;36mDistribution.run_command[0;34m(self, command)[0m
+[1;32m   1213[0m [38;5;28mself[39m[38;5;241m.[39mset_defaults()
+[1;32m   1214[0m [38;5;66;03m# Postpone defaults until all explicit configuration is considered[39;00m
+[1;32m   1215[0m [38;5;66;03m# (setup() args, config files, command line and plugins)[39;00m
+[0;32m-> 1217[0m [38;5;28;43msuper[39;49m[43m([49m[43m)[49m[38;5;241;43m.[39;49m[43mrun_command[49m[43m([49m[43mcommand[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:987[0m, in [0;36mDistribution.run_command[0;34m(self, command)[0m
+[1;32m    985[0m cmd_obj [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mget_command_obj(command)
+[1;32m    986[0m cmd_obj[38;5;241m.[39mensure_finalized()
+[0;32m--> 987[0m [43mcmd_obj[49m[38;5;241;43m.[39;49m[43mrun[49m[43m([49m[43m)[49m
+[1;32m    988[0m [38;5;28mself[39m[38;5;241m.[39mhave_run[command] [38;5;241m=[39m [38;5;241m1[39m
+
+File [0;32m~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:186[0m, in [0;36mold_build_ext.run[0;34m(self)[0m
+[1;32m    182[0m [38;5;28;01mif[39;00m [38;5;28mself[39m[38;5;241m.[39mcython_gdb [38;5;129;01mor[39;00m [[38;5;241m1[39m [38;5;28;01mfor[39;00m ext [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mextensions
+[1;32m    183[0m                              [38;5;28;01mif[39;00m [38;5;28mgetattr[39m(ext, [38;5;124m'[39m[38;5;124mcython_gdb[39m[38;5;124m'[39m, [38;5;28;01mFalse[39;00m)]:
+[1;32m    184[0m     optimization[38;5;241m.[39mdisable_optimization()
+[0;32m--> 186[0m [43m_build_ext[49m[38;5;241;43m.[39;49m[43mbuild_ext[49m[38;5;241;43m.[39;49m[43mrun[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:339[0m, in [0;36mbuild_ext.run[0;34m(self)[0m
+[1;32m    336[0m     [38;5;28mself[39m[38;5;241m.[39mcompiler[38;5;241m.[39mset_link_objects([38;5;28mself[39m[38;5;241m.[39mlink_objects)
+[1;32m    338[0m [38;5;66;03m# Now actually compile and link everything.[39;00m
+[0;32m--> 339[0m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_extensions[49m[43m([49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:195[0m, in [0;36mold_build_ext.build_extensions[0;34m(self)[0m
+[1;32m    193[0m     ext[38;5;241m.[39msources [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mcython_sources(ext[38;5;241m.[39msources, ext)
+[1;32m    194[0m [38;5;66;03m# Call original build_extensions[39;00m
+[0;32m--> 195[0m [43m_build_ext[49m[38;5;241;43m.[39;49m[43mbuild_ext[49m[38;5;241;43m.[39;49m[43mbuild_extensions[49m[43m([49m[38;5;28;43mself[39;49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:459[0m, in [0;36mbuild_ext.build_extensions[0;34m(self)[0m
+[1;32m    457[0m     [38;5;28mself[39m[38;5;241m.[39m_build_extensions_parallel()
+[1;32m    458[0m [38;5;28;01melse[39;00m:
+[0;32m--> 459[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_build_extensions_serial[49m[43m([49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:485[0m, in [0;36mbuild_ext._build_extensions_serial[0;34m(self)[0m
+[1;32m    483[0m [38;5;28;01mfor[39;00m ext [38;5;129;01min[39;00m [38;5;28mself[39m[38;5;241m.[39mextensions:
+[1;32m    484[0m     [38;5;28;01mwith[39;00m [38;5;28mself[39m[38;5;241m.[39m_filter_build_errors(ext):
+[0;32m--> 485[0m         [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_extension[49m[43m([49m[43mext[49m[43m)[49m
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:540[0m, in [0;36mbuild_ext.build_extension[0;34m(self, ext)[0m
+[1;32m    537[0m [38;5;28;01mfor[39;00m undef [38;5;129;01min[39;00m ext[38;5;241m.[39mundef_macros:
+[1;32m    538[0m     macros[38;5;241m.[39mappend((undef,))
+[0;32m--> 540[0m objects [38;5;241m=[39m [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mcompiler[49m[38;5;241;43m.[39;49m[43mcompile[49m[43m([49m
+[1;32m    541[0m [43m    [49m[43msources[49m[43m,[49m
+[1;32m    542[0m [43m    [49m[43moutput_dir[49m[38;5;241;43m=[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mbuild_temp[49m[43m,[49m
+[1;32m    543[0m [43m    [49m[43mmacros[49m[38;5;241;43m=[39;49m[43mmacros[49m[43m,[49m
+[1;32m    544[0m [43m    [49m[43minclude_dirs[49m[38;5;241;43m=[39;49m[43mext[49m[38;5;241;43m.[39;49m[43minclude_dirs[49m[43m,[49m
+[1;32m    545[0m [43m    [49m[43mdebug[49m[38;5;241;43m=[39;49m[38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43mdebug[49m[43m,[49m
+[1;32m    546[0m [43m    [49m[43mextra_postargs[49m[38;5;241;43m=[39;49m[43mextra_args[49m[43m,[49m
+[1;32m    547[0m [43m    [49m[43mdepends[49m[38;5;241;43m=[39;49m[43mext[49m[38;5;241;43m.[39;49m[43mdepends[49m[43m,[49m
+[1;32m    548[0m [43m[49m[43m)[49m
+[1;32m    550[0m [38;5;66;03m# XXX outdated variable, kept here in case third-part code[39;00m
+[1;32m    551[0m [38;5;66;03m# needs it.[39;00m
+[1;32m    552[0m [38;5;28mself[39m[38;5;241m.[39m_built_objects [38;5;241m=[39m objects[:]
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:591[0m, in [0;36mCCompiler.compile[0;34m(self, sources, output_dir, macros, include_dirs, debug, extra_preargs, extra_postargs, depends)[0m
+[1;32m    589[0m     [38;5;28;01mexcept[39;00m [38;5;167;01mKeyError[39;00m:
+[1;32m    590[0m         [38;5;28;01mcontinue[39;00m
+[0;32m--> 591[0m     [38;5;28;43mself[39;49m[38;5;241;43m.[39;49m[43m_compile[49m[43m([49m[43mobj[49m[43m,[49m[43m [49m[43msrc[49m[43m,[49m[43m [49m[43mext[49m[43m,[49m[43m [49m[43mcc_args[49m[43m,[49m[43m [49m[43mextra_postargs[49m[43m,[49m[43m [49m[43mpp_opts[49m[43m)[49m
+[1;32m    593[0m [38;5;66;03m# Return *all* object filenames, not just the ones we just built.[39;00m
+[1;32m    594[0m [38;5;28;01mreturn[39;00m objects
+
+File [0;32m~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:180[0m, in [0;36mUnixCCompiler._compile[0;34m(self, obj, src, ext, cc_args, extra_postargs, pp_opts)[0m
+[1;32m    178[0m     [38;5;28mself[39m[38;5;241m.[39mspawn(compiler_so [38;5;241m+[39m cc_args [38;5;241m+[39m [src, [38;5;124m'[39m[38;5;124m-o[39m[38;5;124m'[39m, obj] [38;5;241m+[39m extra_postargs)
+[1;32m    179[0m [38;5;28;01mexcept[39;00m DistutilsExecError [38;5;28;01mas[39;00m msg:
+[0;32m--> 180[0m     [38;5;28;01mraise[39;00m CompileError(msg)
+
+[0;31mImportError[0m: Building module simpleBE_solver_run failed: ["distutils.errors.CompileError: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1\n"]
+ImportError: Building module simpleBE_solver_run failed: ["distutils.errors.CompileError: command '/usr/bin/x86_64-linux-gnu-gcc' failed with exit code 1\n"]
+

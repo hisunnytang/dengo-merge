@@ -1,0 +1,1166 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>A Chemistry Solver from Scratch &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/tutorial/buildingBlock.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Ftutorial/buildingBlock.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/tutorial/buildingBlock.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-a-species">
+   Defining a Species
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#creating-reactions">
+   Creating Reactions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#create-cooling-functions">
+   Create Cooling Functions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#creating-a-network">
+   Creating a Network
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#evaluate-the-temperature">
+     Evaluate the temperature
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#evaluate-the-reaction-rates">
+     Evaluate the reaction rates
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#the-rhs-function">
+     The RHS function
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#integrate-the-system">
+     Integrate the System
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#summary">
+     Summary
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>A Chemistry Solver from Scratch</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#defining-a-species">
+   Defining a Species
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#creating-reactions">
+   Creating Reactions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#create-cooling-functions">
+   Create Cooling Functions
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#creating-a-network">
+   Creating a Network
+  </a>
+  <ul class="nav section-nav flex-column">
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#evaluate-the-temperature">
+     Evaluate the temperature
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#evaluate-the-reaction-rates">
+     Evaluate the reaction rates
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#the-rhs-function">
+     The RHS function
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#integrate-the-system">
+     Integrate the System
+    </a>
+   </li>
+   <li class="toc-h3 nav-item toc-entry">
+    <a class="reference internal nav-link" href="#summary">
+     Summary
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="a-chemistry-solver-from-scratch">
+<h1>A Chemistry Solver from Scratch<a class="headerlink" href="#a-chemistry-solver-from-scratch" title="Permalink to this heading">#</a></h1>
+<p>This tutorial walks you through the steps to create a new chemical kinetic rate
+equation solver.  These solvers all utilize very similar structures for
+calculating the right hand side and the Jacobian, and will export a
+standardized API to those functions.</p>
+<p>While Dengo provides a number of pre-packaged rate equations, species, rate
+coefficients and cooling functions, here we provide the necessary steps in
+order to create new species and rates from scratch.</p>
+<section id="defining-a-species">
+<h2>Defining a Species<a class="headerlink" href="#defining-a-species" title="Permalink to this heading">#</a></h2>
+<p>We start by defining individual species.  This can be done inside a python
+module of your choosing, which we will run at the end to output our new
+network.  Species are defined by a small number of attributes:</p>
+<ul class="simple">
+<li><p>Name (which will be used in cooling functions and internally to the solver)</p></li>
+<li><p>Number: Mostly unused except when handling ions.</p></li>
+<li><p>Atomic weight (in integer AMU)</p></li>
+<li><p>Number of free electrons that is contributes</p></li>
+</ul>
+<p>This information is used when calculating things like the contribution of a
+species to the number density.
+We now have three symbolic “species” objects for hydrogen, ionized hydrogen,
+and electrons.  Note that Dengo will happily create ions for species defined in
+the CHIANTI database.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">AtomicSpecies</span><span class="p">,</span> <span class="n">MolecularSpecies</span>
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="n">species_registry</span>
+
+<span class="n">HI</span> <span class="o">=</span> <span class="n">AtomicSpecies</span><span class="p">(</span><span class="s1">&#39;H&#39;</span><span class="p">,</span> <span class="n">free_electrons</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">HII</span> <span class="o">=</span> <span class="n">AtomicSpecies</span><span class="p">(</span><span class="s2">&quot;H&quot;</span><span class="p">,</span> <span class="n">free_electrons</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+<span class="n">H2I</span> <span class="o">=</span> <span class="n">MolecularSpecies</span><span class="p">(</span><span class="s2">&quot;H2&quot;</span><span class="p">,</span> <span class="n">weight</span><span class="o">=</span><span class="mf">2.01588</span><span class="p">,</span> <span class="n">free_electrons</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+<span class="n">de</span>  <span class="o">=</span> <span class="n">species_registry</span><span class="p">[</span><span class="s1">&#39;de&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
+</pre></div>
+</div>
+</div>
+</div>
+<p>In the above example we utilize the <code class="docutils literal notranslate"><span class="pre">AtomicSpecies</span></code> and <code class="docutils literal notranslate"><span class="pre">MolecularSpecies</span></code>. <code class="docutils literal notranslate"><span class="pre">Dengo</span></code> will try to look for the constituent elements based on the expression from the periodic table, and assign them with appropriate weights. These elements are automatically register to <code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.species_registry</span></code>.</p>
+<p>Yeah you have successfully created your <code class="docutils literal notranslate"><span class="pre">ChemicalSpecies</span></code> in <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>!</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">species_registry</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>{&#39;ge&#39;: Species: ge,
+ &#39;de&#39;: Species: de,
+ &#39;H_1&#39;: Species: H_1,
+ &#39;H_2&#39;: Species: H_2,
+ &#39;H2_1&#39;: Species: H2_1}
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="creating-reactions">
+<h2>Creating Reactions<a class="headerlink" href="#creating-reactions" title="Permalink to this heading">#</a></h2>
+<p>Once we have the species in hand, we can then specify the reactions between these different species. Consider a simple reaction where ionized hydrogen atom recombines with an electron and gives a neural Hydrogen atom:
+$<span class="math notranslate nohighlight">\( \mathrm{H^+ + e^- \rightarrow H} \)</span>$
+<code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.reaction</span></code> is primarily composed of:</p>
+<ul class="simple">
+<li><p>the name of the reaction:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="n">k01</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>input species:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;HII&quot;</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;de&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>output species:</p></li>
+</ul>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="p">[(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;HI&quot;</span><span class="p">)]</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li><p>reaction rates: which may depend on the temperature of the medium</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">reaction</span>
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="n">reaction_registry</span>
+
+<span class="n">tiny</span> <span class="o">=</span> <span class="mf">1e-60</span>
+<span class="c1"># -- k01 --</span>
+<span class="nd">@reaction</span><span class="p">(</span><span class="s1">&#39;k01&#39;</span><span class="p">,</span> <span class="p">[</span>   <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">HI</span><span class="p">),</span>   <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">de</span><span class="p">)],</span> <span class="p">[</span>  <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">HII</span><span class="p">),</span>   <span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="n">de</span><span class="p">)])</span>
+<span class="k">def</span> <span class="nf">rxn</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">32.71396786375</span>
+              <span class="o">+</span> <span class="mf">13.53655609057</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span>
+              <span class="o">-</span> <span class="mf">5.739328757388</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">2</span>
+              <span class="o">+</span> <span class="mf">1.563154982022</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">3</span>
+              <span class="o">-</span> <span class="mf">0.2877056004391</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">4</span>
+              <span class="o">+</span> <span class="mf">0.03482559773736999</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">5</span>
+              <span class="o">-</span> <span class="mf">0.00263197617559</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">6</span>
+              <span class="o">+</span> <span class="mf">0.0001119543953861</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">7</span>
+              <span class="o">-</span> <span class="mf">2.039149852002e-6</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">8</span><span class="p">)</span>
+    <span class="c1"># taken from Abel 1999</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">vals</span> <span class="p">,</span> <span class="n">tiny</span> <span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="n">vals</span>
+
+<span class="nd">@reaction</span><span class="p">(</span><span class="s1">&#39;k02&#39;</span><span class="p">,</span> <span class="p">[</span>  <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">HII</span><span class="p">),</span>   <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">de</span><span class="p">)],</span> <span class="p">[</span>   <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="n">HI</span><span class="p">),</span>         <span class="p">])</span>
+<span class="k">def</span> <span class="nf">rxn</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+    <span class="n">_i1</span> <span class="o">=</span> <span class="p">(</span><span class="n">state</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;</span> <span class="mi">5500</span><span class="p">)</span>
+    <span class="n">_i2</span> <span class="o">=</span> <span class="o">~</span><span class="n">_i1</span>
+    <span class="n">vals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="mf">28.61303380689232</span>
+                  <span class="o">-</span> <span class="mf">0.7241125657826851</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span>
+                  <span class="o">-</span> <span class="mf">0.02026044731984691</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">2</span>
+                  <span class="o">-</span> <span class="mf">0.002380861877349834</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">3</span>
+                  <span class="o">-</span> <span class="mf">0.0003212605213188796</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">4</span>
+                  <span class="o">-</span> <span class="mf">0.00001421502914054107</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">5</span>
+                  <span class="o">+</span> <span class="mf">4.989108920299513e-6</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">6</span>
+                  <span class="o">+</span> <span class="mf">5.755614137575758e-7</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">7</span>
+                  <span class="o">-</span> <span class="mf">1.856767039775261e-8</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">8</span>
+                  <span class="o">-</span> <span class="mf">3.071135243196595e-9</span><span class="o">*</span><span class="n">state</span><span class="o">.</span><span class="n">logtev</span><span class="o">**</span><span class="mi">9</span><span class="p">)</span>
+    <span class="n">vals</span><span class="p">[</span><span class="n">_i2</span><span class="p">]</span> <span class="o">=</span> <span class="mf">3.92e-13</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">tev</span><span class="p">[</span><span class="n">_i2</span><span class="p">]</span><span class="o">**</span><span class="mf">0.6353</span>
+
+    <span class="k">return</span> <span class="n">vals</span>
+</pre></div>
+</div>
+</div>
+</div>
+<p>Similar to species, the reaction is registered in the <code class="docutils literal notranslate"><span class="pre">dengo.chemical_network.reaction_registry</span></code>, and the <code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.Reaction</span></code> is accesible through the reaction registry.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">reaction_registry</span><span class="p">[</span><span class="s1">&#39;k02&#39;</span><span class="p">],</span> <span class="nb">type</span><span class="p">(</span><span class="n">reaction_registry</span><span class="p">[</span><span class="s1">&#39;k02&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(k02 : 1*H_2 + 1*de =&gt; 1*H_1, dengo.reaction_classes.Reaction)
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="create-cooling-functions">
+<h2>Create Cooling Functions<a class="headerlink" href="#create-cooling-functions" title="Permalink to this heading">#</a></h2>
+<p>The release/ absorption of energy via various physical process would modify the thermal state of the medium, which might in turn accelerates/ terminates further reactions. Keeping track of the thermal energy through the course of evolution is quintessential to the accurate modeling of the process.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&lt;dengo.reaction_classes.CoolingAction&gt;</span></code> is composed of:</p>
+<ul class="simple">
+<li><p>name</p></li>
+<li><p>the cooling equation</p></li>
+<li><p>cooling rate</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.reaction_classes</span> <span class="kn">import</span> <span class="n">cooling_action</span>
+<span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="n">cooling_registry</span>
+
+<span class="c1"># -- reHII --</span>
+<span class="nd">@cooling_action</span><span class="p">(</span><span class="s2">&quot;reHII&quot;</span><span class="p">,</span> <span class="s2">&quot;-reHII * HII * de&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">cool</span><span class="p">(</span><span class="n">eq</span><span class="p">):</span>
+    <span class="nd">@eq</span><span class="o">.</span><span class="n">table</span>
+    <span class="k">def</span> <span class="nf">reHII</span><span class="p">(</span><span class="n">state</span><span class="p">):</span>
+        <span class="c1"># (from Hui and Gnedin 1997)</span>
+        <span class="n">lambdaHI</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="mf">157807e0</span> <span class="o">/</span> <span class="n">state</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="mf">1.778e-29</span> <span class="o">*</span> <span class="n">state</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">lambdaHI</span><span class="o">**</span><span class="mf">1.965</span> <span class="o">/</span> \
+         <span class="p">(</span><span class="mf">1.0e0</span> <span class="o">+</span> <span class="p">(</span><span class="n">lambdaHI</span><span class="o">/</span><span class="mf">0.541</span><span class="p">)</span><span class="o">**</span><span class="mf">0.502</span><span class="p">)</span><span class="o">**</span><span class="mf">2.697</span>
+        <span class="k">return</span> <span class="n">vals</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">cooling_registry</span><span class="p">[</span><span class="s1">&#39;reHII&#39;</span><span class="p">],</span> <span class="nb">type</span><span class="p">(</span><span class="n">cooling_registry</span><span class="p">[</span><span class="s1">&#39;reHII&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;dengo.reaction_classes.CoolingAction at 0x7facdcf217f0&gt;,
+ dengo.reaction_classes.CoolingAction)
+</pre></div>
+</div>
+</div>
+</div>
+<p>Finally, we have our chemical species, reactions, cooling functions ready!</p>
+</section>
+<section id="creating-a-network">
+<h2>Creating a Network<a class="headerlink" href="#creating-a-network" title="Permalink to this heading">#</a></h2>
+<p>We can now assemble them together in this <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork</span></code>. This object helps us do all the neccessary computations to arrive at the symbolic <strong>rhs</strong> and <strong>jacobian</strong> functions, which ultimately eases us of the process of deriving them by hand.</p>
+<p>In our example with only two reactions, that consisted of <span class="math notranslate nohighlight">\(\rm H, H^+, e^-\)</span>. Note that in the below they represent the <strong>number density <span class="math notranslate nohighlight">\((\rm cm^{-3})\)</span></strong> of different species.</p>
+<div class="math notranslate nohighlight">
+\[
+    \mathrm{ H^+ + e^- \rightarrow H}
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+    \mathrm{ H + e^- \rightarrow H^+ + 2 e^-}
+\]</div>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+    \begin{align*}
+    \mathrm{
+    \frac{d H}{dt} = k_{02}(T) \,  H^+ \, e^-  - k_{01}(T) \,  H \, e^- \\
+    \frac{d  H^+}{dt} = - k_{02}(T) \,  H^+ \, e^- + k_{01}(T) \,  H \, e^-  \\
+    \frac{d e^-}{dt} = - k_{02}(T) \,  H^+ \, e^-  + k_{01}(T) \,  H \, e^- \\
+    }
+    \end{align*}
+\end{split}\]</div>
+<p>We can do a quick sanity check on the conservation of the species <span class="math notranslate nohighlight">\(H\)</span> and the charge <span class="math notranslate nohighlight">\(e^-\)</span> and the equation above apparently satisfies our conservation law.</p>
+<div class="math notranslate nohighlight">
+\[
+    \frac{d}{dt} (\rm H + H^+) = 0
+\]</div>
+<div class="math notranslate nohighlight">
+\[
+    \frac{d}{dt} (\rm H^+ -e^-) = 0 
+\]</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">dengo.chemical_network</span> <span class="kn">import</span> <span class="n">ChemicalNetwork</span>
+<span class="n">simpleNetwork</span> <span class="o">=</span> <span class="n">ChemicalNetwork</span><span class="p">()</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k01&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_reaction</span><span class="p">(</span><span class="s2">&quot;k02&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">add_cooling</span><span class="p">(</span><span class="s2">&quot;reHII&quot;</span><span class="p">)</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">init_temperature</span><span class="p">((</span><span class="mf">1e0</span><span class="p">,</span> <span class="mf">1e8</span><span class="p">))</span>
+<span class="n">simpleNetwork</span><span class="o">.</span><span class="n">enforce_conservation</span> <span class="o">=</span> <span class="kc">True</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
+</pre></div>
+</div>
+</div>
+</div>
+<p>Let’s see what <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork</span></code> is capable of doing!</p>
+<section id="evaluate-the-temperature">
+<h3>Evaluate the temperature<a class="headerlink" href="#evaluate-the-temperature" title="Permalink to this heading">#</a></h3>
+<p>The temperature <span class="math notranslate nohighlight">\(T\)</span> as we have seen above is critical to the rate at which the reaction proceeds. The temperature can be evaluated from the internal energy term <code class="docutils literal notranslate"><span class="pre">ge</span></code>.
+Internal energy of an ideal gas is:
+$<span class="math notranslate nohighlight">\( E = \rho \epsilon = c_V T = \frac{nkT}{\gamma -1}\)</span><span class="math notranslate nohighlight">\(
+For monoatomic gas \)</span>\gamma<span class="math notranslate nohighlight">\( is \)</span>5/3<span class="math notranslate nohighlight">\(, and diatomic gas \)</span>\gamma<span class="math notranslate nohighlight">\( is \)</span>7/5<span class="math notranslate nohighlight">\(. \)</span>\gamma<span class="math notranslate nohighlight">\( refers to the adiabatic constant, and it is directly related to the degree of freedom available to the species \)</span>f = \frac{2}{\gamma -1}<span class="math notranslate nohighlight">\(. When the temperature is higher, other degrees of freedom might get excited, and which leads toa temperature-dependent \)</span>\gamma$.</p>
+<p>The total internal energy in the mixture of ideal gas is:
+$<span class="math notranslate nohighlight">\(\epsilon = \sum_s \frac{n_s kT}{\gamma_s -1}\)</span><span class="math notranslate nohighlight">\(.
+\)</span>T<span class="math notranslate nohighlight">\( can be thus be calculated from \)</span>E<span class="math notranslate nohighlight">\( and the abundance of all the avaialble species \)</span>n_s$.</p>
+<p>In our simple example, the internal energy can be written out plainly as</p>
+<div class="math notranslate nohighlight">
+\[\begin{split}
+\begin{align*}
+\epsilon &amp;= (\frac{n_{\rm H}}{\gamma - 1}+\frac{n_{\rm H^+}}{\gamma - 1}+\frac{n_{\rm e^-}}{\gamma - 1}) \times \frac{k T}{\rho} \\
+&amp;= \Gamma_{\rm eff} \frac{k T}{\rho} \\
+T &amp;= \frac{\rho \epsilon}{\Gamma_{\rm eff} k}
+\end{align*}
+\end{split}\]</div>
+<p><code class="docutils literal notranslate"><span class="pre">Dengo</span></code> can generate the <code class="docutils literal notranslate"><span class="pre">sympy</span></code> expression of <span class="math notranslate nohighlight">\(\Gamma_{\rm eff}\)</span> with the function <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.gamma_factor()</span></code>. We are at the position to define our our function to calculate the temperature, with the expression provided to us by <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>. Notice that in <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>, the internal energy term <span class="math notranslate nohighlight">\(ge\)</span> is treated as energy per unit mass density <span class="math notranslate nohighlight">\(\epsilon = E/\rho\)</span>. You also ask <code class="docutils literal notranslate"><span class="pre">Dengo</span></code> to directly spit out the expression for temperature with <code class="docutils literal notranslate"><span class="pre">simpleNetwork.temperature_calculation()</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">gamma_factor</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_latex math notranslate nohighlight">
+\[\displaystyle \frac{H_{1}}{\gamma - 1.0} + \frac{H_{2}}{\gamma - 1.0} + \frac{de}{\gamma - 1.0}\]</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">sorted</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">required_species</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>[Species: H_1, Species: H_2, Species: de, Species: ge]
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">print_mass_density</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&#39;1.0079400000000001*H_1 + 1.0079400000000001*H_2&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy.typing</span> <span class="k">as</span> <span class="nn">npt</span>
+
+<span class="n">gamma</span> <span class="o">=</span> <span class="mf">5.</span><span class="o">/</span><span class="mf">3.</span>
+<span class="n">kb</span>    <span class="o">=</span> <span class="mf">1.38e-16</span>
+<span class="n">mh</span>    <span class="o">=</span> <span class="mf">1.67e-24</span>
+
+<span class="k">def</span> <span class="nf">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;calculate temperature in (K) based on the state space vector&quot;&quot;&quot;</span>
+
+    <span class="c1"># extract the abundance from the state vector</span>
+    <span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="n">inv_gammam1</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">/</span> <span class="p">(</span><span class="n">gamma</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">gamma_factor</span> <span class="o">=</span> <span class="p">(</span><span class="n">H_1</span> <span class="o">+</span> <span class="n">H_2</span> <span class="o">+</span> <span class="n">de</span><span class="p">)</span> <span class="o">*</span> <span class="n">inv_gammam1</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="mf">1.00794</span><span class="o">*</span><span class="n">H_1</span> <span class="o">+</span> <span class="mf">1.00794</span><span class="o">*</span><span class="n">H_2</span>
+    <span class="n">T</span> <span class="o">=</span> <span class="n">ge</span> <span class="o">/</span> <span class="n">gamma_factor</span> <span class="o">/</span> <span class="n">kb</span> <span class="o">*</span> <span class="n">mh</span> <span class="o">*</span> <span class="n">rho</span>
+    <span class="k">return</span> <span class="n">T</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="evaluate-the-reaction-rates">
+<h3>Evaluate the reaction rates<a class="headerlink" href="#evaluate-the-reaction-rates" title="Permalink to this heading">#</a></h3>
+<p>Reaction rates usually have a temperature dependence. For example, for reactions following the <a class="reference external" href="https://en.wikipedia.org/wiki/Arrhenius_equation">Arrhenius equation</a> usually have the forms of $<span class="math notranslate nohighlight">\(k(T) = A e^{-\frac{E_a}{RT}}\)</span><span class="math notranslate nohighlight">\(, where \)</span>k<span class="math notranslate nohighlight">\( is the reaction rate, \)</span>E_a<span class="math notranslate nohighlight">\( is the activation energy of the reaction, \)</span>T<span class="math notranslate nohighlight">\( is the temperature, \)</span>A<span class="math notranslate nohighlight">\(, \)</span>R<span class="math notranslate nohighlight">\( are the pre-exponential factor, and the universal gas constant respectively. \)</span>A$ is sometimes dependent further on temperature in <a class="reference external" href="https://en.wikipedia.org/wiki/Arrhenius_equation#Modified_Arrhenius_equation">Modified Arrhenius equation</a>.</p>
+<!-- Evaluating these rates on the fly would be computationally expensive. One possible way of reducing the computational time is to interpolate from a pre-calculated reaction rates table. The rates are specified when the reactions `rxn` are first created with the `@reaction` decorator. They can be evaluated handily with `rxn.coeff_fn(chemicalnetwork)`. The range of temperature of interest for example $T = \rm (1, 10^8) K$ can be first specified with `ChemicalNetwork.init_temperature(T_bounds=(1e0, 1e8), n_bins=1024)`. The added reaction objects can be accessed with `ChemicalNetwork.reactions`. --><div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># The reactions in the chemical network can be assessed</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="n">reactions</span> <span class="o">=</span> <span class="n">simpleNetwork</span><span class="o">.</span><span class="n">reactions</span>
+<span class="n">cooling</span>   <span class="o">=</span> <span class="n">simpleNetwork</span><span class="o">.</span><span class="n">cooling_actions</span>
+
+<span class="n">rxnk01</span> <span class="o">=</span> <span class="n">reactions</span><span class="p">[</span><span class="s1">&#39;k01&#39;</span><span class="p">]</span>
+<span class="n">rxnk02</span> <span class="o">=</span> <span class="n">reactions</span><span class="p">[</span><span class="s1">&#39;k02&#39;</span><span class="p">]</span>
+<span class="n">reHII</span>  <span class="o">=</span> <span class="n">cooling</span><span class="p">[</span><span class="s1">&#39;reHII&#39;</span><span class="p">]</span>
+<span class="n">temperature</span> <span class="o">=</span> <span class="n">simpleNetwork</span><span class="o">.</span><span class="n">T</span>
+<span class="n">rxnk01_rate</span> <span class="o">=</span> <span class="n">rxnk01</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="p">)</span>
+<span class="n">rxnk02_rate</span> <span class="o">=</span> <span class="n">rxnk02</span><span class="o">.</span><span class="n">coeff_fn</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">rxnk01_rate</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;k01&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">rxnk02_rate</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;k02&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Temperature $(\rm K)$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Reaction Rate $(\rm g^{-1} cm^</span><span class="si">{3}</span><span class="s1"> s^{-1} )$&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">coolreHII_rate</span> <span class="o">=</span> <span class="n">reHII</span><span class="o">.</span><span class="n">tables</span><span class="p">[</span><span class="s1">&#39;reHII&#39;</span><span class="p">](</span><span class="n">simpleNetwork</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="n">coolreHII_rate</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s1">&#39;C2&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;reHII&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;Cooling Rate reHII&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7facdadc6340&gt;
+</pre></div>
+</div>
+<img alt="../_images/buildingBlock_22_1.png" src="../_images/buildingBlock_22_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">logT</span>       <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+<span class="n">k01lograte</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">rxnk01_rate</span><span class="p">)</span>
+<span class="n">k02lograte</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">rxnk02_rate</span><span class="p">)</span>
+<span class="n">coolreHII_lograte</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">coolreHII_rate</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">interpolate_rates</span><span class="p">(</span><span class="n">T</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;interpolate the reaction rate in log space</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        T: the temperate at which the rate is evaluated</span>
+<span class="sd">    </span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">        k02: interpolated reaction rate at temperature T </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">k01</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">logT</span><span class="p">,</span> <span class="n">k01lograte</span><span class="p">)</span>
+    <span class="n">k02</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">logT</span><span class="p">,</span> <span class="n">k02lograte</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">k01</span><span class="p">,</span> <span class="n">k02</span>
+
+<span class="k">def</span> <span class="nf">interpolate_cooling_rates</span><span class="p">(</span><span class="n">T</span><span class="p">:</span> <span class="n">npt</span><span class="o">.</span><span class="n">ArrayLike</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;interpolate the cooling rate in log space</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        T: the temperate at which the rate is evaluated</span>
+<span class="sd">    </span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">        coolreHII_rate: interpolated cooling rate at temperature T </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coolreHII_rate</span> <span class="o">=</span> <span class="mi">10</span><span class="o">**</span><span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">T</span><span class="p">),</span> <span class="n">logT</span><span class="p">,</span> <span class="n">coolreHII_lograte</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">coolreHII_rate</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="the-rhs-function">
+<h3>The RHS function<a class="headerlink" href="#the-rhs-function" title="Permalink to this heading">#</a></h3>
+<p>The dynamics is specified by the set of ODE equations.
+$<span class="math notranslate nohighlight">\( \frac{d \bf y}{dt} = f(\bf y) \)</span><span class="math notranslate nohighlight">\(
+where \)</span>\bf y<span class="math notranslate nohighlight">\( corresponds to the abundance vector for the species of interest, and \)</span>f(\bf y)$ describes the dynamics.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Dengo</span></code> aggreates the reactions specific to each species <span class="math notranslate nohighlight">\(s\)</span> with <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.species_total(s)</span></code> with <code class="docutils literal notranslate"><span class="pre">sympy</span></code> internally. These sympy expression can be exported to various different code style with <code class="docutils literal notranslate"><span class="pre">sympy.printing</span></code> to <code class="docutils literal notranslate"><span class="pre">C</span></code>, <code class="docutils literal notranslate"><span class="pre">python</span></code> for example.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">required_species</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s1">&#39;ge&#39;</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2">dt = </span><span class="si">{</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">species_total</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;d</span><span class="si">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2">dt = </span><span class="si">{</span><span class="n">simpleNetwork</span><span class="o">.</span><span class="n">print_cooling</span><span class="p">(</span><span class="n">assign_to</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>dH_1dt = -k01[i]*H_1*de + k02[i]*H_2*de
+dH_2dt = k01[i]*H_1*de - k02[i]*H_2*de
+d dedt = k01[i]*H_1*de - k02[i]*H_2*de
+d gedt = -reHII_reHII[i]*H_2*de
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">rhs_func</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;evaluate the dydt given the state y at time t</span>
+<span class="sd">    </span>
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">        state: np.ndarray</span>
+<span class="sd">            the number density of different species</span>
+<span class="sd">        t: float</span>
+<span class="sd">            time</span>
+<span class="sd">    Return</span>
+<span class="sd">    ------</span>
+<span class="sd">        coolreHII_rate: interpolated cooling rate at temperature T </span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span> <span class="o">=</span> <span class="n">state</span>
+    
+    <span class="n">T</span>   <span class="o">=</span> <span class="n">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
+    <span class="n">k01</span><span class="p">,</span> <span class="n">k02</span> <span class="o">=</span> <span class="n">interpolate_rates</span>    <span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">rho</span> <span class="o">=</span> <span class="mf">1.00794</span><span class="o">*</span><span class="n">H_1</span> <span class="o">+</span> <span class="mf">1.00794</span><span class="o">*</span><span class="n">H_2</span>
+    
+    <span class="n">reHII_reHII</span> <span class="o">=</span> <span class="n">interpolate_cooling_rates</span><span class="p">(</span><span class="n">T</span><span class="p">)</span>
+    
+    <span class="n">dH_1dt</span> <span class="o">=</span> <span class="n">k02</span><span class="o">*</span><span class="n">H_2</span><span class="o">*</span><span class="n">de</span> <span class="o">-</span> <span class="n">k01</span><span class="o">*</span><span class="n">H_1</span><span class="o">*</span><span class="n">de</span>
+    <span class="n">dH_2dt</span> <span class="o">=</span> <span class="o">-</span><span class="n">k02</span><span class="o">*</span><span class="n">H_2</span><span class="o">*</span><span class="n">de</span> <span class="o">+</span> <span class="n">k01</span><span class="o">*</span><span class="n">H_1</span><span class="o">*</span><span class="n">de</span>
+    <span class="n">ddedt</span> <span class="o">=</span> <span class="o">-</span><span class="n">k02</span><span class="o">*</span><span class="n">H_2</span><span class="o">*</span><span class="n">de</span> <span class="o">+</span> <span class="n">k01</span><span class="o">*</span><span class="n">H_1</span><span class="o">*</span><span class="n">de</span>
+    <span class="n">dgedt</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="n">reHII_reHII</span><span class="o">*</span><span class="n">H_2</span><span class="o">*</span><span class="n">de</span><span class="p">)</span><span class="o">/</span> <span class="n">rho</span> <span class="o">/</span><span class="n">mh</span>
+    
+    <span class="n">dstatedt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">dH_1dt</span><span class="p">,</span><span class="n">dH_2dt</span><span class="p">,</span><span class="n">ddedt</span><span class="p">,</span><span class="n">dgedt</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">dstatedt</span>
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="integrate-the-system">
+<h3>Integrate the System<a class="headerlink" href="#integrate-the-system" title="Permalink to this heading">#</a></h3>
+<p>Once the RHS function is specified, we are ready to evolve the system. Here we will use the <code class="docutils literal notranslate"><span class="pre">scipy.integrate.odeint</span></code> to integrate the ODE. The initial value are specified below as a 1D-vector. And the output logarithmically-spaced timesteps are also fed into the ODE solver.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prepare the initial state vector</span>
+<span class="n">ge</span> <span class="o">=</span> <span class="mf">1e13</span>  <span class="c1">#erg/g</span>
+<span class="n">H_1</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="c1"># 1/cm^3</span>
+<span class="n">H_2</span> <span class="o">=</span> <span class="mf">1e-2</span><span class="c1"># 1/cm^3</span>
+<span class="n">de</span>  <span class="o">=</span> <span class="mf">1e-2</span><span class="c1"># 1/cm^3</span>
+<span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+
+<span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<span class="n">output</span>     <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
+<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
+<span class="nn">Input In [17],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
+<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
+<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">output</span>     <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
+
+<span class="ne">ModuleNotFoundError</span>: No module named &#39;scipy&#39;
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">H_1_traj</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">,</span> <span class="n">ge_traj</span> <span class="o">=</span> <span class="n">output</span><span class="o">.</span><span class="n">T</span>
+
+<span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+<span class="n">l1</span><span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_1_traj</span><span class="p">)</span>
+<span class="n">l2</span><span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">H_2_traj</span><span class="p">)</span>
+<span class="n">l3</span><span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">de_traj</span><span class="p">)</span>
+<span class="n">ax2</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">twinx</span><span class="p">()</span>
+<span class="n">T_traj</span> <span class="o">=</span> <span class="n">calculate_temperature</span><span class="p">(</span><span class="n">output</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+<span class="n">l4</span><span class="o">=</span> <span class="n">ax2</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">timesteps</span><span class="p">,</span> <span class="n">T_traj</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;C3&#39;</span><span class="p">)</span>
+
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;Abundance ($\rm cm^{-3}$)&quot;</span><span class="p">)</span>
+<span class="n">ax2</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Temperature (K)&quot;</span><span class="p">)</span>
+
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time (s)&quot;</span><span class="p">)</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+    <span class="p">[</span><span class="n">l1</span><span class="p">,</span><span class="n">l2</span><span class="p">,</span><span class="n">l3</span><span class="p">,</span><span class="n">l4</span><span class="p">],</span> 
+    <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="sa">r</span><span class="s1">&#39;$\rm H$&#39;</span><span class="p">,</span><span class="sa">r</span><span class="s1">&#39;$\rm H^+$&#39;</span><span class="p">,</span><span class="sa">r</span><span class="s1">&#39;$\rm e^-$&#39;</span><span class="p">,</span><span class="sa">r</span><span class="s1">&#39;$\rm T$&#39;</span><span class="p">],</span>
+    <span class="n">loc</span><span class="o">=</span><span class="p">[</span><span class="mf">0.15</span><span class="p">,</span><span class="mf">0.4</span><span class="p">]</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">subplots_adjust</span><span class="p">(</span><span class="n">right</span><span class="o">=</span><span class="mf">0.85</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/tmp/ipykernel_39991/2785043320.py:17: UserWarning: You have mixed positional and keyword arguments, some input may be discarded.
+  f.legend(
+</pre></div>
+</div>
+<img alt="../_images/buildingBlock_30_1.png" src="../_images/buildingBlock_30_1.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">rhs_func</span><span class="p">(</span><span class="n">state</span><span class="p">,</span><span class="mi">0</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>array([-6.76258746e-14,  6.76258746e-14,  6.76258746e-14, -1.78976746e-03])
+</pre></div>
+</div>
+</div>
+</div>
+</section>
+<section id="summary">
+<h3>Summary<a class="headerlink" href="#summary" title="Permalink to this heading">#</a></h3>
+<ol class="simple">
+<li><p>We have built a reaction chemical network with 2 reactions and 1 cooling action from scratch with <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>!</p></li>
+<li><p>We demonstrated how can we build a simple ODE solver with the symbolic outputs from <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>!</p></li>
+</ol>
+<p>In the next chapter, we demonstrate how <code class="docutils literal notranslate"><span class="pre">Dengo</span></code> can be used in conjunction with <code class="docutils literal notranslate"><span class="pre">Jinja2</span></code> to write a solver for arbitary network in the next chapter.</p>
+</section>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./tutorial"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>
