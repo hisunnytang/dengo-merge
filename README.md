@@ -2,6 +2,7 @@
 
 [![Latest Version](https://img.shields.io/pypi/v/dengo-chemistry?logo=dengo-chemistry)](https://pypi.org/project/dengo-chemistry/)
 ![Dengo Testing](https://github.com/hisunnytang/dengo-merge/actions/workflows/python-package.yml/badge.svg)
+[![Dengo-Cookbook](https://github.com/hisunnytang/dengo-merge/actions/workflows/jupyter-book.yml/badge.svg)](https://hisunnytang.github.io/dengo-merge/landing.html)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Imports: isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelColor=ef8336)](https://pycqa.github.io/isort/)
 [![Jupyter Book Badge](https://jupyterbook.org/badge.svg)](https://hisunnytang.github.io/dengo-cookbook/landing.html)
@@ -11,7 +12,7 @@ Hi there! Welcome to Dengo. Dengo is a Python system for symbolically describing
 Dengo is best thought of as a way to create a chemistry and cooling solver that you can stick into a codebase. Rather than trying to tie together the four separate parts – species, reactions, rate coefficients and the solver itself – into a single whole, Dengo allows you to construct each item individually and join them at the final step before inserting them into a simulation code.
 
 A online version of the cookbook and documentation can be found here
-https://hisunnytang.github.io/dengo-cookbook/landing.html
+https://hisunnytang.github.io/dengo-merge/landing.html
 
 For more information, please contact the authors:
 - Sunny Tang   (hisunnytang@gmail.com)
@@ -43,11 +44,11 @@ cd dengo-merge
 pip install -e .
 
 # Define the environmental variables
-export HDF5_PATH=${CONDA}/envs/test
-export SUITESPARSE_PATH=${CONDA}/envs/test
-export CVODE_PATH=${CONDA}/envs/test
+export HDF5_PATH=${CONDA}/envs/dengo
+export SUITESPARSE_PATH=${CONDA}/envs/dengo
+export CVODE_PATH=${CONDA}/envs/dengo
 export DENGO_INSTALL_PATH=${your_directory}/dengo_install
-export LD_LIBRARY_PATH=${CONDA}/envs/test/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=${CONDA}/envs/dengo/lib:${DENGO_INSTALL_PATH}/lib:$LD_LIBRARY_PATH
 
 
 ```
@@ -113,6 +114,7 @@ def rxn(state):
     # taken from Abel 1999
     vals = np.maximum(vals , tiny *np.ones((len(state.T))) )
     return vals
+```
 
 ```python
 class state:
