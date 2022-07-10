@@ -1042,8 +1042,8 @@ compilation terminated.
 <h1>Specifying Initial Condition<a class="headerlink" href="#specifying-initial-condition" title="Permalink to this heading">#</a></h1>
 <p>Our Python wrapper takes the initial condition as a dictionary. We write a handy function to help us generate initial conditions with a few parameters, density, temperature, and mass fraction of molecular hydrogen. Once the abundance of the major species are specified, we can calculate the free electrons <code class="docutils literal notranslate"><span class="pre">de</span></code> with the <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.calculate_free_electrons</span></code>.</p>
 <p>To calculate thermal energy from density and temperature,</p>
-<div class="amsmath math notranslate nohighlight" id="equation-7b7c3b6e-137b-4247-b7ff-f6147c19ffed">
-<span class="eqno">(1)<a class="headerlink" href="#equation-7b7c3b6e-137b-4247-b7ff-f6147c19ffed" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-46fe8fcd-dc64-4b0d-aaee-432e8c0fece4">
+<span class="eqno">(1)<a class="headerlink" href="#equation-46fe8fcd-dc64-4b0d-aaee-432e8c0fece4" title="Permalink to this equation">#</a></span>\[\begin{equation}
 \mathrm{ge} = \sum_{i \in \mathrm{species}} \frac{n_i k T}{\gamma_i - 1}
 \end{equation}\]</div>
 <p>where <span class="math notranslate nohighlight">\(n_i\)</span>, <span class="math notranslate nohighlight">\(\gamma_i\)</span> are the number density and the specific heat ratios of the <span class="math notranslate nohighlight">\(\mathrm{i^{th}}\)</span> species. For some species like molecular hydrogen <span class="math notranslate nohighlight">\(H_2\)</span>, the specific heat ratio <span class="math notranslate nohighlight">\(\gamma_{\mathrm{H_2}}\)</span> is temperature dependent. At low temperature, the molecule behave as if a monoatomic gas which has a <span class="math notranslate nohighlight">\(\gamma = 5/3\)</span>. As the temperature increases, the available thermal energy is large enough and is then capable of driving the 2 extra rotational degree of freedom.</p>
@@ -1169,8 +1169,8 @@ End in 121 iterations: 2.99536e+11 / 2.99536e+11 (0.00000e+00)
 <section class="tex2jax_ignore mathjax_ignore" id="equilibrium-mathrm-h-2-fraction">
 <h1>Equilibrium <span class="math notranslate nohighlight">\(\mathrm{H_2}\)</span> fraction<a class="headerlink" href="#equilibrium-mathrm-h-2-fraction" title="Permalink to this heading">#</a></h1>
 <p>With <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>, we can analytically evaluate the molecular hydrogen fraction with <code class="docutils literal notranslate"><span class="pre">Sympy</span></code>. We can compare and see if it matches up with what we see from the actual evaluation.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-f589fe54-7c83-49a3-aa70-62de93b8451b">
-<span class="eqno">(2)<a class="headerlink" href="#equation-f589fe54-7c83-49a3-aa70-62de93b8451b" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-b234330e-41d9-4e56-bb31-f0fb10619530">
+<span class="eqno">(2)<a class="headerlink" href="#equation-b234330e-41d9-4e56-bb31-f0fb10619530" title="Permalink to this equation">#</a></span>\[\begin{equation}
 \begin{split}
 \frac{d \mathrm{H_2}}{dt} &amp;= −k13 ~ \mathrm{H_2 ~ H} +k22 ~ \mathrm{H^3} = 0 \\
 \mathrm{H_2} &amp;= \mathrm{\frac{k22 ~ H^2}{k13}}
