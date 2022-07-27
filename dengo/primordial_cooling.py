@@ -473,7 +473,7 @@ def cool(eq):
         # using both the original Hollenbach and the new Glover data
         # merged in a smooth way.
 
-        vals[_i1] = 7.0 - 27 * tm[_i1] ** 1.5 * np.exp(-512.0 / tm[_i1])
+        vals[_i1] = 7.0e-27 * tm[_i1] ** 1.5 * np.exp(-512.0 / tm[_i1])
         return vals
 
     eq.temporary("galdl", "gaHI*HI + gaH2*H2I + gaHe*HeI + gaHp*HII + gael*de")
@@ -583,7 +583,7 @@ def h2formation(eq):
     )
 
 
-@cooling_action("cie_cooling", " - cieco * H2I * mdensity  * 2.01588")
+@cooling_action("cie_cooling", " - cieco * H2I * mdensity * 2.01588")
 def cie_cooling(eq):
     @eq.table
     def cieco(state):
