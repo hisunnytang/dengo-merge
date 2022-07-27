@@ -21,7 +21,7 @@
     href="_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
 
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
-    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=62ba249389abaaa9ffc34bf36a076bdc1d65ee18" type="text/css" />
+    <link rel="stylesheet" href="_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
     <link rel="stylesheet" type="text/css" href="_static/togglebutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/copybutton.css" />
     <link rel="stylesheet" type="text/css" href="_static/mystnb.css" />
@@ -38,7 +38,7 @@
     <script src="_static/doctools.js"></script>
     <script src="_static/clipboard.min.js"></script>
     <script src="_static/copybutton.js"></script>
-    <script src="_static/scripts/sphinx-book-theme.js?digest=f31d14ad54b65d19161ba51d4ffff3a77ae00456"></script>
+    <script src="_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
     <script>let toggleHintShow = 'Click to show';</script>
     <script>let toggleHintHide = 'Click to hide';</script>
     <script>let toggleOpenOnPrint = 'true';</script>
@@ -697,8 +697,8 @@ title="Print to PDF"
 <section class="tex2jax_ignore mathjax_ignore" id="create-a-simple-network">
 <h1>Create a simple network<a class="headerlink" href="#create-a-simple-network" title="Permalink to this heading">#</a></h1>
 <p>Let’s consider only the most significant reactions at high densities, and compare it with the full network with 22 reactions. Similar to the previous example, we have to register our required reactions/ cooling actions, then add reactions to the <code class="docutils literal notranslate"><span class="pre">dengo.chemical_network.ChemicalNetwork</span></code> object.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-aaa49eb6-4b9c-4e38-a6a9-8544a39c29d3">
-<span class="eqno">()<a class="headerlink" href="#equation-aaa49eb6-4b9c-4e38-a6a9-8544a39c29d3" title="Permalink to this equation">#</a></span>\[\begin{align}
+<div class="amsmath math notranslate nohighlight" id="equation-f7bc0dae-7b13-4feb-bd15-88672fe52faa">
+<span class="eqno">()<a class="headerlink" href="#equation-f7bc0dae-7b13-4feb-bd15-88672fe52faa" title="Permalink to this equation">#</a></span>\[\begin{align}
 \quad \mathrm{H_2 + H} &amp; \mathrm{\rightarrow 3H} \\
 \quad \mathrm{H + H + H} &amp; \mathrm{\rightarrow H_2 + H}
 \end{align}\]</div>
@@ -1028,8 +1028,8 @@ compilation terminated.
 <h1>Specifying Initial Condition<a class="headerlink" href="#specifying-initial-condition" title="Permalink to this heading">#</a></h1>
 <p>Our Python wrapper takes the initial condition as a dictionary. We write a handy function to help us generate initial conditions with a few parameters, density, temperature, and mass fraction of molecular hydrogen. Once the abundance of the major species are specified, we can calculate the free electrons <code class="docutils literal notranslate"><span class="pre">de</span></code> with the <code class="docutils literal notranslate"><span class="pre">ChemicalNetwork.calculate_free_electrons</span></code>.</p>
 <p>To calculate thermal energy from density and temperature,</p>
-<div class="amsmath math notranslate nohighlight" id="equation-631aa71f-eb46-4121-acb1-65be8e0406ed">
-<span class="eqno">()<a class="headerlink" href="#equation-631aa71f-eb46-4121-acb1-65be8e0406ed" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-96b5fb3a-abd8-46bd-8118-ffc5fbdea223">
+<span class="eqno">()<a class="headerlink" href="#equation-96b5fb3a-abd8-46bd-8118-ffc5fbdea223" title="Permalink to this equation">#</a></span>\[\begin{equation}
 \mathrm{ge} = \sum_{i \in \mathrm{species}} \frac{n_i k T}{\gamma_i - 1}
 \end{equation}\]</div>
 <p>where <span class="math notranslate nohighlight">\(n_i\)</span>, <span class="math notranslate nohighlight">\(\gamma_i\)</span> are the number density and the specific heat ratios of the <span class="math notranslate nohighlight">\(\mathrm{i^{th}}\)</span> species. For some species like molecular hydrogen <span class="math notranslate nohighlight">\(H_2\)</span>, the specific heat ratio <span class="math notranslate nohighlight">\(\gamma_{\mathrm{H_2}}\)</span> is temperature dependent. At low temperature, the molecule behave as if a monoatomic gas which has a <span class="math notranslate nohighlight">\(\gamma = 5/3\)</span>. As the temperature increases, the available thermal energy is large enough and is then capable of driving the 2 extra rotational degree of freedom.</p>
@@ -1155,8 +1155,8 @@ End in 121 iterations: 2.99536e+11 / 2.99536e+11 (0.00000e+00)
 <section class="tex2jax_ignore mathjax_ignore" id="equilibrium-mathrm-h-2-fraction">
 <h1>Equilibrium <span class="math notranslate nohighlight">\(\mathrm{H_2}\)</span> fraction<a class="headerlink" href="#equilibrium-mathrm-h-2-fraction" title="Permalink to this heading">#</a></h1>
 <p>With <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>, we can analytically evaluate the molecular hydrogen fraction with <code class="docutils literal notranslate"><span class="pre">Sympy</span></code>. We can compare and see if it matches up with what we see from the actual evaluation.</p>
-<div class="amsmath math notranslate nohighlight" id="equation-dbb5f79b-164b-4b4b-b8dd-52fee62a40cb">
-<span class="eqno">()<a class="headerlink" href="#equation-dbb5f79b-164b-4b4b-b8dd-52fee62a40cb" title="Permalink to this equation">#</a></span>\[\begin{equation}
+<div class="amsmath math notranslate nohighlight" id="equation-8f39da3b-92ec-4e0f-90d0-4ee7a843720a">
+<span class="eqno">()<a class="headerlink" href="#equation-8f39da3b-92ec-4e0f-90d0-4ee7a843720a" title="Permalink to this equation">#</a></span>\[\begin{equation}
 \begin{split}
 \frac{d \mathrm{H_2}}{dt} &amp;= −k13 ~ \mathrm{H_2 ~ H} +k22 ~ \mathrm{H^3} = 0 \\
 \mathrm{H_2} &amp;= \mathrm{\frac{k22 ~ H^2}{k13}}
