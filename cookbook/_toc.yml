@@ -30,6 +30,17 @@ parts:
         sections:
         - file: topic_guides/IonByIon.ipynb
       - file: topic_guides/UsingKromeNetworks.ipynb
+    - caption: Enzo Integration Comparison
+      chapters:
+      - file: enzo_sims/intro.md
+        sections:
+        - file: enzo_sims/0-ChemicalNetwork.ipynb
+        - file: enzo_sims/1-Enzo-Setup.ipynb
+        - file: enzo_sims/2-PhasePlot.ipynb
+        - file: enzo_sims/3-ProfilePlot.ipynb
+        - file: enzo_sims/4-HeatingCooling.ipynb
+        - file: enzo_sims/5-EvolveOverTff.ipynb
+
 
     - caption: Reference
       chapters:
