@@ -53,7 +53,7 @@ const thebe_selector_output = ".output, .cell_output"
     <script async="async" src="_static/sphinx-thebe.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="prev" title="Example Ion-by-Ion Network" href="topic_guides/IonByIon.html" />
+    <link rel="prev" title="Understand how the heating/cooling changes with time" href="enzo_sims/5-EvolveOverTff.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
     
@@ -218,6 +218,55 @@ const thebe_selector_output = ".output, .cell_output"
   <a class="reference internal" href="topic_guides/NonEqilibriumIonization.html">
    Non-Equilibrium Ionizations in the presence of background ionizations
   </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 <p aria-level="2" class="caption" role="heading">
@@ -919,6 +968,7 @@ This is particularly useful for calculating the jacobian.</p>
 <dt class="sig sig-object py" id="dengo.reaction_classes.ReactionCoefficient.free_symbols">
 <em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">free_symbols</span></span><a class="headerlink" href="#dengo.reaction_classes.ReactionCoefficient.free_symbols" title="Permalink to this definition">#</a></dt>
 <dd><p>Return from the atoms of self those which are free symbols.</p>
+<p>Not all free symbols are <code class="docutils literal notranslate"><span class="pre">Symbol</span></code>. Eg: IndexedBase(‘I’)[0].free_symbols</p>
 <p>For most expressions, all symbols are free symbols. For some classes
 this is not true. e.g. Integrals use Symbols for the dummy variables
 which are bound variables, so Integral has a method to return all
@@ -1014,11 +1064,11 @@ cooling and reactions into the registry</p>
                 
     <!-- Previous / next buttons -->
 <div class='prev-next-area'>
-    <a class='left-prev' id="prev-link" href="topic_guides/IonByIon.html" title="previous page">
+    <a class='left-prev' id="prev-link" href="enzo_sims/5-EvolveOverTff.html" title="previous page">
         <i class="fas fa-angle-left"></i>
         <div class="prev-next-info">
             <p class="prev-next-subtitle">previous</p>
-            <p class="prev-next-title">Example Ion-by-Ion Network</p>
+            <p class="prev-next-title">Understand how the heating/cooling changes with time</p>
         </div>
     </a>
 </div>

@@ -1,0 +1,1741 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.17.1: http://docutils.sourceforge.net/" />
+
+    <title>Radial Profile Plots &#8212; Dengo Cookbook</title>
+    
+  <!-- Loaded before other Sphinx assets -->
+  <link href="../_static/styles/theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+<link href="../_static/styles/pydata-sphinx-theme.css?digest=1999514e3f237ded88cf" rel="stylesheet">
+
+    
+  <link rel="stylesheet"
+    href="../_static/vendor/fontawesome/5.13.0/css/all.min.css">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-solid-900.woff2">
+  <link rel="preload" as="font" type="font/woff2" crossorigin
+    href="../_static/vendor/fontawesome/5.13.0/webfonts/fa-brands-400.woff2">
+
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" href="../_static/styles/sphinx-book-theme.css?digest=5115cc725059bd94278eecd172e13a965bf8f5a9" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="../_static/togglebutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/copybutton.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/mystnb.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinx-thebe.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/design-style.b7bb847fb20b106c3d81b95245e65545.min.css" />
+    
+  <!-- Pre-loaded scripts that we'll load fully later -->
+  <link rel="preload" as="script" href="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf">
+
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/jquery.js"></script>
+    <script src="../_static/underscore.js"></script>
+    <script src="../_static/_sphinx_javascript_frameworks_compat.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/clipboard.min.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <script src="../_static/scripts/sphinx-book-theme.js?digest=9c920249402e914e316237a7dbc6769907cce411"></script>
+    <script>let toggleHintShow = 'Click to show';</script>
+    <script>let toggleHintHide = 'Click to hide';</script>
+    <script>let toggleOpenOnPrint = 'true';</script>
+    <script src="../_static/togglebutton.js"></script>
+    <script>var togglebuttonSelector = '.toggle, .admonition.dropdown, .tag_hide_input div.cell_input, .tag_hide-input div.cell_input, .tag_hide_output div.cell_output, .tag_hide-output div.cell_output, .tag_hide_cell.cell, .tag_hide-cell.cell';</script>
+    <script src="../_static/design-tabs.js"></script>
+    <script>const THEBE_JS_URL = "https://unpkg.com/thebe@0.8.2/lib/index.js"
+const thebe_selector = ".thebe,.cell"
+const thebe_selector_input = "pre"
+const thebe_selector_output = ".output, .cell_output"
+</script>
+    <script async="async" src="../_static/sphinx-thebe.js"></script>
+    <script>window.MathJax = {"options": {"processHtmlClass": "tex2jax_process|mathjax_process|math|output_area"}}</script>
+    <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Dissecting the Protostellar Cloud" href="4-HeatingCooling.html" />
+    <link rel="prev" title="Phase Plot Comparisons" href="2-PhasePlot.html" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="docsearch:language" content="en">
+    
+
+    <!-- Google Analytics -->
+    
+  </head>
+  <body data-spy="scroll" data-target="#bd-toc-nav" data-offset="60">
+<!-- Checkboxes to toggle the left sidebar -->
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation" aria-label="Toggle navigation sidebar">
+<label class="overlay overlay-navbar" for="__navigation">
+    <div class="visually-hidden">Toggle navigation sidebar</div>
+</label>
+<!-- Checkboxes to toggle the in-page toc -->
+<input type="checkbox" class="sidebar-toggle" name="__page-toc" id="__page-toc" aria-label="Toggle in-page Table of Contents">
+<label class="overlay overlay-pagetoc" for="__page-toc">
+    <div class="visually-hidden">Toggle in-page Table of Contents</div>
+</label>
+<!-- Headers at the top -->
+<div class="announcement header-item noprint"></div>
+<div class="header header-item noprint"></div>
+
+    
+    <div class="container-fluid" id="banner"></div>
+
+    
+
+    <div class="container-xl">
+      <div class="row">
+          
+<!-- Sidebar -->
+<div class="bd-sidebar noprint" id="site-navigation">
+    <div class="bd-sidebar__content">
+        <div class="bd-sidebar__top"><div class="navbar-brand-box">
+    <a class="navbar-brand text-wrap" href="../index.html">
+      
+        <!-- `logo` is deprecated in Sphinx 4.0, so remove this when we stop supporting 3 -->
+        
+      
+      
+      <img src="../_static/dengo_logo.png" class="logo" alt="logo">
+      
+      
+      <h1 class="site-logo" id="site-title">Dengo Cookbook</h1>
+      
+    </a>
+</div><form class="bd-search d-flex align-items-center" action="../search.html" method="get">
+  <i class="icon fas fa-search"></i>
+  <input type="search" class="form-control" name="q" id="search-input" placeholder="Search this book..." aria-label="Search this book..." autocomplete="off" >
+</form><nav class="bd-links" id="bd-docs-nav" aria-label="Main">
+    <div class="bd-toc-item active">
+        
+        <ul class="nav bd-sidenav bd-sidenav__home-link">
+            <li class="toctree-l1">
+                <a class="reference internal" href="../landing.html">
+                    Welcom to Dengo Cookbook
+                </a>
+            </li>
+        </ul>
+        <p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Installation
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../install/Install.html">
+   Installation Guide
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Build Your Own Network
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../building_blocks/SimpleNetwork.html">
+   A Chemistry Solver from Scratch
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" type="checkbox"/>
+  <label for="toctree-checkbox-1">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateSpecies.html">
+     Creating a New Chemical Species
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateReaction.html">
+     Creating Reactions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateCoolingFunction.html">
+     Create Cooling Functions
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../building_blocks/CreateANetwork.html">
+     Creating a Network
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Make use of Templates
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../templates/solverTemplate.html">
+   How Does Dengo Generate Solvers?
+  </a>
+ </li>
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../templates/dengo_writesolver.html">
+   Making Use of Dengo templates
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" type="checkbox"/>
+  <label for="toctree-checkbox-2">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_cython.html">
+     Build Cython Module from Templates
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../templates/dengo_buildClib.html">
+     Build C-library
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Topic Guides
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/threebody-check.html">
+   Threebody Reaction Example
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/workWithHydroSims.html">
+   Interfacing with Hydro Simulations
+  </a>
+ </li>
+ <li class="toctree-l1">
+  <a class="reference internal" href="../topic_guides/NonEqilibriumIonization.html">
+   Non-Equilibrium Ionizations in the presence of background ionizations
+  </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="current nav bd-sidenav">
+ <li class="toctree-l1 current active has-children">
+  <a class="reference internal" href="intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul class="current">
+   <li class="toctree-l2">
+    <a class="reference internal" href="0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2 current active">
+    <a class="current reference internal" href="#">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Reference
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1">
+  <a class="reference internal" href="../api.html">
+   Dengo Documentation
+  </a>
+ </li>
+</ul>
+
+    </div>
+</nav></div>
+        <div class="bd-sidebar__bottom">
+             <!-- To handle the deprecated key -->
+            
+            <div class="navbar_extra_footer">
+            Powered by <a href="https://jupyterbook.org">Jupyter Book</a>
+            </div>
+            
+        </div>
+    </div>
+    <div id="rtd-footer-container"></div>
+</div>
+
+
+          
+
+
+          
+<!-- A tiny helper pixel to detect if we've scrolled -->
+<div class="sbt-scroll-pixel-helper"></div>
+<!-- Main content -->
+<div class="col py-0 content-container">
+    
+    <div class="header-article row sticky-top noprint">
+        
+
+
+
+<div class="col py-1 d-flex header-article-main">
+    <div class="header-article__left">
+        
+        <label for="__navigation"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="right"
+title="Toggle navigation"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-bars"></i>
+  </span>
+
+</label>
+
+        
+    </div>
+    <div class="header-article__right">
+<div class="menu-dropdown menu-dropdown-launch-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Launch interactive content">
+      <i class="fas fa-rocket"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://mybinder.org/v2/gh/hisunnytang/dengo-merge/master?urlpath=tree/https://github.com/hisunnytang/dengo-merge/tree/master/cookbook/enzo_sims/3-ProfilePlot.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Launch on Binder"
+>
+  
+
+<span class="headerbtn__icon-container">
+  
+    <img src="../_static/images/logo_binder.svg">
+  </span>
+<span class="headerbtn__text-container">Binder</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<button onclick="toggleFullScreen()"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="bottom"
+title="Fullscreen mode"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-expand"></i>
+  </span>
+
+</button>
+
+<div class="menu-dropdown menu-dropdown-repository-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Source repositories">
+      <i class="fab fa-github"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Source repository"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fab fa-github"></i>
+  </span>
+<span class="headerbtn__text-container">repository</span>
+</a>
+
+      </li>
+      
+      <li>
+        <a href="https://github.com/hisunnytang/dengo-merge/issues/new?title=Issue%20on%20page%20%2Fenzo_sims/3-ProfilePlot.html&body=Your%20issue%20content%20here."
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Open an issue"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-lightbulb"></i>
+  </span>
+<span class="headerbtn__text-container">open issue</span>
+</a>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+
+<div class="menu-dropdown menu-dropdown-download-buttons">
+  <button class="headerbtn menu-dropdown__trigger"
+      aria-label="Download this page">
+      <i class="fas fa-download"></i>
+  </button>
+  <div class="menu-dropdown__content">
+    <ul>
+      <li>
+        <a href="../_sources/enzo_sims/3-ProfilePlot.ipynb"
+   class="headerbtn"
+   data-toggle="tooltip"
+data-placement="left"
+title="Download source file"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file"></i>
+  </span>
+<span class="headerbtn__text-container">.ipynb</span>
+</a>
+
+      </li>
+      
+      <li>
+        
+<button onclick="printPdf(this)"
+  class="headerbtn"
+  data-toggle="tooltip"
+data-placement="left"
+title="Print to PDF"
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-file-pdf"></i>
+  </span>
+<span class="headerbtn__text-container">.pdf</span>
+</button>
+
+      </li>
+      
+    </ul>
+  </div>
+</div>
+<label for="__page-toc"
+  class="headerbtn headerbtn-page-toc"
+  
+>
+  
+
+<span class="headerbtn__icon-container">
+  <i class="fas fa-list"></i>
+  </span>
+
+</label>
+
+    </div>
+</div>
+
+<!-- Table of contents -->
+<div class="col-md-3 bd-toc show noprint">
+    <div class="tocsection onthispage pt-5 pb-3">
+        <i class="fas fa-list"></i> Contents
+    </div>
+    <nav id="bd-toc-nav" aria-label="Page">
+        <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#radial-profile-plots-through-time">
+   Radial Profile Plots through time
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#profile-fields">
+   Profile Fields
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#enclosed-mass-bonnor-ebert-mass">
+   Enclosed Mass/ Bonnor-Ebert Mass
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pressure-gradient-and-self-gravity">
+   Pressure Gradient and Self-Gravity
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#heating-cooling-profiles">
+   Heating/ Cooling Profiles
+  </a>
+ </li>
+</ul>
+
+    </nav>
+</div>
+    </div>
+    <div class="article row">
+        <div class="col pl-md-3 pl-lg-5 content-container">
+            <!-- Table of contents that is only displayed when printing the page -->
+            <div id="jb-print-docs-body" class="onlyprint">
+                <h1>Radial Profile Plots</h1>
+                <!-- Table of contents -->
+                <div id="print-main-content">
+                    <div id="jb-print-toc">
+                        
+                        <div>
+                            <h2> Contents </h2>
+                        </div>
+                        <nav aria-label="Page">
+                            <ul class="visible nav section-nav flex-column">
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#radial-profile-plots-through-time">
+   Radial Profile Plots through time
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#profile-fields">
+   Profile Fields
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#enclosed-mass-bonnor-ebert-mass">
+   Enclosed Mass/ Bonnor-Ebert Mass
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#pressure-gradient-and-self-gravity">
+   Pressure Gradient and Self-Gravity
+  </a>
+ </li>
+ <li class="toc-h2 nav-item toc-entry">
+  <a class="reference internal nav-link" href="#heating-cooling-profiles">
+   Heating/ Cooling Profiles
+  </a>
+ </li>
+</ul>
+
+                        </nav>
+                    </div>
+                </div>
+            </div>
+            <main id="main-content" role="main">
+                
+              <div>
+                
+  <section class="tex2jax_ignore mathjax_ignore" id="radial-profile-plots">
+<h1>Radial Profile Plots<a class="headerlink" href="#radial-profile-plots" title="Permalink to this heading">#</a></h1>
+<p>In this chapter, we look into the radial profiles of the two simulations.
+This part of the analysis is done with <a class="reference external" href="https://yt-project.org/doc/cookbook/index.html"><code class="docutils literal notranslate"><span class="pre">yt</span></code></a>.</p>
+<p>Serveral <code class="docutils literal notranslate"><span class="pre">derived_field</span></code> are modified and added in the two data set.</p>
+<ul class="simple">
+<li><p>Unified naming for the chemical species</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">HI_Density</span></code>,<code class="docutils literal notranslate"><span class="pre">HII_Density</span></code>, …</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">HI_fraction</span></code>,<code class="docutils literal notranslate"><span class="pre">HII_fraction</span></code> …</p></li>
+</ul>
+</li>
+<li><p>Override the temmperature calculation</p>
+<ul>
+<li><p>we account for the temperature dependence of adiabatic index of <span class="math notranslate nohighlight">\(\mathrm{H_2, H_2^+}\)</span></p></li>
+</ul>
+</li>
+<li><p>Chemical Heating/ Cooling Rates</p>
+<ul>
+<li><p>These are calculated with the help of <code class="docutils literal notranslate"><span class="pre">dengo</span></code></p></li>
+<li><p>includes <code class="docutils literal notranslate"><span class="pre">h2formation</span></code>, <code class="docutils literal notranslate"><span class="pre">cie_cooling</span></code>, <code class="docutils literal notranslate"><span class="pre">gloverabel08</span></code> (<span class="math notranslate nohighlight">\(\mathrm{H_2}\)</span> continuum cooling)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">net_heating_over_tdyn</span></code> that accounts for the net chemical heating over a dynamicl time (freefall time)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thermal_timescale</span></code> <span class="math notranslate nohighlight">\(\epsilon / \frac{d \epsilon}{dt}\)</span></p></li>
+</ul>
+</li>
+</ul>
+<p>These are all defined under the <code class="docutils literal notranslate"><span class="pre">utils.py</span></code>, and are added to the dataset as soon as they are loaded with <code class="docutils literal notranslate"><span class="pre">load_grackle_dataset</span></code> and <code class="docutils literal notranslate"><span class="pre">load_dengo_dataset</span></code>.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">load_ext</span> autoreload
+<span class="o">%</span><span class="k">autoreload</span> 2
+<span class="kn">import</span> <span class="nn">yt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">utils</span> <span class="kn">import</span> <span class="n">load_grackle_dataset</span><span class="p">,</span> <span class="n">load_dengo_dataset</span>
+<span class="kn">from</span> <span class="nn">plot_utils</span> <span class="kn">import</span> <span class="n">plot_multi_sliceplot</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/yt/utilities/logger.py:4: VisibleDeprecationWarning: The configuration file /home/kwoksun2/.config/yt/ytrc is deprecated in favor of /home/kwoksun2/.config/yt/yt.toml. Currently, both are present. Please manually remove the deprecated one to silence this warning.
+Deprecated since v4.0.0. This feature will be removed in v4.1.0
+  from yt.config import ytcfg
+</pre></div>
+</div>
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.12.0 
+ found PyQt5 widgets
+ using PyQt5 widgets
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/ChiantiPy-0.12.0-py3.8.egg/ChiantiPy/tools/data.py:71: UserWarning: klgfb files are not present: 
+  it will not be possible to use the freeBound continuum method
+  warnings.warn(&#39;klgfb files are not present: \n  it will not be possible to use the freeBound continuum method&#39;)
+/home/kwoksun2/anaconda3/lib/python3.8/site-packages/ChiantiPy-0.12.0-py3.8.egg/ChiantiPy/core/IpyMspectrum.py:9: UserWarning: ipyparallel not found. You won&#39;t be able to use the ipymspectrum module
+  warnings.warn(&quot;ipyparallel not found. You won&#39;t be able to use the ipymspectrum module&quot;)
+</pre></div>
+</div>
+</div>
+</div>
+<section id="radial-profile-plots-through-time">
+<h2>Radial Profile Plots through time<a class="headerlink" href="#radial-profile-plots-through-time" title="Permalink to this heading">#</a></h2>
+<p>To compare between different suites of simulations, we identify snapshots with the same central density. This allows us to match roughly between simulations with similar evolutionary stage. The datadumps are instantaneous snapshot of the simulation as soon as the maximum density reaches some preset values.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dengo_snaps</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">f</span><span class="s2">&quot;/home/kwoksun2/data/campus_cluster/bechem_z100_baryon_re3/DD</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">/DD</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">grackle_snaps</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="sa">f</span><span class="s2">&quot;/home/kwoksun2/data/campus_cluster/grackle_z100_baryon/DD</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">/DD</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">04d</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">40</span><span class="p">,</span> <span class="mi">71</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="p">]</span>
+<span class="n">grackle_snaps</span><span class="p">[</span>
+    <span class="o">-</span><span class="mi">1</span>
+<span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/data/campus_cluster/grackle_z100_baryon/DD0072/DD0072&quot;</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># get current age in years, and the maximum density</span>
+<span class="n">max_density_d</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">ages_d</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">snap</span> <span class="ow">in</span> <span class="n">dengo_snaps</span><span class="p">:</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">snap</span><span class="p">)</span>
+    <span class="n">rho_max</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">find_max</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span>
+    <span class="n">ages_d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="n">max_density_d</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rho_max</span><span class="p">)</span>
+
+<span class="c1"># get current age in years, and the maximum density</span>
+<span class="n">max_density_g</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">ages_g</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">snap</span> <span class="ow">in</span> <span class="n">grackle_snaps</span><span class="p">:</span>
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">snap</span><span class="p">)</span>
+    <span class="n">rho_max</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">find_max</span><span class="p">(</span><span class="s2">&quot;density&quot;</span><span class="p">)</span>
+    <span class="n">ages_g</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">current_time</span><span class="p">)</span>
+    <span class="n">max_density_g</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rho_max</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>yt : [INFO     ] 2022-09-10 23:17:30,901 Parameters: current_time              = 11.286066437975
+yt : [INFO     ] 2022-09-10 23:17:30,902 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:17:30,904 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:17:30,906 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:17:30,906 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:17:30,907 Parameters: current_redshift          = 16.535235523486
+yt : [INFO     ] 2022-09-10 23:17:30,908 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:17:30,908 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:17:30,909 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:17:30,910 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18420/18420 [00:02&lt;00:00, 6906.15it/s]
+yt : [INFO     ] 2022-09-10 23:17:34,396 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:19:02,470 max value is 3.49334e-19 at 0.4980413913726807 0.5005176067352295 0.4985830783843994
+yt : [INFO     ] 2022-09-10 23:19:02,711 Parameters: current_time              = 11.298856820169
+yt : [INFO     ] 2022-09-10 23:19:02,714 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:19:02,716 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:19:02,718 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:19:02,719 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:19:02,719 Parameters: current_redshift          = 16.521997578746
+yt : [INFO     ] 2022-09-10 23:19:02,720 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:19:02,721 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:19:02,722 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:19:02,723 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18552/18552 [00:03&lt;00:00, 5778.85it/s]
+yt : [INFO     ] 2022-09-10 23:19:06,803 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:20:24,482 max value is 6.60977e-18 at 0.4980567991733551 0.5005402266979218 0.4986006915569305
+yt : [INFO     ] 2022-09-10 23:20:24,675 Parameters: current_time              = 11.300801513533
+yt : [INFO     ] 2022-09-10 23:20:24,677 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:20:24,679 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:20:24,681 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:20:24,682 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:20:24,683 Parameters: current_redshift          = 16.519987023771
+yt : [INFO     ] 2022-09-10 23:20:24,683 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:20:24,684 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:20:24,685 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:20:24,686 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18744/18744 [00:03&lt;00:00, 5464.70it/s]
+yt : [INFO     ] 2022-09-10 23:20:28,786 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:21:51,970 max value is 1.05376e-16 at 0.4980581626296043 0.5005437210202217 0.4986047074198723
+yt : [INFO     ] 2022-09-10 23:21:52,202 Parameters: current_time              = 11.301229269448
+yt : [INFO     ] 2022-09-10 23:21:52,204 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:21:52,206 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:21:52,207 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:21:52,208 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:21:52,209 Parameters: current_redshift          = 16.519544858269
+yt : [INFO     ] 2022-09-10 23:21:52,210 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:21:52,211 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:21:52,211 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:21:52,212 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19228/19228 [00:03&lt;00:00, 5376.58it/s]
+yt : [INFO     ] 2022-09-10 23:21:56,436 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:23:15,667 max value is 3.48758e-15 at 0.4980583842843771 0.5005446653813124 0.4986057598143816
+yt : [INFO     ] 2022-09-10 23:23:15,874 Parameters: current_time              = 11.301294939281
+yt : [INFO     ] 2022-09-10 23:23:15,876 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:23:15,877 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:23:15,879 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:23:15,880 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:23:15,881 Parameters: current_redshift          = 16.519476978721
+yt : [INFO     ] 2022-09-10 23:23:15,881 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:23:15,882 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:23:15,883 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:23:15,884 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19652/19652 [00:03&lt;00:00, 6441.93it/s]
+yt : [INFO     ] 2022-09-10 23:23:19,863 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:24:46,195 max value is 1.00287e-13 at 0.4980584005825222 0.5005448120646179 0.4986057397909462
+yt : [INFO     ] 2022-09-10 23:24:46,422 Parameters: current_time              = 11.301305464194
+yt : [INFO     ] 2022-09-10 23:24:46,424 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:24:46,426 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:24:46,428 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:24:46,429 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:24:46,429 Parameters: current_redshift          = 16.519466099717
+yt : [INFO     ] 2022-09-10 23:24:46,430 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:24:46,431 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:24:46,431 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:24:46,432 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 20360/20360 [00:03&lt;00:00, 5755.76it/s]
+yt : [INFO     ] 2022-09-10 23:24:50,942 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:26:18,556 max value is 1.49401e-12 at 0.4980584095465019 0.5005448315059766 0.4986057732021436
+yt : [INFO     ] 2022-09-10 23:26:18,731 Parameters: current_time              = 11.301308754354
+yt : [INFO     ] 2022-09-10 23:26:18,733 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:26:18,735 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:26:18,736 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:26:18,737 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:26:18,738 Parameters: current_redshift          = 16.51946269887
+yt : [INFO     ] 2022-09-10 23:26:18,739 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:26:18,739 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:26:18,740 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:26:18,741 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 22287/22287 [00:03&lt;00:00, 5719.75it/s]
+yt : [INFO     ] 2022-09-10 23:26:23,708 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:26:45,284 max value is 1.42583e-10 at 0.4980584005315905 0.5005448366355267 0.4986057875721599
+yt : [INFO     ] 2022-09-10 23:26:45,496 Parameters: current_time              = 11.300845096862
+yt : [INFO     ] 2022-09-10 23:26:45,498 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:26:45,499 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:26:45,501 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:26:45,502 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:26:45,503 Parameters: current_redshift          = 16.519941970997
+yt : [INFO     ] 2022-09-10 23:26:45,504 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:26:45,504 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:26:45,505 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:26:45,506 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18418/18418 [00:03&lt;00:00, 5710.16it/s]
+yt : [INFO     ] 2022-09-10 23:26:49,571 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:28:02,810 max value is 3.19177e-19 at 0.4980833530426025 0.5005495548248291 0.4985806941986084
+yt : [INFO     ] 2022-09-10 23:28:02,995 Parameters: current_time              = 11.313767658748
+yt : [INFO     ] 2022-09-10 23:28:02,996 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:28:02,998 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:28:03,000 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:28:03,001 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:28:03,001 Parameters: current_redshift          = 16.506596463977
+yt : [INFO     ] 2022-09-10 23:28:03,002 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:28:03,003 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:28:03,004 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:28:03,005 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18440/18440 [00:03&lt;00:00, 5680.51it/s]
+yt : [INFO     ] 2022-09-10 23:28:07,147 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:30:09,992 max value is 6.60084e-18 at 0.4980900585651398 0.5005743205547333 0.4985992014408112
+yt : [INFO     ] 2022-09-10 23:30:10,181 Parameters: current_time              = 11.315758850611
+yt : [INFO     ] 2022-09-10 23:30:10,183 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:30:10,185 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:30:10,187 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:30:10,188 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:30:10,189 Parameters: current_redshift          = 16.504542348694
+yt : [INFO     ] 2022-09-10 23:30:10,190 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:30:10,190 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:30:10,191 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:30:10,192 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18736/18736 [00:03&lt;00:00, 5046.23it/s]
+yt : [INFO     ] 2022-09-10 23:30:14,519 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:32:05,921 max value is 1.04556e-16 at 0.4980913847684860 0.5005791634321213 0.4986013323068619
+yt : [INFO     ] 2022-09-10 23:32:06,109 Parameters: current_time              = 11.316353408217
+yt : [INFO     ] 2022-09-10 23:32:06,112 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:32:06,114 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:32:06,116 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:32:06,117 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:32:06,118 Parameters: current_redshift          = 16.503929119344
+yt : [INFO     ] 2022-09-10 23:32:06,118 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:32:06,119 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:32:06,120 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:32:06,120 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19246/19246 [00:03&lt;00:00, 5126.15it/s]
+yt : [INFO     ] 2022-09-10 23:32:10,500 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:34:01,996 max value is 3.40581e-15 at 0.4980918820947409 0.5005800034850836 0.4986022729426622
+yt : [INFO     ] 2022-09-10 23:34:02,212 Parameters: current_time              = 11.31643187858
+yt : [INFO     ] 2022-09-10 23:34:02,213 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:34:02,215 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:34:02,217 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:34:02,218 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:34:02,218 Parameters: current_redshift          = 16.503848188674
+yt : [INFO     ] 2022-09-10 23:34:02,219 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:34:02,220 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:34:02,221 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:34:02,222 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19820/19820 [00:03&lt;00:00, 5249.92it/s]
+yt : [INFO     ] 2022-09-10 23:34:07,043 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:36:06,137 max value is 1.09216e-13 at 0.4980918283108622 0.5005801965016872 0.4986024687532336
+yt : [INFO     ] 2022-09-10 23:36:06,333 Parameters: current_time              = 11.316444213516
+yt : [INFO     ] 2022-09-10 23:36:06,337 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:36:06,339 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:36:06,341 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:36:06,342 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:36:06,342 Parameters: current_redshift          = 16.503835467083
+yt : [INFO     ] 2022-09-10 23:36:06,343 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:36:06,344 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:36:06,345 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:36:06,346 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 20480/20480 [00:04&lt;00:00, 4770.87it/s]
+yt : [INFO     ] 2022-09-10 23:36:11,342 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:37:39,945 max value is 1.71118e-12 at 0.4980918369838037 0.5005802161176689 0.4986024699755944
+yt : [INFO     ] 2022-09-10 23:37:40,136 Parameters: current_time              = 11.316448063549
+yt : [INFO     ] 2022-09-10 23:37:40,138 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:37:40,140 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:37:40,142 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:37:40,142 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:37:40,143 Parameters: current_redshift          = 16.50383149637
+yt : [INFO     ] 2022-09-10 23:37:40,144 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:37:40,145 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:37:40,146 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:37:40,146 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 21992/21992 [00:04&lt;00:00, 5323.84it/s]
+yt : [INFO     ] 2022-09-10 23:37:45,341 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:38:02,035 max value is 1.89069e-10 at 0.4980918404980912 0.5005802176092402 0.4986024849858950
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">ages_d</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;yr&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ages_d</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-1</span><span class="p">,</span>
+    <span class="n">max_density_d</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;dengo&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([(</span><span class="n">ages_g</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">a</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;yr&quot;</span><span class="p">)</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">ages_g</span><span class="p">])</span> <span class="o">+</span> <span class="mf">1e-1</span><span class="p">,</span>
+    <span class="n">max_density_g</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;grackle&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;Time from the final snapshots (yr)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">&quot;central density of the snapshot ($g ~ cm^{-3}$)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f33d78e5460&gt;
+</pre></div>
+</div>
+<img alt="../_images/3-ProfilePlot_5_1.png" src="../_images/3-ProfilePlot_5_1.png" />
+</div>
+</div>
+</section>
+<section id="profile-fields">
+<h2>Profile Fields<a class="headerlink" href="#profile-fields" title="Permalink to this heading">#</a></h2>
+<p>The profile fields are respectively density, temperature, molecular hydrogen fraction, radial velocity, electron fraction, and cooling time scale.
+This is calculated with the help of <code class="docutils literal notranslate"><span class="pre">yt.create_profile</span></code>. A data selector is created and centered around the maximum density cell, with a radius of <span class="math notranslate nohighlight">\(10 \mathrm{pc}\)</span>. The radial profiles of these specified fields are iteratively calculated for different snapshots of the two simulations.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">profile_fields</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;density&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;temperature&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;H2I_fraction&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;radial_velocity&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;Electron_fraction&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;cooling_time&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">get_profiles</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">radius</span><span class="p">,</span> <span class="n">profile_fields</span><span class="p">):</span>
+    <span class="c1"># compute the bulk velo</span>
+    <span class="n">min_dx</span> <span class="o">=</span> <span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">length_unit</span> <span class="o">/</span> <span class="mi">2</span><span class="o">**</span><span class="n">dataset</span><span class="o">.</span><span class="n">max_level</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">)</span> <span class="o">/</span> <span class="mi">128</span>
+    <span class="n">factor</span> <span class="o">=</span> <span class="mi">1000</span>
+    <span class="n">_sp</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sphere</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">factor</span> <span class="o">*</span> <span class="n">min_dx</span><span class="p">)</span>
+    <span class="n">bulk_vel</span> <span class="o">=</span> <span class="n">_sp</span><span class="o">.</span><span class="n">quantities</span><span class="o">.</span><span class="n">bulk_velocity</span><span class="p">()</span>
+
+    <span class="n">sp</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sphere</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="n">radius</span><span class="p">)</span>
+    <span class="n">sp</span><span class="o">.</span><span class="n">set_field_parameter</span><span class="p">(</span><span class="s2">&quot;bulk_velocity&quot;</span><span class="p">,</span> <span class="n">bulk_vel</span><span class="p">)</span>
+
+    <span class="n">rp</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">create_profile</span><span class="p">(</span>
+        <span class="n">sp</span><span class="p">,</span>
+        <span class="s2">&quot;radius&quot;</span><span class="p">,</span>
+        <span class="n">profile_fields</span><span class="p">,</span>
+        <span class="n">weight_field</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;cell_mass&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">rp</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dengo_profs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">dengo_fn</span> <span class="ow">in</span> <span class="n">dengo_snaps</span><span class="p">:</span>
+    <span class="n">dengo_ds</span> <span class="o">=</span> <span class="n">load_dengo_dataset</span><span class="p">(</span><span class="n">dengo_fn</span><span class="p">)</span>
+    <span class="n">dengo_profs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_profiles</span><span class="p">(</span><span class="n">dengo_ds</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;pc&quot;</span><span class="p">),</span> <span class="n">profile_fields</span><span class="p">))</span>
+
+<span class="n">grackle_profs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">grackle_fn</span> <span class="ow">in</span> <span class="n">grackle_snaps</span><span class="p">:</span>
+    <span class="n">grackle_ds</span> <span class="o">=</span> <span class="n">load_grackle_dataset</span><span class="p">(</span><span class="n">grackle_fn</span><span class="p">)</span>
+    <span class="n">grackle_profs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_profiles</span><span class="p">(</span><span class="n">grackle_ds</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;pc&quot;</span><span class="p">),</span> <span class="n">profile_fields</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>yt : [INFO     ] 2022-09-10 23:38:03,739 Parameters: current_time              = 11.286066437975
+yt : [INFO     ] 2022-09-10 23:38:03,741 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:38:03,742 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:38:03,744 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:38:03,745 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:38:03,746 Parameters: current_redshift          = 16.535235523486
+yt : [INFO     ] 2022-09-10 23:38:03,747 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:38:03,747 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:38:03,748 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:38:03,749 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18420/18420 [00:02&lt;00:00, 6153.28it/s]
+yt : [INFO     ] 2022-09-10 23:38:07,382 Gathering a field list (this may take a moment.)
+yt : [WARNING  ] 2022-09-10 23:38:11,871 The Derived Field (&#39;gas&#39;, &#39;thermal_energy&#39;) is deprecated as of yt v4.0.0 and will be removed in yt v4.1.0. Use (&#39;gas&#39;, &#39;specific_thermal_energy&#39;) instead.
+yt : [INFO     ] 2022-09-10 23:39:26,039 max value is 3.49334e-19 at 0.4980413913726807 0.5005176067352295 0.4985830783843994
+yt : [INFO     ] 2022-09-10 23:39:45,700 Parameters: current_time              = 11.298856820169
+yt : [INFO     ] 2022-09-10 23:39:45,703 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:39:45,705 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:39:45,707 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:39:45,708 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:39:45,709 Parameters: current_redshift          = 16.521997578746
+yt : [INFO     ] 2022-09-10 23:39:45,710 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:39:45,711 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:39:45,712 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:39:45,713 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18552/18552 [00:03&lt;00:00, 5513.21it/s]
+yt : [INFO     ] 2022-09-10 23:39:49,737 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:41:06,618 max value is 6.60977e-18 at 0.4980567991733551 0.5005402266979218 0.4986006915569305
+yt : [INFO     ] 2022-09-10 23:41:30,630 Parameters: current_time              = 11.300801513533
+yt : [INFO     ] 2022-09-10 23:41:30,632 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:41:30,634 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:41:30,636 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:41:30,637 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:41:30,638 Parameters: current_redshift          = 16.519987023771
+yt : [INFO     ] 2022-09-10 23:41:30,639 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:41:30,639 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:41:30,640 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:41:30,641 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18744/18744 [00:02&lt;00:00, 6590.52it/s]
+yt : [INFO     ] 2022-09-10 23:41:34,095 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:43:15,681 max value is 1.05376e-16 at 0.4980581626296043 0.5005437210202217 0.4986047074198723
+yt : [INFO     ] 2022-09-10 23:43:52,682 Parameters: current_time              = 11.301229269448
+yt : [INFO     ] 2022-09-10 23:43:52,686 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:43:52,688 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:43:52,689 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:43:52,690 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:43:52,691 Parameters: current_redshift          = 16.519544858269
+yt : [INFO     ] 2022-09-10 23:43:52,692 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:43:52,693 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:43:52,693 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:43:52,694 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19228/19228 [00:02&lt;00:00, 6496.05it/s]
+yt : [INFO     ] 2022-09-10 23:43:56,236 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:45:23,226 max value is 3.48758e-15 at 0.4980583842843771 0.5005446653813124 0.4986057598143816
+yt : [INFO     ] 2022-09-10 23:46:14,898 Parameters: current_time              = 11.301294939281
+yt : [INFO     ] 2022-09-10 23:46:14,901 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:46:14,903 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:46:14,905 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:46:14,906 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:46:14,906 Parameters: current_redshift          = 16.519476978721
+yt : [INFO     ] 2022-09-10 23:46:14,907 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:46:14,908 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:46:14,908 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:46:14,909 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19652/19652 [00:03&lt;00:00, 5860.63it/s]
+yt : [INFO     ] 2022-09-10 23:46:18,999 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:48:02,044 max value is 1.00287e-13 at 0.4980584005825222 0.5005448120646179 0.4986057397909462
+yt : [INFO     ] 2022-09-10 23:49:14,072 Parameters: current_time              = 11.301305464194
+yt : [INFO     ] 2022-09-10 23:49:14,075 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:49:14,077 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:49:14,078 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:49:14,079 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:49:14,080 Parameters: current_redshift          = 16.519466099717
+yt : [INFO     ] 2022-09-10 23:49:14,081 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:49:14,082 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:49:14,083 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:49:14,083 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 20360/20360 [00:03&lt;00:00, 5184.24it/s]
+yt : [INFO     ] 2022-09-10 23:49:18,792 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:50:52,718 max value is 1.49401e-12 at 0.4980584095465019 0.5005448315059766 0.4986057732021436
+yt : [INFO     ] 2022-09-10 23:52:20,735 Parameters: current_time              = 11.301308754354
+yt : [INFO     ] 2022-09-10 23:52:20,738 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:52:20,740 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:52:20,742 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:52:20,742 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:52:20,743 Parameters: current_redshift          = 16.51946269887
+yt : [INFO     ] 2022-09-10 23:52:20,744 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:52:20,745 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:52:20,746 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:52:20,746 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 22287/22287 [00:01&lt;00:00, 11660.04it/s]
+yt : [INFO     ] 2022-09-10 23:52:23,340 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:52:40,928 max value is 1.42583e-10 at 0.4980584005315905 0.5005448366355267 0.4986057875721599
+yt : [INFO     ] 2022-09-10 23:54:36,109 Parameters: current_time              = 11.300845096862
+yt : [INFO     ] 2022-09-10 23:54:36,112 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:54:36,114 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:54:36,116 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:54:36,117 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:54:36,118 Parameters: current_redshift          = 16.519941970997
+yt : [INFO     ] 2022-09-10 23:54:36,119 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:54:36,119 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:54:36,120 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:54:36,121 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18418/18418 [00:03&lt;00:00, 4767.90it/s]
+yt : [INFO     ] 2022-09-10 23:54:40,571 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:55:55,630 max value is 3.19177e-19 at 0.4980833530426025 0.5005495548248291 0.4985806941986084
+yt : [INFO     ] 2022-09-10 23:56:15,197 Parameters: current_time              = 11.313767658748
+yt : [INFO     ] 2022-09-10 23:56:15,200 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:56:15,202 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:56:15,203 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:56:15,213 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:56:15,214 Parameters: current_redshift          = 16.506596463977
+yt : [INFO     ] 2022-09-10 23:56:15,214 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:56:15,215 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:56:15,216 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:56:15,216 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 18440/18440 [00:01&lt;00:00, 10028.80it/s]
+yt : [INFO     ] 2022-09-10 23:56:17,649 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:57:31,805 max value is 6.60084e-18 at 0.4980900585651398 0.5005743205547333 0.4985992014408112
+yt : [INFO     ] 2022-09-10 23:57:55,193 Parameters: current_time              = 11.315758850611
+yt : [INFO     ] 2022-09-10 23:57:55,196 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:57:55,198 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:57:55,200 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:57:55,201 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:57:55,201 Parameters: current_redshift          = 16.504542348694
+yt : [INFO     ] 2022-09-10 23:57:55,202 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:57:55,203 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:57:55,204 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:57:55,204 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18736/18736 [00:04&lt;00:00, 3849.39it/s]
+yt : [INFO     ] 2022-09-10 23:58:00,665 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-10 23:59:22,406 max value is 1.04556e-16 at 0.4980913847684860 0.5005791634321213 0.4986013323068619
+yt : [INFO     ] 2022-09-10 23:59:53,010 Parameters: current_time              = 11.316353408217
+yt : [INFO     ] 2022-09-10 23:59:53,014 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-10 23:59:53,015 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-10 23:59:53,017 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-10 23:59:53,018 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-10 23:59:53,019 Parameters: current_redshift          = 16.503929119344
+yt : [INFO     ] 2022-09-10 23:59:53,020 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-10 23:59:53,020 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-10 23:59:53,021 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-10 23:59:53,022 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19246/19246 [00:01&lt;00:00, 9784.11it/s]
+yt : [INFO     ] 2022-09-10 23:59:55,608 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:01:18,367 max value is 3.40581e-15 at 0.4980918820947409 0.5005800034850836 0.4986022729426622
+yt : [INFO     ] 2022-09-11 00:02:15,623 Parameters: current_time              = 11.31643187858
+yt : [INFO     ] 2022-09-11 00:02:15,626 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:02:15,628 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:02:15,630 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:02:15,631 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:02:15,632 Parameters: current_redshift          = 16.503848188674
+yt : [INFO     ] 2022-09-11 00:02:15,633 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:02:15,633 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:02:15,634 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:02:15,635 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19820/19820 [00:05&lt;00:00, 3703.57it/s]
+yt : [INFO     ] 2022-09-11 00:02:21,638 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:04:51,549 max value is 1.09216e-13 at 0.4980918283108622 0.5005801965016872 0.4986024687532336
+yt : [INFO     ] 2022-09-11 00:06:18,973 Parameters: current_time              = 11.316444213516
+yt : [INFO     ] 2022-09-11 00:06:18,977 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:06:18,978 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:06:18,980 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:06:18,981 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:06:18,982 Parameters: current_redshift          = 16.503835467083
+yt : [INFO     ] 2022-09-11 00:06:18,983 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:06:18,983 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:06:18,984 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:06:18,985 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 20480/20480 [00:02&lt;00:00, 9553.38it/s]
+yt : [INFO     ] 2022-09-11 00:06:21,829 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:08:27,205 max value is 1.71118e-12 at 0.4980918369838037 0.5005802161176689 0.4986024699755944
+yt : [INFO     ] 2022-09-11 00:10:16,921 Parameters: current_time              = 11.316448063549
+yt : [INFO     ] 2022-09-11 00:10:16,924 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:10:16,926 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:10:16,928 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:10:16,929 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:10:16,929 Parameters: current_redshift          = 16.50383149637
+yt : [INFO     ] 2022-09-11 00:10:16,930 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:10:16,931 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:10:16,932 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:10:16,932 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 21992/21992 [00:02&lt;00:00, 9749.07it/s]
+yt : [INFO     ] 2022-09-11 00:10:19,891 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:10:40,393 max value is 1.89069e-10 at 0.4980918404980912 0.5005802176092402 0.4986024849858950
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">profile_data</span><span class="p">,</span> <span class="n">profile_fields</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;C0&quot;</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="n">profile_data</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">profile_data</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+            <span class="n">profile_data</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;AU&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
+            <span class="n">profile_data</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">ls</span><span class="o">=</span><span class="n">ls</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span>
+            <span class="n">profile_data</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;AU&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
+            <span class="n">profile_data</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">[</span><span class="n">flags</span><span class="p">],</span>
+            <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span>
+            <span class="n">ls</span><span class="o">=</span><span class="n">ls</span><span class="p">,</span>
+        <span class="p">)</span>
+
+
+<span class="n">f</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;C</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dengo_profs</span><span class="p">))]</span>
+
+<span class="k">for</span> <span class="n">rp</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dengo_profs</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">profile_fields</span><span class="p">):</span>
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">pf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rp</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_dimensionless</span><span class="p">:</span>
+            <span class="n">lb</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">lb</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">rp</span><span class="p">,</span> <span class="n">color</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">grackle_profs</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">,</span> <span class="n">profile_fields</span><span class="p">):</span>
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">pf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rp</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_dimensionless</span><span class="p">:</span>
+            <span class="n">lb</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">rp</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">lb</span><span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span>
+    <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;z = </span><span class="si">{</span><span class="n">rp</span><span class="o">.</span><span class="n">data_source</span><span class="o">.</span><span class="n">ds</span><span class="o">.</span><span class="n">current_redshift</span><span class="si">:</span><span class="s2">.2f</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">rp</span> <span class="ow">in</span> <span class="n">dengo_profs</span><span class="p">]</span>
+<span class="p">)</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">([</span><span class="s2">&quot;Dengo&quot;</span><span class="p">,</span> <span class="s2">&quot;Grackle&quot;</span><span class="p">])</span>
+<span class="n">axes</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Radius ($\mathrm</span><span class="si">{AU}</span><span class="s2">$)&quot;</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/3-ProfilePlot_9_0.png" src="../_images/3-ProfilePlot_9_0.png" />
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">nprof_fields</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">profile_fields</span><span class="p">)</span>
+<span class="n">f</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">nprof_fields</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nprof_fields</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="s2">&quot;col&quot;</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="s2">&quot;row&quot;</span>
+<span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">profile_fields</span><span class="p">):</span>
+
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">rp_d</span><span class="p">,</span> <span class="n">rp_g</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dengo_profs</span><span class="p">,</span> <span class="n">grackle_profs</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp_d</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp_g</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">pf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rp_g</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_dimensionless</span><span class="p">:</span>
+            <span class="n">lb</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">rp_g</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">lb</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">lb</span> <span class="o">==</span> <span class="s2">&quot;temperature&quot;</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;linear&quot;</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/3-ProfilePlot_10_0.png" src="../_images/3-ProfilePlot_10_0.png" />
+</div>
+</div>
+</section>
+<section id="enclosed-mass-bonnor-ebert-mass">
+<h2>Enclosed Mass/ Bonnor-Ebert Mass<a class="headerlink" href="#enclosed-mass-bonnor-ebert-mass" title="Permalink to this heading">#</a></h2>
+<blockquote>
+<div><p>In astrophysics, the Bonnor–Ebert mass is the largest mass that an <strong>isothermal</strong> gas sphere embedded in a pressurized medium can have while still remaining in hydrostatic equilibrium.Clouds of gas with masses greater than the Bonnor–Ebert mass must inevitably undergo gravitational collapse to form much smaller and denser objects.
+<a class="reference external" href="https://en.wikipedia.org/wiki/Bonnor%E2%80%93Ebert_mass">taken from the wiki page</a>
+<img alt="image.png" src="enzo_sims/attachment:027542aa-a7d1-48e9-8639-875c1f898225.png" /></p>
+</div></blockquote>
+<p>In this section we compare the enclosed mass, and the bonnor-ebert mass, and see it it reaches hydrostatic equilirbium yet in the innermost part. While it assumes the cloud to be isothermal which is not realistic when the temperature profile is non-uniform within the cloud, it is however a good proxy to the first order.</p>
+<p>We took the last snapshots of the two simulation with the central density reaches <span class="math notranslate nohighlight">\(\sim 3\times10^{-10} ~ \mathrm{g ~ cm^{-3}}\)</span>. We compare the enclosed mass and the bonnor ebert mass as a function of radius.</p>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ds_grackle</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">dengo_snaps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">ds_dengo</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">grackle_snaps</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>yt : [INFO     ] 2022-09-11 00:12:48,481 Parameters: current_time              = 11.301308754354
+yt : [INFO     ] 2022-09-11 00:12:48,483 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:12:48,485 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:12:48,486 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:12:48,487 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:12:48,488 Parameters: current_redshift          = 16.51946269887
+yt : [INFO     ] 2022-09-11 00:12:48,489 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:12:48,490 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:12:48,491 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:12:48,491 Parameters: hubble_constant           = 0.703
+yt : [INFO     ] 2022-09-11 00:12:48,598 Parameters: current_time              = 11.316448063549
+yt : [INFO     ] 2022-09-11 00:12:48,600 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:12:48,601 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:12:48,602 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:12:48,603 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:12:48,603 Parameters: current_redshift          = 16.50383149637
+yt : [INFO     ] 2022-09-11 00:12:48,604 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:12:48,605 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:12:48,605 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:12:48,605 Parameters: hubble_constant           = 0.703
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">evaluate_enclosed_mass</span><span class="p">(</span><span class="n">dataset</span><span class="p">):</span>
+    <span class="n">my_sphere</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">sphere</span><span class="p">(</span><span class="s2">&quot;m&quot;</span><span class="p">,</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;pc&quot;</span><span class="p">))</span>
+    <span class="c1"># get average pressure, average</span>
+    <span class="n">enclosed_mass</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">create_profile</span><span class="p">(</span>
+        <span class="n">my_sphere</span><span class="p">,</span> <span class="s2">&quot;radius&quot;</span><span class="p">,</span> <span class="p">[(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;mass&quot;</span><span class="p">)],</span> <span class="n">weight_field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">accumulation</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+
+    <span class="n">p_cs</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">create_profile</span><span class="p">(</span>
+        <span class="n">my_sphere</span><span class="p">,</span>
+        <span class="s2">&quot;radius&quot;</span><span class="p">,</span>
+        <span class="p">[(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;sound_speed&quot;</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">)],</span>
+        <span class="n">weight_field</span><span class="o">=</span><span class="s2">&quot;cell_mass&quot;</span><span class="p">,</span>
+        <span class="n">accumulation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">const</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="mi">225</span> <span class="o">/</span> <span class="mi">32</span> <span class="o">/</span> <span class="p">(</span><span class="mi">5</span> <span class="o">*</span> <span class="mf">3.14159</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.5</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">*</span> <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">gravitational_constant</span><span class="p">)</span> <span class="o">**</span> <span class="mf">1.5</span>
+    <span class="p">)</span>
+
+    <span class="n">cs4</span> <span class="o">=</span> <span class="n">p_cs</span><span class="p">[(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;sound_speed&quot;</span><span class="p">)]</span> <span class="o">**</span> <span class="mi">4</span>
+    <span class="n">p0sqrt</span> <span class="o">=</span> <span class="n">p_cs</span><span class="p">[(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;pressure&quot;</span><span class="p">)]</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span>
+
+    <span class="n">Mbe</span> <span class="o">=</span> <span class="n">const</span> <span class="o">*</span> <span class="n">cs4</span> <span class="o">*</span> <span class="n">p0sqrt</span>
+
+    <span class="c1"># now onto the hydro-analysis</span>
+
+    <span class="n">dpdr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">p_cs</span><span class="p">[</span><span class="s2">&quot;pressure&quot;</span><span class="p">])</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">p_cs</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="n">density_prof</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">create_profile</span><span class="p">(</span>
+        <span class="n">my_sphere</span><span class="p">,</span>
+        <span class="s2">&quot;radius&quot;</span><span class="p">,</span>
+        <span class="p">[</span>
+            <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;density&quot;</span><span class="p">),</span>
+        <span class="p">],</span>
+        <span class="n">weight_field</span><span class="o">=</span><span class="s2">&quot;cell_mass&quot;</span><span class="p">,</span>
+        <span class="n">accumulation</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">override_bins</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">p_cs</span><span class="o">.</span><span class="n">x</span><span class="p">},</span>
+    <span class="p">)</span>
+
+    <span class="n">mass_prof</span> <span class="o">=</span> <span class="n">yt</span><span class="o">.</span><span class="n">create_profile</span><span class="p">(</span>
+        <span class="n">my_sphere</span><span class="p">,</span>
+        <span class="s2">&quot;radius&quot;</span><span class="p">,</span>
+        <span class="p">[(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;mass&quot;</span><span class="p">)],</span>
+        <span class="n">weight_field</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">accumulation</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">override_bins</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;radius&quot;</span><span class="p">:</span> <span class="n">p_cs</span><span class="o">.</span><span class="n">x</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">gravity</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">yt</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">gravitational_constant</span>
+        <span class="o">*</span> <span class="n">mass_prof</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span>
+        <span class="o">/</span> <span class="n">density_prof</span><span class="o">.</span><span class="n">x</span><span class="o">**</span><span class="mi">2</span>
+        <span class="o">*</span> <span class="n">density_prof</span><span class="p">[</span><span class="s2">&quot;density&quot;</span><span class="p">]</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">Mbe</span><span class="p">,</span> <span class="n">enclosed_mass</span><span class="p">,</span> <span class="n">gravity</span><span class="p">,</span> <span class="n">dpdr</span><span class="p">,</span> <span class="n">mass_prof</span><span class="o">.</span><span class="n">x</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">dengo_MBe</span><span class="p">,</span> <span class="n">dengo_encl_mass</span><span class="p">,</span> <span class="n">dengo_gravity</span><span class="p">,</span> <span class="n">dengo_dpdr</span><span class="p">,</span> <span class="n">dengo_r</span> <span class="o">=</span> <span class="n">evaluate_enclosed_mass</span><span class="p">(</span>
+    <span class="n">ds_dengo</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 21992/21992 [00:05&lt;00:00, 3939.56it/s]
+yt : [INFO     ] 2022-09-11 00:12:54,921 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:13:11,550 max value is 1.89069e-10 at 0.4980918404980912 0.5005802176092402 0.4986024849858950
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="p">(</span>
+    <span class="n">grackle_MBe</span><span class="p">,</span>
+    <span class="n">grackle_encl_mass</span><span class="p">,</span>
+    <span class="n">grackle_gravity</span><span class="p">,</span>
+    <span class="n">grackle_dpdr</span><span class="p">,</span>
+    <span class="n">grackle_r</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">=</span> <span class="n">evaluate_enclosed_mass</span><span class="p">(</span><span class="n">ds_grackle</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 22287/22287 [00:02&lt;00:00, 9063.81it/s]
+yt : [INFO     ] 2022-09-11 00:14:04,438 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:15:46,879 max value is 1.42583e-10 at 0.4980584005315905 0.5005448366355267 0.4986057875721599
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">f</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sharey</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">dengo_encl_mass</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">dengo_MBe</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Msun&quot;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Bonnor-Ebert Mass&quot;</span>
+<span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span>
+    <span class="n">dengo_encl_mass</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span>
+    <span class="n">dengo_encl_mass</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Msun&quot;</span><span class="p">),</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;Enclosed Mass&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Radius (AU)&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Mass $M_\odot$&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Dengo&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">grackle_encl_mass</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">grackle_MBe</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Msun&quot;</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">loglog</span><span class="p">(</span><span class="n">grackle_encl_mass</span><span class="o">.</span><span class="n">x</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="n">grackle_encl_mass</span><span class="p">[</span><span class="s2">&quot;mass&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;Msun&quot;</span><span class="p">))</span>
+<span class="n">ax</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Grackle&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Text(0.5, 1.0, &#39;Grackle&#39;)
+</pre></div>
+</div>
+<img alt="../_images/3-ProfilePlot_16_1.png" src="../_images/3-ProfilePlot_16_1.png" />
+</div>
+</div>
+</section>
+<section id="pressure-gradient-and-self-gravity">
+<h2>Pressure Gradient and Self-Gravity<a class="headerlink" href="#pressure-gradient-and-self-gravity" title="Permalink to this heading">#</a></h2>
+<ul class="simple">
+<li><p>The competition between the thermal support and the self-gravity determine whether the cloud is undergoing self-gravitating collapse.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{dP}{dr}\)</span> refers to the pressure gradient. We caculate it by first computing the radially average pressure, and evaluate the pressure gradient by taking the numerical derivatives of it.</p></li>
+<li><p><span class="math notranslate nohighlight">\(\frac{G M(r) \rho(r) }{r^2}\)</span> is the self gravity term, where</p></li>
+<li><p>when the self gravity dominates over the thermal support, <span class="math notranslate nohighlight">\(\frac{dP}{dr} / \frac{G M(r) \rho }{r^2} \)</span> the ratio goes below 1, and vice-versa.
+This show give similar results as our above analysis with enclosed mass/ bonnor-ebert mass.</p></li>
+</ul>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span>
+    <span class="n">grackle_r</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="n">grackle_gravity</span> <span class="o">/</span> <span class="o">-</span><span class="n">grackle_dpdr</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;dimensionless&quot;</span><span class="p">),</span>
+    <span class="n">label</span><span class="o">=</span><span class="s2">&quot;grackle&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">semilogx</span><span class="p">(</span>
+    <span class="n">grackle_r</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;au&quot;</span><span class="p">),</span> <span class="p">(</span><span class="n">dengo_gravity</span> <span class="o">/</span> <span class="o">-</span><span class="n">dengo_dpdr</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="s2">&quot;dimensionless&quot;</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;dengo&quot;</span>
+<span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;$\frac</span><span class="si">{dP}{dr}</span><span class="s2"> / \frac{G M(r) \rho }{r^2} $&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">&quot;radius (AU)&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;k&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.lines.Line2D at 0x7f3338b6eb20&gt;
+</pre></div>
+</div>
+<img alt="../_images/3-ProfilePlot_18_1.png" src="../_images/3-ProfilePlot_18_1.png" />
+</div>
+</div>
+</section>
+<section id="heating-cooling-profiles">
+<h2>Heating/ Cooling Profiles<a class="headerlink" href="#heating-cooling-profiles" title="Permalink to this heading">#</a></h2>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">profile_fields</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;h2formation&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;gloverabel08&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;cie_cooling&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;thermal_timescale&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;net_heating_over_tdyn&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;gas&quot;</span><span class="p">,</span> <span class="s2">&quot;cooling_time&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+
+<span class="n">dengo_profs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">dengo_fn</span> <span class="ow">in</span> <span class="n">dengo_snaps</span><span class="p">:</span>
+    <span class="n">dengo_ds</span> <span class="o">=</span> <span class="n">load_dengo_dataset</span><span class="p">(</span><span class="n">dengo_fn</span><span class="p">)</span>
+    <span class="n">dengo_profs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_profiles</span><span class="p">(</span><span class="n">dengo_ds</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;pc&quot;</span><span class="p">),</span> <span class="n">profile_fields</span><span class="p">))</span>
+
+<span class="n">grackle_profs</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">grackle_fn</span> <span class="ow">in</span> <span class="n">grackle_snaps</span><span class="p">:</span>
+    <span class="n">grackle_ds</span> <span class="o">=</span> <span class="n">load_grackle_dataset</span><span class="p">(</span><span class="n">grackle_fn</span><span class="p">)</span>
+    <span class="n">grackle_profs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">get_profiles</span><span class="p">(</span><span class="n">grackle_ds</span><span class="p">,</span> <span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="s2">&quot;pc&quot;</span><span class="p">),</span> <span class="n">profile_fields</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>yt : [INFO     ] 2022-09-11 00:16:52,059 Parameters: current_time              = 11.286066437975
+yt : [INFO     ] 2022-09-11 00:16:52,060 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:16:52,062 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:16:52,064 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:16:52,065 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:16:52,065 Parameters: current_redshift          = 16.535235523486
+yt : [INFO     ] 2022-09-11 00:16:52,066 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:16:52,067 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:16:52,068 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:16:52,069 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18420/18420 [00:01&lt;00:00, 9290.00it/s]
+yt : [INFO     ] 2022-09-11 00:16:54,665 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:18:11,455 max value is 3.49334e-19 at 0.4980413913726807 0.5005176067352295 0.4985830783843994
+yt : [INFO     ] 2022-09-11 00:18:43,053 Parameters: current_time              = 11.298856820169
+yt : [INFO     ] 2022-09-11 00:18:43,055 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:18:43,057 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:18:43,058 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:18:43,059 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:18:43,060 Parameters: current_redshift          = 16.521997578746
+yt : [INFO     ] 2022-09-11 00:18:43,061 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:18:43,062 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:18:43,062 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:18:43,063 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 18552/18552 [00:06&lt;00:00, 2922.58it/s]
+yt : [INFO     ] 2022-09-11 00:18:50,014 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:20:11,747 max value is 6.60977e-18 at 0.4980567991733551 0.5005402266979218 0.4986006915569305
+yt : [INFO     ] 2022-09-11 00:20:57,285 Parameters: current_time              = 11.300801513533
+yt : [INFO     ] 2022-09-11 00:20:57,287 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:20:57,289 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:20:57,291 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:20:57,292 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:20:57,292 Parameters: current_redshift          = 16.519987023771
+yt : [INFO     ] 2022-09-11 00:20:57,293 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:20:57,294 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:20:57,295 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:20:57,296 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 18744/18744 [00:01&lt;00:00, 10489.68it/s]
+yt : [INFO     ] 2022-09-11 00:20:59,682 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:22:20,275 max value is 1.05376e-16 at 0.4980581626296043 0.5005437210202217 0.4986047074198723
+yt : [INFO     ] 2022-09-11 00:23:28,138 Parameters: current_time              = 11.301229269448
+yt : [INFO     ] 2022-09-11 00:23:28,141 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:23:28,143 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:23:28,145 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:23:28,145 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:23:28,146 Parameters: current_redshift          = 16.519544858269
+yt : [INFO     ] 2022-09-11 00:23:28,147 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:23:28,148 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:23:28,148 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:23:28,149 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19228/19228 [00:01&lt;00:00, 9893.65it/s]
+yt : [INFO     ] 2022-09-11 00:23:30,719 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:24:52,487 max value is 3.48758e-15 at 0.4980583842843771 0.5005446653813124 0.4986057598143816
+yt : [INFO     ] 2022-09-11 00:26:47,410 Parameters: current_time              = 11.301294939281
+yt : [INFO     ] 2022-09-11 00:26:47,414 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:26:47,416 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:26:47,421 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:26:47,423 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:26:47,424 Parameters: current_redshift          = 16.519476978721
+yt : [INFO     ] 2022-09-11 00:26:47,425 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:26:47,426 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:26:47,427 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:26:47,427 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19652/19652 [00:02&lt;00:00, 9308.93it/s]
+yt : [INFO     ] 2022-09-11 00:26:50,240 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:28:16,182 max value is 1.00287e-13 at 0.4980584005825222 0.5005448120646179 0.4986057397909462
+yt : [INFO     ] 2022-09-11 00:31:04,997 Parameters: current_time              = 11.301305464194
+yt : [INFO     ] 2022-09-11 00:31:05,004 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:31:05,007 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:31:05,008 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:31:05,009 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:31:05,010 Parameters: current_redshift          = 16.519466099717
+yt : [INFO     ] 2022-09-11 00:31:05,011 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:31:05,012 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:31:05,012 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:31:05,013 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 20360/20360 [00:02&lt;00:00, 10137.90it/s]
+yt : [INFO     ] 2022-09-11 00:31:14,057 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:32:43,085 max value is 1.49401e-12 at 0.4980584095465019 0.5005448315059766 0.4986057732021436
+yt : [INFO     ] 2022-09-11 00:36:29,117 Parameters: current_time              = 11.301308754354
+yt : [INFO     ] 2022-09-11 00:36:29,122 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:36:29,123 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:36:29,125 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:36:29,126 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:36:29,127 Parameters: current_redshift          = 16.51946269887
+yt : [INFO     ] 2022-09-11 00:36:29,128 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:36:29,128 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:36:29,129 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:36:29,130 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 22287/22287 [00:02&lt;00:00, 10393.87it/s]
+yt : [INFO     ] 2022-09-11 00:36:32,001 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:38:12,180 max value is 1.42583e-10 at 0.4980584005315905 0.5005448366355267 0.4986057875721599
+yt : [INFO     ] 2022-09-11 00:44:20,047 Parameters: current_time              = 11.300845096862
+yt : [INFO     ] 2022-09-11 00:44:20,049 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:44:20,051 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:44:20,053 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:44:20,054 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:44:20,055 Parameters: current_redshift          = 16.519941970997
+yt : [INFO     ] 2022-09-11 00:44:20,055 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:44:20,056 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:44:20,057 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:44:20,058 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 18418/18418 [00:01&lt;00:00, 10387.76it/s]
+yt : [INFO     ] 2022-09-11 00:44:22,423 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:45:37,762 max value is 3.19177e-19 at 0.4980833530426025 0.5005495548248291 0.4985806941986084
+yt : [INFO     ] 2022-09-11 00:46:10,112 Parameters: current_time              = 11.313767658748
+yt : [INFO     ] 2022-09-11 00:46:10,115 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:46:10,118 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:46:10,120 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:46:10,121 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:46:10,122 Parameters: current_redshift          = 16.506596463977
+yt : [INFO     ] 2022-09-11 00:46:10,124 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:46:10,125 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:46:10,126 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:46:10,127 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 18440/18440 [00:01&lt;00:00, 10206.46it/s]
+yt : [INFO     ] 2022-09-11 00:46:12,534 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:48:11,848 max value is 6.60084e-18 at 0.4980900585651398 0.5005743205547333 0.4985992014408112
+yt : [INFO     ] 2022-09-11 00:48:54,139 Parameters: current_time              = 11.315758850611
+yt : [INFO     ] 2022-09-11 00:48:54,143 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:48:54,145 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:48:54,146 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:48:54,147 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:48:54,148 Parameters: current_redshift          = 16.504542348694
+yt : [INFO     ] 2022-09-11 00:48:54,149 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:48:54,149 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:48:54,150 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:48:54,151 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|█████████████████████████████████████████████████| 18736/18736 [00:01&lt;00:00, 10224.96it/s]
+yt : [INFO     ] 2022-09-11 00:48:56,589 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:50:14,967 max value is 1.04556e-16 at 0.4980913847684860 0.5005791634321213 0.4986013323068619
+yt : [INFO     ] 2022-09-11 00:51:15,642 Parameters: current_time              = 11.316353408217
+yt : [INFO     ] 2022-09-11 00:51:15,645 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:51:15,647 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:51:15,648 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:51:15,649 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:51:15,650 Parameters: current_redshift          = 16.503929119344
+yt : [INFO     ] 2022-09-11 00:51:15,651 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:51:15,651 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:51:15,652 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:51:15,653 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19246/19246 [00:01&lt;00:00, 9682.42it/s]
+yt : [INFO     ] 2022-09-11 00:51:18,261 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:53:06,760 max value is 3.40581e-15 at 0.4980918820947409 0.5005800034850836 0.4986022729426622
+yt : [INFO     ] 2022-09-11 00:54:54,406 Parameters: current_time              = 11.31643187858
+yt : [INFO     ] 2022-09-11 00:54:54,410 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:54:54,412 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:54:54,414 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:54:54,414 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:54:54,415 Parameters: current_redshift          = 16.503848188674
+yt : [INFO     ] 2022-09-11 00:54:54,416 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:54:54,417 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:54:54,417 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:54:54,418 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 19820/19820 [00:09&lt;00:00, 2198.93it/s]
+yt : [INFO     ] 2022-09-11 00:55:04,110 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 00:56:30,343 max value is 1.09216e-13 at 0.4980918283108622 0.5005801965016872 0.4986024687532336
+yt : [INFO     ] 2022-09-11 00:59:15,690 Parameters: current_time              = 11.316444213516
+yt : [INFO     ] 2022-09-11 00:59:15,693 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 00:59:15,695 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 00:59:15,697 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 00:59:15,697 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 00:59:15,698 Parameters: current_redshift          = 16.503835467083
+yt : [INFO     ] 2022-09-11 00:59:15,699 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 00:59:15,700 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 00:59:15,700 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 00:59:15,701 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 20480/20480 [00:02&lt;00:00, 9832.16it/s]
+yt : [INFO     ] 2022-09-11 00:59:18,454 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 01:00:46,184 max value is 1.71118e-12 at 0.4980918369838037 0.5005802161176689 0.4986024699755944
+yt : [INFO     ] 2022-09-11 01:04:41,460 Parameters: current_time              = 11.316448063549
+yt : [INFO     ] 2022-09-11 01:04:41,463 Parameters: domain_dimensions         = [128 128 128]
+yt : [INFO     ] 2022-09-11 01:04:41,465 Parameters: domain_left_edge          = [0. 0. 0.]
+yt : [INFO     ] 2022-09-11 01:04:41,466 Parameters: domain_right_edge         = [1. 1. 1.]
+yt : [INFO     ] 2022-09-11 01:04:41,467 Parameters: cosmological_simulation   = 1
+yt : [INFO     ] 2022-09-11 01:04:41,468 Parameters: current_redshift          = 16.50383149637
+yt : [INFO     ] 2022-09-11 01:04:41,469 Parameters: omega_lambda              = 0.724
+yt : [INFO     ] 2022-09-11 01:04:41,470 Parameters: omega_matter              = 0.276
+yt : [INFO     ] 2022-09-11 01:04:41,470 Parameters: omega_radiation           = 0
+yt : [INFO     ] 2022-09-11 01:04:41,471 Parameters: hubble_constant           = 0.703
+Parsing Hierarchy : 100%|██████████████████████████████████████████████████| 21992/21992 [00:02&lt;00:00, 9777.27it/s]
+yt : [INFO     ] 2022-09-11 01:04:44,411 Gathering a field list (this may take a moment.)
+yt : [INFO     ] 2022-09-11 01:06:05,949 max value is 1.89069e-10 at 0.4980918404980912 0.5005802176092402 0.4986024849858950
+</pre></div>
+</div>
+</div>
+</div>
+<div class="cell docutils container">
+<div class="cell_input docutils container">
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># def plot_profile_fields(profile_fields, sharex=&#39;all&#39;, sharey=&#39;row&#39;, yscale=&#39;symlog&#39;):</span>
+<span class="n">nprof_fields</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">profile_fields</span><span class="p">)</span>
+<span class="n">nprofs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dengo_profs</span><span class="p">)</span>
+<span class="n">f</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span>
+    <span class="n">nprof_fields</span><span class="p">,</span>
+    <span class="n">nprofs</span><span class="p">,</span>
+    <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">3</span> <span class="o">*</span> <span class="n">nprofs</span><span class="p">,</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">nprof_fields</span><span class="p">),</span>
+    <span class="n">sharex</span><span class="o">=</span><span class="s2">&quot;all&quot;</span><span class="p">,</span>
+    <span class="n">sharey</span><span class="o">=</span><span class="s2">&quot;row&quot;</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">pf</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">profile_fields</span><span class="p">):</span>
+
+    <span class="n">j</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">rp_d</span><span class="p">,</span> <span class="n">rp_g</span><span class="p">,</span> <span class="n">color</span><span class="p">,</span> <span class="n">ax</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">dengo_profs</span><span class="p">,</span> <span class="n">grackle_profs</span><span class="p">,</span> <span class="n">colors</span><span class="p">,</span> <span class="n">axes</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">flat</span><span class="p">):</span>
+        <span class="c1"># solid lines are from DENGO</span>
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp_d</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+        <span class="c1"># dash lines are from grackle</span>
+        <span class="n">plot_profile_ax</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">rp_g</span><span class="p">,</span> <span class="n">pf</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">,</span> <span class="n">ls</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+
+        <span class="n">lb</span> <span class="o">=</span> <span class="n">pf</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">rp_g</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="o">.</span><span class="n">is_dimensionless</span><span class="p">:</span>
+            <span class="n">lb</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">rp_g</span><span class="p">[</span><span class="n">pf</span><span class="p">]</span><span class="o">.</span><span class="n">units</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">if</span> <span class="n">j</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">lb</span><span class="p">)</span>
+
+            <span class="n">ax</span><span class="o">.</span><span class="n">set_yscale</span><span class="p">(</span><span class="s2">&quot;symlog&quot;</span><span class="p">)</span>
+        <span class="n">j</span> <span class="o">+=</span> <span class="mi">1</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="c1">#     return f</span>
+</pre></div>
+</div>
+</div>
+<div class="cell_output docutils container">
+<img alt="../_images/3-ProfilePlot_21_0.png" src="../_images/3-ProfilePlot_21_0.png" />
+</div>
+</div>
+</section>
+</section>
+
+    <script type="text/x-thebe-config">
+    {
+        requestKernel: true,
+        binderOptions: {
+            repo: "binder-examples/jupyter-stacks-datascience",
+            ref: "master",
+        },
+        codeMirrorConfig: {
+            theme: "abcdef",
+            mode: "python"
+        },
+        kernelOptions: {
+            kernelName: "python3",
+            path: "./enzo_sims"
+        },
+        predefinedOutput: true
+    }
+    </script>
+    <script>kernelName = 'python3'</script>
+
+              </div>
+              
+            </main>
+            <footer class="footer-article noprint">
+                
+    <!-- Previous / next buttons -->
+<div class='prev-next-area'>
+    <a class='left-prev' id="prev-link" href="2-PhasePlot.html" title="previous page">
+        <i class="fas fa-angle-left"></i>
+        <div class="prev-next-info">
+            <p class="prev-next-subtitle">previous</p>
+            <p class="prev-next-title">Phase Plot Comparisons</p>
+        </div>
+    </a>
+    <a class='right-next' id="next-link" href="4-HeatingCooling.html" title="next page">
+    <div class="prev-next-info">
+        <p class="prev-next-subtitle">next</p>
+        <p class="prev-next-title">Dissecting the Protostellar Cloud</p>
+    </div>
+    <i class="fas fa-angle-right"></i>
+    </a>
+</div>
+            </footer>
+        </div>
+    </div>
+    <div class="footer-content row">
+        <footer class="col footer"><p>
+  
+    By Sunny Tang<br/>
+  
+      &copy; Copyright 2022.<br/>
+</p>
+        </footer>
+    </div>
+    
+</div>
+
+
+      </div>
+    </div>
+  
+  <!-- Scripts loaded after <body> so the DOM is not blocked -->
+  <script src="../_static/scripts/pydata-sphinx-theme.js?digest=1999514e3f237ded88cf"></script>
+
+
+  </body>
+</html>

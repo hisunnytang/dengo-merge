@@ -223,6 +223,55 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
   Reference
  </span>
 </p>
@@ -598,11 +647,6 @@ the CHIANTI database.</p>
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
-</pre></div>
-</div>
-</div>
 </div>
 <p>In the above example we utilize the <code class="docutils literal notranslate"><span class="pre">AtomicSpecies</span></code> and <code class="docutils literal notranslate"><span class="pre">MolecularSpecies</span></code>. <code class="docutils literal notranslate"><span class="pre">Dengo</span></code> will try to look for the constituent elements based on the expression from the periodic table, and assign them with appropriate weights. These elements are automatically register to <code class="docutils literal notranslate"><span class="pre">dengo.reaction_classes.species_registry</span></code>.</p>
 <p>Yeah you have successfully created your <code class="docutils literal notranslate"><span class="pre">ChemicalSpecies</span></code> in <code class="docutils literal notranslate"><span class="pre">Dengo</span></code>!</p>
@@ -741,7 +785,7 @@ $<span class="math notranslate nohighlight">\( \mathrm{H^+ + e^- \rightarrow H} 
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;dengo.reaction_classes.CoolingAction at 0x7ffa2ac2b5b0&gt;,
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>(&lt;dengo.reaction_classes.CoolingAction at 0x7f572ebceaf0&gt;,
  dengo.reaction_classes.CoolingAction)
 </pre></div>
 </div>
@@ -909,7 +953,7 @@ T &amp;= \frac{\rho \epsilon}{\Gamma_{\rm eff} k}
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7ffa28a9a340&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f572e74c880&gt;
 </pre></div>
 </div>
 <img alt="../_images/buildingBlock_22_1.png" src="../_images/buildingBlock_22_1.png" />
@@ -1036,18 +1080,6 @@ d gedt = -reHII_reHII[i]*H_2*de
 
 <span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
 <span class="n">output</span>     <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
-</pre></div>
-</div>
-</div>
-<div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
-<span class="nn">Input In [17],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
-<span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">scipy.integrate</span> <span class="kn">import</span> <span class="n">odeint</span>
-<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="n">timesteps</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logspace</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span><span class="mi">101</span><span class="p">)</span>
-<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">output</span>     <span class="o">=</span> <span class="n">odeint</span><span class="p">(</span><span class="n">rhs_func</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">t</span><span class="o">=</span><span class="n">timesteps</span><span class="p">)</span>
-
-<span class="ne">ModuleNotFoundError</span>: No module named &#39;scipy&#39;
 </pre></div>
 </div>
 </div>

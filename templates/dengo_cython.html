@@ -225,6 +225,55 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
   Reference
  </span>
 </p>
@@ -532,8 +581,7 @@ title="Print to PDF"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
-Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
 Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
 </pre></div>
 </div>
@@ -566,62 +614,14 @@ Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">AssertionError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">213</span>         <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
-<span class="ne">--&gt; </span><span class="mi">214</span>     <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">215</span>                            <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">216</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">so_path</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:176,</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
-<span class="g g-Whitespace">    </span><span class="mi">175</span> <span class="k">def</span> <span class="nf">build_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">176</span>     <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">),</span> <span class="s2">&quot;Path does not exist: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pyxfilename</span>
-<span class="g g-Whitespace">    </span><span class="mi">177</span>     <span class="n">handle_dependencies</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">)</span>
-
-<span class="ne">AssertionError</span>: Path does not exist: simpleNetwork_solver_run.pyx
-
-<span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
-
-<span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
-<span class="nn">Input In [2],</span> in <span class="ni">&lt;cell line: 13&gt;</span><span class="nt">()</span>
-<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="n">solver_name</span> <span class="o">=</span> <span class="s2">&quot;simpleNetwork&quot;</span>
-<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">(</span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span>     <span class="n">setup_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;include_dirs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">get_include</span><span class="p">()},</span>
-<span class="g g-Whitespace">      </span><span class="mi">8</span>     <span class="n">reload_support</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="g g-Whitespace">      </span><span class="mi">9</span>     <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">10</span>     <span class="n">language_level</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="p">)</span>
-<span class="ne">---&gt; </span><span class="mi">13</span> <span class="n">simple_solver_run</span> <span class="o">=</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span>
-<span class="g g-Whitespace">     </span><span class="mi">14</span>     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_solver_run&quot;</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">15</span>     <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">solver_name</span><span class="si">}</span><span class="s2">_solver_run.pyx&quot;</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">16</span>     <span class="n">build_inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">17</span>     <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="s2">&quot;_dengo_temp&quot;</span><span class="p">,</span>
-<span class="g g-Whitespace">     </span><span class="mi">18</span> <span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:231,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">228</span> <span class="n">exc</span> <span class="o">=</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Building module </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">229</span>     <span class="n">name</span><span class="p">,</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exception_only</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">])))</span>
-<span class="g g-Whitespace">    </span><span class="mi">230</span> <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">231</span>     <span class="k">raise</span> <span class="n">exc</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">232</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">233</span>     <span class="n">exec</span><span class="p">(</span><span class="s2">&quot;raise exc, None, tb&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;exc&#39;</span><span class="p">:</span> <span class="n">exc</span><span class="p">,</span> <span class="s1">&#39;tb&#39;</span><span class="p">:</span> <span class="n">tb</span><span class="p">})</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">212</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">213</span>         <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
-<span class="ne">--&gt; </span><span class="mi">214</span>     <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">215</span>                            <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">216</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">so_path</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">217</span> <span class="k">if</span> <span class="n">is_package</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;__path__&#39;</span><span class="p">):</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:176,</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
-<span class="g g-Whitespace">    </span><span class="mi">175</span> <span class="k">def</span> <span class="nf">build_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">176</span>     <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">),</span> <span class="s2">&quot;Path does not exist: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pyxfilename</span>
-<span class="g g-Whitespace">    </span><span class="mi">177</span>     <span class="n">handle_dependencies</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">179</span>     <span class="n">extension_mod</span><span class="p">,</span> <span class="n">setup_args</span> <span class="o">=</span> <span class="n">get_distutils_extension</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">language_level</span><span class="p">)</span>
-
-<span class="ne">ImportError</span>: Building module simpleNetwork_solver_run failed: [&#39;AssertionError: Path does not exist: simpleNetwork_solver_run.pyx\n&#39;]
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>You have suitesparse!
+</pre></div>
+</div>
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/Cython/Compiler/Main.py:369: FutureWarning: Cython directive &#39;language_level&#39; not set, using 2 for now (Py2). This will change in a later release! File: /mnt/gv0/homes/kwoksun2/dengo-merge/cookbook/tutorial/buildingblocks/simpleNetwork_solver_run.pxd
+  tree = Parsing.p_module(s, pxd, full_module_name)
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
+cc1plus: warning: command line option &#39;-Wstrict-prototypes&#39; is valid for C/ObjC but not for C++
 </pre></div>
 </div>
 </div>

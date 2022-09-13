@@ -223,6 +223,55 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
   Reference
  </span>
 </p>
@@ -633,8 +682,7 @@ title="Print to PDF"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
-Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Adding reaction: k01 : 1*H_1 + 1*de =&gt; 1*H_2 + 2*de
 Adding reaction: k02 : 1*H_2 + 1*de =&gt; 1*H_1
 </pre></div>
 </div>
@@ -820,7 +868,7 @@ ge,
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f5a9a442fd0&gt;
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;matplotlib.legend.Legend at 0x7f0aeb391d00&gt;
 </pre></div>
 </div>
 <img alt="../_images/solverTemplate_13_11.png" src="../_images/solverTemplate_13_11.png" />
@@ -907,14 +955,7 @@ def calculate_temperature(state: npt.ArrayLike):
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">NameError</span><span class="g g-Whitespace">                                 </span>Traceback (most recent call last)
-<span class="nn">Input In [9],</span> in <span class="ni">&lt;cell line: 9&gt;</span><span class="nt">()</span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="n">de</span>  <span class="o">=</span> <span class="mf">1e-2</span><span class="c1"># 1/cm^3</span>
-<span class="g g-Whitespace">      </span><span class="mi">8</span> <span class="n">state</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">H_1</span><span class="p">,</span> <span class="n">H_2</span><span class="p">,</span> <span class="n">de</span><span class="p">,</span> <span class="n">ge</span><span class="p">])</span>
-<span class="ne">----&gt; </span><span class="mi">9</span> <span class="n">simple_temperature</span><span class="o">.</span><span class="n">calculate_temperature</span><span class="p">(</span><span class="n">state</span><span class="p">)</span>
-
-<span class="ne">NameError</span>: name &#39;simple_temperature&#39; is not defined
+<div class="output text_plain highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>54211.26570048309
 </pre></div>
 </div>
 </div>

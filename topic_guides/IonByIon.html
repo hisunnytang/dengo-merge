@@ -53,7 +53,7 @@ const thebe_selector_output = ".output, .cell_output"
     <script async="async" src="../_static/sphinx-thebe.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Dengo Documentation" href="../api.html" />
+    <link rel="next" title="Compare Dengo-Enzo Integration with Enzo-Grackle" href="../enzo_sims/intro.html" />
     <link rel="prev" title="Non-Equilibrium Ionizations in the presence of background ionizations" href="NonEqilibriumIonization.html" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="docsearch:language" content="en">
@@ -219,6 +219,55 @@ const thebe_selector_output = ".output, .cell_output"
   <a class="reference internal" href="NonEqilibriumIonization.html">
    Non-Equilibrium Ionizations in the presence of background ionizations
   </a>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="../enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="../enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
  </li>
 </ul>
 <p aria-level="2" class="caption" role="heading">
@@ -542,56 +591,16 @@ title="Print to PDF"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.12.0 
+ found PyQt5 widgets
+ using PyQt5 widgets
 </pre></div>
 </div>
-<div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
-<span class="nn">Input In [1],</span> in <span class="ni">&lt;cell line: 4&gt;</span><span class="nt">()</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="kn">import</span> <span class="nn">os</span>
-<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s2">&quot;XUVTOP&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;/home/kwoksun2/data/dengo-merge/CHIANTI&quot;</span>
-<span class="ne">----&gt; </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">ChiantiPy.core</span> <span class="k">as</span> <span class="nn">ch</span>
-
-<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">8</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="sd">&quot;&quot;&quot;</span>
-<span class="g g-Whitespace">      </span><span class="mi">2</span><span class="sd"> chianti.core - contains the main classes for ChiantiPy users.</span>
-<span class="g g-Whitespace">      </span><span class="mi">3</span><span class="sd"> </span>
-<span class="sd">   (...)</span>
-<span class="g g-Whitespace">      </span><span class="mi">6</span><span class="sd"> </span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span><span class="sd"> &quot;&quot;&quot;</span>
-<span class="ne">----&gt; </span><span class="mi">8</span> <span class="kn">from</span> <span class="nn">.Spectrum</span> <span class="kn">import</span> <span class="n">spectrum</span>
-<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">from</span> <span class="nn">.Bunch</span> <span class="kn">import</span> <span class="n">bunch</span>
-<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">from</span> <span class="nn">.Mspectrum</span> <span class="kn">import</span> <span class="n">mspectrum</span>
-
-<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">core</span><span class="o">/</span><span class="n">Spectrum</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">5</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="g g-Whitespace">      </span><span class="mi">4</span> <span class="kn">import</span> <span class="nn">ChiantiPy</span>
-<span class="ne">----&gt; </span><span class="mi">5</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.data</span> <span class="k">as</span> <span class="nn">chdata</span>
-<span class="g g-Whitespace">      </span><span class="mi">6</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="g g-Whitespace">      </span><span class="mi">7</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.filters</span> <span class="k">as</span> <span class="nn">chfilters</span>
-
-<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">data</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">41</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-<span class="g g-Whitespace">     </span><span class="mi">38</span> <span class="kn">import</span> <span class="nn">traceback</span>
-<span class="g g-Whitespace">     </span><span class="mi">39</span> <span class="kn">import</span> <span class="nn">warnings</span>
-<span class="ne">---&gt; </span><span class="mi">41</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.io</span> <span class="k">as</span> <span class="nn">chio</span>
-<span class="g g-Whitespace">     </span><span class="mi">43</span> <span class="n">klnames</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;klgfb_1.dat&#39;</span><span class="p">,</span><span class="s1">&#39;klgfb_2.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_3.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_4.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_5.dat&#39;</span><span class="p">,</span> <span class="s1">&#39;klgfb_6.dat&#39;</span><span class="p">]</span>
-<span class="g g-Whitespace">     </span><span class="mi">44</span> <span class="k">try</span><span class="p">:</span>
-
-<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">io</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">13</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-<span class="g g-Whitespace">      </span><span class="mi">9</span> <span class="kn">import</span> <span class="nn">configparser</span>
-<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="ne">---&gt; </span><span class="mi">13</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.util</span> <span class="k">as</span> <span class="nn">util</span>
-<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
-<span class="g g-Whitespace">     </span><span class="mi">15</span> <span class="kn">import</span> <span class="nn">ChiantiPy.Gui</span> <span class="k">as</span> <span class="nn">chgui</span>
-
-<span class="n">File</span> <span class="o">~/.</span><span class="n">local</span><span class="o">/</span><span class="n">lib</span><span class="o">/</span><span class="n">python3</span><span class="mf">.8</span><span class="o">/</span><span class="n">site</span><span class="o">-</span><span class="n">packages</span><span class="o">/</span><span class="n">ChiantiPy</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">util</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">12</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
-<span class="g g-Whitespace">     </span><span class="mi">10</span> <span class="kn">import</span> <span class="nn">fnmatch</span>
-<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="ne">---&gt; </span><span class="mi">12</span> <span class="kn">from</span> <span class="nn">scipy</span> <span class="kn">import</span> <span class="n">interpolate</span>
-<span class="g g-Whitespace">     </span><span class="mi">13</span> <span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <span class="n">exp1</span>
-<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">ChiantiPy.tools.constants</span> <span class="k">as</span> <span class="nn">const</span>
-
-<span class="ne">ModuleNotFoundError</span>: No module named &#39;scipy&#39;
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/kwoksun2/anaconda3/lib/python3.8/site-packages/ChiantiPy-0.12.0-py3.8.egg/ChiantiPy/tools/data.py:71: UserWarning: klgfb files are not present: 
+  it will not be possible to use the freeBound continuum method
+  warnings.warn(&#39;klgfb files are not present: \n  it will not be possible to use the freeBound continuum method&#39;)
+/home/kwoksun2/anaconda3/lib/python3.8/site-packages/ChiantiPy-0.12.0-py3.8.egg/ChiantiPy/core/IpyMspectrum.py:9: UserWarning: ipyparallel not found. You won&#39;t be able to use the ipymspectrum module
+  warnings.warn(&quot;ipyparallel not found. You won&#39;t be able to use the ipymspectrum module&quot;)
 </pre></div>
 </div>
 </div>
@@ -1105,10 +1114,10 @@ End in 73 iterations: 1.00000e+15 / 1.00000e+15 (0.00000e+00)
             <p class="prev-next-title">Non-Equilibrium Ionizations in the presence of background ionizations</p>
         </div>
     </a>
-    <a class='right-next' id="next-link" href="../api.html" title="next page">
+    <a class='right-next' id="next-link" href="../enzo_sims/intro.html" title="next page">
     <div class="prev-next-info">
         <p class="prev-next-subtitle">next</p>
-        <p class="prev-next-title">Dengo Documentation</p>
+        <p class="prev-next-title">Compare Dengo-Enzo Integration with Enzo-Grackle</p>
     </div>
     <i class="fas fa-angle-right"></i>
     </a>

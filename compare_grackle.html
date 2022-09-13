@@ -221,6 +221,55 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
   Reference
  </span>
 </p>
@@ -462,8 +511,8 @@ title="Print to PDF"
 </div>
 <div class="cell_output docutils container">
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">ModuleNotFoundError</span><span class="g g-Whitespace">                       </span>Traceback (most recent call last)
-<span class="nn">Input In [1],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
+<span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
+<span class="nn">Input In [9],</span> in <span class="ni">&lt;cell line: 1&gt;</span><span class="nt">()</span>
 <span class="ne">----&gt; </span><span class="mi">1</span> <span class="kn">from</span> <span class="nn">pygrackle</span> <span class="kn">import</span> \
 <span class="g g-Whitespace">      </span><span class="mi">2</span>  <span class="n">FluidContainer</span><span class="p">,</span> \
 <span class="g g-Whitespace">      </span><span class="mi">3</span>  <span class="n">chemistry_data</span><span class="p">,</span> \
@@ -474,7 +523,41 @@ title="Print to PDF"
 <span class="g g-Whitespace">      </span><span class="mi">9</span>  <span class="n">cm_per_mpc</span>
 <span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="kn">import</span> <span class="nn">dengo</span>
 
-<span class="ne">ModuleNotFoundError</span>: No module named &#39;pygrackle&#39;
+<span class="n">File</span> <span class="o">~/</span><span class="n">grackle</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="n">pygrackle</span><span class="o">/</span><span class="fm">__init__</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">14</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1">########################################################################</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="c1">#</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="c1"># Pygrackle imports</span>
+   <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="c1"># software.</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="c1">########################################################################</span>
+<span class="ne">---&gt; </span><span class="mi">14</span> <span class="kn">from</span> <span class="nn">.fluid_container</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">15</span>     <span class="n">FluidContainer</span>
+<span class="g g-Whitespace">     </span><span class="mi">17</span> <span class="kn">from</span> <span class="nn">.grackle_wrapper</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">18</span>     <span class="n">chemistry_data</span>
+<span class="g g-Whitespace">     </span><span class="mi">20</span> <span class="kn">from</span> <span class="nn">.utilities.convenience</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">21</span>     <span class="n">setup_fluid_container</span>
+
+<span class="n">File</span> <span class="o">~/</span><span class="n">grackle</span><span class="o">/</span><span class="n">src</span><span class="o">/</span><span class="n">python</span><span class="o">/</span><span class="n">pygrackle</span><span class="o">/</span><span class="n">fluid_container</span><span class="o">.</span><span class="n">py</span><span class="p">:</span><span class="mi">16</span><span class="p">,</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
+<span class="g g-Whitespace">      </span><span class="mi">1</span> <span class="c1">########################################################################</span>
+<span class="g g-Whitespace">      </span><span class="mi">2</span> <span class="c1">#</span>
+<span class="g g-Whitespace">      </span><span class="mi">3</span> <span class="c1"># Grackle python fluid container</span>
+   <span class="p">(</span><span class="o">...</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">11</span> <span class="c1"># software.</span>
+<span class="g g-Whitespace">     </span><span class="mi">12</span> <span class="c1">########################################################################</span>
+<span class="g g-Whitespace">     </span><span class="mi">14</span> <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="ne">---&gt; </span><span class="mi">16</span> <span class="kn">from</span> <span class="nn">pygrackle.grackle_wrapper</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">17</span>     <span class="n">calculate_cooling_time</span><span class="p">,</span> \
+<span class="g g-Whitespace">     </span><span class="mi">18</span>     <span class="n">calculate_gamma</span><span class="p">,</span> \
+<span class="g g-Whitespace">     </span><span class="mi">19</span>     <span class="n">calculate_pressure</span><span class="p">,</span> \
+<span class="g g-Whitespace">     </span><span class="mi">20</span>     <span class="n">calculate_temperature</span><span class="p">,</span> \
+<span class="g g-Whitespace">     </span><span class="mi">21</span>     <span class="n">calculate_dust_temperature</span><span class="p">,</span> \
+<span class="g g-Whitespace">     </span><span class="mi">22</span>     <span class="n">solve_chemistry</span>
+<span class="g g-Whitespace">     </span><span class="mi">24</span> <span class="kn">from</span> <span class="nn">pygrackle.utilities.misc</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">25</span>     <span class="n">issue_deprecation_warning</span>
+<span class="g g-Whitespace">     </span><span class="mi">27</span> <span class="kn">from</span> <span class="nn">pygrackle.utilities.physical_constants</span> <span class="kn">import</span> \
+<span class="g g-Whitespace">     </span><span class="mi">28</span>     <span class="n">mass_hydrogen_cgs</span>
+
+<span class="ne">ImportError</span>: libgrackle-3.2.dev2.so: cannot open shared object file: No such file or directory
 </pre></div>
 </div>
 </div>

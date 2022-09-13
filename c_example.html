@@ -221,6 +221,55 @@ const thebe_selector_output = ".output, .cell_output"
 </ul>
 <p aria-level="2" class="caption" role="heading">
  <span class="caption-text">
+  Enzo Integration Comparison
+ </span>
+</p>
+<ul class="nav bd-sidenav">
+ <li class="toctree-l1 has-children">
+  <a class="reference internal" href="enzo_sims/intro.html">
+   Compare Dengo-Enzo Integration with Enzo-Grackle
+  </a>
+  <input class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" type="checkbox"/>
+  <label for="toctree-checkbox-3">
+   <i class="fas fa-chevron-down">
+   </i>
+  </label>
+  <ul>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/0-ChemicalNetwork.html">
+     Insights from the One-Zone Freefall model
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/1-Enzo-Setup.html">
+     Simulation Setup
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/2-PhasePlot.html">
+     Phase Plot Comparisons
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/3-ProfilePlot.html">
+     Radial Profile Plots
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/4-HeatingCooling.html">
+     Dissecting the Protostellar Cloud
+    </a>
+   </li>
+   <li class="toctree-l2">
+    <a class="reference internal" href="enzo_sims/5-EvolveOverTff.html">
+     Understand how the heating/cooling changes with time
+    </a>
+   </li>
+  </ul>
+ </li>
+</ul>
+<p aria-level="2" class="caption" role="heading">
+ <span class="caption-text">
   Reference
  </span>
 </p>
@@ -463,11 +512,6 @@ title="Print to PDF"
 </pre></div>
 </div>
 </div>
-<div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span> ChiantiPy version 0.13.1 
-</pre></div>
-</div>
-</div>
 </div>
 <section class="tex2jax_ignore mathjax_ignore" id="building-dengo-library">
 <h1>Building Dengo Library<a class="headerlink" href="#building-dengo-library" title="Permalink to this heading">#</a></h1>
@@ -592,257 +636,64 @@ title="Print to PDF"
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ADDED {&#39;us_H_1&#39;}
-ADDED {&#39;us_H2_1&#39;}
-ADDED {&#39;us_e_0&#39;}
-Adding reaction: us_H2_1_plus_us_H2_1 : 1*us_H2_1 + 1*us_H2_1 =&gt; 1*us_H2_1 + 1*us_H_1 + 1*us_H_1
-Adding reaction: us_H_1_plus_us_H2_1 : 1*us_H_1 + 1*us_H2_1 =&gt; 1*us_H_1 + 1*us_H_1 + 1*us_H_1
-Adding reaction: us_H2_1_plus_us_e_0 : 1*us_H2_1 + 1*us_e_0 =&gt; 1*us_H_1 + 1*us_H_1 + 1*us_e_0
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>ADDED set()
+ADDED set()
+ADDED set()
 {&#39;us_H_1&#39;: array([0.01]), &#39;us_H2_1&#39;: array([0.01]), &#39;us_e_0&#39;: array([0.])}
-{&#39;us_H_1&#39;: array([0.01]), &#39;us_H2_1&#39;: array([0.02]), &#39;us_e_0&#39;: array([0.]), &#39;ge&#39;: array([8.26347305e+10]), &#39;density&#39;: array([0.03]), &#39;T&#39;: array([1000.])}
+{&#39;us_H_1&#39;: array([0.01]), &#39;us_H2_1&#39;: array([0.01]), &#39;us_e_0&#39;: array([0.]), &#39;ge&#39;: array([nan]), &#39;density&#39;: array([0.]), &#39;T&#39;: array([1000.])}
+Need to supply HDF5_PATH
 </pre></div>
 </div>
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>You have suitesparse!
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>/home/runner/.local/lib/python3.8/site-packages/Cython/Compiler/Main.py:369: FutureWarning: Cython directive &#39;language_level&#39; not set, using 2 for now (Py2). This will change in a later release! File: /home/runner/work/dengo-merge/dengo-merge/cookbook/umist_solver_run.pxd
-  tree = Parsing.p_module(s, pxd, full_module_name)
-</pre></div>
-</div>
-<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>_dengo_temp/temp.linux-x86_64-cpython-38/pyrex/umist_solver_run.cpp:710:10: fatal error: sundials/sundials_types.h: No such file or directory
-  710 | #include &quot;sundials/sundials_types.h&quot;
-      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~
-compilation terminated.
+<div class="output stderr highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>&lt;ipython-input-3-9e7ee19bb4e5&gt;:73: RuntimeWarning: invalid value encountered in true_divide
+  init_values[&#39;ge&#39;] = ((temperature * number_density * kboltz)
 </pre></div>
 </div>
 <div class="output traceback highlight-ipythontb notranslate"><div class="highlight"><pre><span></span><span class="gt">---------------------------------------------------------------------------</span>
-<span class="ne">DistutilsExecError</span><span class="g g-Whitespace">                        </span>Traceback (most recent call last)
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:178,</span> in <span class="ni">UnixCCompiler._compile</span><span class="nt">(self, obj, src, ext, cc_args, extra_postargs, pp_opts)</span>
-<span class="g g-Whitespace">    </span><span class="mi">177</span> <span class="k">try</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">178</span>     <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">compiler_so</span> <span class="o">+</span> <span class="n">cc_args</span> <span class="o">+</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="p">]</span> <span class="o">+</span> <span class="n">extra_postargs</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">179</span> <span class="k">except</span> <span class="n">DistutilsExecError</span> <span class="k">as</span> <span class="n">msg</span><span class="p">:</span>
+<span class="ne">AssertionError</span><span class="g g-Whitespace">                            </span>Traceback (most recent call last)
+<span class="nn">~/anaconda3/lib/python3.8/site-packages/pyximport/pyximport.py</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
+<span class="g g-Whitespace">    </span><span class="mi">213</span>                 <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
+<span class="ne">--&gt; </span><span class="mi">214</span>             <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">215</span>                                    <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:980,</span> in <span class="ni">CCompiler.spawn</span><span class="nt">(self, cmd, **kwargs)</span>
-<span class="g g-Whitespace">    </span><span class="mi">979</span> <span class="k">def</span> <span class="nf">spawn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">980</span>     <span class="n">spawn</span><span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">dry_run</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dry_run</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+<span class="nn">~/anaconda3/lib/python3.8/site-packages/pyximport/pyximport.py</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
+<span class="g g-Whitespace">    </span><span class="mi">175</span> <span class="k">def</span> <span class="nf">build_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">176</span>     <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">),</span> <span class="s2">&quot;Path does not exist: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pyxfilename</span>
+<span class="g g-Whitespace">    </span><span class="mi">177</span>     <span class="n">handle_dependencies</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">)</span>
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/spawn.py:68,</span> in <span class="ni">spawn</span><span class="nt">(cmd, search_path, verbose, dry_run, env)</span>
-<span class="g g-Whitespace">     </span><span class="mi">67</span>     <span class="n">cmd</span> <span class="o">=</span> <span class="n">cmd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-<span class="ne">---&gt; </span><span class="mi">68</span> <span class="k">raise</span> <span class="n">DistutilsExecError</span><span class="p">(</span>
-<span class="g g-Whitespace">     </span><span class="mi">69</span>     <span class="s2">&quot;command </span><span class="si">%r</span><span class="s2"> failed with exit code </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cmd</span><span class="p">,</span> <span class="n">exitcode</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">70</span> <span class="p">)</span>
-
-<span class="ne">DistutilsExecError</span>: command &#39;/usr/bin/x86_64-linux-gnu-gcc&#39; failed with exit code 1
-
-<span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
-
-<span class="ne">CompileError</span><span class="g g-Whitespace">                              </span>Traceback (most recent call last)
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">213</span>         <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
-<span class="ne">--&gt; </span><span class="mi">214</span>     <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">215</span>                            <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">216</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">so_path</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:186,</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
-<span class="g g-Whitespace">    </span><span class="mi">185</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pyxbuild</span>
-<span class="ne">--&gt; </span><span class="mi">186</span> <span class="n">so_path</span> <span class="o">=</span> <span class="n">pyxbuild</span><span class="o">.</span><span class="n">pyx_to_dll</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">,</span> <span class="n">extension_mod</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">187</span>                               <span class="n">build_in_temp</span><span class="o">=</span><span class="n">build_in_temp</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">188</span>                               <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">189</span>                               <span class="n">setup_args</span><span class="o">=</span><span class="n">sargs</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">190</span>                               <span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">191</span>                               <span class="n">reload_support</span><span class="o">=</span><span class="n">pyxargs</span><span class="o">.</span><span class="n">reload_support</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">192</span> <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">so_path</span><span class="p">),</span> <span class="s2">&quot;Cannot find: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">so_path</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyxbuild.py:102,</span> in <span class="ni">pyx_to_dll</span><span class="nt">(filename, ext, force_rebuild, build_in_temp, pyxbuild_dir, setup_args, reload_support, inplace)</span>
-<span class="g g-Whitespace">    </span><span class="mi">101</span> <span class="n">obj_build_ext</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">get_command_obj</span><span class="p">(</span><span class="s2">&quot;build_ext&quot;</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">102</span> <span class="n">dist</span><span class="o">.</span><span class="n">run_commands</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">103</span> <span class="n">so_path</span> <span class="o">=</span> <span class="n">obj_build_ext</span><span class="o">.</span><span class="n">get_outputs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:968,</span> in <span class="ni">Distribution.run_commands</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">967</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">968</span>     <span class="bp">self</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/dist.py:1217,</span> in <span class="ni">Distribution.run_command</span><span class="nt">(self, command)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1214</span> <span class="c1"># Postpone defaults until all explicit configuration is considered</span>
-<span class="g g-Whitespace">   </span><span class="mi">1215</span> <span class="c1"># (setup() args, config files, command line and plugins)</span>
-<span class="ne">-&gt; </span><span class="mi">1217</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:987,</span> in <span class="ni">Distribution.run_command</span><span class="nt">(self, command)</span>
-<span class="g g-Whitespace">    </span><span class="mi">986</span> <span class="n">cmd_obj</span><span class="o">.</span><span class="n">ensure_finalized</span><span class="p">()</span>
-<span class="ne">--&gt; </span><span class="mi">987</span> <span class="n">cmd_obj</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">988</span> <span class="bp">self</span><span class="o">.</span><span class="n">have_run</span><span class="p">[</span><span class="n">command</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:186,</span> in <span class="ni">old_build_ext.run</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">184</span>     <span class="n">optimization</span><span class="o">.</span><span class="n">disable_optimization</span><span class="p">()</span>
-<span class="ne">--&gt; </span><span class="mi">186</span> <span class="n">_build_ext</span><span class="o">.</span><span class="n">build_ext</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:339,</span> in <span class="ni">build_ext.run</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">338</span> <span class="c1"># Now actually compile and link everything.</span>
-<span class="ne">--&gt; </span><span class="mi">339</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_extensions</span><span class="p">()</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:195,</span> in <span class="ni">old_build_ext.build_extensions</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">194</span> <span class="c1"># Call original build_extensions</span>
-<span class="ne">--&gt; </span><span class="mi">195</span> <span class="n">_build_ext</span><span class="o">.</span><span class="n">build_ext</span><span class="o">.</span><span class="n">build_extensions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:459,</span> in <span class="ni">build_ext.build_extensions</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">458</span> <span class="k">else</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">459</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_build_extensions_serial</span><span class="p">()</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:485,</span> in <span class="ni">build_ext._build_extensions_serial</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">484</span> <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_build_errors</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">485</span>     <span class="bp">self</span><span class="o">.</span><span class="n">build_extension</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:540,</span> in <span class="ni">build_ext.build_extension</span><span class="nt">(self, ext)</span>
-<span class="g g-Whitespace">    </span><span class="mi">538</span>     <span class="n">macros</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">undef</span><span class="p">,))</span>
-<span class="ne">--&gt; </span><span class="mi">540</span> <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">541</span>     <span class="n">sources</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">542</span>     <span class="n">output_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">build_temp</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">543</span>     <span class="n">macros</span><span class="o">=</span><span class="n">macros</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">544</span>     <span class="n">include_dirs</span><span class="o">=</span><span class="n">ext</span><span class="o">.</span><span class="n">include_dirs</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">545</span>     <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">546</span>     <span class="n">extra_postargs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">547</span>     <span class="n">depends</span><span class="o">=</span><span class="n">ext</span><span class="o">.</span><span class="n">depends</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">548</span> <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">550</span> <span class="c1"># XXX outdated variable, kept here in case third-part code</span>
-<span class="g g-Whitespace">    </span><span class="mi">551</span> <span class="c1"># needs it.</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:591,</span> in <span class="ni">CCompiler.compile</span><span class="nt">(self, sources, output_dir, macros, include_dirs, debug, extra_preargs, extra_postargs, depends)</span>
-<span class="g g-Whitespace">    </span><span class="mi">590</span>         <span class="k">continue</span>
-<span class="ne">--&gt; </span><span class="mi">591</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_compile</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">cc_args</span><span class="p">,</span> <span class="n">extra_postargs</span><span class="p">,</span> <span class="n">pp_opts</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">593</span> <span class="c1"># Return *all* object filenames, not just the ones we just built.</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:180,</span> in <span class="ni">UnixCCompiler._compile</span><span class="nt">(self, obj, src, ext, cc_args, extra_postargs, pp_opts)</span>
-<span class="g g-Whitespace">    </span><span class="mi">179</span> <span class="k">except</span> <span class="n">DistutilsExecError</span> <span class="k">as</span> <span class="n">msg</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">180</span>     <span class="k">raise</span> <span class="n">CompileError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-<span class="ne">CompileError</span>: command &#39;/usr/bin/x86_64-linux-gnu-gcc&#39; failed with exit code 1
+<span class="ne">AssertionError</span>: Path does not exist: umist_solver_run.pyx
 
 <span class="n">During</span> <span class="n">handling</span> <span class="n">of</span> <span class="n">the</span> <span class="n">above</span> <span class="n">exception</span><span class="p">,</span> <span class="n">another</span> <span class="n">exception</span> <span class="n">occurred</span><span class="p">:</span>
 
 <span class="ne">ImportError</span><span class="g g-Whitespace">                               </span>Traceback (most recent call last)
-<span class="nn">Input In [2],</span> in <span class="ni">&lt;cell line: 91&gt;</span><span class="nt">()</span>
-<span class="g g-Whitespace">     </span><span class="mi">87</span> <span class="kn">import</span> <span class="nn">pyximport</span>
-<span class="g g-Whitespace">     </span><span class="mi">88</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">install</span><span class="p">(</span><span class="n">setup_args</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;include_dirs&quot;</span><span class="p">:</span><span class="n">np</span><span class="o">.</span><span class="n">get_include</span><span class="p">()},</span>
+<span class="o">&lt;</span><span class="n">ipython</span><span class="o">-</span><span class="nb">input</span><span class="o">-</span><span class="mi">3</span><span class="o">-</span><span class="mf">9e7</span><span class="n">ee19bb4e5</span><span class="o">&gt;</span> <span class="ow">in</span> <span class="o">&lt;</span><span class="n">module</span><span class="o">&gt;</span>
 <span class="g g-Whitespace">     </span><span class="mi">89</span>                   <span class="n">reload_support</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="g g-Whitespace">     </span><span class="mi">90</span> 
 <span class="ne">---&gt; </span><span class="mi">91</span> <span class="n">umist_solver_run</span> <span class="o">=</span> <span class="n">pyximport</span><span class="o">.</span><span class="n">load_module</span><span class="p">(</span><span class="s2">&quot;umist_solver_run&quot;</span><span class="p">,</span>
 <span class="g g-Whitespace">     </span><span class="mi">92</span>                             <span class="s2">&quot;umist_solver_run.pyx&quot;</span><span class="p">,</span>
 <span class="g g-Whitespace">     </span><span class="mi">93</span>                             <span class="n">build_inplace</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span> <span class="n">pyxbuild_dir</span> <span class="o">=</span> <span class="s2">&quot;_dengo_temp&quot;</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">94</span> <span class="n">rv</span><span class="p">,</span> <span class="n">rv_int</span> <span class="o">=</span> <span class="n">umist_solver_run</span><span class="o">.</span><span class="n">run_umist</span><span class="p">(</span><span class="n">init_values</span><span class="p">,</span> <span class="mf">1e2</span><span class="p">,</span> <span class="n">niter</span> <span class="o">=</span> <span class="mf">1e1</span><span class="p">)</span>
-<span class="g g-Whitespace">     </span><span class="mi">96</span> <span class="kn">import</span> <span class="nn">pylab</span>
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:231,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">228</span> <span class="n">exc</span> <span class="o">=</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;Building module </span><span class="si">%s</span><span class="s2"> failed: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">229</span>     <span class="n">name</span><span class="p">,</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exception_only</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">])))</span>
-<span class="g g-Whitespace">    </span><span class="mi">230</span> <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">231</span>     <span class="k">raise</span> <span class="n">exc</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">232</span> <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">233</span>     <span class="n">exec</span><span class="p">(</span><span class="s2">&quot;raise exc, None, tb&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;exc&#39;</span><span class="p">:</span> <span class="n">exc</span><span class="p">,</span> <span class="s1">&#39;tb&#39;</span><span class="p">:</span> <span class="n">tb</span><span class="p">})</span>
+<span class="nn">~/anaconda3/lib/python3.8/site-packages/pyximport/pyximport.py</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
+<span class="g g-Whitespace">    </span><span class="mi">229</span>                 <span class="n">name</span><span class="p">,</span> <span class="n">traceback</span><span class="o">.</span><span class="n">format_exception_only</span><span class="p">(</span><span class="o">*</span><span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()[:</span><span class="mi">2</span><span class="p">])))</span>
+<span class="g g-Whitespace">    </span><span class="mi">230</span>             <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+<span class="ne">--&gt; </span><span class="mi">231</span>                 <span class="k">raise</span> <span class="n">exc</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">tb</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">232</span>             <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">233</span>                 <span class="n">exec</span><span class="p">(</span><span class="s2">&quot;raise exc, None, tb&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;exc&#39;</span><span class="p">:</span> <span class="n">exc</span><span class="p">,</span> <span class="s1">&#39;tb&#39;</span><span class="p">:</span> <span class="n">tb</span><span class="p">})</span>
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:214,</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
-<span class="g g-Whitespace">    </span><span class="mi">212</span>     <span class="k">else</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">213</span>         <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
-<span class="ne">--&gt; </span><span class="mi">214</span>     <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">215</span>                            <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">216</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">so_path</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">217</span> <span class="k">if</span> <span class="n">is_package</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;__path__&#39;</span><span class="p">):</span>
+<span class="nn">~/anaconda3/lib/python3.8/site-packages/pyximport/pyximport.py</span> in <span class="ni">load_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, is_package, build_inplace, language_level, so_path)</span>
+<span class="g g-Whitespace">    </span><span class="mi">212</span>             <span class="k">else</span><span class="p">:</span>
+<span class="g g-Whitespace">    </span><span class="mi">213</span>                 <span class="n">module_name</span> <span class="o">=</span> <span class="n">name</span>
+<span class="ne">--&gt; </span><span class="mi">214</span>             <span class="n">so_path</span> <span class="o">=</span> <span class="n">build_module</span><span class="p">(</span><span class="n">module_name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="p">,</span>
+<span class="g g-Whitespace">    </span><span class="mi">215</span>                                    <span class="n">inplace</span><span class="o">=</span><span class="n">build_inplace</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="n">language_level</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">216</span>         <span class="n">mod</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">so_path</span><span class="p">)</span>
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyximport.py:186,</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
-<span class="g g-Whitespace">    </span><span class="mi">183</span> <span class="n">build_in_temp</span> <span class="o">=</span> <span class="n">sargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;build_in_temp&#39;</span><span class="p">,</span><span class="n">build_in_temp</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">185</span> <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">pyxbuild</span>
-<span class="ne">--&gt; </span><span class="mi">186</span> <span class="n">so_path</span> <span class="o">=</span> <span class="n">pyxbuild</span><span class="o">.</span><span class="n">pyx_to_dll</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">,</span> <span class="n">extension_mod</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">187</span>                               <span class="n">build_in_temp</span><span class="o">=</span><span class="n">build_in_temp</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">188</span>                               <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="n">pyxbuild_dir</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">189</span>                               <span class="n">setup_args</span><span class="o">=</span><span class="n">sargs</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">190</span>                               <span class="n">inplace</span><span class="o">=</span><span class="n">inplace</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">191</span>                               <span class="n">reload_support</span><span class="o">=</span><span class="n">pyxargs</span><span class="o">.</span><span class="n">reload_support</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">192</span> <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">so_path</span><span class="p">),</span> <span class="s2">&quot;Cannot find: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">so_path</span>
-<span class="g g-Whitespace">    </span><span class="mi">194</span> <span class="n">junkpath</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">so_path</span><span class="p">),</span> <span class="n">name</span><span class="o">+</span><span class="s2">&quot;_*&quot;</span><span class="p">)</span> <span class="c1">#very dangerous with --inplace ? yes, indeed, trying to eat my files ;)</span>
+<span class="nn">~/anaconda3/lib/python3.8/site-packages/pyximport/pyximport.py</span> in <span class="ni">build_module</span><span class="nt">(name, pyxfilename, pyxbuild_dir, inplace, language_level)</span>
+<span class="g g-Whitespace">    </span><span class="mi">174</span> 
+<span class="g g-Whitespace">    </span><span class="mi">175</span> <span class="k">def</span> <span class="nf">build_module</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">,</span> <span class="n">pyxbuild_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">language_level</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="ne">--&gt; </span><span class="mi">176</span>     <span class="k">assert</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">),</span> <span class="s2">&quot;Path does not exist: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">pyxfilename</span>
+<span class="g g-Whitespace">    </span><span class="mi">177</span>     <span class="n">handle_dependencies</span><span class="p">(</span><span class="n">pyxfilename</span><span class="p">)</span>
+<span class="g g-Whitespace">    </span><span class="mi">178</span> 
 
-<span class="nn">File ~/.local/lib/python3.8/site-packages/pyximport/pyxbuild.py:102,</span> in <span class="ni">pyx_to_dll</span><span class="nt">(filename, ext, force_rebuild, build_in_temp, pyxbuild_dir, setup_args, reload_support, inplace)</span>
-<span class="g g-Whitespace">    </span><span class="mi">100</span> <span class="k">try</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">101</span>     <span class="n">obj_build_ext</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">get_command_obj</span><span class="p">(</span><span class="s2">&quot;build_ext&quot;</span><span class="p">)</span>
-<span class="ne">--&gt; </span><span class="mi">102</span>     <span class="n">dist</span><span class="o">.</span><span class="n">run_commands</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">103</span>     <span class="n">so_path</span> <span class="o">=</span> <span class="n">obj_build_ext</span><span class="o">.</span><span class="n">get_outputs</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-<span class="g g-Whitespace">    </span><span class="mi">104</span>     <span class="k">if</span> <span class="n">obj_build_ext</span><span class="o">.</span><span class="n">inplace</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">105</span>         <span class="c1"># Python distutils get_outputs()[ returns a wrong so_path</span>
-<span class="g g-Whitespace">    </span><span class="mi">106</span>         <span class="c1"># when --inplace ; see http://bugs.python.org/issue5977</span>
-<span class="g g-Whitespace">    </span><span class="mi">107</span>         <span class="c1"># workaround:</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:968,</span> in <span class="ni">Distribution.run_commands</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">963</span> <span class="sd">&quot;&quot;&quot;Run each command that was seen on the setup script command line.</span>
-<span class="g g-Whitespace">    </span><span class="mi">964</span><span class="sd"> Uses the list of commands found and cache of command objects</span>
-<span class="g g-Whitespace">    </span><span class="mi">965</span><span class="sd"> created by &#39;get_command_obj()&#39;.</span>
-<span class="g g-Whitespace">    </span><span class="mi">966</span><span class="sd"> &quot;&quot;&quot;</span>
-<span class="g g-Whitespace">    </span><span class="mi">967</span> <span class="k">for</span> <span class="n">cmd</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">commands</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">968</span>     <span class="bp">self</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="n">cmd</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/dist.py:1217,</span> in <span class="ni">Distribution.run_command</span><span class="nt">(self, command)</span>
-<span class="g g-Whitespace">   </span><span class="mi">1213</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_defaults</span><span class="p">()</span>
-<span class="g g-Whitespace">   </span><span class="mi">1214</span> <span class="c1"># Postpone defaults until all explicit configuration is considered</span>
-<span class="g g-Whitespace">   </span><span class="mi">1215</span> <span class="c1"># (setup() args, config files, command line and plugins)</span>
-<span class="ne">-&gt; </span><span class="mi">1217</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">run_command</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/dist.py:987,</span> in <span class="ni">Distribution.run_command</span><span class="nt">(self, command)</span>
-<span class="g g-Whitespace">    </span><span class="mi">985</span> <span class="n">cmd_obj</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_command_obj</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">986</span> <span class="n">cmd_obj</span><span class="o">.</span><span class="n">ensure_finalized</span><span class="p">()</span>
-<span class="ne">--&gt; </span><span class="mi">987</span> <span class="n">cmd_obj</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">988</span> <span class="bp">self</span><span class="o">.</span><span class="n">have_run</span><span class="p">[</span><span class="n">command</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:186,</span> in <span class="ni">old_build_ext.run</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">182</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">cython_gdb</span> <span class="ow">or</span> <span class="p">[</span><span class="mi">1</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span>
-<span class="g g-Whitespace">    </span><span class="mi">183</span>                              <span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span> <span class="s1">&#39;cython_gdb&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)]:</span>
-<span class="g g-Whitespace">    </span><span class="mi">184</span>     <span class="n">optimization</span><span class="o">.</span><span class="n">disable_optimization</span><span class="p">()</span>
-<span class="ne">--&gt; </span><span class="mi">186</span> <span class="n">_build_ext</span><span class="o">.</span><span class="n">build_ext</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:339,</span> in <span class="ni">build_ext.run</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">336</span>     <span class="bp">self</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">set_link_objects</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">link_objects</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">338</span> <span class="c1"># Now actually compile and link everything.</span>
-<span class="ne">--&gt; </span><span class="mi">339</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_extensions</span><span class="p">()</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/Cython/Distutils/old_build_ext.py:195,</span> in <span class="ni">old_build_ext.build_extensions</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">193</span>     <span class="n">ext</span><span class="o">.</span><span class="n">sources</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cython_sources</span><span class="p">(</span><span class="n">ext</span><span class="o">.</span><span class="n">sources</span><span class="p">,</span> <span class="n">ext</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">194</span> <span class="c1"># Call original build_extensions</span>
-<span class="ne">--&gt; </span><span class="mi">195</span> <span class="n">_build_ext</span><span class="o">.</span><span class="n">build_ext</span><span class="o">.</span><span class="n">build_extensions</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:459,</span> in <span class="ni">build_ext.build_extensions</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">457</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_build_extensions_parallel</span><span class="p">()</span>
-<span class="g g-Whitespace">    </span><span class="mi">458</span> <span class="k">else</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">459</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_build_extensions_serial</span><span class="p">()</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:485,</span> in <span class="ni">build_ext._build_extensions_serial</span><span class="nt">(self)</span>
-<span class="g g-Whitespace">    </span><span class="mi">483</span> <span class="k">for</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">extensions</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">484</span>     <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">_filter_build_errors</span><span class="p">(</span><span class="n">ext</span><span class="p">):</span>
-<span class="ne">--&gt; </span><span class="mi">485</span>         <span class="bp">self</span><span class="o">.</span><span class="n">build_extension</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/command/build_ext.py:540,</span> in <span class="ni">build_ext.build_extension</span><span class="nt">(self, ext)</span>
-<span class="g g-Whitespace">    </span><span class="mi">537</span> <span class="k">for</span> <span class="n">undef</span> <span class="ow">in</span> <span class="n">ext</span><span class="o">.</span><span class="n">undef_macros</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">538</span>     <span class="n">macros</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">undef</span><span class="p">,))</span>
-<span class="ne">--&gt; </span><span class="mi">540</span> <span class="n">objects</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compiler</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span>
-<span class="g g-Whitespace">    </span><span class="mi">541</span>     <span class="n">sources</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">542</span>     <span class="n">output_dir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">build_temp</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">543</span>     <span class="n">macros</span><span class="o">=</span><span class="n">macros</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">544</span>     <span class="n">include_dirs</span><span class="o">=</span><span class="n">ext</span><span class="o">.</span><span class="n">include_dirs</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">545</span>     <span class="n">debug</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">debug</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">546</span>     <span class="n">extra_postargs</span><span class="o">=</span><span class="n">extra_args</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">547</span>     <span class="n">depends</span><span class="o">=</span><span class="n">ext</span><span class="o">.</span><span class="n">depends</span><span class="p">,</span>
-<span class="g g-Whitespace">    </span><span class="mi">548</span> <span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">550</span> <span class="c1"># XXX outdated variable, kept here in case third-part code</span>
-<span class="g g-Whitespace">    </span><span class="mi">551</span> <span class="c1"># needs it.</span>
-<span class="g g-Whitespace">    </span><span class="mi">552</span> <span class="bp">self</span><span class="o">.</span><span class="n">_built_objects</span> <span class="o">=</span> <span class="n">objects</span><span class="p">[:]</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/ccompiler.py:591,</span> in <span class="ni">CCompiler.compile</span><span class="nt">(self, sources, output_dir, macros, include_dirs, debug, extra_preargs, extra_postargs, depends)</span>
-<span class="g g-Whitespace">    </span><span class="mi">589</span>     <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-<span class="g g-Whitespace">    </span><span class="mi">590</span>         <span class="k">continue</span>
-<span class="ne">--&gt; </span><span class="mi">591</span>     <span class="bp">self</span><span class="o">.</span><span class="n">_compile</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">src</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">cc_args</span><span class="p">,</span> <span class="n">extra_postargs</span><span class="p">,</span> <span class="n">pp_opts</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">593</span> <span class="c1"># Return *all* object filenames, not just the ones we just built.</span>
-<span class="g g-Whitespace">    </span><span class="mi">594</span> <span class="k">return</span> <span class="n">objects</span>
-
-<span class="nn">File ~/.local/lib/python3.8/site-packages/setuptools/_distutils/unixccompiler.py:180,</span> in <span class="ni">UnixCCompiler._compile</span><span class="nt">(self, obj, src, ext, cc_args, extra_postargs, pp_opts)</span>
-<span class="g g-Whitespace">    </span><span class="mi">178</span>     <span class="bp">self</span><span class="o">.</span><span class="n">spawn</span><span class="p">(</span><span class="n">compiler_so</span> <span class="o">+</span> <span class="n">cc_args</span> <span class="o">+</span> <span class="p">[</span><span class="n">src</span><span class="p">,</span> <span class="s1">&#39;-o&#39;</span><span class="p">,</span> <span class="n">obj</span><span class="p">]</span> <span class="o">+</span> <span class="n">extra_postargs</span><span class="p">)</span>
-<span class="g g-Whitespace">    </span><span class="mi">179</span> <span class="k">except</span> <span class="n">DistutilsExecError</span> <span class="k">as</span> <span class="n">msg</span><span class="p">:</span>
-<span class="ne">--&gt; </span><span class="mi">180</span>     <span class="k">raise</span> <span class="n">CompileError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
-
-<span class="ne">ImportError</span>: Building module umist_solver_run failed: [&quot;distutils.errors.CompileError: command &#39;/usr/bin/x86_64-linux-gnu-gcc&#39; failed with exit code 1\n&quot;]
+<span class="ne">ImportError</span>: Building module umist_solver_run failed: [&#39;AssertionError: Path does not exist: umist_solver_run.pyx\n&#39;]
 </pre></div>
 </div>
 </div>
