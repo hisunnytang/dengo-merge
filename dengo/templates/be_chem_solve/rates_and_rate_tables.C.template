@@ -1064,7 +1064,7 @@ void setting_up_extra_variables( {{solver_name}}_data * data, double * input, in
     {%- if "gloverabel08" in network.cooling_actions %}
     for ( i = 0; i < nstrip; i++ ){
         mdensity = data->mdensity[threadID][i];
-        data->h2_optical_depth_approx[threadID][i] = fmin( 1.0, pow( (mdensity / (1.34e-14) )  , -0.45) );
+        data->h2_optical_depth_approx[threadID][i] = fmin( 1.0, pow( 0.76*(mdensity / (1.336e-14) )  , -0.45) );
     }
     {%- endif %}
 }
@@ -1229,7 +1229,7 @@ int reshape_to_dengo_field_data_enzo( code_units* units, dengo_field_data *field
         {%- endfor-%}
 
 	    {%- for species in network.equilibrium_species | sort %}
-        {{species.name}} = {{species.name}}_arr[i];
+        {{species.name}} = {{species.name}}_arr[i] * {{species.weight}};
         {%- endfor %}
 
         // calculate totalH and totalHe
@@ -1504,17 +1504,6 @@ int {{solver_name}}_calculate_cooling_timescale( double *cooling_time, double *i
     int nchem = {{network.ode_species | length}};
     /* Now we set up some temporaries */
     // make sure the input are in number density
-    {%- if not network.input_is_number %}
-    for (i = 0; i < nstrip; i++) {
-        j = i * nchem;
-        {%- for species in network.ode_species | sort %}
-        {%- if species.name != "ge" %}
-        input[j] /= {{species.weight}}; // {{species.name}}
-        {%- endif%}
-        j++;
-        {%- endfor%}
-    }
-    {%- endif %}
 
     // calculate temperature and cooling rate
     setting_up_extra_variables(data, input, nstrip );
@@ -1960,7 +1949,7 @@ int dengo_calculate_gamma( double* gamma_eff, {{solver_name}}_data *data, double
         ndensity = 0;
         j = i * nchem;
         {%- for sp in network.ode_species | sort %}
-        {{sp.name}} = input[j] / {{sp.weight}};
+        //{{sp.name}} = input[j] / {{sp.weight}};
         {%- if sp != network.energy_term %}
         ndensity += {{sp.name}};
         {%- endif %}

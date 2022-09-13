@@ -55,9 +55,9 @@ def setup_primordial_network():
     primordial.add_reaction("k17")
     primordial.add_reaction("k18")
     primordial.add_reaction("k19")
-    primordial.add_reaction("k21")
+    #primordial.add_reaction("k21")
     primordial.add_reaction("k22")
-    primordial.add_reaction("k23")
+    #primordial.add_reaction("k23")
 
     primordial.add_cooling("brem")
     primordial.add_cooling("reHII")
@@ -71,10 +71,10 @@ def setup_primordial_network():
     primordial.add_cooling("ceHeII")
     primordial.add_cooling("ciHI")
     primordial.add_cooling("ceHeI")
-    primordial.add_cooling("gammah")
     primordial.add_cooling("ciHeI")
     primordial.add_cooling("ciHeII")
     primordial.add_cooling("cie_cooling")
+    primordial.add_cooling("compton")
     # This defines the temperature range for the rate tables
     primordial.init_temperature((1e0, 1e8))
 
