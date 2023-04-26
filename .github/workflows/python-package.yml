@@ -25,6 +25,8 @@ jobs:
         run: |
           conda install -c conda-forge "sundials>=6.2"
           conda install ChiantiPy Cython h5py Jinja2 numpy setuptools sympy matplotlib pytest unyt pip -c conda-forge
+          pip uninstall h5py
+          pip install h5py
           pip install -e .
           sudo apt-get update
           sudo apt-get install -y libtool libtool-bin build-essential
