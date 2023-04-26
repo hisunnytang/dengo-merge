@@ -473,7 +473,7 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
 
 def run_dengo_freefall(
         update_options,
-        final_density = 1.0e16
+        final_density = 1.0e12
     ):
     solver_options = {
         "output_dir": "temp_freefall",
@@ -567,7 +567,7 @@ def run_dengo_freefall(
             new_init, network, pressure_array, density_array, safety_factor=1.0e-2
         )
         tic = time.time()
-        rv, rv_int = chemistry_run.run_test_freefall(
+        rv, rv_int = eval(f"chemistry_run.run_{solver_name}")(
             init, dt, niter=1, intermediate=1, verbose=False
         )
         toc = time.time()
