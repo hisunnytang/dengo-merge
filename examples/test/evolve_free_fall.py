@@ -702,15 +702,15 @@ if __name__ == "__main__":
     args = parser.parse_args()
     use_cvode=False
     use_suitesparse=False
-    if args.solver.startswith('cvode'):
-        use_cvode == True
+    if args.solver != 'bechem':
+        use_cvode = True
     if args.solver.endswith('_klu'):
         use_suitesparse=True
 
     solver_options = {
         "output_dir": args.output_dir,
         "solver_name": args.name,
-        "use_omp": False,
+        "use_omp": True,
         "use_cvode": use_cvode,
         "use_suitesparse": use_suitesparse,
         "niters": 1,
