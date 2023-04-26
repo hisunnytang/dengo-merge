@@ -471,7 +471,10 @@ def convert_from_grackle_to_dengo_all(grackle_dict):
     return dengo_dict
 
 
-def run_dengo_freefall(update_options):
+def run_dengo_freefall(
+        update_options,
+        final_density = 1.0e16
+    ):
     solver_options = {
         "output_dir": "temp_freefall",
         "solver_name": "test_freefall",
@@ -510,7 +513,7 @@ def run_dengo_freefall(update_options):
     )
 
     total_t = 0.0
-    final_density = 1.0e12 * 1.00794
+    final_density *= 1.00794
     density_array = numpy.array([init_values["density"]])
     pressure_array = numpy.array([])
     ttt = []
@@ -547,7 +550,7 @@ def run_dengo_freefall(update_options):
 
     new_init["de"] = network.calculate_free_electrons(new_init)
     new_init["ge"] = calculate_energy(new_init, network)
-    rv, rv_int = chemistry_run.run_test_freefall(new_init, 1e-4, niter=1e0)
+    rv, rv_int = eval(f"chemistry_run.run_{solver_name}")(new_init, 1e-4, niter=1e0)
     count = 0
     time0 = time.time()
     while current_density < final_density:
@@ -687,7 +690,32 @@ def compare_dengo_grackle(solver_dir):
         ones, dengo_results["T"][1:] / grackle_results["T"], decimal=1
     )
 
-
+import argparse
 if __name__ == "__main__":
-    run_dengo_freefall()
-    compare_dengo_grackle()
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-o", "--output_dir", default="temp_freefall", type=str)
+    parser.add_argument("-n", "--name", default="test_freefall", type=str)
+    parser.add_argument("-s", "--solver", default="bechem", type=str, choices=['bechem','cvode_dls', 'cvode_klu'])
+    parser.add_argument('-f', '--final_density', default=1e12, type=float)
+
+    args = parser.parse_args()
+    use_cvode=False
+    use_suitesparse=False
+    if args.solver.startswith('cvode'):
+        use_cvode == True
+    if args.solver.endswith('_klu'):
+        use_suitesparse=True
+
+    solver_options = {
+        "output_dir": args.output_dir,
+        "solver_name": args.name,
+        "use_omp": False,
+        "use_cvode": use_cvode,
+        "use_suitesparse": use_suitesparse,
+        "niters": 1,
+        "NCELLS": 1,
+        "reltol": 1e-5,
+    }
+    run_dengo_freefall(solver_options, final_density= args.final_density)
+    compare_dengo_grackle(args.output_dir)
